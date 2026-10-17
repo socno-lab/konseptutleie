@@ -98,3 +98,15 @@
 .decor-options .addon-choices{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:640px){.decor-options .addon-choices{grid-template-columns:1fr}}
 
 .illustration-note{display:grid;gap:3px;margin:10px 0 14px;padding:10px 12px;border-left:3px solid var(--olive);background:#e9ebdf;color:var(--ink);font-size:12px;line-height:1.55}.illustration-note strong{font-size:12px;font-weight:600}.illustration-note[hidden]{display:none}#products .illustration-note{font-size:12px}
+
+/* Share the vertical tracks within each product row so notices and rates align. */
+@supports (grid-template-rows:subgrid){
+ #products>article{display:grid;grid-template-rows:subgrid;grid-row:span 7;row-gap:0;align-content:normal}
+ #products>article>.product-art{grid-row:1;align-self:start}
+ #products>article>.product-meta{grid-row:2;align-items:flex-start}
+ #products>article>.stock-note{grid-row:3;min-height:0}
+ #products>article>.illustration-note{grid-row:4;align-self:stretch;margin:12px 0 0}
+ #products>article>.rate-grid,#products>article>.quote-only{grid-row:5;margin-top:18px;align-self:start}
+ #products>article>.rate-caption{grid-row:6;margin:8px 0 0}
+ #products>article>.module-build-button{grid-row:7;margin:18px 0 0;align-self:end}
+}
