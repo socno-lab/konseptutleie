@@ -11,7 +11,7 @@ viewer.addEventListener('click',event=>{if(event.target===viewer)viewer.close();
 viewer.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();step(event.key==='ArrowRight'?1:-1);}});
 viewer.addEventListener('close',()=>{photo.removeAttribute('src');});
 document.addEventListener('click',event=>{
- const trigger=event.target.closest('[data-zoom], [data-product-photo]');if(!trigger)return;
+ const trigger=event.target.closest('[data-zoom]');if(!trigger)return;
  const src=trigger.dataset.productPhoto||trigger.querySelector('img')?.getAttribute('src')||trigger.dataset.zoom;if(!src)return;
  const group=trigger.closest('#productImages, #detailContent, #wallCoverPreview')||trigger;
  const seen=new Set();photos=[...group.querySelectorAll('[data-zoom], [data-product-photo]')].map(button=>({src:button.dataset.productPhoto||button.dataset.zoom,alt:button.querySelector('img')?.alt||group.querySelector('h2')?.textContent||'Produktbilde'})).filter(item=>item.src&&!seen.has(item.src)&&seen.add(item.src));
