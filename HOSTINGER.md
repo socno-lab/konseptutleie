@@ -27,7 +27,7 @@ Ved domenebytte oppdateres APP_ORIGIN. Hostinger setter PORT. Hemmeligheter skal
 2. Eieren skriver selv engangsnøkkel og e-post og velger passord på 12–128 tegn.
 3. Opprett administrator. Nøkkelen virker bare før første administrator er opprettet og kan deretter fjernes fra miljøvariablene.
 
-Passord hashes med scrypt. HttpOnly/SameSite-cookies, åtte timers sesjoner, begrensede innloggingsforsøk og origin-kontroll beskytter administrasjonen. Sites-identitetsheadere gir ingen tilgang. Denne versjonen har én administratorkonto uten selvbetjent passordtilbakestilling.
+Passord hashes med scrypt. HttpOnly/SameSite-cookies, åtte timers sesjoner, begrensede innloggingsforsøk og origin-kontroll beskytter administrasjonen. Sites-identitetsheadere gir ingen tilgang. Denne versjonen har én administratorkonto. En aktiv sesjon kan vise registrert e-post og sette nytt passord under Konto og innlogging. Andre sesjoner avsluttes. Hvis alle sesjoner er utløpt og passordet er tapt, må eieren gjenopprette tilgang via driftsmiljøet.
 
 ## Lagring og backup
 

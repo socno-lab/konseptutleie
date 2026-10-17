@@ -47,3 +47,24 @@ test('Product validation rejects invalid walls and preserves ordinary products w
  const wall=valid.find(isWall);const changed=structuredClone(valid);changed.find(p=>p.id===wall.id).wallFrames=[{x:90,y:0,width:30,height:10}];assert.throws(()=>validateCatalog(changed),/Rammene/);
  assert.equal(presetFrames('quad').length,4);assert.equal(imageMime(Buffer.from('<html>not an image</html>')),null);
 });
+
+test('Account lookup and password change require a session, revoke old sessions and preserve catalog',async()=>{
+ const store=await memoryStore(),key=randomBytes(24).toString('base64url'),password=randomBytes(18).toString('base64url'),nextPassword=randomBytes(18).toString('base64url'),origin='http://admin.example.invalid';
+ const server=createServer({store,setupKey:key,origin,secureCookies:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+ const request=(url,body,cookie='',method='POST',source=origin)=>fetch(base+url,{method,headers:{Origin:source,'Content-Type':'application/json',cookie},body:JSON.stringify(body)});
+ try{
+  const before=await store.readCatalog();assert.equal((await fetch(base+'/api/admin/account')).status,401);assert.equal((await request('/api/admin/password',{password:nextPassword,confirmation:nextPassword},'','PUT')).status,401);
+  const setup=await request('/api/admin/setup',{key,email:'Owner@example.invalid',password});const first=setup.headers.get('set-cookie').split(';')[0];
+  const login=await request('/api/admin/login',{email:'owner@example.invalid',password});const second=login.headers.get('set-cookie').split(';')[0];
+  assert.deepEqual(await (await fetch(base+'/api/admin/account',{headers:{cookie:first}})).json(),{email:'owner@example.invalid'});
+  assert.equal((await request('/api/admin/password',{password:nextPassword,confirmation:nextPassword},first,'PUT','https://foreign.invalid')).status,403);
+  assert.equal((await request('/api/admin/password',{password:nextPassword,confirmation:'different'},first,'PUT')).status,400);
+  assert.equal((await request('/api/admin/password',{password:'short',confirmation:'short'},first,'PUT')).status,400);
+  const changed=await request('/api/admin/password',{password:nextPassword,confirmation:nextPassword},first,'PUT');assert.equal(changed.status,200);const fresh=changed.headers.get('set-cookie').split(';')[0];assert.notEqual(fresh,first);
+  for(const cookie of [first,second])assert.equal((await fetch(base+'/api/admin/account',{headers:{cookie}})).status,401);
+  assert.equal((await fetch(base+'/api/admin/account',{headers:{cookie:fresh}})).status,200);
+  assert.equal((await request('/api/admin/login',{email:'owner@example.invalid',password})).status,401);
+  assert.equal((await request('/api/admin/login',{email:'OWNER@example.invalid',password:nextPassword})).status,200);
+  assert.deepEqual(await store.readCatalog(),before);
+ }finally{await new Promise(r=>server.close(r));}
+});

@@ -38,3 +38,7 @@ Forsiden og velgeren over katalogen støtter Boligsalg, Messe, Event og Vis alle
 I admin velges flere bruksområder per produkt, pakke eller bildeveggoppsett. Ingen avkrysninger betyr kun Vis alle. Eksisterende kjente produkter får en første kategorisering via stabile ID-er; manuelt lagrede valg, også tomme valg, går alltid foran standarden. Nye ukjente produkter må vurderes i admin. Lager, bilder, priser og arkivering endres ikke av denne migreringen.
 
 Første vurdering: stylingsenger, sengeoppredning og de eikefargede spisebordene med duk er Boligsalg; ståbord og barkrakker er Messe/Event; utemoduler er Boligsalg/Event. Innendørs sittemøbler, bord, dekor, planter og bildevegger kan brukes i alle tre. De 11 eldre arkiverte enkeltproduktene uten tydelig vurdert tilhørighet har ingen bruksområder og må vurderes før eventuell aktivering. Alle tre eksisterende ferdigpakker er arkivert; de må gjennomgås og aktiveres av eier før de vises for kunder. Ingen pakker eller priser er opprettet for denne funksjonen.
+
+## Konto og innlogging
+
+En aktiv innlogging kan åpne Konto og innlogging for å se kontoens e-postadresse og sette nytt passord. Endringen avslutter alle andre sesjoner atomisk og gir den aktive nettleseren en ny sesjon. Katalog og bilder endres ikke. Passordendringen krever en gyldig sesjon og korrekt origin. Passord legges aldri i URL, logger eller GitHub.

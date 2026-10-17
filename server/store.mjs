@@ -26,6 +26,10 @@ export function createMysqlStore(env,seed){
   async saveCatalog(revision,products){const updatedAt=new Date();const [r]=await query('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1 AND revision=?',[JSON.stringify(products),updatedAt,revision]);return r.affectedRows?{revision:revision+1,products,updatedAt}:null;},
   async admin(){const [[r]]=await query('SELECT email,password_hash AS passwordHash FROM ku_admin WHERE id=1');return r||null;},
   async createAdmin(email,passwordHash){const [r]=await query('INSERT IGNORE INTO ku_admin (id,email,password_hash) VALUES (1,?,?)',[email,passwordHash]);return r.affectedRows===1;},
+  async changePassword(sessionHash,passwordHash){
+   await init();const connection=await pool.getConnection();
+   try{await connection.beginTransaction();await connection.execute('SELECT id FROM ku_admin WHERE id=1 FOR UPDATE');const [[session]]=await connection.execute('SELECT token_hash FROM ku_sessions WHERE token_hash=? AND expires_at>?',[sessionHash,Date.now()]);if(!session){await connection.rollback();return false;}await connection.execute('UPDATE ku_admin SET password_hash=? WHERE id=1',[passwordHash]);await connection.execute('DELETE FROM ku_sessions');await connection.commit();return true;}catch(error){await connection.rollback();throw error;}finally{connection.release();}
+  },
   async session(hash){const [[r]]=await query('SELECT expires_at AS expiresAt FROM ku_sessions WHERE token_hash=? AND expires_at>?',[hash,Date.now()]);return r||null;},
   async addSession(hash,expiresAt){await query('DELETE FROM ku_sessions WHERE expires_at<?',[Date.now()]);await query('INSERT INTO ku_sessions(token_hash,expires_at) VALUES (?,?)',[hash,expiresAt]);},
   async removeSession(hash){await query('DELETE FROM ku_sessions WHERE token_hash=?',[hash]);},
