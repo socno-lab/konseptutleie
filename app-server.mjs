@@ -26,11 +26,14 @@ export function createServer(options={}){
  const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session':'konsept_session';
  let images;
  const server=http.createServer(async(req,res)=>{
-  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','Cache-Control':'no-store',...headers});res.end(req.method==='HEAD'?undefined:body);};
+  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...headers});res.end(req.method==='HEAD'?undefined:body);};
   const out=(status,data,headers)=>send(status,JSON.stringify(data),'application/json; charset=utf-8',headers);
   const redirect=location=>send(302,'','text/plain',{Location:location});
   const authenticated=async()=>{const token=sessionToken(req,cookieName);return token.length===43&&!!(await store.session(digest(token)));};
   try{
+   // Keep the custom domain unpublished during the temporary-domain preview.
+   const hosts=[req.headers.host,req.headers['x-forwarded-host']].flatMap(value=>String(value||'').split(',')).map(value=>value.trim().toLowerCase().replace(/:\d+$/,'').replace(/\.$/,''));
+   if(hosts.some(host=>['konseptboligstyling.com','www.konseptboligstyling.com'].includes(host)))return send(404,'<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ikke publisert</title></head><body><main><h1>Nettsiden er ikke publisert.</h1></main></body></html>','text/html; charset=utf-8');
    const url=new URL(req.url,'http://localhost');let pathname;try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
    const admin=pathname==='/admin'||pathname.startsWith('/admin/')||pathname==='/api/admin'||pathname.startsWith('/api/admin/');
    if(admin){
