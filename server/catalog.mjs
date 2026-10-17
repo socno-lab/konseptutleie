@@ -1,3 +1,4 @@
+import {validateDeletedAt} from './product-lifecycle.mjs';
 import {validatePurposes,productPurposes} from '../public/purpose-model.js';
 import {validateWall} from './walls.mjs';
 export function validateCatalog(input) { if (!Array.isArray(input) || input.length < 1 || input.length > 500)
@@ -39,15 +40,15 @@ export function validateCatalog(input) { if (!Array.isArray(input) || input.leng
     const used = new Set();
     components = raw.components.map((c) => { if (!c || typeof c.id !== 'string' || used.has(c.id) || !Number.isInteger(c.quantity) || c.quantity < 1 || c.quantity > 9999)
         throw new Error('Ugyldig pakkeinnhold.'); used.add(c.id); return { id: c.id, quantity: c.quantity }; });
-} return { purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, components }; }); for (const p of output)
+} return { deletedAt:validateDeletedAt(raw), purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, components }; }); for (const p of output)
     for (const c of p.components || []) {
         const item = output.find(x => x.id === c.id);
-        if (!item || item.isPackage || item.id === p.id)
+        if (!item || item.isPackage || item.id === p.id || (!p.deletedAt && item.deletedAt))
             throw new Error('Pakker kan bare inneholde eksisterende enkeltobjekter.');
     } for (const p of output)
     for (const id of p.relatedPackages || [])
-        if (id === p.id || !output.some(x => x.id === id && x.isPackage))
+        if (id === p.id || !output.some(x => x.id === id && x.isPackage && (p.deletedAt || !x.deletedAt)))
             throw new Error('Anbefalinger må vise til eksisterende pakker.'); for (const p of output)
     for (const id of p.relatedAddOns || [])
-        if (id === p.id || !output.some(x => x.id === id && !x.isPackage))
+        if (id === p.id || !output.some(x => x.id === id && !x.isPackage && (p.deletedAt || !x.deletedAt)))
             throw new Error('Tilvalg må vise til eksisterende enkeltobjekter.'); return output; }

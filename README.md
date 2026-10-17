@@ -42,3 +42,9 @@ Første vurdering: stylingsenger, sengeoppredning og de eikefargede spisebordene
 ## Konto og innlogging
 
 En aktiv innlogging kan åpne Konto og innlogging for å se kontoens e-postadresse og sette nytt passord. Endringen avslutter alle andre sesjoner atomisk og gir den aktive nettleseren en ny sesjon. Katalog og bilder endres ikke. Passordendringen krever en gyldig sesjon og korrekt origin. Passord legges aldri i URL, logger eller GitHub.
+
+Tilvalg i admin velges med søkbare avkrysningsbokser. «Valgte tilvalg» vises separat, med Fjern-knapper og varsel for skjulte produkter. Valgene beholdes ved søk og publiseres først ved lagring. «Fast innhold i pakken» viser hva som alltid følger med. Anbefalte ferdigpakker har en egen avkrysningsliste.
+
+## Papirkurv
+
+«Slett produkt» flytter oppføringen til papirkurven og fjerner den fra nettsiden. Slettingen kan angres; ID, bilder og produktdata beholdes. Produkter som brukes av andre oppføringer kan ikke slettes før koblingene er fjernet. Serveren håndhever dette og revisjonskontroll. Gjenoppretting viser ikke produktet automatisk: eier må aktivere det. Bildene beholdes i bildebiblioteket. «Vis på nettsiden» er fortsatt en separat synlighetsinnstilling.
