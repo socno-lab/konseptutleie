@@ -52,3 +52,5 @@ Tilvalg i admin velges med søkbare avkrysningsbokser. «Valgte tilvalg» vises 
 Ferdigpakker har egen Pakker-fane i administrasjonen. Produkter viser enkeltprodukter og moduler; Bildevegger viser bildeveggoppsett. Opprett ny pakke direkte fra Pakker med «+ Ny pakke». Skjulte pakker beholdes i pakkeoversikten med tydelig status.
 
 Bildebiblioteket støtter sletting til papirkurv og gjenoppretting. Bildekoblinger vises med klikkbare produktnavn; bilder i bruk kan ikke flyttes til papirkurven. Bildefilene beholdes ved denne reversible slettingen, også for medfølgende bilder i GitHub. Produktbilder i admin og kundens produktdialog kan åpnes i stor visning med bla-knapper, piltaster og Escape.
+
+Under Produkter i admin finnes kategorifiltre med antall per kategori. De kombineres med søk og inkluderer også skjulte produkter. Kategorivalget huskes i samme nettleserøkt. Nytt produkt opprettes med valgt kategori. Pakker og bildeveggoppsett beholdes i egne faner.
