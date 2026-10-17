@@ -1,4 +1,4 @@
-export function productDependencies(products,id){return products.filter(p=>!p.deletedAt&&p.id!==id).flatMap(p=>{const kinds=[];if(p.components?.some(c=>c.id===id))kinds.push('fast innhold i pakken');if(p.relatedAddOns?.includes(id))kinds.push('valgfritt tilvalg');if(p.relatedPackages?.includes(id))kinds.push('anbefalt pakke');return kinds.length?[{id:p.id,name:p.name,uses:kinds.join(', ')}]:[];});}
+export function productDependencies(products,id){return products.filter(p=>!p.deletedAt&&p.id!==id).flatMap(p=>{const kinds=[];if(p.requiredProductId===id)kinds.push('kreves av tilvalget');if(p.components?.some(c=>c.id===id))kinds.push('fast innhold i pakken');if(p.relatedAddOns?.includes(id))kinds.push('valgfritt tilvalg');if(p.relatedPackages?.includes(id))kinds.push('anbefalt pakke');return kinds.length?[{id:p.id,name:p.name,uses:kinds.join(', ')}]:[];});}
 export function changeProductLifecycle(products,id,action){
  const p=products.find(p=>p.id===id);const fail=(message,status=409)=>{throw Object.assign(Error(message),{status});};if(!p)fail('Produktet finnes ikke.',404);
  if(action==='trash'){
@@ -8,7 +8,7 @@ export function changeProductLifecycle(products,id,action){
  }
  if(action==='restore'){
   if(!p.deletedAt)fail('Produktet ligger ikke i papirkurven.');
-  const ids=[...(p.components||[]).map(c=>c.id),...(p.relatedAddOns||[]),...(p.relatedPackages||[])],missing=ids.map(id=>products.find(x=>x.id===id)).filter(x=>!x||x.deletedAt);if(missing.length)fail('Gjenopprett først produktene som denne oppføringen er koblet til: '+missing.map(x=>x?.name||'ukjent produkt').join(', '));
+  const ids=[...(p.requiredProductId?[p.requiredProductId]:[]),...(p.components||[]).map(c=>c.id),...(p.relatedAddOns||[]),...(p.relatedPackages||[])],missing=ids.map(id=>products.find(x=>x.id===id)).filter(x=>!x||x.deletedAt);if(missing.length)fail('Gjenopprett først produktene som denne oppføringen er koblet til: '+missing.map(x=>x?.name||'ukjent produkt').join(', '));
   return products.map(x=>x.id===id?{...x,active:false,deletedAt:''}:x);
  }
  fail('Ugyldig handling.',400);
