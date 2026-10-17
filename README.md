@@ -1,12 +1,10 @@
 # Konsept Utleie
 
-Nettside for møbelutleie med katalog, størrelsesvalg, modulsofaer, tekstiltilvalg, bildevegg og forespørselskurv.
+Møbelutleie med katalog, størrelsesvalg, modulsofaer, tekstiltilvalg, bildevegg og forespørselskurv. Eksportert fra Sites v59 og tilpasset Node.js-drift på Hostinger.
 
-Eksportert fra Sites-versjon 59, 17. oktober 2026. Design, frontend, produktbilder og 54 katalogoppføringer følger med. Intern Sites-/connector-infrastruktur er utelatt. Den eksisterende Sites-nettsiden er ikke endret.
+## Kjør
 
-## Kjør lokalt eller på Node.js-hosting
-
-Node.js >=22.13.0. Ingen eksterne runtime-avhengigheter.
+Node.js 22.13 eller nyere.
 
 ```sh
 npm ci
@@ -15,22 +13,20 @@ npm test
 npm start
 ```
 
-Serveren lytter på `PORT` fra hostingmiljøet, ellers port 3000. `npm run build` kontrollerer katalogen og lokale bildelenker; løsningen trenger ikke kompilering.
+Serveren bruker PORT fra hostingmiljøet, ellers 3000. Se [HOSTINGER.md](HOSTINGER.md) for oppsett.
 
-## Status før lansering
+## Administrasjon
 
-**Node-serveren viser katalogen fra eksportfilen. Administratorlagring er ikke aktivert.** `/admin` og `/api/admin/*` svarer 503. Innloggingsheadere gir ikke administratortilgang. Den nåværende katalogen lastes fra `data/catalog-export-2026-10-17.json` ved oppstart og kan ikke endres via nettstedet.
+Åpne `/admin`. Produkter, beholdning, priser, bildevalg, opplastede bildefiler og innlogging lagres i MySQL. Katalogen importeres én gang. Deploy overskriver ikke adminendringer.
 
-Forespørsler kan lastes ned som tekstfil. De sendes ikke på e-post, og nettsiden tar ikke betaling eller reserverer datoer. Prisene er foreløpige eksempelpriser. Eksisterende informasjon om prøveversjonen er beholdt.
+- **Produkter:** nye produkter starter som vanlige enkeltprodukter. Velg modul eller pakke bare når relevant. Hovedbilde og opptil 12 galleribilder kan velges, byttes og sorteres.
+- **Bildevegger:** hvert oppsett har egen pris og skisse. Samme bildevegggruppe samler oppsettene i én velger. Opprett flere oppsett og rediger rammenes plassering. Felles forsidebilde følger gruppen. Fjern «Vis på nettsiden» for å skjule et oppsett.
+- **Bildebibliotek:** medfølgende og opplastede bilder, filnavn og hvilke produkter som bruker dem. JPG, PNG, WebP eller AVIF, maks 8 MB. Fjerning fra produktet beholder filen i biblioteket.
 
-Se [HOSTINGER.md](HOSTINGER.md) for oppsett og gjenstående arbeid. Domenet bør ikke lanseres til kunder før administrasjon, forespørselshåndtering og priser er avklart.
+Lagre produktet for å publisere. Revisjonskontroll beskytter samtidige endringer. Katalognedlasting inneholder produktdata og bildeadresser; selve bildene sikkerhetskopieres via databasen.
 
-## Innhold
+Uten database er eksportkatalogen skrivebeskyttet. Konfigurert database som ikke svarer gir feilmelding, uten å vise utdaterte eksportdata som gjeldende lager.
 
-- `public/`: frontend og produktbilder.
-- `server.mjs`: Node HTTP-server med skrivebeskyttet katalog-API.
-- `data/catalog-export-2026-10-17.json`: 54 oppføringer, inkludert arkiverte produkter og beholdning.
-- `checks/`: tester for priser, beholdning, moduler, tilvalg og Node-serveren. Historiske testprodukter ligger i `checks/fixtures/`.
-- `reference/sites/`: forretningskode og administratorgrensesnitt fra Sites til støtte for videre migrering. Dette er referansekode; den lastes ikke av Node-serveren.
+Forespørsler lastes fortsatt ned som tekstfil. E-post, betaling og datoreservasjoner er ikke implementert. Prisene er foreløpige eksempelpriser.
 
-Ingen passord, GitHub-tokens eller miljøfiler er inkludert. Administratoradresser er fjernet fra offentlig kode. Se [SOURCE.md](SOURCE.md).
+`public/` inneholder frontend og bilder, `server/` database, innlogging og validering, `app-server.mjs` HTTP-ruter og `server.mjs` oppstartspunkt. `reference/sites/` er historisk forretningskode som ikke kjøres. Ingen passord, tokens eller miljøfiler skal i GitHub.

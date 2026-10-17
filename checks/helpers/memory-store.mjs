@@ -1,0 +1,8 @@
+import {readFile} from 'node:fs/promises';
+import {randomBytes} from 'node:crypto';
+import {migrateProducts} from '../../server/walls.mjs';
+export async function memoryStore(){
+ const seed=JSON.parse(await readFile(new URL('../../data/catalog-export-2026-10-17.json',import.meta.url),'utf8'));let catalog={...seed,products:migrateProducts(seed.products),updatedAt:new Date().toISOString()},admin=null;
+ const sessions=new Map(),attempts=new Map(),media=new Map();
+ return {enabled:true,async admin(){return admin;},async createAdmin(email,passwordHash){if(admin)return false;admin={email,passwordHash};return true;},async readCatalog(){return structuredClone(catalog);},async saveCatalog(revision,products){if(revision!==catalog.revision)return null;catalog={revision:revision+1,products:structuredClone(products),updatedAt:new Date().toISOString()};return structuredClone(catalog);},async session(hash){const expiresAt=sessions.get(hash);return expiresAt>Date.now()?{expiresAt}:null;},async addSession(hash,expiresAt){sessions.set(hash,expiresAt);},async removeSession(hash){sessions.delete(hash);},async attempt(bucket){attempts.set(bucket,(attempts.get(bucket)||0)+1);return attempts.get(bucket)<=10;},async resetAttempts(bucket){attempts.delete(bucket);},async mediaList(){return [...media.values()].map(({body,...m})=>m);},async media(id){return media.get(id)||null;},async addMedia(name,mime,body){const id=randomBytes(16).toString('hex'),m={id,name,mime,bytes:body.length,body,url:'/media/'+id,source:'upload'};media.set(id,m);return {...m,body:undefined};}};
+}

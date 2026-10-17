@@ -1,0 +1,38 @@
+import mysql from 'mysql2/promise';
+import {randomBytes,createHash} from 'node:crypto';
+import {migrateProducts} from './walls.mjs';
+
+export function createMysqlStore(env,seed){
+ const enabled=!!(env.DB_HOST&&env.DB_USER&&env.DB_NAME&&env.DB_PASSWORD);
+ const pool=enabled?mysql.createPool({host:env.DB_HOST,port:Number(env.DB_PORT||3306),user:env.DB_USER,password:env.DB_PASSWORD,database:env.DB_NAME,connectionLimit:5,connectTimeout:8000,charset:'utf8mb4',timezone:'Z',ssl:env.DB_SSL==='true'?{rejectUnauthorized:true}:undefined}):null;
+ let ready;
+ async function init(){
+  if(!enabled)throw Error('Database er ikke konfigurert.');
+  if(!ready)ready=(async()=>{
+   for(const sql of [
+    'CREATE TABLE IF NOT EXISTS ku_catalog (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL, updated_at DATETIME(3) NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_admin (id INT PRIMARY KEY, email VARCHAR(254) NOT NULL, password_hash VARCHAR(255) NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_sessions (token_hash CHAR(64) PRIMARY KEY, expires_at BIGINT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_login_limits (bucket CHAR(64) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)'
+   ])await pool.query(sql);
+   await pool.execute('INSERT IGNORE INTO ku_catalog (id,revision,body,updated_at) VALUES (1,?,?,?)',[Math.max(1,seed.revision||1),JSON.stringify(migrateProducts(seed.products)),new Date()]);
+  })().catch(error=>{ready=null;throw error;});
+  return ready;
+ }
+ async function query(sql,args=[]){await init();return pool.execute(sql,args);}
+ return {enabled,init,async close(){if(pool)await pool.end();},
+  async readCatalog(){const [[r]]=await query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1');return {revision:r.revision,products:migrateProducts(JSON.parse(r.body)),updatedAt:r.updated_at};},
+  async saveCatalog(revision,products){const updatedAt=new Date();const [r]=await query('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1 AND revision=?',[JSON.stringify(products),updatedAt,revision]);return r.affectedRows?{revision:revision+1,products,updatedAt}:null;},
+  async admin(){const [[r]]=await query('SELECT email,password_hash AS passwordHash FROM ku_admin WHERE id=1');return r||null;},
+  async createAdmin(email,passwordHash){const [r]=await query('INSERT IGNORE INTO ku_admin (id,email,password_hash) VALUES (1,?,?)',[email,passwordHash]);return r.affectedRows===1;},
+  async session(hash){const [[r]]=await query('SELECT expires_at AS expiresAt FROM ku_sessions WHERE token_hash=? AND expires_at>?',[hash,Date.now()]);return r||null;},
+  async addSession(hash,expiresAt){await query('DELETE FROM ku_sessions WHERE expires_at<?',[Date.now()]);await query('INSERT INTO ku_sessions(token_hash,expires_at) VALUES (?,?)',[hash,expiresAt]);},
+  async removeSession(hash){await query('DELETE FROM ku_sessions WHERE token_hash=?',[hash]);},
+  async attempt(bucket){const now=Date.now(),until=now+15*60*1000;await query('INSERT INTO ku_login_limits(bucket,attempts,reset_at) VALUES (?,1,?) ON DUPLICATE KEY UPDATE attempts=IF(reset_at<?,1,attempts+1),reset_at=IF(reset_at<?,VALUES(reset_at),reset_at)',[bucket,until,now,now]);const [[r]]=await query('SELECT attempts FROM ku_login_limits WHERE bucket=?',[bucket]);return r.attempts<=10;},
+  async resetAttempts(bucket){await query('DELETE FROM ku_login_limits WHERE bucket=?',[bucket]);},
+  async mediaList(){const [r]=await query('SELECT id,name,mime,bytes,created_at AS createdAt FROM ku_media ORDER BY created_at DESC LIMIT 2000');return r.map(x=>({...x,url:'/media/'+x.id,source:'upload'}));},
+  async media(id){const [[r]]=await query('SELECT mime,body FROM ku_media WHERE id=?',[id]);return r||null;},
+  async addMedia(name,mime,body){const digest=createHash('sha256').update(body).digest('hex'),id=randomBytes(16).toString('hex');await query('INSERT IGNORE INTO ku_media(id,digest,name,mime,bytes,body,created_at) VALUES (?,?,?,?,?,?,?)',[id,digest,name,mime,body.length,body,new Date()]);const [[r]]=await query('SELECT id,name,mime,bytes,created_at AS createdAt FROM ku_media WHERE digest=?',[digest]);return {...r,url:'/media/'+r.id,source:'upload'};}
+ };
+}

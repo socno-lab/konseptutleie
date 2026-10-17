@@ -1,29 +1,38 @@
 # Hostinger
 
-## Anbefalt abonnement
+## GitHub-deploy
 
-Velg Business med Node.js Web Apps, eller en annen plan som uttrykkelig inkluderer Node.js og GitHub-deploy. Dette prosjektet bruker Node, ikke WordPress eller PHP. Veiledning: https://www.hostinger.com/support/how-to-deploy-a-nodejs-website-in-hostinger/
+Repository `socno-lab/konseptutleie`, gren `main`, framework Other, Node 22.x, prosjektrot `./`, build `npm run build`, entry `server.mjs`. Ingen statisk output-mappe. Inngangsfilen må starte serveren også når Hostinger importerer den.
 
-## Oppsett for forhåndsvisning
+## Miljøvariabler
 
-- Repository: `socno-lab/konseptutleie`
-- Gren: `export/site-v59`
-- Prosjektrot: repositoryets rot
-- Runtime: Node.js 22.13 eller nyere
-- Installer: `npm ci`
-- Bygg: `npm run build`
-- Start: `npm start`
-- Port: serveren bruker miljøvariabelen `PORT` som hostingmiljøet setter
-- Serverbasert app; ingen statisk output-mappe kreves av denne implementasjonen
+I Hostinger → Environment variables, aktiver med Apply changes:
 
-Denne eksporten er testet lokalt. Den er ikke testet eller satt opp i en Hostinger-konto. Kontroller at hostingoppsettet støtter en egendefinert Node-server før abonnement/deploy.
+| Variabel | Innhold |
+| --- | --- |
+| DB_HOST | Databasevert, normalt localhost på dette webhotellet |
+| DB_NAME | Fullt databasenavn |
+| DB_USER | Fullt brukernavn, med korrekt store/små bokstaver |
+| DB_PASSWORD | Databasepassord |
+| ADMIN_SETUP_KEY | Tilfeldig engangsnøkkel, minst 24 tegn |
+| APP_ORIGIN | Valgfri eksakt HTTPS-adresse uten avsluttende skråstrek. Standard https://blueviolet-ant-597153.hostingersite.com |
+| DB_PORT | Valgfri, standard 3306 |
+| DB_SSL | true hvis databasen krever TLS med gyldig sertifikat |
 
-## Gjenstår før selvstendig drift
+Ved domenebytte oppdateres APP_ORIGIN. Hostinger setter PORT. Hemmeligheter skal aldri i GitHub, nettadresser eller chat.
 
-1. Legg katalogen i en varig database, for eksempel MySQL, og importer `data/catalog-export-2026-10-17.json`. Behold ID-er og revisjonskontroll.
-2. Implementer servervalidert administratorinnlogging, sikre sesjoner og origin-/CSRF-kontroll før administrasjon aktiveres. Ikke stol på Sites-identitetsheadere på en direkte eksponert server.
-3. Tilpass administratorens API til den nye databasen. Forretningsregler og tidligere API finnes i `reference/sites/`.
-4. Konfigurer e-post eller annen mottaksløsning dersom forespørsler skal sendes til virksomheten. I dag lastes de bare ned.
-5. Kontroller endelige priser, vilkår, tilgjengelighetsrutiner, domene og HTTPS. Ta databasebackup og test at adminendringer overlever omstart og deploy.
+## Første administrator
 
-Hemmelige verdier legges i hostingmiljøets variabler, aldri i GitHub. Den publiserte Sites-versjonen beholdes til migreringen er godkjent.
+1. Åpne `/admin` etter deploy.
+2. Eieren skriver selv engangsnøkkel og e-post og velger passord på 12–128 tegn.
+3. Opprett administrator. Nøkkelen virker bare før første administrator er opprettet og kan deretter fjernes fra miljøvariablene.
+
+Passord hashes med scrypt. HttpOnly/SameSite-cookies, åtte timers sesjoner, begrensede innloggingsforsøk og origin-kontroll beskytter administrasjonen. Sites-identitetsheadere gir ingen tilgang. Denne versjonen har én administratorkonto uten selvbetjent passordtilbakestilling.
+
+## Lagring og backup
+
+Tabellene med prefiks `ku_` opprettes automatisk ved første databaseforespørsel. Eksporten importeres bare når katalogen mangler. Produkt-ID-er beholdes. Nye bilder lagres i databasen og overlever deploy sammen med produktendringer.
+
+Ta regelmessig backup av hele MySQL-databasen, inkludert `ku_media`. Katalognedlasting fra admin inkluderer ikke selve bildefilene. Kontroller lagring etter omstart/deploy før kundelansering.
+
+Avklar endelige priser, vilkår, tilgjengelighet og mottak av forespørsler. Forespørsler lastes foreløpig ned som tekstfil og sendes ikke via e-post.
