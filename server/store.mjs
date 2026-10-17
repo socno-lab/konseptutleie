@@ -14,6 +14,7 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_admin (id INT PRIMARY KEY, email VARCHAR(254) NOT NULL, password_hash VARCHAR(255) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_sessions (token_hash CHAR(64) PRIMARY KEY, expires_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_login_limits (bucket CHAR(64) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_media_purged (url VARCHAR(500) PRIMARY KEY)',
     'CREATE TABLE IF NOT EXISTS ku_media_state (url VARCHAR(500) PRIMARY KEY, deleted_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)'
    ])await pool.query(sql);
@@ -22,9 +23,20 @@ export function createMysqlStore(env,seed){
   return ready;
  }
  async function query(sql,args=[]){await init();return pool.execute(sql,args);}
+ async function mutateCatalog(revision,products,urls){
+  await init();const connection=await pool.getConnection(),updatedAt=new Date();
+  try{await connection.beginTransaction();const [[current]]=await connection.execute('SELECT revision FROM ku_catalog WHERE id=1 FOR UPDATE');if(current.revision!==revision){await connection.rollback();return null;}
+   const [purged]=await connection.execute('SELECT url FROM ku_media_purged');const unavailable=new Set([...purged.map(row=>row.url),...urls]);
+   if(products.some(p=>[p.image,p.wallCover,...(p.gallery||[])].some(url=>unavailable.has(url))))throw Object.assign(Error('Et bilde er slettet permanent. Velg et annet bilde og lagre på nytt.'),{status:409});
+   for(const url of urls){const [[trash]]=await connection.execute('SELECT url FROM ku_media_state WHERE url=? FOR UPDATE',[url]);if(!trash)throw Object.assign(Error('Papirkurven er endret. Last inn på nytt.'),{status:409});await connection.execute('INSERT IGNORE INTO ku_media_purged(url) VALUES (?)',[url]);if(/^\/media\/[a-f0-9]{32}$/.test(url))await connection.execute('DELETE FROM ku_media WHERE id=?',[url.slice(7)]);await connection.execute('DELETE FROM ku_media_state WHERE url=?',[url]);}
+   await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(products),updatedAt]);await connection.commit();return {revision:revision+1,products,updatedAt};
+  }catch(error){await connection.rollback();throw error;}finally{connection.release();}
+ }
  return {enabled,init,async close(){if(pool)await pool.end();},
   async readCatalog(){const [[r]]=await query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1');return {revision:r.revision,products:migrateProducts(JSON.parse(r.body)),updatedAt:r.updated_at};},
-  async saveCatalog(revision,products){const updatedAt=new Date();const [r]=await query('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1 AND revision=?',[JSON.stringify(products),updatedAt,revision]);return r.affectedRows?{revision:revision+1,products,updatedAt}:null;},
+  async saveCatalog(revision,products){return mutateCatalog(revision,products,[]);},
+  async purgeTrash(revision,products,urls){return mutateCatalog(revision,products,urls);},
+  async purgedMedia(){const [rows]=await query('SELECT url FROM ku_media_purged');return rows.map(row=>row.url);},
   async admin(){const [[r]]=await query('SELECT email,password_hash AS passwordHash FROM ku_admin WHERE id=1');return r||null;},
   async createAdmin(email,passwordHash){const [r]=await query('INSERT IGNORE INTO ku_admin (id,email,password_hash) VALUES (1,?,?)',[email,passwordHash]);return r.affectedRows===1;},
   async changePassword(sessionHash,passwordHash){

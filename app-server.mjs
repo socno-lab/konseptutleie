@@ -1,3 +1,4 @@
+import {planTrashPurge} from './server/trash-purge.mjs';
 import {changeProductLifecycle} from './server/product-lifecycle.mjs';
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
@@ -68,6 +69,9 @@ export function createServer(options={}){
      const data=await json(req,5000);if(typeof data.password!=='string'||data.password.length<12||data.password.length>128||data.password!==data.confirmation)return out(400,{error:'Passordene må være like og ha 12–128 tegn.'});
      const token=sessionToken(req,cookieName);const changed=await store.changePassword(digest(token),await hashPassword(data.password));if(!changed)return out(401,{error:'Innloggingen er utløpt. Logg inn på nytt.'});return out(200,{ok:true},{'Set-Cookie':await issueSession(store,cookieName,secure)});
     }
+    if(pathname==='/api/admin/trash/purge'&&req.method==='POST'){
+     const input=await json(req,400000),current=await store.readCatalog();if(input.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});images??=staticImages(publicRoot);const trash=await store.mediaTrashState(),purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)).map(m=>({...m,deletedAt:trash[m.url]||''}));const plan=planTrashPurge(current,all,input),products=validateCatalog(plan.products),saved=await store.purgeTrash(current.revision,products,plan.mediaUrls);return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});
+    }
     const lifecycle=pathname.match(/^\/api\/admin\/products\/([a-z0-9_-]+)\/(trash|restore)$/);
     if(lifecycle&&req.method==='POST'){const data=await json(req,5000),current=await store.readCatalog();if(data.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});const products=validateCatalog(changeProductLifecycle(current.products,lifecycle[1],lifecycle[2]));const saved=await store.saveCatalog(current.revision,products);return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});}
     if(pathname==='/api/admin/catalog'){
@@ -75,11 +79,11 @@ export function createServer(options={}){
      if(req.method==='PUT'){const data=await json(req);if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');const products=validateCatalog(data.products);const result=await store.saveCatalog(data.revision,products);return result?out(200,result):out(409,{error:'Katalogen er endret av en annen administrator. Last inn på nytt før du lagrer.'});}
     }
     if(['/api/admin/media/trash','/api/admin/media/restore'].includes(pathname)&&req.method==='POST'){
-     const input=await json(req,5000);if(typeof input.url!=='string'||input.url.length>500)return out(400,{error:'Ugyldig bildelenke.'});images??=staticImages(publicRoot);const all=[...(await store.mediaList()),...(await images)],image=all.find(m=>m.url===input.url);if(!image)return out(404,{error:'Bildet finnes ikke.'});
+     const input=await json(req,5000);if(typeof input.url!=='string'||input.url.length>500)return out(400,{error:'Ugyldig bildelenke.'});images??=staticImages(publicRoot);const purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)),image=all.find(m=>m.url===input.url);if(!image)return out(404,{error:'Bildet finnes ikke.'});
      if(pathname.endsWith('/trash')){const catalog=await store.readCatalog(),uses=mediaUsage(image,catalog.products);if(uses.length)return out(409,{error:'Bildet brukes av '+uses.map(p=>p.name+(p.deletedAt?' (i papirkurven)':'')).join(', ')+'. Fjern bildet fra produktene først.'});await store.trashMedia(image.url);}else await store.restoreMedia(image.url);return out(200,{ok:true});
     }
     if(pathname==='/api/admin/media'){
-     if(req.method==='GET'){images??=staticImages(publicRoot);const data=await store.readCatalog();const all=[...(await store.mediaList()),...(await images)],trash=await store.mediaTrashState();return out(200,{images:all.map(image=>({...image,deletedAt:trash[image.url]||'',usedBy:mediaUsage(image,data.products)}))});}
+     if(req.method==='GET'){images??=staticImages(publicRoot);const data=await store.readCatalog();const all=[...(await store.mediaList()),...(await images)],trash=await store.mediaTrashState(),purged=await store.purgedMedia();return out(200,{images:all.filter(m=>!purged.includes(m.url)).map(image=>({...image,deletedAt:trash[image.url]||'',usedBy:mediaUsage(image,data.products)}))});}
      if(req.method==='POST'){
       const body=await bytes(req,8*1024*1024),mime=imageMime(body);if(!mime)throw error('Velg JPG, PNG, WebP eller AVIF. SVG og andre filtyper støttes ikke.',415);
       let name;try{name=decodeURIComponent(req.headers['x-filename']||'bilde');}catch{name='bilde';}name=name.replace(/[\x00-\x1f/\\]/g,'').slice(0,180)||'bilde';
@@ -90,6 +94,7 @@ export function createServer(options={}){
    }
    if(!['GET','HEAD'].includes(req.method))return send(405,'Metoden støttes ikke.');
    if(pathname==='/api/catalog'){const data=store.enabled?await store.readCatalog():seed;return out(200,{...publicCatalog(data),canAdmin:store.enabled&&await authenticated()});}
+   if(store.enabled&&(pathname.startsWith('/assets/')||pathname.startsWith('/media/'))&&(await store.purgedMedia()).some(url=>decodeURIComponent(url)===pathname))return send(404,'Fant ikke bildet.');
    const media=pathname.match(/^\/media\/([a-f0-9]{32})$/);if(media){if(!store.enabled)return send(404,'Fant ikke bildet.');const image=await store.media(media[1]);return image?send(200,image.body,image.mime,{'Cache-Control':'public, max-age=31536000, immutable'}):send(404,'Fant ikke bildet.');}
    if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return send(404,'Fant ikke siden.');
    const target=path.resolve(publicRoot,'.'+(pathname==='/'?'/index.html':pathname));if(!target.startsWith(publicRoot+path.sep))return send(404,'Fant ikke siden.');

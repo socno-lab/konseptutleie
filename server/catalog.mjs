@@ -1,8 +1,8 @@
 import {validateDeletedAt} from './product-lifecycle.mjs';
 import {validatePurposes,productPurposes} from '../public/purpose-model.js';
 import {validateWall} from './walls.mjs';
-export function validateCatalog(input) { if (!Array.isArray(input) || input.length < 1 || input.length > 500)
-    throw new Error('Katalogen må ha 1–500 objekter.'); const ids = new Set(); const output = input.map((raw) => { if (!raw || typeof raw !== 'object')
+export function validateCatalog(input) { if (!Array.isArray(input) || input.length > 500)
+    throw new Error('Katalogen må ha 0–500 objekter.'); const ids = new Set(); const output = input.map((raw) => { if (!raw || typeof raw !== 'object')
     throw new Error('Ugyldig objekt.'); const str = (key, max, required = false) => { const value = raw[key]; if (typeof value !== 'string' || value.length > max || (required && !value.trim()))
     throw new Error(`Ugyldig felt: ${key}`); return value.trim(); }; const id = str('id', 80, true); if (!/^[a-z0-9_-]+$/.test(id) || ids.has(id))
     throw new Error('Objekt-ID må være unik.'); ids.add(id); if (typeof raw.active !== 'boolean' || typeof raw.isPackage !== 'boolean')
