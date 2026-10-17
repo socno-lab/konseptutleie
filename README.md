@@ -48,3 +48,7 @@ Tilvalg i admin velges med søkbare avkrysningsbokser. «Valgte tilvalg» vises 
 ## Papirkurv
 
 «Slett produkt» flytter oppføringen til papirkurven og fjerner den fra nettsiden. Slettingen kan angres; ID, bilder og produktdata beholdes. Produkter som brukes av andre oppføringer kan ikke slettes før koblingene er fjernet. Serveren håndhever dette og revisjonskontroll. Gjenoppretting viser ikke produktet automatisk: eier må aktivere det. Bildene beholdes i bildebiblioteket. «Vis på nettsiden» er fortsatt en separat synlighetsinnstilling.
+
+Ferdigpakker har egen Pakker-fane i administrasjonen. Produkter viser enkeltprodukter og moduler; Bildevegger viser bildeveggoppsett. Opprett ny pakke direkte fra Pakker med «+ Ny pakke». Skjulte pakker beholdes i pakkeoversikten med tydelig status.
+
+Bildebiblioteket støtter sletting til papirkurv og gjenoppretting. Bildekoblinger vises med klikkbare produktnavn; bilder i bruk kan ikke flyttes til papirkurven. Bildefilene beholdes ved denne reversible slettingen, også for medfølgende bilder i GitHub. Produktbilder i admin og kundens produktdialog kan åpnes i stor visning med bla-knapper, piltaster og Escape.

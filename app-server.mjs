@@ -74,12 +74,16 @@ export function createServer(options={}){
      if(req.method==='GET')return out(200,await store.readCatalog());
      if(req.method==='PUT'){const data=await json(req);if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');const products=validateCatalog(data.products);const result=await store.saveCatalog(data.revision,products);return result?out(200,result):out(409,{error:'Katalogen er endret av en annen administrator. Last inn på nytt før du lagrer.'});}
     }
+    if(['/api/admin/media/trash','/api/admin/media/restore'].includes(pathname)&&req.method==='POST'){
+     const input=await json(req,5000);if(typeof input.url!=='string'||input.url.length>500)return out(400,{error:'Ugyldig bildelenke.'});images??=staticImages(publicRoot);const all=[...(await store.mediaList()),...(await images)],image=all.find(m=>m.url===input.url);if(!image)return out(404,{error:'Bildet finnes ikke.'});
+     if(pathname.endsWith('/trash')){const catalog=await store.readCatalog(),uses=mediaUsage(image,catalog.products);if(uses.length)return out(409,{error:'Bildet brukes av '+uses.map(p=>p.name+(p.deletedAt?' (i papirkurven)':'')).join(', ')+'. Fjern bildet fra produktene først.'});await store.trashMedia(image.url);}else await store.restoreMedia(image.url);return out(200,{ok:true});
+    }
     if(pathname==='/api/admin/media'){
-     if(req.method==='GET'){images??=staticImages(publicRoot);const data=await store.readCatalog();const all=[...(await store.mediaList()),...(await images)];return out(200,{images:all.map(image=>({...image,usedBy:mediaUsage(image,data.products)}))});}
+     if(req.method==='GET'){images??=staticImages(publicRoot);const data=await store.readCatalog();const all=[...(await store.mediaList()),...(await images)],trash=await store.mediaTrashState();return out(200,{images:all.map(image=>({...image,deletedAt:trash[image.url]||'',usedBy:mediaUsage(image,data.products)}))});}
      if(req.method==='POST'){
       const body=await bytes(req,8*1024*1024),mime=imageMime(body);if(!mime)throw error('Velg JPG, PNG, WebP eller AVIF. SVG og andre filtyper støttes ikke.',415);
       let name;try{name=decodeURIComponent(req.headers['x-filename']||'bilde');}catch{name='bilde';}name=name.replace(/[\x00-\x1f/\\]/g,'').slice(0,180)||'bilde';
-      return out(201,await store.addMedia(name,mime,body));
+      const saved=await store.addMedia(name,mime,body);await store.restoreMedia(saved.url);return out(201,saved);
      }
     }
     if(pathname.startsWith('/api/admin/'))return out(405,{error:'Metoden eller adressen støttes ikke.'});

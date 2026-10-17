@@ -14,6 +14,7 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_admin (id INT PRIMARY KEY, email VARCHAR(254) NOT NULL, password_hash VARCHAR(255) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_sessions (token_hash CHAR(64) PRIMARY KEY, expires_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_login_limits (bucket CHAR(64) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_media_state (url VARCHAR(500) PRIMARY KEY, deleted_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)'
    ])await pool.query(sql);
    await pool.execute('INSERT IGNORE INTO ku_catalog (id,revision,body,updated_at) VALUES (1,?,?,?)',[Math.max(1,seed.revision||1),JSON.stringify(migrateProducts(seed.products)),new Date()]);
@@ -35,6 +36,9 @@ export function createMysqlStore(env,seed){
   async removeSession(hash){await query('DELETE FROM ku_sessions WHERE token_hash=?',[hash]);},
   async attempt(bucket){const now=Date.now(),until=now+15*60*1000;await query('INSERT INTO ku_login_limits(bucket,attempts,reset_at) VALUES (?,1,?) ON DUPLICATE KEY UPDATE attempts=IF(reset_at<?,1,attempts+1),reset_at=IF(reset_at<?,VALUES(reset_at),reset_at)',[bucket,until,now,now]);const [[r]]=await query('SELECT attempts FROM ku_login_limits WHERE bucket=?',[bucket]);return r.attempts<=10;},
   async resetAttempts(bucket){await query('DELETE FROM ku_login_limits WHERE bucket=?',[bucket]);},
+  async mediaTrashState(){const [rows]=await query('SELECT url,deleted_at FROM ku_media_state');return Object.fromEntries(rows.map(row=>[row.url,row.deleted_at]));},
+  async trashMedia(url){await query('INSERT INTO ku_media_state(url,deleted_at) VALUES (?,?) ON DUPLICATE KEY UPDATE deleted_at=VALUES(deleted_at)',[url,new Date()]);},
+  async restoreMedia(url){await query('DELETE FROM ku_media_state WHERE url=?',[url]);},
   async mediaList(){const [r]=await query('SELECT id,name,mime,bytes,created_at AS createdAt FROM ku_media ORDER BY created_at DESC LIMIT 2000');return r.map(x=>({...x,url:'/media/'+x.id,source:'upload'}));},
   async media(id){const [[r]]=await query('SELECT mime,body FROM ku_media WHERE id=?',[id]);return r||null;},
   async addMedia(name,mime,body){const digest=createHash('sha256').update(body).digest('hex'),id=randomBytes(16).toString('hex');await query('INSERT IGNORE INTO ku_media(id,digest,name,mime,bytes,body,created_at) VALUES (?,?,?,?,?,?,?)',[id,digest,name,mime,body.length,body,new Date()]);const [[r]]=await query('SELECT id,name,mime,bytes,created_at AS createdAt FROM ku_media WHERE digest=?',[digest]);return {...r,url:'/media/'+r.id,source:'upload'};}
