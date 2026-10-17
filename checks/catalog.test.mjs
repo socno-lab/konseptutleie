@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {remaining,normalizeBasket,rentalDays,rentalEstimate,ratePlan,planText} from '../public/catalog-model.js';
+const products=JSON.parse(fs.readFileSync(new URL('./fixtures/catalog.json',import.meta.url)));
+assert.equal(remaining('stol',{},products),2);
+assert.equal(remaining('stol',{stol:2},products),0);
+assert.equal(remaining('sofa',{stuepakke:1},products),1);
+assert.equal(remaining('stuepakke',{sofa:2},products),0);
+assert.equal(remaining('stuepakke',{puter:12},products),0);
+assert.deepEqual(normalizeBasket({stol:99,sofa:2,stuepakke:2},products),{sofa:2,stol:2});
+assert.equal(rentalDays('2026-11-01','2026-11-20'),20);
+assert.equal(rentalDays('2026-10-24','2026-10-26'),3);
+assert.equal(rentalDays('2026-11-01','2026-11-01'),1);
+assert.equal(rentalDays('2026-11-02','2026-11-01'),null);
+assert.equal(rentalEstimate({sofa:1,stol:1},products,'2026-11-01','2026-11-20').total,29250);
+const reduced=structuredClone(products);reduced.find(p=>p.id==='stol').unavailable=1;
+assert.equal(remaining('stol',{},reduced),1);
+console.log('Inventory sharing, capacity, date boundaries and 20-day total passed.');
+
+const sofa={price:1500,weekPrice:7500,monthPrice:22500};
+assert.equal(ratePlan(sofa,1).total,1500);
+assert.equal(ratePlan(sofa,6).total,7500);
+assert.equal(ratePlan(sofa,6).saving,1500);
+assert.equal(ratePlan(sofa,6).coveredDays,7);
+assert.equal(planText(ratePlan(sofa,6)),'1 uke');
+assert.equal(ratePlan(sofa,7).total,7500);
+assert.equal(ratePlan(sofa,8).total,9000);
+assert.equal(ratePlan(sofa,30).total,22500);
+assert.equal(ratePlan(sofa,31).total,24000);
+assert.equal(ratePlan({price:100,weekPrice:1000,monthPrice:9000},8).total,800);
+assert.equal(ratePlan({price:1.11,weekPrice:5.55,monthPrice:16.65},6).total,5.55);
+for(let days=1;days<=90;days++){let best=Infinity;for(let months=0;months<=Math.ceil(days/30);months++)for(let weeks=0;weeks<=Math.ceil(days/7);weeks++){const daily=Math.max(0,days-months*30-weeks*7);best=Math.min(best,months*22500+weeks*7500+daily*1500);}assert.equal(ratePlan(sofa,days).total,best);}
+console.log('Weekly/monthly optimization, six-day saving, quantities and decimal prices passed.');

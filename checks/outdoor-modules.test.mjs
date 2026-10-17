@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {modulePreset} from '../public/catalog-model.js';
+import {sofaConfiguration,saveSofa,restoreSofas} from '../public/sofa-model.js';
+const module={id:'beige',moduleSeries:'Venture',moduleRole:'middle',category:'Utemøbler',moduleWidth:0,active:true,stock:20,unavailable:0,price:450,weekPrice:2250,monthPrice:6750};
+const products=[module];const a={id:'one',series:'Venture',selection:modulePreset(products,0,3),textileId:''};
+assert.equal(sofaConfiguration(a,{},products).widthKnown,false);
+assert.equal(sofaConfiguration(a,{},products).price,1350);
+let state=saveSofa([],{},products,a);
+state=saveSofa(state.setups,state.cart,products,{...a,id:'two',selection:{beige:2}});
+assert.equal(state.cart.beige,5);assert.equal(state.setups.length,2);
+assert.equal(saveSofa(state.setups,state.cart,products,{...a,id:'too-many',selection:{beige:16}}),null);
+assert.deepEqual(restoreSofas(state.cart,state.setups,products),state);
+const measured=sofaConfiguration(a,{},[{...module,moduleWidth:75}]);assert.equal(measured.widthKnown,true);assert.equal(measured.width,225);
+console.log('Outdoor middle-only modules: presets, separate configurations, prices, shared stock and optional dimensions passed.');

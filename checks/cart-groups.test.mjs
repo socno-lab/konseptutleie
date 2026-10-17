@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {groupedCart} from '../public/catalog-model.js';
+const products=[{id:'bed',relatedAddOns:['single','double']},{id:'table'},{id:'single'},{id:'double'}];
+const links={double:{parentId:'bed',choices:[{quantity:1,color:'Grønn'}]}};
+const groups=groupedCart({bed:2,table:1,double:1,single:2},products,links);
+assert.deepEqual(groups.map(g=>[g.product.id,g.children.map(p=>p.id)]),[['bed',['single','double']],['table',[]]]);
+assert.deepEqual(groupedCart({table:1,double:1},products,links).map(g=>[g.product.id,g.children.length]),[['table',0],['double',0]]);
+assert.equal(groupedCart({bed:2,double:1},products,{}).length,1);
+const other=[...products,{id:'otherbed',relatedAddOns:['double']}];
+assert.equal(groupedCart({bed:1,otherbed:1,double:1},other,{}).length,3);
+assert.deepEqual(groupedCart({bed:1,otherbed:1,double:1},other,links)[0].children.map(p=>p.id),['double']);
+console.log('Cart add-ons appear below their parent, survive persisted links, and remain visible without a parent.');

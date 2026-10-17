@@ -1,0 +1,8 @@
+import {readFile,access} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.dirname(fileURLToPath(import.meta.url));
+const {products}=JSON.parse(await readFile(path.join(root,'data/catalog-export-2026-10-17.json'),'utf8'));
+for(const p of products)for(const image of [p.image,...(p.gallery||[])].filter(Boolean))if(image.startsWith('/assets/'))await access(path.join(root,'public',image));
+await access(path.join(root,'public/index.html'));
+console.log(`Katalog og bildelenker kontrollert: ${products.length} oppføringer. Node-serveren krever ingen kompilering.`);

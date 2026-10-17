@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {moduleConfiguration,modulePreset,normalizeBasket,rentalEstimate} from '../public/catalog-model.js';
+const products=JSON.parse(fs.readFileSync(new URL('./fixtures/catalog.json',import.meta.url),'utf8'));const modules=products.filter(p=>p.moduleSeries==='Lin · sand');
+const two=moduleConfiguration('Lin · sand',modulePreset(modules,2,0),{},products);assert.equal(two.width,180);assert.equal(two.price,1200);assert.equal(two.valid,true);
+const three=moduleConfiguration('Lin · sand',modulePreset(modules,2,1),{},products);assert.equal(three.width,260);assert.equal(three.price,1650);assert.equal(three.weekPrice,8250);
+const middles=moduleConfiguration('Lin · sand',modulePreset(modules,0,2),{lin_end:2,lin_middle:1},products);assert.equal(middles.width,160);assert.equal(middles.valid,true);assert.equal(middles.base.lin_end,undefined);assert.equal(middles.base.lin_middle,undefined);
+assert.equal(moduleConfiguration('Lin · sand',{lin_end:5},{},products).valid,false);assert.equal(moduleConfiguration('Lin · sand',{}, {},products).valid,false);
+const packaged=[...products,{id:'lin_pack',active:true,isPackage:true,components:[{id:'lin_end',quantity:3}]}];assert.equal(moduleConfiguration('Lin · sand',{lin_end:2},{lin_pack:1},packaged).valid,false);
+const cart=normalizeBasket({...three.base,lin_end:2,lin_middle:1},products);assert.equal(rentalEstimate(cart,products,'2026-11-01','2026-11-06').total,8250);
+assert.deepEqual(modulePreset([{id:'l',moduleRole:'left'},{id:'r',moduleRole:'right'},{id:'m',moduleRole:'middle'}],2,1),{l:1,r:1,m:1});
+console.log('Module combinations, widths, price totals, editing, stock limits and package sharing passed.');

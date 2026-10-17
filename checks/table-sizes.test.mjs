@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {selectionDraft,remaining,rentalEstimate} from '../public/catalog-model.js';
+const products=[110,120].map(size=>({id:'oak'+size,name:'Spisebord, eikefarget, Ø'+size+' cm',active:true,stock:5,unavailable:0,price:450,weekPrice:2250,monthPrice:6750}));
+let cart=selectionDraft({},products,'oak110',5);
+assert.equal(remaining('oak110',cart,products),0);
+assert.equal(remaining('oak120',cart,products),5);
+assert.equal(selectionDraft(cart,products,'oak110',1),null);
+cart=selectionDraft(cart,products,'oak120',2);
+assert.deepEqual(cart,{oak110:5,oak120:2});
+assert.equal(remaining('oak120',cart,products),3);
+console.log('Both table sizes keep independent inventory and separate basket rows.');

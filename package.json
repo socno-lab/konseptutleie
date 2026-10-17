@@ -1,0 +1,15 @@
+{
+  "name": "konseptutleie",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node --test checks/cart-groups.test.mjs checks/catalog.test.mjs checks/modules.test.mjs checks/outdoor-modules.test.mjs checks/quote-only.test.mjs checks/selection.test.mjs checks/sofa-setups.test.mjs checks/table-sizes.test.mjs checks/textile.test.mjs checks/server.test.mjs"
+  }
+}

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {remaining,selectionDraft,normalizeBasket,rentalEstimate,groupedCart} from '../public/catalog-model.js';
+const sofa={id:'sofa',active:true,stock:10,unavailable:0,price:600,weekPrice:3000,monthPrice:9000,relatedAddOns:['textile']};
+const textile={id:'textile',active:true,isService:true,stock:0,unavailable:0,price:400,weekPrice:2000,monthPrice:6000};
+const products=[sofa,textile];
+assert.equal(remaining('textile',{},products),99);
+const basket=selectionDraft({},products,'sofa',2,'textile',1);
+assert.deepEqual(basket,{sofa:2,textile:1});
+assert.deepEqual(normalizeBasket(basket,products),basket);
+assert.equal(rentalEstimate(basket,products,'2026-10-17','2026-10-17').total,1600);
+assert.equal(rentalEstimate(basket,products,'2026-10-17','2026-10-23').total,8000);
+assert.equal(groupedCart(basket,products,{textile:{parentId:'sofa'}})[0].children[0].id,'textile');
+assert.equal(remaining('textile',{},[{...textile,active:false}]),0);
+assert.equal(selectionDraft({},products,'sofa',11,'textile',1),null);
+console.log('Made-to-order textiles: sofa stock, separate prices, reload and cart association passed.');
