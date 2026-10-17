@@ -1,5 +1,6 @@
+import {productPurposes} from '../public/purpose-model.js';
 import {presetFrames} from '../public/wall-model.js';
-export function migrateProducts(products){return products.map(p=>{
+export function migrateProducts(products){return products.map(raw=>{const p={...raw,purposes:productPurposes(raw)};
  if(!p.wallGroup&&p.category==='Bilder'&&p.isService&&p.name.startsWith('Bildevegg – ')){
   const layout=p.name.includes('ett stort')?'single':p.name.includes('to mellomstore')?'pair':p.name.includes('fire bilder')?'quad':'gallery';
   return {...p,wallGroup:'Bildevegg',wallFrames:presetFrames(layout),wallOrder:['single','pair','quad','gallery'].indexOf(layout),wallCover:'/assets/bildevegg-illustrasjon-hvit.png'};

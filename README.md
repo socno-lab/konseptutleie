@@ -30,3 +30,11 @@ Uten database er eksportkatalogen skrivebeskyttet. Konfigurert database som ikke
 Forespørsler lastes fortsatt ned som tekstfil. E-post, betaling og datoreservasjoner er ikke implementert. Prisene er foreløpige eksempelpriser.
 
 `public/` inneholder frontend og bilder, `server/` database, innlogging og validering, `app-server.mjs` HTTP-ruter og `server.mjs` oppstartspunkt. `reference/sites/` er historisk forretningskode som ikke kjøres. Ingen passord, tokens eller miljøfiler skal i GitHub.
+
+## Bruksområder
+
+Forsiden og velgeren over katalogen støtter Boligsalg, Messe, Event og Vis alle. Valget kombineres med produktkategori og søk. Det lagres i nettadressen og sessionStorage; tilbake/frem gjenoppretter også kategori og søk. Relevante aktive pakker vises først. Kurv, tilvalg og produktdialoger bruker fortsatt hele katalogen.
+
+I admin velges flere bruksområder per produkt, pakke eller bildeveggoppsett. Ingen avkrysninger betyr kun Vis alle. Eksisterende kjente produkter får en første kategorisering via stabile ID-er; manuelt lagrede valg, også tomme valg, går alltid foran standarden. Nye ukjente produkter må vurderes i admin. Lager, bilder, priser og arkivering endres ikke av denne migreringen.
+
+Første vurdering: stylingsenger, sengeoppredning og de eikefargede spisebordene med duk er Boligsalg; ståbord og barkrakker er Messe/Event; utemoduler er Boligsalg/Event. Innendørs sittemøbler, bord, dekor, planter og bildevegger kan brukes i alle tre. De 11 eldre arkiverte enkeltproduktene uten tydelig vurdert tilhørighet har ingen bruksområder og må vurderes før eventuell aktivering. Alle tre eksisterende ferdigpakker er arkivert; de må gjennomgås og aktiveres av eier før de vises for kunder. Ingen pakker eller priser er opprettet for denne funksjonen.
