@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {packageSelectionDraft,remaining,normalizeBasket,rentalEstimate} from '../public/catalog-model.js';
+import {packageSelectionDraft,remaining,normalizeBasket,rentalEstimate,isTablewareRental,changeProposalCart} from '../public/catalog-model.js';
 import {cartChange} from '../public/addon-model.js';
 const common={active:true,price:0,weekPrice:0,monthPrice:0,priceOnRequest:true,unavailable:0};
 const products=[
@@ -30,7 +30,6 @@ test('A scarce glass type cannot oversell or block package-only hire',()=>{
  assert.deepEqual(packageSelectionDraft({},limited,'pack',3,['red','water']),{pack:3,red:3,water:3});
 });
 
-import {changeProposalCart} from '../public/catalog-model.js';
 test('Per-person proposals allow 4 through 40, preserve fixed service and list optional items separately',()=>{
  const proposal=products.map(p=>p.id==='pack'?{...p,isProposal:true,minimumQuantity:4,maximumQuantity:40,components:['dinner','dessert'].map(id=>({id,quantity:1})),relatedAddOns:['cutlery','red','water']}:['red','water'].includes(p.id)?{...p,stock:40}:p.id==='cutlery'?{...p,requiredProductId:'pack',requiredProductQuantity:1}:p);
  assert.equal(remaining('pack',{},proposal),40);
@@ -85,4 +84,22 @@ test('One tree of each height can be selected independently without overselling'
  const catalog=[...trees,...packs];let basket={};
  for(const pack of packs){assert.equal(remaining(pack.id,basket,catalog),1);assert.equal(packageSelectionDraft(basket,catalog,pack.id,2,[]),null);basket=packageSelectionDraft(basket,catalog,pack.id,1,[]);assert.equal(remaining(pack.id,basket,catalog),0);}
  assert.equal(Object.keys(basket).length,3);
+});
+
+test('Styled table package and plain tableware rental share inventory and compatible add-on requirements',()=>{
+ const plate={...common,id:'plate',stock:40,addonOnly:true};
+ const red={...common,id:'red',stock:40,addonOnly:true,requiredProductId:'styled',requiredProductQuantity:1};
+ const stylist={...common,id:'stylist',category:'Styling',isService:true,addonOnly:true,requiredProductId:'styled',requiredProductQuantity:1};
+ const styled={...common,id:'styled',isPackage:true,isProposal:true,minimumQuantity:4,maximumQuantity:40,components:[{id:'plate',quantity:1}],relatedAddOns:['red','stylist']};
+ const rental={...styled,id:'rental',relatedAddOns:['red']};
+ const catalog=[plate,red,stylist,styled,rental];
+ assert.equal(isTablewareRental(styled,catalog),false);assert.equal(isTablewareRental(rental,catalog),true);
+ const first=packageSelectionDraft({},catalog,'styled',4,['red','stylist']);
+ const both=packageSelectionDraft(first,catalog,'rental',36,['red']);
+ assert.deepEqual(both,{styled:4,red:40,stylist:1,rental:36});
+ assert.equal(remaining('styled',both,catalog),0);assert.equal(remaining('rental',both,catalog),0);
+ assert.equal(packageSelectionDraft(first,catalog,'rental',37,['red']),null);
+ const withoutStyled=changeProposalCart(both,catalog,'styled',0);
+ assert.deepEqual(withoutStyled,{red:36,rental:36});
+ assert.deepEqual(normalizeBasket(withoutStyled,catalog),withoutStyled);
 });
