@@ -17,7 +17,7 @@ export function matchesPurpose(product,value){
  const purpose=validPurpose(value);
  if(purpose==='alle')return true;
  if(purpose==='boligsalg')return matchesCatalogPurpose(product,purpose);
- if(purpose==='fest')return matchesCatalogPurpose(product,'event')&&!['obj_e5808483ea4f4c5cbad08a5a6bb33f53','obj_b71d8247647e4575965649ddfa802485'].includes(product.id);
+ if(purpose==='fest')return matchesCatalogPurpose(product,'event')&&!['obj_e5808483ea4f4c5cbad08a5a6bb33f53','obj_b71d8247647e4575965649ddfa802485','obj_8f62b216c40348b29d42b4c7b9c0c6a0'].includes(product.id);
  if(purpose==='jul')return product.isPackage?occasionPackages.has(product.id):matchesCatalogPurpose(product,'event')&&['Dekor','Kunstige planter','Kunstige blomster'].includes(product.category);
  const shared=matchesCatalogPurpose(product,'messe')||matchesCatalogPurpose(product,'event');
  if(purpose==='messe')return shared&&!occasionPackages.has(product.id);
