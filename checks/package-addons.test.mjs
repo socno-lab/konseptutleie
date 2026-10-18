@@ -29,3 +29,19 @@ test('A scarce glass type cannot oversell or block package-only hire',()=>{
  assert.deepEqual(packageSelectionDraft({},limited,'pack',4,[]),{pack:4});
  assert.deepEqual(packageSelectionDraft({},limited,'pack',3,['red','water']),{pack:3,red:3,water:3});
 });
+
+import {changeProposalCart} from '../public/catalog-model.js';
+test('Per-person proposals allow 4 through 40, preserve fixed service and list optional items separately',()=>{
+ const proposal=products.map(p=>p.id==='pack'?{...p,isProposal:true,minimumQuantity:4,maximumQuantity:40,components:['dinner','dessert'].map(id=>({id,quantity:1})),relatedAddOns:['cutlery','red','water']}:['red','water'].includes(p.id)?{...p,stock:40}:p.id==='cutlery'?{...p,requiredProductId:'pack',requiredProductQuantity:1}:p);
+ assert.equal(remaining('pack',{},proposal),40);
+ for(const q of [0,1,3,4.5,41])assert.equal(packageSelectionDraft({},proposal,'pack',q,['red','water']),null);
+ for(const q of [4,5,7,40])assert.deepEqual(packageSelectionDraft({},proposal,'pack',q,['cutlery','red','water']),{pack:q,cutlery:q,red:q,water:q});
+ const chosen=packageSelectionDraft({},proposal,'pack',7,['red','water']);
+ assert.deepEqual(changeProposalCart(chosen,proposal,'pack',8),{pack:8,red:8,water:8});
+ assert.deepEqual(changeProposalCart(chosen,proposal,'pack',6),{pack:6,red:6,water:6});
+ assert.equal(changeProposalCart(chosen,proposal,'pack',3),null);
+ assert.deepEqual(changeProposalCart(chosen,proposal,'pack',0),{});
+ assert.deepEqual(packageSelectionDraft({},proposal,'pack',4,[]),{pack:4});
+ const limited=proposal.map(p=>p.id==='water'?{...p,stock:7}:p);
+ assert.equal(changeProposalCart(chosen,limited,'pack',8),null);
+});
