@@ -1,4 +1,4 @@
-import {addonRequirementError,normalizeAddOnBasket} from './addon-model.js?v=tableware1';
+import {addonRequirementError,normalizeAddOnBasket} from './addon-model.js?v=tableware2';
 export function demand(product,quantity=1){return product.isPackage?(product.components||[]).map(c=>({id:c.id,quantity:c.quantity*quantity})):[{id:product.id,quantity}];}
 export function remaining(id,basket,products){const p=products.find(p=>p.id===id);if(!p||!p.active)return 0;if(p.isService)return Math.max(0,(p.isProposal?(p.maximumQuantity||40):99)-(basket[id]||0));const used={};for(const [key,q] of Object.entries(basket)){const item=products.find(x=>x.id===key);if(item)for(const d of demand(item,q))used[d.id]=(used[d.id]||0)+d.quantity;}const requirements=demand(p);if(!requirements.length)return 0;return Math.max(0,Math.min((p.isProposal?(p.maximumQuantity||40):99)-(basket[id]||0),...requirements.map(d=>{const item=products.find(x=>x.id===d.id);return item&&item.active?Math.floor(((item.isService?99:Math.max(0,item.stock-item.unavailable))-(used[d.id]||0))/d.quantity):0;})));}
 export function normalizeBasket(basket,products){const out={};for(const p of products){const requested=Number(basket[p.id]);if(Number.isInteger(requested)&&requested>0){const q=Math.min(requested,remaining(p.id,out,products));if(q>0&&(!p.isProposal||q>=(p.minimumQuantity||4)))out[p.id]=q;}}return normalizeAddOnBasket(out,products);}
@@ -48,7 +48,9 @@ export function changeProposalCart(basket,products,id,quantity){
  const p=products.find(x=>x.id===id&&x.isProposal);if(!p||!Number.isInteger(quantity)||quantity<0||quantity>0&&(quantity<(p.minimumQuantity||4)||quantity>(p.maximumQuantity||40)))return null;
  const draft={...basket},old=draft[id]||0;
  if(quantity)draft[id]=quantity;else delete draft[id];
- for(const extraId of p.relatedAddOns||[]){if(!draft[extraId])continue;if(quantity&&isStylingService(products.find(x=>x.id===extraId)))continue;const q=quantity?(draft[extraId]===old?quantity:Math.min(draft[extraId],quantity)):0;if(q)draft[extraId]=q;else delete draft[extraId];}
+ for(const extraId of p.relatedAddOns||[]){if(!draft[extraId])continue;if(quantity&&isStylingService(products.find(x=>x.id===extraId)))continue;const otherQuantity=products.filter(x=>x.id!==id&&x.isProposal&&x.relatedAddOns?.includes(extraId)).reduce((n,x)=>n+(draft[x.id]||0),0);const q=draft[extraId]===old+otherQuantity?quantity+otherQuantity:otherQuantity?Math.min(draft[extraId],quantity+otherQuantity):quantity?(draft[extraId]===old?quantity:Math.min(draft[extraId],quantity)):0;if(q)draft[extraId]=q;else delete draft[extraId];}
  for(const [itemId,q] of Object.entries(draft)){const without={...draft};delete without[itemId];if(q>remaining(itemId,without,products))return null;}
  return addonRequirementError(draft,products)?null:draft;
 }
+
+export function isTablewareRental(p,products){return !!p?.isProposal&&!(p.relatedAddOns||[]).some(id=>isStylingService(products.find(x=>x.id===id)));}
