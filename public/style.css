@@ -110,3 +110,5 @@
  #products>article>.rate-caption{grid-row:6;margin:8px 0 0}
  #products>article>.module-build-button{grid-row:7;margin:18px 0 0;align-self:end}
 }
+
+#products .product-art .illustration-badge{top:auto;bottom:12px;left:14px;max-width:calc(100% - 28px);padding:5px 8px;background:var(--paper);color:var(--ink);font-size:10px;line-height:1.4;letter-spacing:0;text-transform:none;text-align:left}@media(max-width:640px){#products .product-art .illustration-badge{bottom:8px;left:8px;max-width:calc(100% - 16px);font-size:9px;padding:4px 6px}}
