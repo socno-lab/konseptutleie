@@ -112,3 +112,5 @@
 }
 
 #products .product-art .illustration-badge{top:auto;bottom:12px;left:14px;max-width:calc(100% - 28px);padding:5px 8px;background:var(--paper);color:var(--ink);font-size:10px;line-height:1.4;letter-spacing:0;text-transform:none;text-align:left}@media(max-width:640px){#products .product-art .illustration-badge{bottom:8px;left:8px;max-width:calc(100% - 16px);font-size:9px;padding:4px 6px}}
+
+.proposal-included-line{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding:8px 0;font-size:12px}.proposal-included-line strong{font-weight:500}.proposal-included-line>span,.proposal-count{white-space:nowrap}.proposal-options h3{font-size:14px;margin-top:14px}.proposal-options .addon-choices{grid-template-columns:1fr}.proposal-options .proposal-choice{align-items:center;gap:10px}.proposal-choice>span:nth-child(2){flex:1}.proposal-options .proposal-count{font-size:12px;color:var(--ink)}.proposal-cart .item-copy{min-width:0}
