@@ -26,13 +26,14 @@ function decorAddons(p){return ['Bord','Hyller'].includes(p.category)?(p.related
 function productPhotos(p){return [...new Set([p.image,...(p.gallery||[]),...decorAddons(p).flatMap(x=>[x.image,...(x.gallery||[])])].filter(Boolean))];}
 function illustrationText(p,decor=false){
  const parts=[];
+ if(isReadyPackage(p)&&p.isExample)parts.push('Bildet illustrerer pakkeinnholdet. Se produktinformasjonen for hva som er inkludert. Valgfrie tilvalg kommer i tillegg.');
  if(isBedChoice(p))parts.push('Bildene av oppredning viser eksempler. Stylisten setter sammen tekstilene. Farger, mønster, puter, sengeteppe og plassering kan variere fra bildet.');
  if(isOakTable(p))parts.push('Bordet leveres i valgt størrelse, men modell, ben og eikenyanse kan avvike fra bildet. Duk følger med.');
  if(p.category==='Kunstige blomster'&&p.isService)parts.push('Vase, blomstersorter, farger og sammensetning kan være annerledes enn på bildet. Stylisten setter sammen helheten.');
  if(decor)parts.push('Stylisten setter sammen dekorpakken. Gjenstander, vase, blomster, antall og plassering kan variere fra bildet; innholdet er ikke fast.');
  return parts.join(' ');
 }
-function illustrationBadge(p){return (isBedChoice(p)&&p.isPackage||isOakTable(p)||p.category==='Kunstige blomster'&&p.isService)?'<span class="illustration-badge">Bildet viser et eksempel</span>':'';}
+function illustrationBadge(p){return (isReadyPackage(p)&&p.isExample||isBedChoice(p)&&p.isPackage||isOakTable(p)||p.category==='Kunstige blomster'&&p.isService)?'<span class="illustration-badge">Bildet viser et eksempel</span>':'';}
 
 function setProductPhoto(src,p){
  const main=el('detailContent').querySelector('.product-intro .product-art'),img=main?.querySelector('img');if(!src||!img)return;
