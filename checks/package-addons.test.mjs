@@ -45,3 +45,12 @@ test('Per-person proposals allow 4 through 40, preserve fixed service and list o
  const limited=proposal.map(p=>p.id==='water'?{...p,stock:7}:p);
  assert.equal(changeProposalCart(chosen,limited,'pack',8),null);
 });
+
+import {validateCatalog} from '../server/catalog.mjs';
+test('Proposal settings and defaults survive admin saves and reject invalid ranges or defaults',()=>{
+ const catalogue=products.map(p=>({category:'Annet',material:'',description:'',type:'generic',color:'#b5ad99',image:'',gallery:[],isService:false,isExample:false,isPackage:false,stock:0,relatedAddOns:[],...p,...(p.id==='pack'?{isProposal:true,minimumQuantity:4,maximumQuantity:40,suggestedAddOns:['water','red']}:{} )}));
+ const saved=validateCatalog(catalogue).find(p=>p.id==='pack');
+ assert.equal(saved.isProposal,true);assert.equal(saved.minimumQuantity,4);assert.equal(saved.maximumQuantity,40);assert.deepEqual(saved.suggestedAddOns,['water','red']);
+ assert.throws(()=>validateCatalog(catalogue.map(p=>p.id==='pack'?{...p,maximumQuantity:3}:p)),/forslag/);
+ assert.throws(()=>validateCatalog(catalogue.map(p=>p.id==='pack'?{...p,suggestedAddOns:['unknown']}:p)),/forslag/);
+});
