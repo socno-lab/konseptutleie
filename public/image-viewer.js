@@ -1,10 +1,11 @@
+import {kiDisclosure,isKiPhoto} from './image-provenance.js?v=ki1';
 const viewer=document.createElement('dialog');
 viewer.id='imageViewer';viewer.className='image-viewer';viewer.setAttribute('aria-labelledby','imageViewerTitle');
-viewer.innerHTML='<div class="image-viewer-header"><h2 id="imageViewerTitle">Bildevisning</h2><button type="button" class="image-viewer-close" aria-label="Lukk bildevisning">✕</button></div><img class="image-viewer-image" alt=""><div class="image-viewer-controls"><button type="button" class="image-viewer-prev" aria-label="Forrige bilde">← Forrige</button><p role="status" class="image-viewer-count"></p><button type="button" class="image-viewer-next" aria-label="Neste bilde">Neste →</button></div>';
+viewer.innerHTML='<div class="image-viewer-header"><h2 id="imageViewerTitle">Bildevisning</h2><button type="button" class="image-viewer-close" aria-label="Lukk bildevisning">✕</button></div><img class="image-viewer-image" alt=""><p class="image-viewer-notice" hidden></p><div class="image-viewer-controls"><button type="button" class="image-viewer-prev" aria-label="Forrige bilde">← Forrige</button><p role="status" class="image-viewer-count"></p><button type="button" class="image-viewer-next" aria-label="Neste bilde">Neste →</button></div>';
 document.body.append(viewer);
 const photo=viewer.querySelector('img'),count=viewer.querySelector('.image-viewer-count'),previous=viewer.querySelector('.image-viewer-prev'),next=viewer.querySelector('.image-viewer-next');
 let photos=[],index=0;
-function paint(){const current=photos[index];photo.src=current.src;photo.alt=current.alt||'Produktbilde i stor størrelse';count.textContent=(index+1)+' av '+photos.length;previous.disabled=next.disabled=photos.length<2;}
+function paint(){const current=photos[index];photo.src=current.src;photo.alt=current.alt||'Produktbilde i stor størrelse';const notice=viewer.querySelector('.image-viewer-notice');notice.hidden=!isKiPhoto(current.src);notice.textContent=kiDisclosure;count.textContent=(index+1)+' av '+photos.length;previous.disabled=next.disabled=photos.length<2;}
 function step(delta){index=(index+delta+photos.length)%photos.length;paint();}
 previous.onclick=()=>step(-1);next.onclick=()=>step(1);viewer.querySelector('.image-viewer-close').onclick=()=>viewer.close();
 viewer.addEventListener('click',event=>{if(event.target===viewer)viewer.close();});

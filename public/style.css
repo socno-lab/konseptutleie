@@ -165,3 +165,6 @@
 
 /* A text-led alternative beside the ready-made package photos. */
 .custom-package-card{min-width:0}.custom-package-art{width:100%;min-width:0;min-height:0;aspect-ratio:1.2;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:clamp(22px,2vw,30px);background:var(--olive);color:var(--paper)}.custom-package-art .eyebrow{font-size:9px;margin-bottom:16px}.custom-package-art h3{font-size:clamp(20px,1.8vw,26px);font-weight:400;letter-spacing:-.5px;line-height:1.2;margin:0 0 16px}.custom-package-art>p:not(.eyebrow){font-size:12px;line-height:1.6;margin:0 0 20px}.custom-package-art .text-button{color:inherit;border-color:currentColor;font-size:12px;text-align:left;margin:0}.custom-package-card>.hint{margin-top:16px}@media(max-width:640px){.custom-package-card{grid-column:1/-1}.custom-package-art{aspect-ratio:auto;padding:28px}.custom-package-art h3{font-size:24px}}
+
+/* Image disclosures remain readable on narrow product cards. */
+#products .product-art .ki-disclosure,.home-example,.use-case-grid figure>span{max-width:calc(100% - 24px);white-space:normal;line-height:1.4;text-transform:none;letter-spacing:0}.image-viewer-notice{margin:12px 0 0;font-size:12px;text-align:center;color:inherit}.use-case-grid figure>span{right:10px;width:fit-content}
