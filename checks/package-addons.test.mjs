@@ -54,3 +54,15 @@ test('Proposal settings and defaults survive admin saves and reject invalid rang
  assert.throws(()=>validateCatalog(catalogue.map(p=>p.id==='pack'?{...p,maximumQuantity:3}:p)),/forslag/);
  assert.throws(()=>validateCatalog(catalogue.map(p=>p.id==='pack'?{...p,suggestedAddOns:['unknown']}:p)),/forslag/);
 });
+
+test('A table styling quote is one request regardless of guest count and stays optional',()=>{
+ const catalogue=products.map(p=>p.id==='pack'?{...p,isProposal:true,minimumQuantity:4,maximumQuantity:40,components:['dinner','dessert'].map(id=>({id,quantity:1})),relatedAddOns:['red','water','stylist']}:['red','water'].includes(p.id)?{...p,stock:40}:p);
+ catalogue.push({...common,id:'stylist',name:'Stylist til borddekking – Jul',category:'Styling',addonOnly:true,isService:true,requiredProductId:'pack',requiredProductQuantity:1});
+ const draft=packageSelectionDraft({},catalogue,'pack',7,['red','water','stylist']);
+ assert.deepEqual(draft,{pack:7,red:7,water:7,stylist:1});
+ assert.deepEqual(changeProposalCart(draft,catalogue,'pack',8),{pack:8,red:8,water:8,stylist:1});
+ assert.equal(packageSelectionDraft(draft,catalogue,'pack',4,['stylist']).stylist,1);
+ assert.deepEqual(changeProposalCart(draft,catalogue,'pack',0),{});
+ assert(!('stylist' in packageSelectionDraft({},catalogue,'pack',7,['water'])));
+ assert.equal(rentalEstimate(draft,catalogue,'2026-11-01','2026-11-01').total,null);
+});
