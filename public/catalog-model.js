@@ -1,4 +1,4 @@
-import {addonRequirementError,normalizeAddOnBasket} from './addon-model.js';
+import {addonRequirementError,normalizeAddOnBasket} from './addon-model.js?v=tableware1';
 export function demand(product,quantity=1){return product.isPackage?(product.components||[]).map(c=>({id:c.id,quantity:c.quantity*quantity})):[{id:product.id,quantity}];}
 export function remaining(id,basket,products){const p=products.find(p=>p.id===id);if(!p||!p.active)return 0;if(p.isService)return Math.max(0,99-(basket[id]||0));const used={};for(const [key,q] of Object.entries(basket)){const item=products.find(x=>x.id===key);if(item)for(const d of demand(item,q))used[d.id]=(used[d.id]||0)+d.quantity;}const requirements=demand(p);if(!requirements.length)return 0;return Math.max(0,Math.min(99-(basket[id]||0),...requirements.map(d=>{const item=products.find(x=>x.id===d.id);return item&&item.active?Math.floor((Math.max(0,item.stock-item.unavailable)-(used[d.id]||0))/d.quantity):0;})));}
 export function normalizeBasket(basket,products){const out={};for(const p of products){const requested=Number(basket[p.id]);if(Number.isInteger(requested)&&requested>0){const q=Math.min(requested,remaining(p.id,out,products));if(q>0)out[p.id]=q;}}return normalizeAddOnBasket(out,products);}
@@ -31,4 +31,12 @@ export function groupedCart(basket,products,links={}){
  for(const p of chosen){const explicit=chosen.find(x=>x.id===links[p.id]?.parentId&&x.relatedAddOns?.includes(p.id));const candidates=chosen.filter(x=>x.id!==p.id&&x.relatedAddOns?.includes(p.id));const parent=explicit||(candidates.length===1?candidates[0]:null);if(parent)parents.set(p.id,parent.id);}
  const groups=chosen.filter(p=>!parents.has(p.id)).map(p=>({product:p,children:chosen.filter(x=>parents.get(x.id)===p.id)}));
  const shown=new Set(groups.flatMap(g=>[g.product.id,...g.children.map(x=>x.id)]));for(const p of chosen)if(!shown.has(p.id))groups.push({product:p,children:[]});return groups;
+}
+
+// A checked option supplies one add-on set for every package selected.
+export function packageSelectionDraft(basket,products,id,quantity,extraIds=[]){
+ const p=products.find(x=>x.id===id);if(!p?.isPackage||!Array.isArray(extraIds)||new Set(extraIds).size!==extraIds.length)return null;
+ const draft=selectionDraft(basket,products,id,quantity);if(!draft)return null;
+ for(const extraId of extraIds){const extra=products.find(x=>x.id===extraId&&x.active&&!x.isPackage);if(!extra||!p.relatedAddOns?.includes(extraId)||quantity>remaining(extraId,draft,products))return null;draft[extraId]=(draft[extraId]||0)+quantity;}
+ return addonRequirementError(draft,products)?null:draft;
 }
