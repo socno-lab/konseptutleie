@@ -32,7 +32,7 @@ export function validateCatalog(input) { if (!Array.isArray(input) || input.leng
         throw new Error('Bildelenken må bruke HTTPS.');
     if (image.startsWith('/') && !/^\/(assets|media)\//.test(image))
         throw new Error('Bruk en bildelenke eller et bilde fra bildebiblioteket.');
-} const relatedAddOns = raw.relatedAddOns ?? []; if (!Array.isArray(relatedAddOns) || relatedAddOns.length > 10 || relatedAddOns.some((id) => typeof id !== 'string'))
+} const relatedAddOns = raw.relatedAddOns ?? []; if (!Array.isArray(relatedAddOns) || relatedAddOns.length > 20 || relatedAddOns.some((id) => typeof id !== 'string'))
     throw new Error('Ugyldige tilvalg.'); const relatedPackages = raw.relatedPackages ?? []; if (!Array.isArray(relatedPackages) || relatedPackages.length > 10 || relatedPackages.some((id) => typeof id !== 'string'))
     throw new Error('Ugyldige anbefalte pakker.'); const gallery = raw.gallery ?? []; if (!Array.isArray(gallery) || gallery.length > 12 || gallery.some((u) => typeof u !== 'string' || u.length > 2000 || (!/^\/(assets|media)\//.test(u) && !/^https:\/\//.test(u))))
     throw new Error('Ugyldige bildegalleri-lenker.'); let components = []; if (raw.isPackage) {
