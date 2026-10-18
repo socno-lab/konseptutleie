@@ -78,3 +78,11 @@ test('Decorated Christmas tree packages can be quoted without inventing owned st
  assert.deepEqual(normalizeBasket(basket,catalog),basket);
  assert.equal(rentalEstimate(basket,catalog,'2026-12-01','2026-12-10').total,null);
 });
+
+test('One tree of each height can be selected independently without overselling',()=>{
+ const trees=[150,210,240].map(height=>({...common,id:'tree'+height,name:'Tree '+height,stock:1,addonOnly:true}));
+ const packs=trees.map(tree=>({...common,id:'pack'+tree.id,name:'Klart til jul – '+tree.name.slice(5)+' cm',isPackage:true,components:[{id:tree.id,quantity:1}]}));
+ const catalog=[...trees,...packs];let basket={};
+ for(const pack of packs){assert.equal(remaining(pack.id,basket,catalog),1);assert.equal(packageSelectionDraft(basket,catalog,pack.id,2,[]),null);basket=packageSelectionDraft(basket,catalog,pack.id,1,[]);assert.equal(remaining(pack.id,basket,catalog),0);}
+ assert.equal(Object.keys(basket).length,3);
+});
