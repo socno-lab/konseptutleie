@@ -10,4 +10,4 @@ export function normalizeAddOnBasket(basket,products){const out={...basket};if(!
  // Invalid fixed packages cannot be repaired by changing their internal contents.
  for(const p of products.filter(p=>p.isPackage))while(out[p.id]&&addonRequirementError(out,products)){if(--out[p.id]===0)delete out[p.id];}
  return out;}
-export function cartChange(basket,products,id,quantity){const draft={...basket};if(quantity>0)draft[id]=quantity;else delete draft[id];return addonRequirementError(draft,products)?null:draft;}
+export function cartChange(basket,products,id,quantity){const product=products.find(p=>p.id===id);if(product?.isProposal&&quantity>0&&(!Number.isInteger(quantity)||quantity<(product.minimumQuantity||4)||quantity>(product.maximumQuantity||40)))return null;const draft={...basket};if(quantity>0)draft[id]=quantity;else delete draft[id];return addonRequirementError(draft,products)?null:draft;}
