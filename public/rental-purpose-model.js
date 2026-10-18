@@ -6,6 +6,7 @@ export const purposes=[
  {id:'messe',label:'Messe, stand og event'},
  {id:'bedrift',label:'Bedrift'},
  {id:'fest',label:'Bryllup og fest'},
+ {id:'jul',label:'Jul og sesong'},
  {id:'alle',label:'Vis alle'}
 ];
 export const validPurpose=value=>value==='event'?'messe':purposes.some(p=>p.id===value)?value:'alle';
@@ -17,6 +18,7 @@ export function matchesPurpose(product,value){
  if(purpose==='alle')return true;
  if(purpose==='boligsalg')return matchesCatalogPurpose(product,purpose);
  if(purpose==='fest')return matchesCatalogPurpose(product,'event');
+ if(purpose==='jul')return product.isPackage?occasionPackages.has(product.id):matchesCatalogPurpose(product,'event')&&['Dekor','Kunstige planter','Kunstige blomster'].includes(product.category);
  const shared=matchesCatalogPurpose(product,'messe')||matchesCatalogPurpose(product,'event');
  if(purpose==='messe')return shared&&!occasionPackages.has(product.id);
  return shared&&(product.isPackage?businessPackages.has(product.id):businessCategories.has(product.category));
