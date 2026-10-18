@@ -33,11 +33,13 @@ export function groupedCart(basket,products,links={}){
  const shown=new Set(groups.flatMap(g=>[g.product.id,...g.children.map(x=>x.id)]));for(const p of chosen)if(!shown.has(p.id))groups.push({product:p,children:[]});return groups;
 }
 
-// A checked option supplies one add-on set for every package selected.
+export function isStylingService(product){return product?.category==='Styling'&&product.isService===true;}
+
+// Product add-ons follow the person count; a styling quote is requested once.
 export function packageSelectionDraft(basket,products,id,quantity,extraIds=[]){
  const p=products.find(x=>x.id===id);if(!p?.isPackage||!Array.isArray(extraIds)||new Set(extraIds).size!==extraIds.length)return null;
  const draft=selectionDraft(basket,products,id,quantity);if(!draft)return null;
- for(const extraId of extraIds){const extra=products.find(x=>x.id===extraId&&x.active&&!x.isPackage);if(!extra||!p.relatedAddOns?.includes(extraId)||quantity>remaining(extraId,draft,products))return null;draft[extraId]=(draft[extraId]||0)+quantity;}
+ for(const extraId of extraIds){const extra=products.find(x=>x.id===extraId&&x.active&&!x.isPackage);if(!extra||!p.relatedAddOns?.includes(extraId))return null;const count=isStylingService(extra)?Math.max(0,1-(draft[extraId]||0)):quantity;if(count>remaining(extraId,draft,products))return null;if(count)draft[extraId]=(draft[extraId]||0)+count;}
  return addonRequirementError(draft,products)?null:draft;
 }
 
@@ -46,7 +48,7 @@ export function changeProposalCart(basket,products,id,quantity){
  const p=products.find(x=>x.id===id&&x.isProposal);if(!p||!Number.isInteger(quantity)||quantity<0||quantity>0&&(quantity<(p.minimumQuantity||4)||quantity>(p.maximumQuantity||40)))return null;
  const draft={...basket},old=draft[id]||0;
  if(quantity)draft[id]=quantity;else delete draft[id];
- for(const extraId of p.relatedAddOns||[]){if(!draft[extraId])continue;const q=quantity?(draft[extraId]===old?quantity:Math.min(draft[extraId],quantity)):0;if(q)draft[extraId]=q;else delete draft[extraId];}
+ for(const extraId of p.relatedAddOns||[]){if(!draft[extraId])continue;if(quantity&&isStylingService(products.find(x=>x.id===extraId)))continue;const q=quantity?(draft[extraId]===old?quantity:Math.min(draft[extraId],quantity)):0;if(q)draft[extraId]=q;else delete draft[extraId];}
  for(const [itemId,q] of Object.entries(draft)){const without={...draft};delete without[itemId];if(q>remaining(itemId,without,products))return null;}
  return addonRequirementError(draft,products)?null:draft;
 }
