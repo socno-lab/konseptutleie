@@ -52,4 +52,4 @@ export function validateCatalog(input) { if (!Array.isArray(input) || input.leng
             throw new Error('Anbefalinger må vise til eksisterende pakker.'); for (const p of output)
     for (const id of p.relatedAddOns || [])
         if (id === p.id || !output.some(x => x.id === id && !x.isPackage && (p.deletedAt || !x.deletedAt)))
-            throw new Error('Tilvalg må vise til eksisterende enkeltobjekter.'); for(const p of output)if(p.requiredProductId){const base=output.find(x=>x.id===p.requiredProductId);if(!base||base.id===p.id||base.isPackage||base.addonOnly||!p.deletedAt&&base.deletedAt)throw Error('Tilvalg må kreve et eksisterende hovedprodukt.');}return output; }
+            throw new Error('Tilvalg må vise til eksisterende enkeltobjekter.'); for(const p of output)if(p.requiredProductId){const base=output.find(x=>x.id===p.requiredProductId);if(!base||base.id===p.id||base.addonOnly||!p.deletedAt&&base.deletedAt)throw Error('Tilvalg må kreve et eksisterende hovedprodukt.');}return output; }
