@@ -66,3 +66,15 @@ test('A table styling quote is one request regardless of guest count and stays o
  assert(!('stylist' in packageSelectionDraft({},catalogue,'pack',7,['water'])));
  assert.equal(rentalEstimate(draft,catalogue,'2026-11-01','2026-11-01').total,null);
 });
+
+test('Decorated Christmas tree packages can be quoted without inventing owned stock',()=>{
+ const tree={...common,id:'tree150',name:'Pyntet juletre 150 cm med oppsett',isService:true,stock:0,addonOnly:true};
+ const gifts={...common,id:'gifts',name:'Dekorative gavepakker',isService:true,stock:0,addonOnly:true};
+ const pack={...common,id:'christmas150',name:'Klart til jul – 150 cm',isPackage:true,components:[{id:tree.id,quantity:1}],relatedAddOns:[gifts.id]};
+ const catalog=[tree,gifts,pack];
+ assert.equal(remaining(pack.id,{},catalog),99);
+ const basket=packageSelectionDraft({},catalog,pack.id,2,[gifts.id]);
+ assert.deepEqual(basket,{christmas150:2,gifts:2});
+ assert.deepEqual(normalizeBasket(basket,catalog),basket);
+ assert.equal(rentalEstimate(basket,catalog,'2026-12-01','2026-12-10').total,null);
+});
