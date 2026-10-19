@@ -10,7 +10,7 @@ export const purposes=[
  {id:'alle',label:'Vis alle'}
 ];
 export const validPurpose=value=>value==='event'?'messe':purposes.some(p=>p.id===value)?value:'alle';
-const businessCategories=new Set(['Sofaer','Modulsofaer','Stoler','Bord','Hyller','Tepper','Kunstige planter','Kunstige blomster','Dekor']);
+const businessCategories=new Set(['Sofaer','Modulsofaer','Stoler','Bord','Hyller','Belysning','Tepper','Kunstige planter','Kunstige blomster','Dekor']);
 const businessPackages=new Set(['obj_8f62b216c40348b29d42b4c7b9c0c6a0','obj_b71d8247647e4575965649ddfa802485']);
 const occasionPackages=new Set(['obj_b3af6675a38744e0bc567acc3c547849','obj_3aaf7f39d05041b5a68f0f51bb66f705','obj_f3e152bb768e4178a82fd39136efc0ae','obj_8278a918ddb64adf9f521db17a55fe88','obj_82cd3d7f152a41c3b6d6b5f04a4352f7']);
 export function matchesPurpose(product,value){
