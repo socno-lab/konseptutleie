@@ -1,6 +1,7 @@
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';
 import {migrateProducts} from './walls.mjs';
+import {removeRetiredCosts} from './catalog.mjs';
 
 export function createMysqlStore(env,seed){
  const enabled=!!(env.DB_HOST&&env.DB_USER&&env.DB_NAME&&env.DB_PASSWORD);
@@ -18,12 +19,23 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_media_state (url VARCHAR(500) PRIMARY KEY, deleted_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)'
    ])await pool.query(sql);
-   await pool.execute('INSERT IGNORE INTO ku_catalog (id,revision,body,updated_at) VALUES (1,?,?,?)',[Math.max(1,seed.revision||1),JSON.stringify(migrateProducts(seed.products)),new Date()]);
+   await pool.execute('INSERT IGNORE INTO ku_catalog (id,revision,body,updated_at) VALUES (1,?,?,?)',[Math.max(1,seed.revision||1),JSON.stringify(migrateProducts(removeRetiredCosts(seed.products))),new Date()]);
+   // Remove the retired field from storage, including hidden and trashed products.
+   const connection=await pool.getConnection();
+   try{
+    await connection.beginTransaction();
+    const [[row]]=await connection.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
+    const products=JSON.parse(row.body),cleaned=removeRetiredCosts(products);
+    if(products.some(product=>Object.hasOwn(product,'acquisitionCost')))
+     await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(cleaned),new Date()]);
+    await connection.commit();
+   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
   })().catch(error=>{ready=null;throw error;});
   return ready;
  }
  async function query(sql,args=[]){await init();return pool.execute(sql,args);}
  async function mutateCatalog(revision,products,urls){
+  products=removeRetiredCosts(products);
   await init();const connection=await pool.getConnection(),updatedAt=new Date();
   try{await connection.beginTransaction();const [[current]]=await connection.execute('SELECT revision FROM ku_catalog WHERE id=1 FOR UPDATE');if(current.revision!==revision){await connection.rollback();return null;}
    const [purged]=await connection.execute('SELECT url FROM ku_media_purged');const unavailable=new Set([...purged.map(row=>row.url),...urls]);
@@ -33,7 +45,7 @@ export function createMysqlStore(env,seed){
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
  return {enabled,init,async close(){if(pool)await pool.end();},
-  async readCatalog(){const [[r]]=await query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1');return {revision:r.revision,products:migrateProducts(JSON.parse(r.body)),updatedAt:r.updated_at};},
+  async readCatalog(){const [[r]]=await query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1');return {revision:r.revision,products:migrateProducts(removeRetiredCosts(JSON.parse(r.body))),updatedAt:r.updated_at};},
   async saveCatalog(revision,products){return mutateCatalog(revision,products,[]);},
   async purgeTrash(revision,products,urls){return mutateCatalog(revision,products,urls);},
   async purgedMedia(){const [rows]=await query('SELECT url FROM ku_media_purged');return rows.map(row=>row.url);},
