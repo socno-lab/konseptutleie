@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {retailRentalRates,resolvedRentalRates,rentalRateSets,applyRentalScope,scopeForOccasion,rentalPricingMode} from '../public/rental-pricing-model.js';
+import {retailRentalRates,resolvedRentalRates,rentalRateSets,applyRentalScope,scopeForOccasion,scopeForPurpose,rentalPricingMode} from '../public/rental-pricing-model.js';
 import {validateCatalog} from '../server/catalog.mjs';
 import {publicCatalog} from '../app-server.mjs';
 import {rentalEstimate,moduleConfiguration} from '../public/catalog-model.js';
@@ -38,7 +38,10 @@ test('Public rates reprice modules, persisted baskets and estimates without leak
  assert.equal(rentalEstimate({m:2},event,'2026-10-20','2026-10-26').total,1060);
  assert.equal(scopeForOccasion('Messe og stand'),'messe');
  assert.equal(scopeForOccasion('Event og selskap'),'messe');
- assert.equal(scopeForOccasion('Bedrift'),'standard');
+ assert.equal(scopeForOccasion('Boligsalg'),'standard');
+ for(const purpose of ['messe','event','bedrift','fest','jul','alle'])assert.equal(scopeForPurpose(purpose),'messe');
+ for(const occasion of ['Bedrift','Leie over tid','Annet','Event og selskap'])assert.equal(scopeForOccasion(occasion),'messe');
+ assert.equal(scopeForPurpose('boligsalg'),'standard');
  assert.deepEqual(applyRentalScope(event,'standard'),standard);
 });
 test('Catalog saves persist the selected mode, apply all retail prices and reject impossible modes',()=>{
@@ -49,4 +52,21 @@ test('Catalog saves persist the selected mode, apply all retail prices and rejec
  p.rentalPricingMode='manual';saved=validateCatalog(products).find(x=>x.id===p.id);assert.equal(saved.price,p.price);
  p.rentalPricingMode='components';assert.throws(()=>validateCatalog(products),/modell for leiepris/);
  p.rentalPricingMode='random';assert.throws(()=>validateCatalog(products),/modell for leiepris/);
+});
+
+// Fixed contents share stock with individual rentals and are billed exactly once.
+test('A priced furniture package carries all quantities and sums the selected scope before selection',async()=>{
+ const {packageSelectionDraft,remaining,demand}=await import('../public/catalog-model.js');
+ const item={active:true,unavailable:0,stock:10,priceOnRequest:false};
+ const raw=[{...item,id:'table',purchaseUnitPrice:4000},{...item,id:'chair',purchaseUnitPrice:1749},
+ {...item,id:'pack',isPackage:true,rentalPricingMode:'components',components:[{id:'table',quantity:1},{id:'chair',quantity:2}]}];
+ const catalog=publicCatalog({products:raw});
+ for(const scope of ['standard','messe']){
+  const ps=applyRentalScope(catalog.products,scope),pack=ps.find(p=>p.id==='pack');
+  for(const key of ['price','weekPrice','monthPrice'])assert.equal(pack[key],ps[0][key]+2*ps[1][key]);
+  const basket=packageSelectionDraft({},ps,'pack',2,[]);
+  assert.deepEqual(demand(pack,2),[{id:'table',quantity:2},{id:'chair',quantity:4}]);
+  assert.equal(remaining('chair',basket,ps),6);
+  assert.equal(rentalEstimate(basket,ps,'2026-11-01','2026-11-07').total,2*pack.weekPrice);
+ }
 });
