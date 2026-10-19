@@ -1,3 +1,4 @@
+import {businessPurchaseEnabled} from '../public/business-purchase-model.js';
 import {addonFields} from '../public/addon-model.js';
 import {validateDeletedAt} from './product-lifecycle.mjs';
 import {validatePurposes,productPurposes} from '../public/purpose-model.js';
@@ -43,7 +44,11 @@ export function validateCatalog(input) { if (!Array.isArray(input) || input.leng
         throw new Error('Ugyldig pakkeinnhold.'); used.add(c.id); return { id: c.id, quantity: c.quantity }; });
 } const isProposal=raw.isProposal??false,minimumQuantity=raw.minimumQuantity??1,maximumQuantity=raw.maximumQuantity??99,suggestedAddOns=raw.suggestedAddOns??[];
  if(typeof isProposal!=='boolean'||isProposal&&!raw.isPackage||!Number.isInteger(minimumQuantity)||!Number.isInteger(maximumQuantity)||minimumQuantity<1||maximumQuantity>99||minimumQuantity>maximumQuantity||!Array.isArray(suggestedAddOns)||new Set(suggestedAddOns).size!==suggestedAddOns.length||suggestedAddOns.some(id=>!relatedAddOns.includes(id)))throw Error('Ugyldig oppsett for forslag per person.');
- return { isProposal,minimumQuantity,maximumQuantity,suggestedAddOns,...addon,deletedAt:validateDeletedAt(raw), purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, components }; }); for (const p of output)
+ const businessPurchase=raw.businessPurchase??businessPurchaseEnabled(raw),purchasePrice=raw.purchasePrice??null;
+ if(typeof businessPurchase!=='boolean'||businessPurchase&&(!raw.isPackage||isProposal))throw Error('Kjøpsmulighet kan bare velges på faste bedriftspakker.');
+ if(purchasePrice!==null&&(typeof purchasePrice!=='number'||!Number.isFinite(purchasePrice)||purchasePrice<=0||purchasePrice>100000000||Math.abs(Math.round(purchasePrice*100)-purchasePrice*100)>1e-7))throw Error('Kjøpspris må være et positivt beløp med maks to desimaler, eller stå tom.');
+ if(!businessPurchase&&purchasePrice!==null)throw Error('Aktiver kjøpsmulighet før du legger inn kjøpspris.');
+ return { businessPurchase,purchasePrice, isProposal,minimumQuantity,maximumQuantity,suggestedAddOns,...addon,deletedAt:validateDeletedAt(raw), purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, components }; }); for (const p of output)
     for (const c of p.components || []) {
         const item = output.find(x => x.id === c.id);
         if (!item || item.isPackage || item.id === p.id || (!p.deletedAt && item.deletedAt))
