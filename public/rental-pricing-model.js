@@ -32,8 +32,8 @@ export function applyRentalScope(products, scope) {
   return products.map(p => ({...p, ...(p.rentalRates?.[scope === 'messe' ? 'messe' : 'standard'] || {})}));
 }
 export function scopeForOccasion(value) {
-  return ['Messe og stand', 'Event og selskap'].includes(value) ? 'messe' : 'standard';
+  return ['Boligsalg', 'Boligfoto og visning'].includes(value) ? 'standard' : 'messe';
 }
 export function scopeForPurpose(purpose) {
-  return ['messe', 'event', 'fest'].includes(purpose) ? 'messe' : 'standard';
+  return purpose === 'boligsalg' ? 'standard' : 'messe';
 }
