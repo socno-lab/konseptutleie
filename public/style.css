@@ -174,3 +174,5 @@
 /* Keep rental and purchase information on separate rows in catalog cards. */
 #products>article>.business-purchase-summary{grid-row:7;min-width:0;margin-top:18px;overflow-wrap:break-word}
 @media(max-width:640px){#products>article.ready-package-card{grid-column:1/-1;grid-row:auto;display:flex;flex-direction:column;min-width:0}#products>article.ready-package-card>.product-art{width:100%;aspect-ratio:1.2}#products>article.ready-package-card>.business-purchase-summary{margin-top:14px}#products>article.ready-package-card>.product-meta{width:100%}}
+
+.rental-pricing-scope{margin:18px 0;padding:16px;border:1px solid var(--line);background:var(--paper,#f5f3ed)}.rental-pricing-scope label{display:block;max-width:420px}.rental-pricing-scope select{display:block;width:100%;margin-top:6px}.rental-pricing-scope .hint{margin:10px 0 0}
