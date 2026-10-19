@@ -1,3 +1,4 @@
+import {resolvedPackagePurchasePrice} from './public/business-purchase-model.js';
 import {planTrashPurge} from './server/trash-purge.mjs';
 import {changeProductLifecycle} from './server/product-lifecycle.mjs';
 import http from 'node:http';
@@ -15,7 +16,7 @@ const root=path.dirname(fileURLToPath(import.meta.url)),publicRoot=path.join(roo
 const seed=JSON.parse(await readFile(path.join(root,'data/catalog-export-2026-10-17.json'),'utf8'));
 seed.products=migrateProducts(seed.products);
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.avif':'image/avif','.ico':'image/x-icon'};
-function publicCatalog(data){return {...data,products:data.products.filter(p=>p.active&&!p.deletedAt).map(p=>({...p,maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined}))};}
+export function publicCatalog(data){return {...data,products:data.products.filter(p=>p.active&&!p.deletedAt).map(p=>{const {purchaseUnitPrice,acquisitionCost,...visible}=p;return {...visible,purchasePrice:resolvedPackagePurchasePrice(p,data.products),maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined};})};}
 const error=(message,status=400)=>Object.assign(Error(message),{status});
 async function bytes(req,max){let length=0,large=false;const chunks=[];for await(const chunk of req){length+=chunk.length;if(length>max){large=true;chunks.length=0;}else if(!large)chunks.push(chunk);}if(large)throw error('Filen eller forespørselen er for stor.',413);return Buffer.concat(chunks);}
 async function json(req,max=1500000){if(!req.headers['content-type']?.startsWith('application/json'))throw error('Forventet JSON.',415);try{return JSON.parse((await bytes(req,max)).toString('utf8'));}catch(e){if(e.status)throw e;throw error('Ugyldige data.');}}
