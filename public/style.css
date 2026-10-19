@@ -170,3 +170,7 @@
 #products .product-art .ki-disclosure,.home-example,.use-case-grid figure>span{max-width:calc(100% - 24px);white-space:normal;line-height:1.4;text-transform:none;letter-spacing:0}.image-viewer-notice{margin:12px 0 0;font-size:12px;text-align:center;color:inherit}.use-case-grid figure>span{right:10px;width:fit-content}
 
 .business-acquisition>p{font-size:13px;line-height:1.65}.business-acquisition select,.business-cart-choice select{width:100%;min-height:48px}.business-cart-choice{margin:14px 0}.business-cart-choice select{font-size:12px}.business-acquisition .hint{font-size:11px}
+
+/* Keep rental and purchase information on separate rows in catalog cards. */
+#products>article>.business-purchase-summary{grid-row:7;min-width:0;margin-top:18px;overflow-wrap:break-word}
+@media(max-width:640px){#products>article.ready-package-card{grid-column:1/-1;grid-row:auto;display:flex;flex-direction:column;min-width:0}#products>article.ready-package-card>.product-art{width:100%;aspect-ratio:1.2}#products>article.ready-package-card>.business-purchase-summary{margin-top:14px}#products>article.ready-package-card>.product-meta{width:100%}}
