@@ -1,5 +1,5 @@
 import {variantFields,productVariants} from './product-variants.js?v=variants1';
-import {businessPackageIds,configureBusinessPackages,packagePurchasePrice,acquisitionLabels,acquisitionMode,cleanBusinessChoices,splitAcquisitionBasket} from './business-purchase-model.js?v=buy2';
+import {businessPackageIds,configureBusinessPackages,packagePurchasePrice,acquisitionLabels,acquisitionMode,cleanBusinessChoices,splitAcquisitionBasket} from './business-purchase-model.js?v=componentprices1';
 import {kiDisclosure,isKiPhoto} from './image-provenance.js?v=ki1';
 const isCatalogPage=location.pathname==='/utvalg.html';
 const isOccasionPage=location.pathname==='/anledning.html';
