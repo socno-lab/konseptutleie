@@ -201,7 +201,7 @@ const defaults={
 export const validPurpose=value=>purposes.some(p=>p.id===value)?value:'alle';
 export function productPurposes(p){return Array.isArray(p.purposes)?p.purposes:defaults[p.id]||[];}
 export function matchesPurpose(p,purpose){return validPurpose(purpose)==='alle'||productPurposes(p).includes(purpose);}
-export function validatePurposes(value){if(value===undefined)return undefined;if(!Array.isArray(value)||value.length>3||value.some(x=>!['boligsalg','messe','event'].includes(x))||new Set(value).size!==value.length)throw Error('Ugyldig bruksområde.');return [...value];}
+export function validatePurposes(value){if(value===undefined)return undefined;if(!Array.isArray(value)||value.length>6||value.some(x=>!['boligsalg','messe','event','bedrift','fest','jul'].includes(x))||new Set(value).size!==value.length)throw Error('Ugyldig bruksområde.');return [...value];}
 export function prioritizePackages(items){return [...items].sort((a,b)=>Number(!!b.isPackage)-Number(!!a.isPackage));}
 export function readPurposeState(url,saved='alle'){const u=new URL(url);return {purpose:u.searchParams.has('bruk')?validPurpose(u.searchParams.get('bruk')):validPurpose(saved),category:u.searchParams.get('kategori')||'Alle',query:u.searchParams.get('sok')||''};}
 export function purposeUrl(url,state){const u=new URL(url);u.searchParams.set('bruk',validPurpose(state.purpose));if(state.category&&state.category!=='Alle')u.searchParams.set('kategori',state.category);else u.searchParams.delete('kategori');if(state.query)u.searchParams.set('sok',state.query);else u.searchParams.delete('sok');return u.pathname+u.search+u.hash;}

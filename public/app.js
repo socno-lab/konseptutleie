@@ -6,7 +6,7 @@ const isOccasionPage=location.pathname==='/anledning.html';
 const legacyCatalogUrl=new URL(location.href);
 if(!isCatalogPage&&!isOccasionPage&&(['bruk','kategori','sok'].some(key=>legacyCatalogUrl.searchParams.has(key))||location.hash==='#utvalg')){legacyCatalogUrl.pathname='/utvalg.html';location.replace(legacyCatalogUrl.pathname+legacyCatalogUrl.search+legacyCatalogUrl.hash);}
 import {addonRequirementError,cartChange} from './addon-model.js?v=tableware2';
-import {purposes,validPurpose,matchesPurpose,prioritizePackages,readPurposeState,purposeUrl} from './rental-purpose-model.js?v=lighting1';
+import {purposes,validPurpose,matchesPurpose,prioritizePackages,readPurposeState,purposeUrl} from './rental-purpose-model.js?v=adminareas1';
 import {isWall,wallLabel,frameSketch,presetFrames} from './wall-model.js?v=admin1';
 import {sofaBasket,withoutSofas,sofaConfiguration,saveSofa,restoreSofas,migrateSofas} from './sofa-model.js?v=senzo1';
 import {remaining,normalizeBasket,rentalEstimate,planText,moduleConfiguration,modulePreset,selectionDraft,packageSelectionDraft,changeProposalCart,isStylingService,isTablewareRental,groupedCart} from './catalog-model.js?v=senzo1';
