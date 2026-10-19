@@ -75,11 +75,11 @@ test('Public catalog calculates package prices and keeps component prices in adm
  data.products.find(p=>p.id===pack.components[0].id).purchaseUnitPrice=null;
  assert.equal(publicCatalog(data).products.find(p=>p.id===pack.id).purchasePrice,null);
 });
-test('Acquisition cost is internal and never becomes a rental or package sale price',()=>{
+test('Retired acquisition costs from stale admin clients are discarded on save',()=>{
  const {products}=JSON.parse(readFileSync(new URL('../data/catalog-export-2026-10-17.json',import.meta.url)));
  const item=products.find(p=>!p.isPackage);item.acquisitionCost=3199;
  const saved=validateCatalog(products),stored=saved.find(p=>p.id===item.id);
- assert.equal(stored.acquisitionCost,3199);assert.equal(stored.purchaseUnitPrice,null);assert.equal(stored.price,item.price);
- assert.ok(publicCatalog({products:saved}).products.every(p=>!Object.hasOwn(p,'acquisitionCost')));
- for(const invalid of [-1,3.199,Infinity,'3199']){item.acquisitionCost=invalid;assert.throws(()=>validateCatalog(products),/Innkjøpspris/);}
+ assert.equal(Object.hasOwn(stored,'acquisitionCost'),false);
+ assert.equal(stored.purchaseUnitPrice,null);assert.equal(stored.price,item.price);
+ for(const legacy of [-1,3.199,Infinity,'3199']){item.acquisitionCost=legacy;assert.ok(validateCatalog(products).every(p=>!Object.hasOwn(p,'acquisitionCost')));}
 });
