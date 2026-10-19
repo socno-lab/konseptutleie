@@ -8,14 +8,14 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {remaining} from './public/catalog-model.js';
 import {createMysqlStore} from './server/store.mjs';
-import {validateCatalog} from './server/catalog.mjs';
+import {validateCatalog,removeRetiredCosts} from './server/catalog.mjs';
 import {migrateProducts} from './server/walls.mjs';
 import {digest,secretEqual,hashPassword,verifyPassword,sessionToken,issueSession,expiredCookie} from './server/auth.mjs';
 import {staticImages,imageMime,mediaUsage} from './server/images.mjs';
 
 const root=path.dirname(fileURLToPath(import.meta.url)),publicRoot=path.join(root,'public');
 const seed=JSON.parse(await readFile(path.join(root,'data/catalog-export-2026-10-17.json'),'utf8'));
-seed.products=migrateProducts(seed.products);
+seed.products=migrateProducts(removeRetiredCosts(seed.products));
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.avif':'image/avif','.ico':'image/x-icon'};
 export function publicCatalog(data){return {...data,products:data.products.filter(p=>p.active&&!p.deletedAt).map(p=>{const {purchaseUnitPrice,acquisitionCost,...visible}=p;const rentalRates=rentalRateSets(p,data.products);return {...visible,...rentalRates.standard,rentalRates,purchasePrice:resolvedPackagePurchasePrice(p,data.products),maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined};})};}
 const error=(message,status=400)=>Object.assign(Error(message),{status});
