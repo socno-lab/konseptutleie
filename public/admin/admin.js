@@ -1,4 +1,4 @@
-import {rentalPricingMode,resolvedRentalRates,rentalRateSets} from '/rental-pricing-model.js?v=retailrates1';
+import {rentalPricingMode,resolvedRentalRates,rentalRateSets} from '/rental-pricing-model.js?v=packageprices2';
 import {variantFields,linkVariantProducts} from '/product-variants.js?v=adminareas1';
 import {resolvedProductPurposes} from '/rental-purpose-model.js?v=adminareas1';
 import {businessPurchaseEnabled,packagePurchaseBreakdown} from '/business-purchase-model.js?v=componentprices1';
@@ -55,7 +55,7 @@ function syncRentalPricing(){
  for(const id of ['objectPrice','objectWeekPrice','objectMonthPrice']){el(id).disabled=auto||el('objectPriceOnRequest').checked;el(id).required=!el(id).disabled;}
  el('objectPriceOnRequest').disabled=auto;
  const row=(label,rate)=>'<tr><th>'+label+'</th>'+['price','weekPrice','monthPrice'].map(key=>'<td>'+(rate.priceOnRequest?'Avklares':rate[key].toLocaleString('nb-NO')+' kr')+'</td>').join('')+'</tr>';
- el('rentalPricingPreview').innerHTML='<table><caption>Leiepris per enhet inkl. mva.</caption><thead><tr><th>Bruk</th><th>Døgn</th><th>Uke</th><th>Måned</th></tr></thead><tbody>'+row('Ordinær leie',rates.standard)+row('Messe/event',rates.messe)+'</tbody></table>'+(mode.value==='retail'&&!p.purchaseUnitPrice?'<p>Legg inn veiledende nypris for å beregne leie.</p>':mode.value==='manual'&&!p.purchaseUnitPrice?'<p class="hint">Nypris mangler. Manuelle priser beholdes inntil nypris registreres. Velg «Fra veiledende nypris» for å bruke modellen.</p>':'');
+ el('rentalPricingPreview').innerHTML='<table><caption>Leiepris per enhet inkl. mva.</caption><thead><tr><th>Bruk</th><th>Døgn</th><th>Uke</th><th>Måned</th></tr></thead><tbody>'+row('Boligfoto og visning',rates.standard)+row('Øvrig bruk (messe/event/bedrift)',rates.messe)+'</tbody></table>'+(mode.value==='retail'&&!p.purchaseUnitPrice?'<p>Legg inn veiledende nypris for å beregne leie.</p>':mode.value==='manual'&&!p.purchaseUnitPrice?'<p class="hint">Nypris mangler. Manuelle priser beholdes inntil nypris registreres. Velg «Fra veiledende nypris» for å bruke modellen.</p>':'');
 }
 el('objectRentalPricingMode').onchange=()=>{pricingModeTouched=true;syncRentalPricing();setDirty();};
 el('objectPurchaseUnitPrice').addEventListener('input',()=>{if(!pricingModeTouched&&!selected.purchaseUnitPrice&&!el('objectIsService').checked&&!['package','wall'].includes(el('productKind').value)&&Number(el('objectPurchaseUnitPrice').value)>0)el('objectRentalPricingMode').value='retail';syncRentalPricing();});
