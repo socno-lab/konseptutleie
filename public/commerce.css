@@ -35,3 +35,6 @@
  .sale-dialog .sale-product-info{margin:12px 0;padding-top:10px}.sale-dialog .sale-product-switch{font-size:12px;margin:12px 0 0}
  .sale-dialog .sale-module{padding:10px;margin:10px 0}.sale-dialog .sale-module-row{margin:10px 0}
 }
+
+.buy-page .sale-card>.button{margin:10px 0 0;font-size:12px;min-height:44px;padding:9px 12px;line-height:1.3;justify-content:center;gap:6px}
+@supports(grid-template-rows:subgrid){.buy-page .sale-card>.button{margin:0}}
