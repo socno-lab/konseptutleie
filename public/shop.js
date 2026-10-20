@@ -1,4 +1,4 @@
-import {salesEnabled,saleUnitPrice,saleEstimate,cleanSaleBasket,saleModuleError,saleTerms,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js';
+import {salesEnabled,saleUnitPrice,saleEstimate,cleanSaleBasket,saleModuleError,saleTerms,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=bringmecolours1';
 import {mountDiscount} from './discount-ui.js';
 const el=id=>document.getElementById(id),html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),money=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:2}).format(n),price=p=>saleUnitPrice(p)===null?'Pris på forespørsel':money(saleUnitPrice(p));
 let products=[],basket={},catalogReady=false,category='';
