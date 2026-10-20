@@ -15,7 +15,7 @@ test('New assignments and legacy event assignments survive catalog validation',(
 });
 test('Variant links update peers together without changing stock, images or prices; unlink and rename work',()=>{
  const a={id:'a',name:'Lamp, sand',category:'Belysning',variantGroup:'Old',variantLabel:'Sand',active:true,stock:2,price:100,image:'/a.jpg'},b={...a,id:'b',variantLabel:'Nikkel'},c={...a,id:'c',variantLabel:'Grønn'};
- const next=linkVariantProducts({...a,variantGroup:'New'},[a,b,c],[{id:'b',label:'Nikkel'}]);assert.equal(next[1].variantGroup,'New');assert.equal(next[2].variantGroup,'');for(let i=0;i<3;i++)for(const key of ['stock','price','image'])assert.equal(next[i][key],[a,b,c][i][key]);assert.equal(productVariants(next[0],next).length,2);
+ const next=linkVariantProducts({...a,variantGroup:'New'},[a,b,c],[{id:'b',label:'Nikkel'}]);assert.equal(next[1].variantGroup,'New');assert.equal(next[2].variantGroup,'Old');for(let i=0;i<3;i++)for(const key of ['stock','price','image'])assert.equal(next[i][key],[a,b,c][i][key]);assert.equal(productVariants(next[0],next).length,2);
  assert.throws(()=>linkVariantProducts(a,[a,{...b,category:'Bord'}],[{id:'b',label:'Nikkel'}]),/samme kategori/);
  assert.throws(()=>linkVariantProducts(a,[a,b],[{id:'b',label:''}]),/samme kategori/);
 });

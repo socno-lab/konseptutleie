@@ -23,3 +23,25 @@ test('Colour group and label survive catalog validation and malformed combinatio
  p.variantLabel='';assert.throws(()=>validateCatalog(products),/Fargevarianter/);
  p.variantLabel='Sand';p.variantGroup=42;assert.throws(()=>validateCatalog(products),/Fargevarianter/);
 });
+
+test('rental colours exclude sale-only, zero-stock and hidden colours; furniture stays separate',async()=>{
+ const {rentalVariants,groupedRentalCards}=await import('../public/product-variants.js');
+ const sand={id:'sand',name:'BringMe, sand',category:'Belysning',variantGroup:'BringMe',variantLabel:'Sand',active:true,rentalEnabled:true,stock:4,unavailable:0};
+ const green={...sand,id:'green',variantLabel:'Grønn'},sold={...sand,id:'black',variantLabel:'Sort',rentalEnabled:false,stock:0},hidden={...sand,id:'hidden',active:false},zero={...sand,id:'zero',stock:0};
+ assert.deepEqual(rentalVariants(sand,[sand,green,sold,hidden,zero]).map(p=>p.id),['green','sand']);
+ assert.equal(groupedRentalCards([sand,green]).length,1);
+ assert.equal(groupedRentalCards([sand,green].map(p=>({...p,category:'Stoler'}))).length,2);
+ const cart=selectionDraft({},[sand,green],sand.id,4);assert.equal(remaining(green.id,cart,[sand,green]),4);
+});
+test('joining and leaving groups preserves unselected previous members',async()=>{
+ const {linkVariantProducts}=await import('../public/product-variants.js');
+ const base={category:'Belysning',active:true,name:'Lampe',variantGroup:'A',variantLabel:'Sand'};
+ const a={...base,id:'a'},b={...base,id:'b',variantLabel:'Grønn'},c={...base,id:'c',variantLabel:'Sort'};
+ const added={...base,id:'new',variantLabel:'Blå'};
+ const joined=linkVariantProducts(added,[a,b,c,added],[{id:'a',label:'Sand'},{id:'b',label:'Grønn'},{id:'c',label:'Sort'}],null);
+ assert.equal(joined.filter(p=>p.variantGroup==='A').length,4);
+ const left=linkVariantProducts({...a,variantGroup:'',variantLabel:''},[a,b,c],[],a);
+ assert.equal(left.find(p=>p.id==='b').variantGroup,'A');assert.equal(left.find(p=>p.id==='c').variantGroup,'A');
+ const removed=linkVariantProducts(a,[a,b,c],[{id:'b',label:'Grønn'}],a);
+ assert.equal(removed.find(p=>p.id==='c').variantGroup,'');
+});
