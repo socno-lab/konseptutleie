@@ -251,3 +251,10 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 }
 
 @media(max-width:640px){#detail.product-mode .product-actions{position:sticky;bottom:-12px;z-index:2;background:var(--paper);padding:8px 0 10px;box-shadow:0 -8px 14px var(--paper)}}
+
+/* Thumbnail strips scroll horizontally without a second vertical scroll area. */
+@media(max-width:640px){
+ #detail.product-mode .product-gallery,.sale-dialog .sale-gallery{height:56px;min-height:56px;flex-shrink:0;align-items:flex-start;padding:4px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain}
+ #detail .product-gallery img,.sale-dialog .sale-gallery img{display:block}
+ #detail .product-gallery button[data-product-photo],.sale-dialog .sale-gallery button{line-height:0;overflow:hidden}
+}
