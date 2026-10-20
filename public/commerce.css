@@ -19,3 +19,19 @@
 .sale-quantity input{width:48px!important;min-width:0;height:44px;margin:0;padding:4px!important;border:0!important;border-inline:1px solid var(--line,#bbc0b4)!important;background:transparent;text-align:center;font-size:16px;appearance:textfield;-moz-appearance:textfield}
 .sale-quantity input::-webkit-inner-spin-button,.sale-quantity input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.sale-quantity button:disabled{opacity:.3}.sale-quantity-field>span{display:block;margin-bottom:6px}.sale-module-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin:14px 0}.sale-module-row>span{min-width:0}.sale-row{grid-template-columns:minmax(0,1fr) auto auto}.sale-cart .sale-quantity{margin:0}
 @media(max-width:500px){.sale-row{grid-template-columns:minmax(0,1fr) auto}.sale-row>div:first-child{grid-column:1/-1}.sale-row .remove{grid-column:auto}.sale-module-row{grid-template-columns:1fr;gap:8px}.sale-actions{align-items:flex-end}}
+
+.sale-product-intro{display:flex;flex-direction:column}.sale-product-intro>div{min-width:0;display:contents}.sale-product-intro .eyebrow{order:-2}.sale-product-intro h2{order:-1}.sale-product-intro .sale-detail-photo{margin-bottom:16px}
+@media(max-width:640px){
+ .sale-dialog{padding:12px;max-height:94dvh}.sale-dialog>.close{margin:0 0 6px 8px}
+ .sale-product-intro{display:grid;grid-template-columns:100px minmax(0,1fr);gap:12px;clear:both;align-items:center;margin-bottom:8px}
+ .sale-product-intro>div{display:block}.sale-product-intro .sale-detail-photo{height:120px;max-height:none;margin:0}
+ .sale-product-intro .eyebrow{font-size:9px;letter-spacing:1px;margin-bottom:6px}
+ .sale-product-intro h2{font-size:20px;letter-spacing:-.6px;line-height:1.15;margin:0 0 6px}
+ .sale-product-intro p:not(.eyebrow){font-size:11px;line-height:1.4;margin:0}
+ .sale-dialog .sale-gallery{margin:4px 0 8px;gap:6px}.sale-dialog .sale-gallery button{width:54px;height:48px}
+ .sale-dialog .sale-detail-price{font-size:20px;margin:8px 0}.sale-dialog .sale-detail-price small{font-size:11px}
+ .sale-dialog .sale-colour-options{margin:8px 0}.sale-dialog .sale-colour-options>p{margin-bottom:6px;font-size:12px}
+ .sale-dialog .sale-actions{gap:10px;margin:10px 0}.sale-dialog .sale-actions>.button{padding:12px 16px;min-height:46px}
+ .sale-dialog .sale-product-info{margin:12px 0;padding-top:10px}.sale-dialog .sale-product-switch{font-size:12px;margin:12px 0 0}
+ .sale-dialog .sale-module{padding:10px;margin:10px 0}.sale-dialog .sale-module-row{margin:10px 0}
+}

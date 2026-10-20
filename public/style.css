@@ -230,3 +230,24 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .cart-thumbnail{display:flex;align-items:center;justify-content:center;width:72px;height:72px;max-width:100%;flex-shrink:0;background:white;border:1px solid var(--line);overflow:hidden}.cart-thumbnail img{display:block;width:100%;height:100%;object-fit:contain}.cart-thumbnail svg{width:34px;height:34px;color:var(--muted)}
 .cart-product-summary,.sofa-cart-product{display:flex;gap:12px;align-items:center;min-width:0}.sale-row-copy{min-width:0;overflow-wrap:anywhere}.sale-row-copy small{display:block}.sofa-cart-product .sofa-cart-head{flex:1;min-width:0;flex-wrap:wrap;gap:4px 12px}.cart-item .thumb{width:72px;background:transparent}.cart-item .item-copy{min-width:0;overflow-wrap:anywhere}.cart-product-group.has-addons>.cart-item{grid-template-columns:56px minmax(0,1fr) auto}.cart-product-group.has-addons .cart-thumbnail{width:56px;height:56px}
 @media(max-width:640px){.cart-thumbnail{width:64px;height:64px}.cart-item .thumb{width:64px}.cart-product-summary,.sofa-cart-product{gap:10px}.cart-product-group.has-addons>.cart-item{grid-template-columns:48px minmax(0,1fr) auto}.cart-product-group.has-addons .cart-thumbnail{width:48px;height:48px}}
+
+/* A clear, short-lived confirmation and a compact mobile product introduction. */
+.added-notice{background:var(--olive);color:white;border-color:var(--olive);box-shadow:0 10px 28px #26302040}
+@media(max-width:640px){
+ #detail.product-mode[open]{padding:12px;max-height:94dvh}
+ #detailContent .product-intro{grid-template-columns:100px minmax(0,1fr);gap:12px;margin-bottom:8px;align-items:center}
+ #detailContent .product-intro .product-art{height:120px}
+ #detailContent .product-intro h2{font-size:20px;line-height:1.15;margin-bottom:6px}
+ #detailContent .product-intro .product-measures{font-size:11px;line-height:1.4}
+ .product-intro .product-art>.zoom-affordance{font-size:10px;padding:4px;right:2px;bottom:2px;gap:3px}.product-intro .zoom-affordance svg{width:14px;height:14px}
+ #detail .product-gallery{margin-bottom:6px}.product-gallery .gallery-item{flex-basis:54px;height:48px}
+ #detail .product-image-hint{display:none}
+ #detail .product-scroll{display:flex;flex-direction:column}
+ #detail .product-scroll>.product-info{order:2}
+ #detail .product-scroll>.mode-switch{order:3;margin:12px 0 0;font-size:12px}
+ #detail .product-actions{padding-top:8px;margin-top:8px}.product-actions .quote-action-note{font-size:10px;margin-bottom:4px}
+ #detail .product-quantity{gap:8px;padding:8px 0;margin-bottom:8px}
+ #detail .product-info{margin-top:12px;padding-top:10px}
+}
+
+@media(max-width:640px){#detail.product-mode .product-actions{position:sticky;bottom:-12px;z-index:2;background:var(--paper);padding:8px 0 10px;box-shadow:0 -8px 14px var(--paper)}}

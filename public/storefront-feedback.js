@@ -7,7 +7,7 @@ export function mountStorefrontFeedback(openCart){
  const position=()=>{if(header){document.documentElement.style.setProperty('--storefront-header-height',header.offsetHeight+'px');notice.style.top=Math.max(12,header.getBoundingClientRect().bottom+12)+'px';}};
  if(header)new ResizeObserver(position).observe(header);window.addEventListener('scroll',position,{passive:true});window.addEventListener('resize',position);position();
  const hide=()=>{clearTimeout(timer);notice.hidden=true;};
- const later=()=>{clearTimeout(timer);timer=setTimeout(()=>{if(notice.contains(document.activeElement)||notice.matches(':hover'))later();else hide();},8000);};
+ const later=()=>{clearTimeout(timer);timer=setTimeout(()=>{if(notice.contains(document.activeElement))later();else hide();},4000);};
  notice.querySelector('.added-notice-close').onclick=hide;
  notice.querySelector('.added-notice-view').onclick=()=>{hide();openCart();};
  return text=>{notice.querySelector('[role="status"]').textContent=text;notice.hidden=false;position();later();};
