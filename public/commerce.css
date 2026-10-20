@@ -38,3 +38,6 @@
 
 .buy-page .sale-card>.button{margin:10px 0 0;font-size:12px;min-height:44px;padding:9px 12px;line-height:1.3;justify-content:center;gap:6px}
 @supports(grid-template-rows:subgrid){.buy-page .sale-card>.button{margin:0}}
+
+/* Align desktop add action with the quantity control, below its label. */
+@media(min-width:641px){.sale-dialog .sale-actions{align-items:flex-end}.sale-dialog .sale-actions>.button{box-sizing:border-box;height:46px;min-height:46px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center}}
