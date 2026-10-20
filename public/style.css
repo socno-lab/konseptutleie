@@ -284,3 +284,22 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  #cart .drawer-head h2,#saleCart h2{overflow-wrap:anywhere}
  #cart .price-estimate>div>*,#saleCart .sale-summary>div>*{min-width:0;overflow-wrap:anywhere}
 }
+
+/* Original product photos track the selected modules, with no nested scrolling. */
+.module-photo{margin:0;width:100%;min-width:0;background:white;padding:12px;overflow:hidden}
+.module-preview .module-photo svg,.sofa-cart-sketch .module-photo svg,.sale-module-preview .module-photo svg{display:block;width:100%;height:auto;max-height:260px}
+.module-photo figcaption{color:var(--muted);font-size:10px;text-align:center;line-height:1.4;margin-top:6px}
+.module-preview{background:white;min-height:0}
+.module-photo-empty{padding:24px;margin:0;font-size:13px;text-align:center}
+.sale-product-intro>.sale-module-preview{min-width:0}
+.sale-detail-photo[hidden],.sale-module-preview[hidden]{display:none}
+@media(max-width:640px){.module-photo{padding:8px}.module-preview .module-photo svg,.sale-module-preview .module-photo svg{max-height:155px}.module-photo figcaption{font-size:9px}.sofa-cart-sketch .module-photo svg{max-height:150px}}
+
+#saleDetailContent:has(.sale-module) .sale-product-intro{display:block}
+.sale-module{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:20px;align-items:start}
+.sale-module-controls{min-width:0}.sale-module-controls h3{margin:0 0 8px}.sale-module-controls>p{font-size:12px}
+.sale-module-controls .sale-module-row{grid-template-columns:minmax(0,1fr) auto;gap:10px;font-size:12px}
+.sale-module-preview{position:sticky;top:0}
+@media(max-width:640px){.sale-module{display:block}.sale-module-preview{position:static;margin-bottom:12px}.sale-module-controls .sale-module-row{grid-template-columns:minmax(0,1fr) auto;font-size:11px;gap:8px}.sale-module-controls .sale-quantity{height:42px}.sale-module-controls .sale-quantity button,.sale-module-controls .sale-quantity input{width:36px;height:42px}}
+
+.module-references{display:block}.module-references summary{font-size:11px;cursor:pointer;text-decoration:underline}.module-reference-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:8px}
