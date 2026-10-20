@@ -20,3 +20,5 @@
 .variant-choices{max-height:300px;overflow:auto;border:1px solid var(--line)}.variant-link-row{padding:12px;border-bottom:1px solid var(--line)}.variant-link-row .check-label span{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.variant-link-row img{width:48px;height:48px;object-fit:contain;background:white}.variant-link-row strong{font-size:13px;font-weight:500}.variant-link-row>label+label{margin:8px 0 0 30px}#variantSelected{background:#e8eddf}#variantFields>details{margin-top:16px}
 
 #rentalPricingPreview{overflow-x:auto}#rentalPricingPreview table{width:100%;border-collapse:collapse;font-size:13px}#rentalPricingPreview th,#rentalPricingPreview td{padding:8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}#rentalPricingPreview caption{text-align:left;margin:12px 0;font-weight:600}
+
+.variant-group-preview{padding:12px;background:#e9ecdf;font-size:13px}.variant-link-row small{display:block;color:var(--muted);font-size:12px}#leaveVariantGroup{margin-bottom:16px}
