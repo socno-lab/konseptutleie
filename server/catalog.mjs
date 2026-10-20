@@ -1,7 +1,7 @@
 import {salesEnabled,saleTypeAllowed} from '../public/sales-model.js';
 export function removeRetiredCosts(products){return products.map(({acquisitionCost,...product})=>product);}
 import {rentalPricingMode,resolvedRentalRates} from '../public/rental-pricing-model.js';
-import {variantFields} from '../public/product-variants.js';
+import {variantFields,compatibleVariants} from '../public/product-variants.js';
 import {businessPurchaseEnabled} from '../public/business-purchase-model.js';
 import {addonFields} from '../public/addon-model.js';
 import {validateDeletedAt} from './product-lifecycle.mjs';
@@ -49,7 +49,7 @@ export function validateCatalog(input) { if (!Array.isArray(input) || input.leng
 } const isProposal=raw.isProposal??false,minimumQuantity=raw.minimumQuantity??1,maximumQuantity=raw.maximumQuantity??99,suggestedAddOns=raw.suggestedAddOns??[];
  if(typeof isProposal!=='boolean'||isProposal&&!raw.isPackage||!Number.isInteger(minimumQuantity)||!Number.isInteger(maximumQuantity)||minimumQuantity<1||maximumQuantity>99||minimumQuantity>maximumQuantity||!Array.isArray(suggestedAddOns)||new Set(suggestedAddOns).size!==suggestedAddOns.length||suggestedAddOns.some(id=>!relatedAddOns.includes(id)))throw Error('Ugyldig oppsett for forslag per person.');
  const {variantGroup,variantLabel}=variantFields(raw);
- if(typeof variantGroup!=='string'||typeof variantLabel!=='string'||variantGroup.length>80||variantLabel.length>80||!!variantGroup.trim()!==!!variantLabel.trim()||(variantGroup&&(raw.isPackage||addon.addonOnly||moduleSeries||raw.wallGroup)))throw Error('Fargevarianter trenger både gruppenavn og farge, og gjelder vanlige enkeltprodukter.');
+ if(typeof variantGroup!=='string'||typeof variantLabel!=='string'||variantGroup.length>80||variantLabel.length>80||!!variantGroup.trim()!==!!variantLabel.trim()||(variantGroup&&(raw.isPackage||addon.addonOnly||raw.wallGroup)))throw Error('Fargevarianter trenger både gruppenavn og farge, og gjelder enkeltprodukter og sofamoduler.');
  const pricingMode=rentalPricingMode(raw);if(!['retail','manual','components'].includes(pricingMode)||pricingMode==='components'&&!raw.isPackage||pricingMode==='retail'&&(raw.isPackage||isService||raw.wallGroup))throw Error('Ugyldig modell for leiepris.');
  const purchaseUnitPrice=raw.purchaseUnitPrice??null,purchasePriceMode=raw.purchasePriceMode??(raw.purchasePrice!=null?'manual':'components');
  if(!['manual','components'].includes(purchasePriceMode))throw Error('Ugyldig beregning av kjøpspris.');
@@ -62,7 +62,8 @@ export function validateCatalog(input) { if (!Array.isArray(input) || input.leng
  const rentalEnabled=raw.rentalEnabled??true,salePrice=raw.salePrice??null;
  if(typeof rentalEnabled!=='boolean'||salePrice!==null&&(typeof salePrice!=='number'||!Number.isFinite(salePrice)||salePrice<=0||salePrice>100000000||Math.abs(Math.round(salePrice*100)-salePrice*100)>1e-7))throw Error('Ugyldig salgspris eller leievalg.');
  if(raw.saleEnabled!==undefined&&typeof raw.saleEnabled!=='boolean')throw Error('Ugyldig salgsvalg.');
- return { rentalEnabled,salePrice,saleEnabled:saleTypeAllowed(raw)&&salesEnabled(raw),rentalPricingMode:pricingMode,purposesExplicit,purchaseUnitPrice,purchasePriceMode, variantGroup:variantGroup.trim(),variantLabel:variantLabel.trim(), businessPurchase,purchasePrice, isProposal,minimumQuantity,maximumQuantity,suggestedAddOns,...addon,deletedAt:validateDeletedAt(raw), purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, moduleRequired, components }; }); for (const p of output)
+ const deliveryNote=raw.deliveryNote===undefined?'':str('deliveryNote',300);
+ return { deliveryNote,rentalEnabled,salePrice,saleEnabled:saleTypeAllowed(raw)&&salesEnabled(raw),rentalPricingMode:pricingMode,purposesExplicit,purchaseUnitPrice,purchasePriceMode, variantGroup:variantGroup.trim(),variantLabel:variantLabel.trim(), businessPurchase,purchasePrice, isProposal,minimumQuantity,maximumQuantity,suggestedAddOns,...addon,deletedAt:validateDeletedAt(raw), purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, moduleRequired, components }; }); for (const p of output)
     for (const c of p.components || []) {
         const item = output.find(x => x.id === c.id);
         if (!item || item.isPackage || item.id === p.id || (!p.deletedAt && item.deletedAt))
@@ -73,4 +74,4 @@ export function validateCatalog(input) { if (!Array.isArray(input) || input.leng
             throw new Error('Anbefalinger må vise til eksisterende pakker.'); for (const p of output)
     for (const id of p.relatedAddOns || [])
         if (id === p.id || !output.some(x => x.id === id && !x.isPackage && (p.deletedAt || !x.deletedAt)))
-            throw new Error('Tilvalg må vise til eksisterende enkeltobjekter.'); for(const p of output)if(p.requiredProductId){const base=output.find(x=>x.id===p.requiredProductId);if(!base||base.id===p.id||base.addonOnly||!p.deletedAt&&base.deletedAt)throw Error('Tilvalg må kreve et eksisterende hovedprodukt.');}return output.map(p=>({...p,...resolvedRentalRates(p,output)})); }
+            throw new Error('Tilvalg må vise til eksisterende enkeltobjekter.'); for(const p of output)if(p.requiredProductId){const base=output.find(x=>x.id===p.requiredProductId);if(!base||base.id===p.id||base.addonOnly||!p.deletedAt&&base.deletedAt)throw Error('Tilvalg må kreve et eksisterende hovedprodukt.');}for(const p of output)if(p.variantGroup&&output.some(x=>x.variantGroup===p.variantGroup&&!compatibleVariants(p,x)))throw Error('En fargegruppe må ha samme kategori og modultype.');return output.map(p=>({...p,...resolvedRentalRates(p,output)})); }
