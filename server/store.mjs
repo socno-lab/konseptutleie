@@ -12,6 +12,7 @@ export function createMysqlStore(env,seed){
   if(!ready)ready=(async()=>{
    for(const sql of [
     'CREATE TABLE IF NOT EXISTS ku_catalog (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL, updated_at DATETIME(3) NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_discounts (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_admin (id INT PRIMARY KEY, email VARCHAR(254) NOT NULL, password_hash VARCHAR(255) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_sessions (token_hash CHAR(64) PRIMARY KEY, expires_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_login_limits (bucket CHAR(64) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
@@ -19,6 +20,7 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_media_state (url VARCHAR(500) PRIMARY KEY, deleted_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)'
    ])await pool.query(sql);
+   await pool.execute("INSERT IGNORE INTO ku_discounts (id,revision,body) VALUES (1,1,'[]')");
    await pool.execute('INSERT IGNORE INTO ku_catalog (id,revision,body,updated_at) VALUES (1,?,?,?)',[Math.max(1,seed.revision||1),JSON.stringify(migrateProducts(removeRetiredCosts(seed.products))),new Date()]);
    // Remove the retired field from storage, including hidden and trashed products.
    const connection=await pool.getConnection();
@@ -45,6 +47,8 @@ export function createMysqlStore(env,seed){
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
  return {enabled,init,async close(){if(pool)await pool.end();},
+  async readDiscountCodes(){const [[r]]=await query('SELECT revision,body FROM ku_discounts WHERE id=1');return {revision:r.revision,codes:JSON.parse(r.body)};},
+  async saveDiscountCodes(revision,codes){const [r]=await query('UPDATE ku_discounts SET revision=revision+1,body=? WHERE id=1 AND revision=?',[JSON.stringify(codes),revision]);return r.affectedRows?{revision:revision+1,codes}:null;},
   async readCatalog(){const [[r]]=await query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1');return {revision:r.revision,products:migrateProducts(removeRetiredCosts(JSON.parse(r.body))),updatedAt:r.updated_at};},
   async saveCatalog(revision,products){return mutateCatalog(revision,products,[]);},
   async purgeTrash(revision,products,urls){return mutateCatalog(revision,products,urls);},
