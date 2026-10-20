@@ -7,3 +7,5 @@
 
 /* Keep purchase actions aligned across cards with different text and colour counts. */
 .buy-page .sale-card{display:flex;flex-direction:column}.buy-page .sale-card .sale-photo{flex-shrink:0}.buy-page .sale-card>small{margin-bottom:1rem}.buy-page .sale-card>.button{margin-top:auto;min-height:48px;background:var(--olive);color:white;border:1px solid var(--olive)}
+
+.sale-card .sale-photo{position:relative}.sale-kind{position:absolute;top:14px;left:14px;padding:6px 9px;background:var(--paper);color:var(--ink);font-size:10px;letter-spacing:1px}.sale-module-note{font-size:12px;color:var(--muted)}
