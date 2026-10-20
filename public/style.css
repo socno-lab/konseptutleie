@@ -214,3 +214,14 @@ html{scroll-padding-top:calc(var(--storefront-header-height,106px) + 16px)}
 /* The mobile mode selector scrolls with the page; only logo and basket stick. */
 .mobile-commerce-mode-switch{display:none}
 @media(max-width:640px){body>header>nav{display:none!important}body>header{flex-wrap:nowrap;min-height:87px}.mobile-commerce-mode-switch{display:flex;gap:0;margin:14px 5% 0;border:1px solid var(--line);font-size:14px}.mobile-commerce-mode-switch>a{display:flex;flex:1;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;border:0}.mobile-commerce-mode-switch>a[aria-current="page"]{background:var(--olive);color:white}}
+
+/* Do not pass scrolling from an open dialog to the page behind it. */
+dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+
+/* Product choices and the add action precede the optional, longer information. */
+#detail.product-mode[open]{display:block;overflow-y:auto;overscroll-behavior:contain}
+#detail.product-mode #detailContent{display:block;overflow:visible}
+#detail.product-mode .product-scroll{overflow:visible;min-height:auto}
+#detail.product-mode>.close{float:none;display:block;margin:0 0 8px auto}
+#detail.product-mode .product-info{margin-top:20px;padding-top:14px}
+.sale-product-info{margin:20px 0;border-top:1px solid var(--line);padding-top:14px}.sale-product-info summary{font-weight:600}.sale-product-info p{margin:12px 0}

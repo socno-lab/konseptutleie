@@ -1,3 +1,4 @@
+import './dialog-scroll-lock.js?v=dialoglock1';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');
  const notice=document.createElement('aside');notice.className='added-notice';notice.hidden=true;notice.setAttribute('aria-label','Lagt til i forespørselen');
