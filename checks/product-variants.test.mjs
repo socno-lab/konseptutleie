@@ -45,3 +45,13 @@ test('joining and leaving groups preserves unselected previous members',async()=
  const removed=linkVariantProducts(a,[a,b,c],[{id:'b',label:'Grønn'}],a);
  assert.equal(removed.find(p=>p.id==='c').variantGroup,'');
 });
+
+test('module colours link matching roles without mixing builders or rental stock',async()=>{
+ const {linkVariantProducts}=await import('../public/product-variants.js');
+ const base={id:'a',active:true,category:'Sofaer',moduleSeries:'Senzo sennep',moduleRole:'base',variantGroup:'Senzo grunnsofa',variantLabel:'Sennep',stock:1,rentalEnabled:true};
+ const green={...base,id:'b',moduleSeries:'Senzo grønn',variantLabel:'Grønn',stock:0,rentalEnabled:false};
+ const middle={...base,id:'c',moduleRole:'middle'};
+ assert.deepEqual(productVariants(base,[base,green,middle]).map(p=>p.id).sort(),['a','b']);
+ const linked=linkVariantProducts(base,[base,green,middle],[{id:'b',label:'Grønn'}]);assert.equal(linked[1].moduleSeries,'Senzo grønn');assert.equal(linked[0].stock,1);
+ assert.throws(()=>linkVariantProducts(base,[base,green,middle],[{id:'c',label:'Sennep'}]),/Fargevariantene/);
+});

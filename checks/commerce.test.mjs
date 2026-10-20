@@ -39,3 +39,9 @@ test('modular sales show one model and retain required base when searching a mid
  assert.deepEqual(groupedSaleCards([base,middle]).map(p=>p.id),['base']);assert.deepEqual(groupedSaleCards([middle],[base,middle]).map(p=>p.id),['base']);
  assert.equal(saleEstimate({base:1,middle:2},[base,middle]).total,31897);assert.match(saleModuleError({middle:1},[base,middle]),/begge ender/);
 });
+
+test('supplier delivery overrides the usual delivery wording',async()=>{
+ const {deliveryText,saleTermsForProduct}=await import('../public/sales-model.js');
+ const p={deliveryNote:'Forventet på produsentens lager 23.01.2027; levering avtales'};
+ assert.equal(deliveryText(p),p.deliveryNote);assert.match(saleTermsForProduct(p),/23.01.2027/);assert.doesNotMatch(saleTermsForProduct(p),/2–3/);
+});
