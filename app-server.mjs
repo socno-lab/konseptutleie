@@ -1,3 +1,5 @@
+import {salesEnabled,saleUnitPrice} from './public/sales-model.js';
+import {discountQuote,validateDiscountCodes} from './server/discounts.mjs';
 import {rentalRateSets} from './public/rental-pricing-model.js';
 import {resolvedPackagePurchasePrice} from './public/business-purchase-model.js';
 import {planTrashPurge} from './server/trash-purge.mjs';
@@ -17,7 +19,7 @@ const root=path.dirname(fileURLToPath(import.meta.url)),publicRoot=path.join(roo
 const seed=JSON.parse(await readFile(path.join(root,'data/catalog-export-2026-10-17.json'),'utf8'));
 seed.products=migrateProducts(removeRetiredCosts(seed.products));
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.avif':'image/avif','.ico':'image/x-icon'};
-export function publicCatalog(data){return {...data,products:data.products.filter(p=>p.active&&!p.deletedAt).map(p=>{const {purchaseUnitPrice,acquisitionCost,...visible}=p;const rentalRates=rentalRateSets(p,data.products);return {...visible,...rentalRates.standard,rentalRates,purchasePrice:resolvedPackagePurchasePrice(p,data.products),maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined};})};}
+export function publicCatalog(data){return {...data,products:data.products.filter(p=>p.active&&!p.deletedAt).map(p=>{const {purchaseUnitPrice,acquisitionCost,...visible}=p;const rentalRates=rentalRateSets(p,data.products);return {...visible,saleEnabled:salesEnabled(p),salePrice:saleUnitPrice(p),...rentalRates.standard,rentalRates,purchasePrice:resolvedPackagePurchasePrice(p,data.products),maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined};})};}
 const error=(message,status=400)=>Object.assign(Error(message),{status});
 async function bytes(req,max){let length=0,large=false;const chunks=[];for await(const chunk of req){length+=chunk.length;if(length>max){large=true;chunks.length=0;}else if(!large)chunks.push(chunk);}if(large)throw error('Filen eller forespørselen er for stor.',413);return Buffer.concat(chunks);}
 async function json(req,max=1500000){if(!req.headers['content-type']?.startsWith('application/json'))throw error('Forventet JSON.',415);try{return JSON.parse((await bytes(req,max)).toString('utf8'));}catch(e){if(e.status)throw e;throw error('Ugyldige data.');}}
@@ -79,6 +81,10 @@ export function createServer(options={}){
     }
     const lifecycle=pathname.match(/^\/api\/admin\/products\/([a-z0-9_-]+)\/(trash|restore)$/);
     if(lifecycle&&req.method==='POST'){const data=await json(req,5000),current=await store.readCatalog();if(data.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});const products=validateCatalog(changeProductLifecycle(current.products,lifecycle[1],lifecycle[2]));const saved=await store.saveCatalog(current.revision,products);return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});}
+    if(pathname==='/api/admin/discounts'){
+     if(req.method==='GET')return out(200,await store.readDiscountCodes());
+     if(req.method==='PUT'){const data=await json(req,100000);if(!Number.isInteger(data.revision))throw error('Ugyldig versjon.');const codes=validateDiscountCodes(data.codes),saved=await store.saveDiscountCodes(data.revision,codes);return saved?out(200,saved):out(409,{error:'Rabattkodene er endret. Last inn siden på nytt.'});}
+    }
     if(pathname==='/api/admin/catalog'){
      if(req.method==='GET')return out(200,await store.readCatalog());
      if(req.method==='PUT'){const data=await json(req);if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');const products=validateCatalog(data.products);const result=await store.saveCatalog(data.revision,products);return result?out(200,result):out(409,{error:'Katalogen er endret av en annen administrator. Last inn på nytt før du lagrer.'});}
@@ -96,6 +102,13 @@ export function createServer(options={}){
      }
     }
     if(pathname.startsWith('/api/admin/'))return out(405,{error:'Metoden eller adressen støttes ikke.'});
+   }
+   if(pathname==='/api/discount/quote'&&req.method==='POST'){
+    if(req.headers.origin!==origin)return out(403,{error:'Last inn siden på nytt.'});
+    if(!store.enabled)return out(503,{error:'Rabattkoder er ikke tilgjengelige nå.'});
+    if(!await store.attempt(digest('discount:'+req.socket.remoteAddress)))return out(429,{error:'For mange forsøk. Vent 15 minutter.'});
+    const input=await json(req,20000),catalog=await store.readCatalog(),discounts=await store.readDiscountCodes();
+    const quote=discountQuote(input,catalog.products,discounts.codes);await store.resetAttempts(digest('discount:'+req.socket.remoteAddress));return out(200,quote);
    }
    if(!['GET','HEAD'].includes(req.method))return send(405,'Metoden støttes ikke.');
    if(pathname==='/api/catalog'){const data=store.enabled?await store.readCatalog():seed;return out(200,{...publicCatalog(data),canAdmin:store.enabled&&await authenticated()});}
