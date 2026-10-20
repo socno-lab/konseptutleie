@@ -9,3 +9,6 @@
 .buy-page .sale-card{display:flex;flex-direction:column}.buy-page .sale-card .sale-photo{flex-shrink:0}.buy-page .sale-card>small{margin-bottom:1rem}.buy-page .sale-card>.button{margin-top:auto;min-height:48px;background:var(--olive);color:white;border:1px solid var(--olive)}
 
 .sale-card .sale-photo{position:relative}.sale-kind{position:absolute;top:14px;left:14px;padding:6px 9px;background:var(--paper);color:var(--ink);font-size:10px;letter-spacing:1px}.sale-module-note{font-size:12px;color:var(--muted)}
+
+/* Shared rows keep prices and actions aligned within each product row. */
+@supports(grid-template-rows:subgrid){.buy-page .sale-card{display:grid;grid-row:span 6;grid-template-rows:subgrid;row-gap:12px;align-content:start}.buy-page .sale-card>h3,.buy-page .sale-card>.sale-price,.buy-page .sale-card>small{margin:0}.buy-page .sale-card>.button{margin:0;align-self:stretch}.sale-card-info{align-self:start}.sale-card-info>p{margin:0}.sale-card-info .sale-colour-options{margin:0 0 12px}.sale-card-info .sale-module-note{margin:0 0 8px}.buy-page .sale-card-info>p{font-size:inherit}@media(max-width:640px){.buy-page .sale-card-info>p{font-size:11px}}}
