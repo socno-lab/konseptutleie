@@ -22,3 +22,5 @@
 #rentalPricingPreview{overflow-x:auto}#rentalPricingPreview table{width:100%;border-collapse:collapse;font-size:13px}#rentalPricingPreview th,#rentalPricingPreview td{padding:8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}#rentalPricingPreview caption{text-align:left;margin:12px 0;font-weight:600}
 
 .variant-group-preview{padding:12px;background:#e9ecdf;font-size:13px}.variant-link-row small{display:block;color:var(--muted);font-size:12px}#leaveVariantGroup{margin-bottom:16px}
+
+#extrasFields:disabled{background:#efeee8;border-color:#d5d4cc}#extrasFields:disabled .relation-selected,#extrasFields:disabled .relation-choices,#extrasFields:disabled label,#extrasFields:disabled #addonsSearch{opacity:.55}#extrasFields:disabled input,#extrasFields:disabled button{cursor:not-allowed}.rental-addons-status{padding:12px;background:#e9ecdf}#extrasFields:disabled .rental-addons-status{background:#e4e2d9;color:#515449}
