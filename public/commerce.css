@@ -12,3 +12,10 @@
 
 /* Shared rows keep prices and actions aligned within each product row. */
 @supports(grid-template-rows:subgrid){.buy-page .sale-card{display:grid;grid-row:span 6;grid-template-rows:subgrid;row-gap:12px;align-content:start}.buy-page .sale-card>h3,.buy-page .sale-card>.sale-price,.buy-page .sale-card>small{margin:0}.buy-page .sale-card>.button{margin:0;align-self:stretch}.sale-card-info{align-self:start}.sale-card-info>p{margin:0}.sale-card-info .sale-colour-options{margin:0 0 12px}.sale-card-info .sale-module-note{margin:0 0 8px}.buy-page .sale-card-info>p{font-size:inherit}@media(max-width:640px){.buy-page .sale-card-info>p{font-size:11px}}}
+
+/* Tap-friendly quantity controls for products, modules and the purchase basket. */
+.sale-quantity{display:inline-grid;grid-template-columns:44px 48px 44px;align-items:stretch;flex-shrink:0;border:1px solid var(--line,#bbc0b4);background:white;width:max-content}
+.sale-quantity button{width:44px;min-height:44px;padding:0;border:0;background:transparent;font-size:22px;color:var(--ink)}
+.sale-quantity input{width:48px!important;min-width:0;height:44px;margin:0;padding:4px!important;border:0!important;border-inline:1px solid var(--line,#bbc0b4)!important;background:transparent;text-align:center;font-size:16px;appearance:textfield;-moz-appearance:textfield}
+.sale-quantity input::-webkit-inner-spin-button,.sale-quantity input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.sale-quantity button:disabled{opacity:.3}.sale-quantity-field>span{display:block;margin-bottom:6px}.sale-module-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin:14px 0}.sale-module-row>span{min-width:0}.sale-row{grid-template-columns:minmax(0,1fr) auto auto}.sale-cart .sale-quantity{margin:0}
+@media(max-width:500px){.sale-row{grid-template-columns:minmax(0,1fr) auto}.sale-row>div:first-child{grid-column:1/-1}.sale-row .remove{grid-column:auto}.sale-module-row{grid-template-columns:1fr;gap:8px}.sale-actions{align-items:flex-end}}
