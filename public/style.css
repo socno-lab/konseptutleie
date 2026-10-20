@@ -180,3 +180,6 @@
 .package-included{margin:1rem 0;padding:1rem;border:1px solid var(--line,#d5d7cb)}
 .package-included h3{font-size:1rem;margin:0 0 .5rem}.package-included .package-contents{padding-left:1.25rem;margin:.5rem 0}.package-included .hint{margin-bottom:0}
 .package-card-contents{margin:.75rem 0}.package-card-contents summary{cursor:pointer}.package-card-contents .package-contents{padding-left:1.25rem;font-size:.9rem}.cart-item .package-included{padding:.65rem;font-size:.9rem}
+
+/* Colour variants share a model while retaining their own rental stock. */
+.rental-colours{margin:14px 0 20px}.rental-colours>p{font-size:12px;color:var(--muted);margin-bottom:10px}.variant-swatches{display:flex;flex-wrap:wrap;gap:10px}.variant-swatch{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:transparent;padding:8px 10px;min-height:44px;font-size:12px}.variant-swatch i{display:block;width:22px;height:22px;border-radius:50%;background:var(--swatch);border:1px solid #0002;flex-shrink:0}.variant-swatch[aria-pressed=true]{border-color:var(--olive);box-shadow:0 0 0 1px var(--olive)}#products .variant-swatch{padding:6px;min-width:38px;min-height:38px}#products .variant-swatch span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
