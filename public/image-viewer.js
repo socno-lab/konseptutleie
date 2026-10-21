@@ -1,3 +1,4 @@
+import './product-carousel.js?v=productdensity1';
 import {kiDisclosure,isKiPhoto} from './image-provenance.js?v=ki1';
 const viewer=document.createElement('dialog');
 viewer.id='imageViewer';viewer.className='image-viewer';viewer.setAttribute('aria-labelledby','imageViewerTitle');
