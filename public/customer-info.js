@@ -60,6 +60,7 @@ function mountAddressFields(form){
  const address=form.querySelector('[name="address"]'),choice=form.querySelector('[name="shipping"], [name="delivery"]');
  address.closest('label').firstChild.textContent='Gateadresse og husnummer';address.autocomplete='address-line1';address.maxLength=200;
  address.closest('label').insertAdjacentHTML('afterend','<div class="two"><label>Postnummer<input name="postalCode" autocomplete="postal-code" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" title="Oppgi et norsk postnummer med fire siffer"></label><label>Poststed<input name="postalCity" autocomplete="address-level2" maxlength="100"></label></div>');
+ choice.closest('label').before(address.closest('label'),form.querySelector('[name="postalCode"]').closest('.two'));
  const fields=['address','postalCode','postalCity'].map(name=>form.querySelector('[name="'+name+'"]'));
  const update=()=>{const required=choice.value==='Ønsker levering'||choice.value==='Ønsker levering og henting'||choice.value.startsWith('Kun ');for(const input of fields)input.required=required;};
  choice.addEventListener('change',update);update();
