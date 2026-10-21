@@ -1,3 +1,4 @@
+import './customer-info.js?v=customerinfo1';
 import './dialog-scroll-lock.js?v=dialoglock1';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');
