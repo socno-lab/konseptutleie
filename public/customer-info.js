@@ -87,7 +87,7 @@ function mountRentalDelivery(form){
  select.innerHTML='<option value="Ønsker levering og henting">Levering og henting etter leieperioden</option><option value="Kun levering – jeg returnerer selv">Kun levering – jeg returnerer selv</option><option value="Kun henting – jeg henter selv">Kun henting – jeg henter selv på lageret</option><option value="Henter og returnerer selv">Henter og returnerer selv på lageret</option><option value="Avklares senere">Avklares i tilbudet</option>';
  const field=document.createElement('div');field.className='rental-delivery-summary';field.innerHTML='<div role="status" aria-live="polite"></div>';
  select.closest('label').after(field);mountAddressFields(form);
- const addressNotice=document.createElement('p');addressNotice.className='hint';addressNotice.textContent='Ved transport fra oss brukes adressen til automatisk fraktberegning via Google Maps.';address.closest('label').append(addressNotice);
+ const addressNotice=document.createElement('p');addressNotice.className='hint';addressNotice.textContent='Ved transport fra oss brukes adressen til automatisk fraktberegning via Google Maps.';addressNotice.id='rentalAddressPrivacy';address.setAttribute('aria-describedby',addressNotice.id);address.closest('label').after(addressNotice);
  const result=field.querySelector('[role="status"]');let enabled=false,controller,revision=0,timer;
  const visits=()=>select.value==='Ønsker levering og henting'?2:select.value.startsWith('Kun ')?1:0;
  const ready=()=>address.value.trim().length>=3&&/^[0-9]{4}$/.test(form.querySelector('[name="postalCode"]').value)&&form.querySelector('[name="postalCity"]').value.trim().length>=2;
