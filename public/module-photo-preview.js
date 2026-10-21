@@ -25,7 +25,7 @@ function photo(part,x,y,width,height){
  const viewport=`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${crop[3]-crop[1]}`;
  return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title><svg style="width:${width+.15}px;height:${height}px" width="${width+.15}" height="${height}" viewBox="${viewport}" preserveAspectRatio="${known?'none':'xMidYMax meet'}" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}" preserveAspectRatio="none"/></svg></g>`;
 }
-function previewZoom(){return '<button type="button" class="module-photo-zoom" data-zoom-target="self" aria-label="Forstørr valgt sofaoppsett"><span>⌕ Se større</span></button>';}
+function previewZoom(){return '<button type="button" class="module-photo-zoom" data-zoom-target="self" aria-label="Forstørr valgt sofaoppsett"><span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5.5 5.5M10 6.5v7M6.5 10h7"/></svg></span></button>';}
 export function modulePhotoPreview(modules,selection){
  const parts=modulePhotoParts(modules,selection);
  if(!parts.length)return '<p class="module-photo-empty">Velg moduler for å se oppsettet.</p>';

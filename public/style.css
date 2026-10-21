@@ -359,3 +359,7 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @media(max-width:640px){#saleDetailContent .sale-image-stage .sale-detail-photo{height:100%;width:100%;max-height:none;object-fit:contain}}
 /* Keep module quantity buttons clear of the dialog's vertical scrollbar. */
 #modules .module-scroll{padding-right:14px;overflow-x:hidden;touch-action:pan-y pinch-zoom}
+
+/* A quiet zoom icon; the whole image remains the touch target. */
+.product-intro .product-art>.zoom-affordance,.sale-photo-zoom>span,.module-photo-zoom>span{display:grid;place-items:center;width:32px;height:32px;padding:6px;right:8px;bottom:8px;border-radius:50%;border:1px solid var(--line);background:#fbfaf6ed;color:var(--ink);box-sizing:border-box}
+.product-intro .zoom-affordance svg,.sale-image-stage .sale-photo-zoom>span>svg,.module-photo .module-photo-zoom>span>svg{display:block;width:18px;height:18px;max-height:none;min-height:0;transition:none;transform:none}
