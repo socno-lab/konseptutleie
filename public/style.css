@@ -308,3 +308,24 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @media(max-width:640px){.module-photo>img{max-height:155px}}
 
 .module-choice .module-end-note{color:var(--ink);font-weight:600}
+
+/* One stable image slot is shared by the selected setup and gallery photos. */
+.sale-product-intro>.sale-image-stage{display:block;position:relative;order:0;width:100%;height:250px;background:white;margin-bottom:14px}
+.sale-image-stage .sale-photo-zoom{display:block;position:relative;width:100%;height:100%;border:0;padding:0;background:white;cursor:zoom-in}
+.sale-image-stage .sale-detail-photo{display:block;width:100%;height:100%;max-height:none;object-fit:contain;margin:0}
+.sale-photo-zoom>span,.module-photo-zoom>span{position:absolute;right:8px;bottom:8px;background:var(--paper);border:1px solid var(--line);padding:5px 8px;font-size:11px;color:var(--ink)}
+.sale-image-stage>.sale-module-preview{position:static;width:100%;height:100%;margin:0}
+.sale-image-stage .module-photo{height:100%;display:flex;flex-direction:column;justify-content:center}
+.sale-image-stage .module-photo>svg,.sale-image-stage .module-photo>img{flex:1;min-height:0;max-height:none;object-fit:contain}
+.sale-module{display:block}
+.module-photo{position:relative}.module-photo-zoom{position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;background:transparent;cursor:zoom-in}
+.sale-photo-zoom[hidden],.sale-module-preview[hidden],.image-viewer-image[hidden],.image-viewer-graphic[hidden]{display:none}
+.image-viewer-graphic>svg{display:block;width:100%;height:72dvh;background:white}
+@media(max-width:640px){
+ .sale-product-intro>.sale-image-stage{height:120px;margin:0}
+ #saleDetailContent:has(.sale-module) .sale-product-intro{display:flex;flex-direction:column;gap:6px}
+ #saleDetailContent:has(.sale-module) .sale-product-intro>div:not(.sale-image-stage){display:contents}
+ #saleDetailContent:has(.sale-module) .sale-image-stage{height:155px;margin:0 0 4px}
+ .image-viewer-graphic>svg{height:65dvh}
+ .sale-photo-zoom>span,.module-photo-zoom>span{font-size:10px;padding:4px 6px}
+}

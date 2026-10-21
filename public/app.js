@@ -1,5 +1,5 @@
 import {moduleQuantityLimit} from './sofa-layout.js?v=joinedsofa1';
-import {modulePhotoPreview} from './module-photo-preview.js?v=joinedsofa1';
+import {modulePhotoPreview} from './module-photo-preview.js?v=joinedsofa2';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=alltypes1';
 import {cartThumbnail} from './cart-thumbnail.js?v=cartimages1';
 import {mountStorefrontFeedback} from './storefront-feedback.js?v=compactmodal1';
