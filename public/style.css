@@ -370,3 +370,6 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #products>article.custom-package-card{display:flex;flex-direction:column}
 .custom-package-art{aspect-ratio:auto;flex-shrink:0}
 .custom-package-art>*{flex-shrink:0}
+
+/* Keep image provenance in product captions rather than over the photo. */
+.ki-disclosure,.home-example,.use-case-grid figure>span{display:none!important}
