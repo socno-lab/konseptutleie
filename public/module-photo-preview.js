@@ -8,30 +8,48 @@ export function modulePhotoParts(modules,selection){
  const push=role=>{for(const p of modules.filter(p=>p.moduleRole===role))for(let n=0;n<amount(selection,p.id);n++)add(p);};
  for(const p of bases)for(let n=0;n<amount(selection,p.id);n++)add(p,'left','left');
  push('left');
- for(const p of ends)if(amount(selection,p.id))add(p,'left');
- push('middle');
- for(const p of ends)for(let n=1;n<amount(selection,p.id);n++)add(p,'right');
- push('right');
+ const universal=[];for(const p of ends)for(let n=0;n<amount(selection,p.id);n++)universal.push(p);
+ const leftOccupied=parts.some(p=>p.role==='left'),universalLeft=!leftOccupied?universal.shift():null;
+ if(universalLeft)add(universalLeft,'left');
+ push('middle');push('right');
+ for(const p of universal)add(p,'right');
  for(const p of bases)for(let n=0;n<amount(selection,p.id);n++)add(p,'right','right');
  return parts;
 }
 function photo(part,x,y,width,height){
- const p=part.product,profile=photoProfiles[p.id],known=profile&&profile.source===p.image;
+ const p=part.product,profile=part.photo||photoProfiles[p.id],source=part.photo?.source||p.image,known=profile&&profile.source===source;
  const size=known?profile.size:[1,1],crop=known?[...profile.crop]:[0,0,1,1];
- if(part.half){const mid=(crop[0]+crop[2])/2;if(part.half==='left')crop[2]=mid;else crop[0]=mid;}
- const mirror=p.moduleRole==='end'&&part.role==='left';
+ if(part.half&&!part.photo){const mid=(crop[0]+crop[2])/2;if(part.half==='left')crop[2]=mid;else crop[0]=mid;}
+ const mirror=!part.photo&&p.moduleRole==='end'&&part.role==='left';
  const viewport=`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${crop[3]-crop[1]}`;
- return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title><svg width="${width}" height="${height}" viewBox="${viewport}" preserveAspectRatio="${known?'none':'xMidYMax meet'}" overflow="hidden"><image href="${escape(p.image)}" width="${size[0]}" height="${size[1]}" preserveAspectRatio="none"/></svg></g>`;
+ return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title><svg width="${width+.15}" height="${height}" viewBox="${viewport}" preserveAspectRatio="${known?'none':'xMidYMax meet'}" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}" preserveAspectRatio="none"/></svg></g>`;
 }
 export function modulePhotoPreview(modules,selection){
  const parts=modulePhotoParts(modules,selection);
  if(!parts.length)return '<p class="module-photo-empty">Velg moduler for å se oppsettet.</p>';
+ const label='Valgt oppsett: '+modules.filter(p=>amount(selection,p.id)).map(p=>`${amount(selection,p.id)} × ${p.name}`).join(', ');
+ const beigeEnd=modules.find(p=>p.id==='obj_371e3a52807c452ea1280dafd434b7e4'),beigeMiddle=modules.find(p=>p.id==='obj_d9314111959a42bf8b7ca3015af09003');
+ const beige=beigeEnd&&beigeMiddle&&beigeEnd.image==='/assets/beige-endemodul.webp'&&beigeMiddle.image==='/assets/beige-midtmodul.webp';
+ const ends=beige?amount(selection,beigeEnd.id):0,middles=beige?amount(selection,beigeMiddle.id):0;
+ // Use the exact assembled supplier photographs for the matching beige setups.
+ if(beige&&ends===2&&middles<=1){const src=middles?'/assets/beige-sofa-tre-moduler.webp':'/assets/beige-sofa-to-moduler.webp';return `<figure class="module-photo"><img data-complete-sofa="true" src="${src}" alt="${escape(label)}"><figcaption>Valgt oppsett · produktbilde</figcaption></figure>`;}
+ let generated=false;
+ if(beige&&parts.length>1){
+  generated=true;
+  // All tiles come from one coherent frontal scene, sharing camera and seat height.
+  for(const part of parts){const crop=part.role==='left'?[8,64,800,612]:part.role==='right'?[1376,64,2162,612]:[800,64,1376,612];part.photo={source:'/assets/beige-sofa-front-connected-v2.png',size:[2170,725],crop};}
+ }
+ const base=modules.find(p=>p.moduleRole==='base'&&amount(selection,p.id)===1),baseProfile=base&&photoProfiles[base.id];
+ if(base&&baseProfile?.source===base.image&&/Senzo/i.test(base.moduleSeries||'')){
+  const [x1,y1,x2,y2]=baseProfile.crop,span=x2-x1,mid=(x1+x2)/2;
+  for(const part of parts){const crop=part.role==='left'?[x1,y1,mid,y2]:part.role==='right'?[mid,y1,x2,y2]:[x1+span*.2475,y1,x1+span*.63,y2];part.photo={...baseProfile,crop};}
+ }
+
  // Wrap large orders rather than introducing a horizontal scroll area.
  const leftHalves=parts.filter(p=>p.half==='left'),rightHalves=parts.filter(p=>p.half==='right'),extras=parts.filter(p=>!p.half);
  const runs=leftHalves.length?leftHalves.map((p,i)=>[p,...(i===0?extras:[]),rightHalves[i]]):[parts];
- const rows=[];for(const run of runs)for(let i=0;i<run.length;i+=6)rows.push(run.slice(i,i+6));
+ const rows=[];for(const run of runs){if(run.some(p=>['left','right'].includes(p.role)))rows.push(run);else for(let i=0;i<run.length;i+=6)rows.push(run.slice(i,i+6));}
  const rowWidths=rows.map(row=>row.reduce((sum,p)=>sum+p.width,0)),width=Math.max(240,...rowWidths),rowHeight=100;
  const images=rows.map((row,i)=>{let x=(width-rowWidths[i])/2;return row.map(part=>{const h=/sjeselong/i.test(part.product.name)?88:78;const result=photo(part,x,i*rowHeight+88-h,part.width,h);x+=part.width;return result;}).join('');}).join('');
- const label='Valgt oppsett: '+modules.filter(p=>amount(selection,p.id)).map(p=>`${amount(selection,p.id)} × ${p.name}`).join(', ');
- return `<figure class="module-photo"><svg viewBox="-8 0 ${width+16} ${rows.length*rowHeight}" role="img" aria-label="${escape(label)}">${images}</svg><figcaption>Illustrasjon av valgt oppsett · satt sammen av produktbilder</figcaption></figure>`;
+ return `<figure class="module-photo"><svg viewBox="-8 0 ${width+16} ${rows.length*rowHeight}" role="img" aria-label="${escape(label)}">${images}</svg><figcaption>${generated?'KI-generert illustrasjon av valgt oppsett':'Illustrasjon av valgt oppsett · satt sammen av produktbilder'}</figcaption></figure>`;
 }
