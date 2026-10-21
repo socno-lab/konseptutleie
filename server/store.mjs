@@ -1,3 +1,4 @@
+import {deliveryCallLimits} from './delivery.mjs';
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';
 import {migrateProducts} from './walls.mjs';
@@ -16,6 +17,7 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_admin (id INT PRIMARY KEY, email VARCHAR(254) NOT NULL, password_hash VARCHAR(255) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_sessions (token_hash CHAR(64) PRIMARY KEY, expires_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_login_limits (bucket CHAR(64) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_delivery_limits (bucket VARCHAR(16) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media_purged (url VARCHAR(500) PRIMARY KEY)',
     'CREATE TABLE IF NOT EXISTS ku_media_state (url VARCHAR(500) PRIMARY KEY, deleted_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)'
@@ -47,6 +49,19 @@ export function createMysqlStore(env,seed){
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
  return {enabled,init,async close(){if(pool)await pool.end();},
+  async reserveDeliveryCall(now){
+   await init();const connection=await pool.getConnection();
+   try{await connection.beginTransaction();
+    for(const limit of deliveryCallLimits){
+     const until=(Math.floor(now/limit.ms)+1)*limit.ms;
+     await connection.execute('INSERT IGNORE INTO ku_delivery_limits(bucket,attempts,reset_at) VALUES (?,0,?)',[limit.name,until]);
+     const [[row]]=await connection.execute('SELECT attempts,reset_at FROM ku_delivery_limits WHERE bucket=? FOR UPDATE',[limit.name]);
+     const count=Number(row.reset_at)>now?row.attempts:0;
+     if(count>=limit.max){await connection.rollback();return false;}
+     await connection.execute('UPDATE ku_delivery_limits SET attempts=?,reset_at=? WHERE bucket=?',[count+1,until,limit.name]);
+    }await connection.commit();return true;
+   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
+  },
   async readDiscountCodes(){const [[r]]=await query('SELECT revision,body FROM ku_discounts WHERE id=1');return {revision:r.revision,codes:JSON.parse(r.body)};},
   async saveDiscountCodes(revision,codes){const [r]=await query('UPDATE ku_discounts SET revision=revision+1,body=? WHERE id=1 AND revision=?',[JSON.stringify(codes),revision]);return r.affectedRows?{revision:revision+1,codes}:null;},
   async readCatalog(){const [[r]]=await query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1');return {revision:r.revision,products:migrateProducts(removeRetiredCosts(JSON.parse(r.body))),updatedAt:r.updated_at};},
