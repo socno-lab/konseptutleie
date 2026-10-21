@@ -34,7 +34,7 @@ function signals(p){const text=[p.name,p.material,p.variantLabel].join(' ').toLo
 export function recommendProducts(current,all,mode='rent',context={}){
  const candidates=all.filter(p=>eligible(p,current,all,mode,context));const manual=(current.recommendedProducts||[]).map(id=>candidates.find(p=>p.id===id)).filter(Boolean);
  const type=productSubcategory(current),preferred=complements[type]||[],ownSignals=signals(current);
- const score=p=>{const sub=productSubcategory(p),position=preferred.indexOf(sub);if(position<0&&p.category!==current.category)return 0;return (position<0?12:80-position*5)+signals(p).filter(s=>ownSignals.includes(s)).length*9;};
+ const score=p=>{const sub=productSubcategory(p),position=preferred.indexOf(sub);if(position<0&&(p.category!==current.category||preferred.length&&sub!==type))return 0;return (position<0?12:80-position*5)+signals(p).filter(s=>ownSignals.includes(s)).length*9;};
  const ranked=manual.length?manual:candidates.map((p,index)=>({p,index,score:score(p)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.index-b.index).map(x=>x.p);
  const families=new Set();const distinct=ranked.filter(p=>{const key=recommendationFamily(p);if(families.has(key))return false;families.add(key);return true;});if(manual.length)return distinct.slice(0,4);const types=new Set(),diverse=[];for(const p of distinct){const kind=productSubcategory(p)||p.category;if(!types.has(kind)){types.add(kind);diverse.push(p);}}return [...diverse,...distinct.filter(p=>!diverse.includes(p))].slice(0,4);
 }
