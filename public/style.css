@@ -363,3 +363,5 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 /* A quiet zoom icon; the whole image remains the touch target. */
 .product-intro .product-art>.zoom-affordance,.sale-photo-zoom>span,.module-photo-zoom>span{display:grid;place-items:center;width:32px;height:32px;padding:6px;right:8px;bottom:8px;border-radius:50%;border:1px solid var(--line);background:#fbfaf6ed;color:var(--ink);box-sizing:border-box}
 .product-intro .zoom-affordance svg,.sale-image-stage .sale-photo-zoom>span>svg,.module-photo .module-photo-zoom>span>svg{display:block;width:18px;height:18px;max-height:none;min-height:0;transition:none;transform:none}
+/* Catalogue products are real links, retaining the card geometry. */
+.sale-card>a.sale-photo{display:block;position:relative}.sale-card>a.button{box-sizing:border-box}.sale-card a.sale-swatch{display:inline-block}.product-meta>a.add{box-sizing:border-box;text-decoration:none}

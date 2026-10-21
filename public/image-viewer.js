@@ -19,7 +19,7 @@ document.addEventListener('click',event=>{
  const src=target?.querySelector('img')?.getAttribute('src')||trigger.dataset.productPhoto||trigger.querySelector('img')?.getAttribute('src')||trigger.dataset.zoom;
  if(!src&&!svg)return;
  const group=trigger.closest('#productImages, #detailContent, #wallCoverPreview, #saleDetailContent, #modules')||trigger;
- const title=group.querySelector('h2')?.textContent||group.closest('dialog')?.querySelector('h2')?.textContent||'Produktbilde';
+ const title=group.querySelector('h1,h2')?.textContent||group.closest('dialog')?.querySelector('h1,h2')?.textContent||'Produktbilde';
  const seen=new Set();photos=[...group.querySelectorAll('[data-zoom], [data-product-photo], [data-photo]')].map(button=>({src:button.dataset.productPhoto||button.dataset.zoom||button.dataset.photo,alt:button.querySelector('img')?.alt||title})).filter(item=>item.src&&!seen.has(item.src)&&seen.add(item.src));
  if(svg){photos.unshift({svg:svg.cloneNode(true),alt:svg.getAttribute('aria-label')||title,generated:target.dataset.generated==='true'});index=0;}
  else{if(!photos.some(item=>item.src===src))photos.push({src,alt:target?.querySelector('img')?.alt||trigger.querySelector('img')?.alt||title});index=photos.findIndex(item=>item.src===src);}
