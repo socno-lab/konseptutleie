@@ -576,3 +576,6 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 /* Keep the complete sofa centered in the product-page frame as well. */
 :is(#detailContent .product-art,#saleDetailContent .sale-photo-zoom,.recommendation-photo) img[src="/media/0f6a6cb7eb59879e472aa49bc20333e6"]{position:absolute;inset:auto;left:50%;top:50%;width:102.6%!important;height:auto!important;max-width:none;max-height:none;transform:translate(-50.2%,-75.95%)}
 :is(#detailContent .product-art,#saleDetailContent .sale-photo-zoom,.recommendation-photo) img[src="/media/a3c39fca0300a1cb692cdf8dd9e4e1f8"]{position:absolute;inset:auto;left:50%;top:50%;width:105.1%!important;height:auto!important;max-width:none;max-height:none;transform:translate(-51.55%,-73.1%)}
+
+/* Clip the source canvas to the centered Moment photo frame. */
+.sale-photo-zoom:has(img[src="/media/0f6a6cb7eb59879e472aa49bc20333e6"]),.sale-photo-zoom:has(img[src="/media/a3c39fca0300a1cb692cdf8dd9e4e1f8"]){overflow:hidden}
