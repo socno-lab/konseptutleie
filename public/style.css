@@ -585,3 +585,13 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   .catalog-subcategories{flex-wrap:wrap;overflow:visible;overscroll-behavior-x:auto;padding:2px 0 10px;gap:6px}
   .catalog-subcategories button{flex:0 1 auto;max-width:100%;white-space:normal}
 }
+
+/* The product title link covers its card; colour choices remain separate. */
+.catalog-product-card{position:relative;isolation:isolate}
+.catalog-product-card .catalog-card-link{position:static;color:inherit;text-decoration:none}
+.catalog-product-card .catalog-card-link::after{content:"";position:absolute;inset:0;z-index:1;cursor:pointer}
+.catalog-product-card .catalog-card-link:focus-visible{outline:none}
+.catalog-product-card .catalog-card-link:focus-visible::after{outline:3px solid var(--olive);outline-offset:4px}
+.catalog-product-card:hover .catalog-card-link{text-decoration:underline;text-underline-offset:3px}
+.catalog-product-card :is(.sale-swatches,.variant-swatches,.package-card-contents){position:relative;z-index:2}
+@supports(grid-template-rows:subgrid){.buy-page #saleProducts>.catalog-product-card{grid-row:span 5}}
