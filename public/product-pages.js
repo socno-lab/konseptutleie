@@ -1,7 +1,8 @@
+import {renderRecommendations} from './product-recommendations.js?v=recommendations1';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=productpages2';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);
 const primaryIds=new Set(['detail','modules','wall','saleDetail']);
-let host;
+let host,recommendationSource,selectedRecommendation;
 function pageHost(){
  if(host)return host;
  document.body.classList.add('product-page');document.body.classList.remove('catalog-page','occasion-page','home-page');host=document.createElement('div');host.id='productPageHost';
@@ -19,9 +20,11 @@ export function navigateProduct(id,mode,context={}){
 }
 export function selectPageProduct(p,mode,context={}){
  if(!isProductPage)return;
+ selectedRecommendation=p;
  const url=new URL(location.href);url.searchParams.set('produkt',p.id);for(const key of ['bruk','prisbruk','oppsett'])if(Object.hasOwn(context,key)){if(context[key])url.searchParams.set(key,context[key]);else url.searchParams.delete(key);}history.replaceState(null,'',url.pathname+url.search);
  document.title=(p.moduleSeries||p.name)+' · '+(mode==='buy'?'Kjøpe':'Leie')+' · Konseptuell';
  const description=document.querySelector('meta[name="description"]')||document.head.appendChild(document.createElement('meta'));description.name='description';description.content=[p.moduleSeries||p.name,p.material,mode==='buy'?'Bestill nytt produkt. Send en uforpliktende kjøpsforespørsel.':'Velg antall og send en uforpliktende leieforespørsel.'].filter(Boolean).join(' · ');
+ refreshPageRecommendations();
 }
 function arrangeProduct(root,sale){
  const flow=sale?root:root.querySelector('.product-scroll');if(!flow||flow.querySelector(':scope>.product-page-media'))return;
@@ -36,7 +39,7 @@ export function showSurface(node,label=''){
  const target=pageHost();let section=node;
  if(node.tagName==='DIALOG'){
   section=document.createElement('section');for(const attr of node.attributes)if(!['open','role','aria-modal'].includes(attr.name))section.setAttribute(attr.name,attr.value);
-  section.classList.add('product-page-surface');section.append(...node.childNodes);node.replaceWith(section);target.append(section);
+  section.classList.add('product-page-surface');section.append(...node.childNodes);node.replaceWith(section);target.insertBefore(section,target.querySelector('#productRecommendations'));
  }
  for(const other of target.querySelectorAll('.product-page-surface')){other.hidden=other!==section;other.open=other===section;}
  section.hidden=false;section.open=true;
@@ -47,13 +50,15 @@ export function showSurface(node,label=''){
  let heading=section.querySelector('h1,h2');if(heading?.tagName==='H2'){const h1=document.createElement('h1');for(const attr of heading.attributes)h1.setAttribute(attr.name,attr.value);h1.append(...heading.childNodes);heading.replaceWith(h1);heading=h1;}
  if(label&&heading&&['modules','wall'].includes(section.id))heading.textContent=label;
  document.getElementById('productPageStatus').hidden=true;
+ refreshPageRecommendations();
  return section;
 }
+export function refreshPageRecommendations(){if(!isProductPage||!host||!selectedRecommendation||!recommendationSource)return;const {mode,getProducts,getContext}=recommendationSource;const context=getContext();renderRecommendations(host,selectedRecommendation,getProducts(),mode,context,id=>productLink(id,mode,{...context,oppsett:''}));}
 export function closeSurface(node){if(node?.tagName==='DIALOG')node.close();}
 export function productPageError(message){if(!isProductPage)return;const target=pageHost();const status=target.querySelector('#productPageStatus');status.hidden=false;status.textContent=message;}
 export function restoreCatalogPosition(){if(isProductPage)return;try{const saved=sessionStorage.getItem('konsept-scroll:'+location.pathname+location.search+location.hash);if(saved!==null)requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo({top:Number(saved)||0,behavior:'instant'})));}catch{}}
 export function installProductLinks(mode,getProducts,getContext=()=>({})){
- if(isProductPage){pageHost();return;}
+ if(isProductPage){recommendationSource={mode,getProducts,getContext};pageHost();return;}
  let queued=false;
  const scan=()=>{queued=false;const products=getProducts();if(!products.length)return;
   for(const button of document.querySelectorAll('button[data-product],button[data-detail],button[data-build],button[data-rental-colour]')){

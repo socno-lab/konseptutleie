@@ -1,4 +1,4 @@
-import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=productpages2';
+import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=recommendations1';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=joinedsofa1';
 import {modulePhotoPreview} from './module-photo-preview.js?v=magnifier1';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=alltypes1';
