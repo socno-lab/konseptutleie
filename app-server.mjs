@@ -45,7 +45,7 @@ export function createServer(options={}){
     if(req.method==='GET')return out(200,{enabled:delivery.enabled,rates:deliveryRates,warehouse});
     if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
     if(req.headers.origin!==origin)return out(403,{error:'Last inn siden på nytt før du beregner frakt.'});
-    const input=await json(req,2000);return out(200,await delivery.estimate(input,digest(String(req.socket.remoteAddress||'shared'))));
+    const input=await json(req,20000),catalog=store.enabled?await store.readCatalog():seed;return out(200,await delivery.estimate(input,digest(String(req.socket.remoteAddress||'shared')),catalog.products));
    }
    const admin=pathname==='/admin'||pathname.startsWith('/admin/')||pathname==='/api/admin'||pathname.startsWith('/api/admin/');
    if(admin){
