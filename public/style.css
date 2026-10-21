@@ -567,3 +567,12 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #saleProducts .sale-photo img[src="https://cdn.shopify.com/s/files/1/0795/7662/9577/files/43000-444_2_o.jpg?v=1753713411"]{--catalog-scale:1.5523;--catalog-x:1.109%;--catalog-y:-0.541%}
 #saleProducts .sale-photo img[src="https://assets.ellosgroup.com/i/ellos/b?$hg$&$hm$&$hp$&$hd$&n=hom_1740924-01_Fs&mw=868&fmt=webp"]{--catalog-scale:1.3129;--catalog-x:-0.234%;--catalog-y:1.601%}
 #saleProducts .sale-photo img[src="https://assets.ellosgroup.com/i/ellos/b?$hg$&$hm$&$hp$&$hd$&n=hom_2230249-02_De_01&mw=868&fmt=webp"]{--catalog-scale:1.3945;--catalog-x:-1.494%;--catalog-y:-0.972%}
+
+/* Moment: center the supplier packshot inside listing thumbnails. */
+#products .product-art img[src="/media/0f6a6cb7eb59879e472aa49bc20333e6"]{--catalog-scale:1.2019;--catalog-x:-0.200%;--catalog-y:-31.168%}
+#saleProducts .sale-photo img[src="/media/0f6a6cb7eb59879e472aa49bc20333e6"]{--catalog-scale:1.0016;--catalog-x:-0.200%;--catalog-y:-25.974%}
+#products .product-art img[src="/media/a3c39fca0300a1cb692cdf8dd9e4e1f8"]{--catalog-scale:1.2325;--catalog-x:-1.575%;--catalog-y:-28.470%}
+#saleProducts .sale-photo img[src="/media/a3c39fca0300a1cb692cdf8dd9e4e1f8"]{--catalog-scale:1.0271;--catalog-x:-1.575%;--catalog-y:-23.725%}
+/* Keep the complete sofa centered in the product-page frame as well. */
+:is(#detailContent .product-art,#saleDetailContent .sale-photo-zoom,.recommendation-photo) img[src="/media/0f6a6cb7eb59879e472aa49bc20333e6"]{position:absolute;inset:auto;left:50%;top:50%;width:102.6%!important;height:auto!important;max-width:none;max-height:none;transform:translate(-50.2%,-75.95%)}
+:is(#detailContent .product-art,#saleDetailContent .sale-photo-zoom,.recommendation-photo) img[src="/media/a3c39fca0300a1cb692cdf8dd9e4e1f8"]{position:absolute;inset:auto;left:50%;top:50%;width:105.1%!important;height:auto!important;max-width:none;max-height:none;transform:translate(-51.55%,-73.1%)}
