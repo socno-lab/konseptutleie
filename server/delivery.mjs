@@ -8,7 +8,7 @@ export function createDeliveryEstimator(env,fetcher=fetch){
   if(!key)fail('Frakt beregnes i tilbudet. Du kan sende forespørselen uten fraktestimat.',503);
   if(!input||typeof input.address!=='string'||input.address.length<8||input.address.length>300||!/[0-9]{4}/.test(input.address)||/[\r\n\x00-\x1f]/.test(input.address)||![1,2].includes(input.visits))fail('Oppgi gateadresse, postnummer og sted.');
   const basket=input.basket||{};if(!basket||typeof basket!=='object'||Array.isArray(basket)||Object.keys(basket).length>500||Object.entries(basket).some(([id,q])=>!Number.isInteger(q)||q<1||q>99||!products.some(p=>p.id===id&&p.active&&!p.deletedAt&&p.rentalEnabled!==false)))fail('Produktutvalget er endret. Oppdater siden før du beregner frakt.');
-  const twoPeople=input.twoPeople===true||requiresTwoPeople(basket,products);
+  const twoPeople=requiresTwoPeople(basket,products);
   const now=Date.now();if(now-windowStart>=3600000){windowStart=now;calls=0;buckets.clear();}
   const attempts=buckets.get(client)||0;
   if(calls>=200||attempts>=20)fail('For mange fraktberegninger. Vi kan beregne frakten i tilbudet.',429);
