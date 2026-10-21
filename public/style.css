@@ -357,3 +357,5 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  #modules .module-preview .module-photo>svg,#modules .module-preview .module-photo>img{max-height:260px}
 }
 @media(max-width:640px){#saleDetailContent .sale-image-stage .sale-detail-photo{height:100%;width:100%;max-height:none;object-fit:contain}}
+/* Keep module quantity buttons clear of the dialog's vertical scrollbar. */
+#modules .module-scroll{padding-right:14px;overflow-x:hidden;touch-action:pan-y pinch-zoom}

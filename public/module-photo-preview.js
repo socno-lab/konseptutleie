@@ -1,4 +1,5 @@
 import {photoProfiles} from './module-photo-profiles.js?v=modulephotos1';
+import {joinedPhotoParts} from './module-joined-profiles.js?v=joinedall1';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const amount=(selection,id)=>Math.min(99,Math.max(0,Math.floor(Number(selection[id])||0)));
 // Physical ordering is shared by rental, purchase and saved rental setups.
@@ -20,7 +21,7 @@ function photo(part,x,y,width,height){
  const p=part.product,profile=part.photo||photoProfiles[p.id],source=part.photo?.source||p.image,known=profile&&profile.source===source;
  const size=known?profile.size:[1,1],crop=known?[...profile.crop]:[0,0,1,1];
  if(part.half&&!part.photo){const mid=(crop[0]+crop[2])/2;if(part.half==='left')crop[2]=mid;else crop[0]=mid;}
- const mirror=!part.photo&&p.moduleRole==='end'&&part.role==='left';
+ const mirror=part.photo?.mirror??(!part.photo&&p.moduleRole==='end'&&part.role==='left');
  const viewport=`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${crop[3]-crop[1]}`;
  return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title><svg style="width:${width+.15}px;height:${height}px" width="${width+.15}" height="${height}" viewBox="${viewport}" preserveAspectRatio="${known?'none':'xMidYMax meet'}" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}" preserveAspectRatio="none"/></svg></g>`;
 }
@@ -34,7 +35,7 @@ export function modulePhotoPreview(modules,selection){
  const ends=beige?amount(selection,beigeEnd.id):0,middles=beige?amount(selection,beigeMiddle.id):0;
  // Use the exact assembled supplier photographs for the matching beige setups.
  if(beige&&ends===2&&middles<=1){const src=middles?'/assets/beige-sofa-tre-moduler.webp':'/assets/beige-sofa-to-moduler.webp';return `<figure class="module-photo"><img data-complete-sofa="true" src="${src}" alt="${escape(label)}"><figcaption>Valgt oppsett · produktbilde</figcaption>${previewZoom()}</figure>`;}
- let generated=false;
+ let generated=parts.length>1&&joinedPhotoParts(parts);
  if(beige&&parts.length>1){
   generated=true;
   // All tiles come from one coherent frontal scene, sharing camera and seat height.
@@ -49,8 +50,8 @@ export function modulePhotoPreview(modules,selection){
  // Wrap large orders rather than introducing a horizontal scroll area.
  const leftHalves=parts.filter(p=>p.half==='left'),rightHalves=parts.filter(p=>p.half==='right'),extras=parts.filter(p=>!p.half);
  const runs=leftHalves.length?leftHalves.map((p,i)=>[p,...(i===0?extras:[]),rightHalves[i]]):[parts];
- const rows=[];for(const run of runs){if(run.some(p=>['left','right'].includes(p.role)))rows.push(run);else for(let i=0;i<run.length;i+=6)rows.push(run.slice(i,i+6));}
- const rowWidths=rows.map(row=>row.reduce((sum,p)=>sum+p.width,0)),width=Math.max(240,...rowWidths),rowHeight=100;
- const images=rows.map((row,i)=>{let x=(width-rowWidths[i])/2;return row.map(part=>{const h=/sjeselong/i.test(part.product.name)?88:78;const result=photo(part,x,i*rowHeight+88-h,part.width,h);x+=part.width;return result;}).join('');}).join('');
+ const rows=[];for(const run of runs){if(generated||run.some(p=>['left','right'].includes(p.role)))rows.push(run);else for(let i=0;i<run.length;i+=6)rows.push(run.slice(i,i+6));}
+ const rowWidths=rows.map(row=>row.reduce((sum,p)=>sum+p.width,0)),width=Math.max(generated?120:240,...rowWidths),rowHeight=parts.some(p=>p.photo?.tall)?110:100;
+ const images=rows.map((row,i)=>{let x=(width-rowWidths[i])/2;return row.map(part=>{const h=part.photo?.height||(/sjeselong/i.test(part.product.name)?88:78),y=part.photo?.top??88-h;const result=photo(part,x,i*rowHeight+y,part.width,h);x+=part.width;return result;}).join('');}).join('');
  return `<figure class="module-photo" data-generated="${generated}"><svg viewBox="-8 0 ${width+16} ${rows.length*rowHeight}" role="img" aria-label="${escape(label)}">${images}</svg><figcaption>${generated?'KI-generert illustrasjon av valgt oppsett':'Illustrasjon av valgt oppsett · satt sammen av produktbilder'}</figcaption>${previewZoom()}</figure>`;
 }
