@@ -1,3 +1,4 @@
+import {createDeliveryEstimator,deliveryRates,warehouse} from './server/delivery.mjs';
 import {salesEnabled,saleUnitPrice} from './public/sales-model.js';
 import {discountQuote,validateDiscountCodes} from './server/discounts.mjs';
 import {rentalRateSets} from './public/rental-pricing-model.js';
@@ -28,6 +29,7 @@ export function createServer(options={}){
  const env=options.env||process.env,store=options.store||createMysqlStore(env,seed);
  const origin=options.origin||env.APP_ORIGIN||'https://blueviolet-ant-597153.hostingersite.com';
  const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session':'konsept_session';
+ const delivery=createDeliveryEstimator(env,options.deliveryFetch);
  let images;
  const server=http.createServer(async(req,res)=>{
   const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...headers});res.end(req.method==='HEAD'?undefined:body);};
@@ -39,6 +41,12 @@ export function createServer(options={}){
    const hosts=[req.headers.host,req.headers['x-forwarded-host']].flatMap(value=>String(value||'').split(',')).map(value=>value.trim().toLowerCase().replace(/:\d+$/,'').replace(/\.$/,''));
    if(hosts.some(host=>['konseptboligstyling.com','www.konseptboligstyling.com'].includes(host)))return send(404,'<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ikke publisert</title></head><body><main><h1>Nettsiden er ikke publisert.</h1></main></body></html>','text/html; charset=utf-8');
    const url=new URL(req.url,'http://localhost');let pathname;try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
+   if(pathname==='/api/delivery-estimate'){
+    if(req.method==='GET')return out(200,{enabled:delivery.enabled,rates:deliveryRates,warehouse});
+    if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
+    if(req.headers.origin!==origin)return out(403,{error:'Last inn siden på nytt før du beregner frakt.'});
+    const input=await json(req,2000);return out(200,await delivery.estimate(input,digest(String(req.socket.remoteAddress||'shared'))));
+   }
    const admin=pathname==='/admin'||pathname.startsWith('/admin/')||pathname==='/api/admin'||pathname.startsWith('/api/admin/');
    if(admin){
     if(!store.enabled)return out(503,{error:'Administrasjonen venter på databaseinnstillinger i Hostinger.'});
