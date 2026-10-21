@@ -58,3 +58,6 @@ export function isKiPhoto(src){if(!src)return false;try{return illustratedImages
  "/media/53e52a984b3fc8a660af846735b1a6cb",
  "/media/b4f53bcc2cdb199d417c9bd27da67fc6"
 ].forEach(src=>illustratedImages.add(src));
+
+// Light beige colour edit of the customer-owned mirror photo.
+illustratedImages.add("/media/a0ee7f0d2f05794b55c50480840bc882");
