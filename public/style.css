@@ -579,3 +579,9 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 
 /* Clip the source canvas to the centered Moment photo frame. */
 .sale-photo-zoom:has(img[src="/media/0f6a6cb7eb59879e472aa49bc20333e6"]),.sale-photo-zoom:has(img[src="/media/a3c39fca0300a1cb692cdf8dd9e4e1f8"]){overflow:hidden}
+
+/* Mobile subcategories remain visible without horizontal scrolling. */
+@media(max-width:640px){
+  .catalog-subcategories{flex-wrap:wrap;overflow:visible;overscroll-behavior-x:auto;padding:2px 0 10px;gap:6px}
+  .catalog-subcategories button{flex:0 1 auto;max-width:100%;white-space:normal}
+}
