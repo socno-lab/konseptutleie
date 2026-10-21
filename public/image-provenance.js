@@ -43,3 +43,18 @@ const illustratedImages=new Set([
  "/assets/spisebord-eikefarget-illustrasjon.png"
 ]);
 export function isKiPhoto(src){if(!src)return false;try{return illustratedImages.has(new URL(src,'https://example.invalid').pathname);}catch{return false;}}
+
+// Packshots edited from the supplied references; disclosure appears below the product photo.
+[
+ "/media/26006cfd92b05c971187b383828c297f",
+ "/media/49f9a10b128d5e7587b5b62020f68dc6",
+ "/media/d21e45b382a85bd6b73e91973d188aa6",
+ "/media/552e5371c59e1e911d5440ffb5af6148",
+ "/media/096de3158320c61bc5c159b42df205a2",
+ "/media/fd62a96229666c7f3507f57efc22de40",
+ "/media/aad5a51e0d083414e5caec17d586c314",
+ "/media/e3ce7d067c0003ced2489ad4e0e68535",
+ "/media/3d37a8c119cc57d4efee88c4d41f4f7c",
+ "/media/53e52a984b3fc8a660af846735b1a6cb",
+ "/media/b4f53bcc2cdb199d417c9bd27da67fc6"
+].forEach(src=>illustratedImages.add(src));
