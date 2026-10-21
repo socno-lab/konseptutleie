@@ -29,7 +29,7 @@ export function createServer(options={}){
  const env=options.env||process.env,store=options.store||createMysqlStore(env,seed);
  const origin=options.origin||env.APP_ORIGIN||'https://blueviolet-ant-597153.hostingersite.com';
  const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session':'konsept_session';
- const delivery=createDeliveryEstimator(env,options.deliveryFetch);
+ const delivery=createDeliveryEstimator(env,options.deliveryFetch,{reserve:store.enabled?now=>store.reserveDeliveryCall(now):undefined});
  let images;
  const server=http.createServer(async(req,res)=>{
   const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...headers});res.end(req.method==='HEAD'?undefined:body);};
