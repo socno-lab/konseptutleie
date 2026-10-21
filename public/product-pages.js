@@ -3,6 +3,18 @@ import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);
 const primaryIds=new Set(['detail','modules','wall','saleDetail']);
 let host,recommendationSource,selectedRecommendation;
+// A reload starts at the top; returning from a product keeps the catalog position.
+const navigationType=performance.getEntriesByType('navigation')[0]?.type;
+const refreshing=navigationType==='reload';
+function scrollToPageTop(){scrollTo({top:0,left:0,behavior:'instant'});}
+if(refreshing){
+ const previousRestoration=history.scrollRestoration;history.scrollRestoration='manual';
+ scrollToPageTop();
+ addEventListener('load',scrollToPageTop,{once:true});
+ addEventListener('pageshow',event=>{if(!event.persisted)scrollToPageTop();});
+ addEventListener('pagehide',()=>{history.scrollRestoration=previousRestoration;},{once:true});
+}
+
 function pageHost(){
  if(host)return host;
  document.body.classList.add('product-page');document.body.classList.remove('catalog-page','occasion-page','home-page');host=document.createElement('div');host.id='productPageHost';
@@ -56,7 +68,18 @@ export function showSurface(node,label=''){
 export function refreshPageRecommendations(){if(!isProductPage||!host||!selectedRecommendation||!recommendationSource)return;const {mode,getProducts,getContext}=recommendationSource;const context=getContext();renderRecommendations(host,selectedRecommendation,getProducts(),mode,context,id=>productLink(id,mode,{...context,oppsett:''}));}
 export function closeSurface(node){if(node?.tagName==='DIALOG')node.close();}
 export function productPageError(message){if(!isProductPage)return;const target=pageHost();const status=target.querySelector('#productPageStatus');status.hidden=false;status.textContent=message;}
-export function restoreCatalogPosition(){if(isProductPage)return;try{const saved=sessionStorage.getItem('konsept-scroll:'+location.pathname+location.search+location.hash);if(saved!==null)requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo({top:Number(saved)||0,behavior:'instant'})));}catch{}}
+export function restoreCatalogPosition(){
+ if(isProductPage)return;
+ if(refreshing){requestAnimationFrame(scrollToPageTop);return;}
+ try{
+  const referrer=document.referrer?new URL(document.referrer):null;
+  const fromProduct=referrer?.origin===location.origin&&Object.values(productPagePaths).includes(referrer.pathname);
+  if(navigationType!=='back_forward'&&!fromProduct)return;
+  const key='konsept-scroll:'+location.pathname+location.search+location.hash;
+  const saved=sessionStorage.getItem(key);
+  if(saved!==null)requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo({top:Number(saved)||0,behavior:'instant'})));
+ }catch{}
+}
 export function installProductLinks(mode,getProducts,getContext=()=>({})){
  if(isProductPage){recommendationSource={mode,getProducts,getContext};pageHost();return;}
  let queued=false;
