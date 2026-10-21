@@ -48,3 +48,5 @@
 
 .product-recommendations h2{letter-spacing:-.5px}
 .recommendation-photo{position:relative;overflow:hidden;flex:none}.recommendation-photo img{position:absolute;inset:0}
+
+.rental-alternative-intro{max-width:760px;font-size:14px;line-height:1.6;color:var(--muted);margin:-8px 0 24px}

@@ -1,4 +1,4 @@
-import {renderRecommendations} from './product-recommendations.js?v=recommendations1';
+import {renderRecommendations} from './product-recommendations.js?v=rentalalternatives1';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=productpages2';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);
 const primaryIds=new Set(['detail','modules','wall','saleDetail']);
