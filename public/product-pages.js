@@ -61,10 +61,20 @@ export function installProductLinks(mode,getProducts,getContext=()=>({})){
  if(isProductPage){recommendationSource={mode,getProducts,getContext};pageHost();return;}
  let queued=false;
  const scan=()=>{queued=false;const products=getProducts();if(!products.length)return;
-  for(const button of document.querySelectorAll('button[data-product],button[data-detail],button[data-build],button[data-rental-colour]')){
+  for(const button of document.querySelectorAll('button[data-product],button[data-detail],button[data-build],button[data-rental-colour],#products button[data-wall]')){
    if(button.closest('dialog,.product-page-surface'))continue;
-   const id=button.dataset.product||button.dataset.detail||button.dataset.rentalColour||products.find(p=>p.moduleSeries===button.dataset.build)?.id;if(!products.some(p=>p.id===id))continue;
+   const id=button.dataset.product||button.dataset.detail||button.dataset.rentalColour||products.find(p=>p.moduleSeries===button.dataset.build)?.id||products.find(p=>button.dataset.wall&&p.wallGroup===button.dataset.wall)?.id;if(!products.some(p=>p.id===id))continue;
    const link=document.createElement('a');for(const attr of button.attributes)if(!['type','aria-pressed'].includes(attr.name))link.setAttribute(attr.name,attr.value);link.href=productLink(id,mode,getContext());link.dataset.productLink='';link.append(...button.childNodes);button.replaceWith(link);
+  }
+  for(const card of document.querySelectorAll('#products>article,#saleProducts>article')){
+   const photo=card.querySelector('a.product-art[data-product-link],a.sale-photo[data-product-link]');
+   const heading=card.querySelector('h3');
+   if(!photo||!heading)continue;
+   card.classList.add('catalog-product-card');
+   if(!heading.querySelector('.catalog-card-link')){
+    const link=document.createElement('a');link.className='catalog-card-link';link.href=photo.href;link.dataset.productLink='';link.append(...heading.childNodes);heading.append(link);
+   }
+   for(const action of card.querySelectorAll('.product-meta>.add,.product-meta>.module-build-button,:scope>.button[data-product]'))action.remove();
   }
  };
  new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(scan);}}).observe(document.body,{subtree:true,childList:true});
