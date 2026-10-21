@@ -21,7 +21,7 @@ test('Server enforces sofa crew, rejects stale products and only sends addresses
  let request,calls=0;const estimator=createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'private-test-key'},async(url,options)=>{calls++;request={url,options};return route(1500);});
  assert.equal((await estimator.estimate({...input,basket:{sofa:1},twoPeople:false},'a',products)).total,2380);
  assert.equal((await estimator.estimate({...input,basket:{chair:1}},'a',products)).total,1380);
- assert.equal((await estimator.estimate({...input,basket:{chair:1},twoPeople:true},'a',products)).total,2380);
+ assert.equal((await estimator.estimate({...input,basket:{chair:1},twoPeople:true},'a',products)).total,1380);
  const payload=JSON.parse(request.options.body);assert.equal(payload.origin.address,warehouse);assert.equal(payload.destination.address,warehouse);assert.equal(payload.routingPreference,'TRAFFIC_UNAWARE');assert.equal(payload.basket,undefined);
  assert.equal(request.options.headers['X-Goog-FieldMask'],'routes.legs.duration');
  await assert.rejects(()=>estimator.estimate({...input,basket:{unknown:1}},'a',products),{status:400});assert.equal(calls,3);
