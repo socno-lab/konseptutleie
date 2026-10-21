@@ -330,4 +330,4 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  .sale-photo-zoom>span,.module-photo-zoom>span{font-size:10px;padding:4px 6px}
 }
 
-.sale-dialog>.close{position:sticky;top:0;z-index:5;background:var(--paper)}
+#saleDetail>.close{position:sticky;top:0;z-index:5;background:var(--paper)}
