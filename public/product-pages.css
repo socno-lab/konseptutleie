@@ -1,5 +1,5 @@
 /* Product pages reuse controls without dialog positioning or nested scroll areas. */
-.product-page main>:not(#productPageHost){display:none!important}
+.product-page main>:not(#productPageHost):not(#seoProduct){display:none!important}
 .product-page main>#productPageHost{display:block!important;max-width:1320px;margin:0 auto;padding:28px 5% 64px;min-height:65vh}
 .product-page-back{display:inline-block;margin:0 0 28px;font-size:13px;text-decoration:underline;text-underline-offset:4px}
 .product-page #catalogPricingScope{margin:0 0 28px;padding:12px 16px;border:1px solid var(--line);font-size:12px}
