@@ -1,5 +1,7 @@
+import {mountStorageNotice} from './storage-notice.js?v=security20261022';
+mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js';
-try{const response=await fetch('/api/site-settings',{cache:'no-store'});if(response.ok)configureSiteSettings((await response.json()).settings);}catch{}
+try{const response=await fetch('/api/site-settings',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(response.ok)configureSiteSettings((await response.json()).settings);}catch{}
 import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=cartalign20261022';
 // Shared customer information for purchase, rental and information pages.
 export const rentalTermsVersion='2026-10-22-leie-7-'+[...JSON.stringify(getSiteSettings().delivery)].reduce((h,c)=>((h*31+c.charCodeAt(0))>>>0),0).toString(36);
@@ -48,9 +50,9 @@ const cookies=`<p>Butikken bruker lagring for handlekurv, forespørsel og funksj
 <tr><td>konsept-purpose-v1, konsept-scroll:…</td><td>Valgt anledning og tilbake til plasseringen i utvalget</td><td>Nettleserøkten</td></tr>
 <tr><td>konsept-custom-request-v1</td><td>Tilpasset leieforespørsel, inkludert din fritekst</td><td>Fanens økt, eller til forespørselen fjernes</td></tr>
 <tr><td>konsept-stuepakke-offered</td><td>Husker at pakkeforslag er vist</td><td>Nettleserøkten</td></tr>
-<tr><td>konsept-cookie-info-v1</td><td>Husker at du har lukket informasjonen</td><td>Nettleserøkten</td></tr>
+<tr><td>konsept-cookie-info-v1</td><td>Husker at du har lukket informasjonen</td><td>180 dager, eller til nettleserdata slettes</td></tr>
 <tr><td>__Host-konsept_session</td><td>Sikker innlogging for administratorer</td><td>Til utlogging eller økten utløper</td></tr>
-</tbody></table></div><p>Handlekurvene bruker localStorage. Øktvalgene bruker sessionStorage. Administratorinnlogging bruker en informasjonskapsel. Du kan fjerne lagrede valg i nettleserens innstillinger; da forsvinner også kurvene. Nettleseren kan gjenopprette øktlagring når en tidligere økt gjenåpnes.</p><p>Eksterne skrifter og produktbilder er omtalt under <a href="/kundeinfo.html#personvern">personvern</a>. Hvis analyse eller markedsføring senere tas i bruk, må slike tjenester holdes av til et gyldig samtykke er gitt, med like enkelt valg om å avslå og trekke tilbake.</p>`;
+</tbody></table></div><p>Handlekurvene og bekreftelsen på lagringsinformasjonen bruker localStorage. Øktvalgene bruker sessionStorage. Valget huskes på samme domene og i samme nettleser; privat modus, slettede nettleserdata eller et annet domene gir ny informasjon. Administratorinnlogging bruker en informasjonskapsel. Du kan fjerne lagrede valg i nettleserens innstillinger; da forsvinner også kurvene. Nettleseren kan gjenopprette øktlagring når en tidligere økt gjenåpnes.</p><p>Eksterne skrifter og produktbilder er omtalt under <a href="/kundeinfo.html#personvern">personvern</a>. Hvis analyse eller markedsføring senere tas i bruk, må slike tjenester holdes av til et gyldig samtykke er gitt, med like enkelt valg om å avslå og trekke tilbake.</p>`;
 const pages={leiebetingelser:['Leiebetingelser',rentalTerms],kjopsvilkar:['Kjøpsvilkår',terms],personvern:['Personvern',privacy],informasjonskapsler:['Informasjonskapsler og lagring',cookies]};
 const legal=document.getElementById('customerInfo');
 if(legal)document.querySelector('main>.customer-links')?.insertAdjacentHTML('afterbegin','<a href="#leiebetingelser">Leiebetingelser</a>');
@@ -75,9 +77,6 @@ if(saleForm)mountAddressFields(saleForm);
 const rentalForm=document.getElementById('requestForm');
 if(rentalForm){rentalForm.querySelector('[type="submit"]').insertAdjacentHTML('beforebegin',`<label class="check-label customer-acceptance" id="rentalTermsLabel"><input required type="checkbox" id="rentalTermsAccepted" name="rentalTermsAccepted" value="${rentalTermsVersion}"><span>Jeg har lest og godtar <a href="/kundeinfo.html#leiebetingelser" target="_blank" rel="noopener">leiebetingelsene</a>. Forespørselen er uforpliktende frem til tilbudet er godkjent.</span></label><p class="hint">Leieperioden forhåndsbetales via Vipps. Du kan hente på lageret i Segelckes vei 15, 2010 Strømmen, eller avtale transport. Les <a href="/kundeinfo.html#personvern" target="_blank" rel="noopener">personvernerklæringen</a>.</p>`);mountRentalDelivery(rentalForm);}
 
-let dismissed=false;try{dismissed=sessionStorage.getItem('konsept-cookie-info-v1')==='closed';}catch{}
-if(!dismissed){const banner=document.createElement('aside');banner.className='cookie-info';banner.setAttribute('aria-label','Informasjon om lagring og personvern');banner.innerHTML='<div><strong>Handlekurv og personvern</strong><p>Vi bruker funksjonell lagring for handlekurven og valgene dine. Butikken har ingen statistikk- eller markedsføringssporing.</p></div><a href="/kundeinfo.html#informasjonskapsler">Les mer</a><button type="button" class="button dark">Forstått</button>';banner.querySelector('button').onclick=()=>{try{sessionStorage.setItem('konsept-cookie-info-v1','closed');}catch{}banner.remove();};document.body.append(banner);}
-
 // Route results stay in memory; only Konseptuell's own price is included in exports.
 var deliveryQuote=null,deliverySelection={basket:{},products:[]};
 export function rentalDeliveryExport(){
@@ -92,7 +91,7 @@ function mountRentalDelivery(form){
  const group=document.createElement('fieldset');group.className='rental-options';group.innerHTML='<legend>Levering eller henting</legend><div class="addon-choices">'+choices.map(([value,label,visits],i)=>'<label class="addon-choice"><input type="radio" name="delivery" value="'+value+'" '+(i===0?'checked':'')+'><span style="flex:1">'+label+'</span><strong data-delivery-price="'+i+'" style="white-space:nowrap;font-size:12px">'+(visits===0?'0 kr':visits===null?'Avklares':'Adresse kreves')+'</strong></label>').join('')+'</div><p class="hint">Prisene inkluderer mva.</p><div role="status" aria-live="polite"></div>';
  select.closest('label').replaceWith(group);
  const addressNotice=document.createElement('p');addressNotice.className='hint';addressNotice.textContent='Komplett adresse brukes automatisk til fraktberegning via Google Maps.';addressNotice.id='rentalAddressPrivacy';address.setAttribute('aria-describedby',addressNotice.id);address.closest('label').after(addressNotice);
- const result=group.querySelector('[role="status"]'),dialog=form.closest('dialog');let enabled=false,revision=0,timer,controller,offer=null,pendingKey='',wasLocked=false,previousChoice=choices[0][0];
+ const result=group.querySelector('[role="status"]'),dialog=form.closest('dialog');let enabled=false,revision=0,timer,controller,offer=null,pendingKey='',wasLocked=false,previousChoice=choices[0][0],retryAfter=0;
  const selected=()=>choices.find(([value])=>value===group.querySelector('[name="delivery"]:checked')?.value)||choices[0];
  const addressKey=()=>completeAddress(form).normalize('NFKC').trim().toLocaleLowerCase('nb-NO').replace(/[\s,]+/g,' ');
  const ready=()=>address.value.trim().length>=3&&/^[0-9]{4}$/.test(form.querySelector('[name="postalCode"]').value)&&form.querySelector('[name="postalCity"]').value.trim().length>=2;
@@ -120,19 +119,19 @@ function mountRentalDelivery(form){
  const schedule=()=>{
   clearTimeout(timer);const key=addressKey();if(offer?.key!==key)offer=null;
   if(pendingKey&&pendingKey!==key){revision++;controller?.abort();pendingKey='';}
-  if(capacity().manual){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
-  render();if(!enabled||!ready()||!dialog?.open||(offer?.key===key&&offer.until>Date.now())||pendingKey===key)return;
+  if(capacity().manual||!Object.keys(deliverySelection?.basket||{}).length){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
+  render();if(!enabled||!ready()||!dialog?.open||Date.now()<retryAfter||(offer?.key===key&&offer.until>Date.now())||pendingKey===key)return;
   result.textContent='Beregner transportpris …';timer=setTimeout(calculate,1800);
  };
  async function calculate(){
-  if(!enabled||!ready()||!dialog?.open||capacity().manual)return;const key=addressKey(),current=++revision;pendingKey=key;controller=new AbortController();render();
-  try{const response=await fetch('/api/delivery-estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:completeAddress(form),visits:1,basket:deliverySelection.basket,customRequest:deliverySelection.customRequest===true}),signal:controller.signal});const quote=await response.json();if(current!==revision)return;if(!response.ok)throw Error(quote.error||'Transportpris avklares i tilbudet.');
+  if(!enabled||!ready()||!dialog?.open||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length||Date.now()<retryAfter)return;const key=addressKey(),current=++revision;pendingKey=key;controller=new AbortController();render();
+  try{const response=await fetch('/api/delivery-estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:completeAddress(form),visits:1,basket:deliverySelection.basket,customRequest:deliverySelection.customRequest===true}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(12000)])});const quote=await response.json();if(current!==revision)return;if(!response.ok){retryAfter=Date.now()+(response.status===429?60000:30000);throw Error(quote.error||'Transportpris avklares i tilbudet.');}
    if(!quote.manual&&(!Number.isFinite(quote.prices?.onePerson)||!Number.isFinite(quote.prices?.twoPeople)))throw Error('Transportpris avklares i tilbudet.');
    offer={key,until:Date.now()+300000,manual:quote.manual,prices:quote.prices};pendingKey='';render();
-  }catch(error){if(current!==revision||error.name==='AbortError')return;pendingKey='';offer=null;render();result.textContent=error.message||'Transportpris avklares i tilbudet.';}
+  }catch(error){if(current!==revision||error.name==='AbortError')return;pendingKey='';offer=null;retryAfter=Math.max(retryAfter,Date.now()+30000);render();result.textContent=error.name==='TimeoutError'?'Fraktberegningen tok for lang tid. Frakt avklares i tilbudet.':error.message||'Transportpris avklares i tilbudet.';}
  }
  document.addEventListener('rental-delivery-selection',event=>{deliverySelection=event.detail;schedule();});
  form.addEventListener('input',event=>{if(['address','postalCode','postalCity'].includes(event.target.name))schedule();});form.addEventListener('change',event=>{if(['delivery','address','postalCode','postalCity'].includes(event.target.name))schedule();});
  dialog?.addEventListener('close',()=>{clearTimeout(timer);controller?.abort();revision++;pendingKey='';deliveryQuote=null;});if(dialog)new MutationObserver(()=>{if(dialog.open)schedule();}).observe(dialog,{attributes:true,attributeFilter:['open']});
- render();fetch('/api/delivery-estimate').then(r=>r.ok?r.json():null).then(data=>{enabled=data?.enabled===true;schedule();}).catch(()=>render());
+ render();fetch('/api/delivery-estimate',{signal:AbortSignal.timeout(8000)}).then(r=>r.ok?r.json():null).then(data=>{enabled=data?.enabled===true;schedule();}).catch(()=>render());
 }
