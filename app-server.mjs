@@ -43,6 +43,7 @@ export function createServer(options={}){
    const hosts=[req.headers.host,req.headers['x-forwarded-host']].flatMap(value=>String(value||'').split(',')).map(value=>value.trim().toLowerCase().replace(/:\d+$/,'').replace(/\.$/,''));
    if(hosts.some(host=>['konseptboligstyling.com','www.konseptboligstyling.com'].includes(host)))return send(404,'<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ikke publisert</title></head><body><main><h1>Nettsiden er ikke publisert.</h1></main></body></html>','text/html; charset=utf-8');
    const url=new URL(req.url,'http://localhost');let pathname;try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
+   if(['GET','HEAD'].includes(req.method)&&new URL(origin).hostname==='konseptuell.no'&&hosts.includes('www.konseptuell.no'))return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
    if(pathname==='/api/delivery-estimate'){
     if(req.method==='GET'){if(store.enabled)await readCatalog();return out(200,{enabled:delivery.enabled,rates:deliveryRates,warehouse});}
     if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
