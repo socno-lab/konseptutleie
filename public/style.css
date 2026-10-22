@@ -656,3 +656,6 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  #cart input[type="date"]::-webkit-datetime-edit,#saleCart input[type="date"]::-webkit-datetime-edit{min-width:0;padding:0;}
  #cart input[type="date"]::-webkit-calendar-picker-indicator,#saleCart input[type="date"]::-webkit-calendar-picker-indicator{margin:0;padding:0;width:16px;}
 }
+
+/* The complete sofa preview is sufficient on desktop; a single module thumbnail is redundant. */
+@media(min-width:641px){.sofa-cart-product>.cart-thumbnail{display:none;}}
