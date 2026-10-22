@@ -1,3 +1,4 @@
+import {getSiteSettings} from '../public/site-settings.js';
 import {createHmac,randomBytes} from 'node:crypto';
 import {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity} from '../public/delivery-model.js';
 export const warehouse='Segelckes vei 15, 2010 Strømmen, Norge';
@@ -43,7 +44,7 @@ export function createDeliveryEstimator(env,fetcher=fetch,options={}){
   const capacity=rentalDeliveryCapacity(basket,products,input.customRequest===true);
   if(capacity.manual)return {manual:true,reason:capacity.reason,capacity,prices:null,crew:requiresTwoPeople(basket,products)?2:1,visits:input.visits,estimated:true,vatIncluded:true};
   if(!key)fail('Frakt beregnes i tilbudet. Du kan sende forespørselen uten fraktestimat.',503);
-  const address=input.address.normalize('NFKC').trim().replace(/[\s,]+/g,' '),id=createHmac('sha256',salt).update(address.toLocaleLowerCase('nb-NO')).digest('hex');
+  const address=input.address.normalize('NFKC').trim().replace(/[\s,]+/g,' '),id=createHmac('sha256',salt).update(address.toLocaleLowerCase('nb-NO')+'|'+JSON.stringify(getSiteSettings().delivery)).digest('hex');
   const offer=await tariff(address,id,client),crew=requiresTwoPeople(basket,products)?2:1,perVisit=offer.manual?undefined:offer.prices[crew===2?'twoPeople':'onePerson'];
   return {...offer,crew,visits:input.visits,...(offer.manual?{}:{perVisit,total:perVisit*input.visits}),vatIncluded:true,estimated:true,rates:deliveryRates,warehouse};
  }};

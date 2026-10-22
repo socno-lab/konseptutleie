@@ -10,6 +10,6 @@ function sniff(bytes){
  return null;
 }
 export async function staticImages(publicRoot){const assets=path.join(publicRoot,'assets'),names=await readdir(assets);return Promise.all(names.filter(n=>/\.(png|jpe?g|webp|avif)$/i.test(n)).map(async name=>({name,url:'/assets/'+encodeURIComponent(name),bytes:(await stat(path.join(assets,name))).size,source:'asset'})));}
-export function mediaUsage(image,products){return products.filter(p=>[p.image,p.wallCover,...(p.gallery||[])].includes(image.url)).map(p=>({id:p.id,name:p.name,deletedAt:p.deletedAt||'',active:p.active}));}
+export function mediaUsage(image,products,settings){const uses=products.filter(p=>[p.image,p.wallCover,p.builderImage,...(p.gallery||[])].includes(image.url)).map(p=>({id:p.id,name:p.name,deletedAt:p.deletedAt||'',active:p.active}));if(settings?.home?.occasions?.some(c=>c.image===image.url))uses.push({id:'site-home',name:'Forsidens bruksområder',deletedAt:'',active:true});return uses;}
 
 export function imageMime(bytes){const mime=sniff(bytes);if(!mime)return null;try{const {width,height}=imageSize(bytes);if(!width||!height||width>20000||height>20000||width*height>80000000)return null;return mime;}catch{return null;}}

@@ -1,3 +1,4 @@
+import {defaultSettings} from '../public/site-settings.js';
 import {deliveryCallLimits} from './delivery.mjs';
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';
@@ -12,6 +13,7 @@ export function createMysqlStore(env,seed){
   if(!enabled)throw Error('Database er ikke konfigurert.');
   if(!ready)ready=(async()=>{
    for(const sql of [
+    'CREATE TABLE IF NOT EXISTS ku_site_settings (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_catalog (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL, updated_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_discounts (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_admin (id INT PRIMARY KEY, email VARCHAR(254) NOT NULL, password_hash VARCHAR(255) NOT NULL)',
@@ -23,6 +25,7 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)'
    ])await pool.query(sql);
    await pool.execute("INSERT IGNORE INTO ku_discounts (id,revision,body) VALUES (1,1,'[]')");
+   await pool.execute('INSERT IGNORE INTO ku_site_settings(id,revision,body) VALUES(1,1,?)',[JSON.stringify(defaultSettings)]);
    await pool.execute('INSERT IGNORE INTO ku_catalog (id,revision,body,updated_at) VALUES (1,?,?,?)',[Math.max(1,seed.revision||1),JSON.stringify(migrateProducts(removeRetiredCosts(seed.products))),new Date()]);
    // Remove the retired field from storage, including hidden and trashed products.
    const connection=await pool.getConnection();
@@ -43,7 +46,7 @@ export function createMysqlStore(env,seed){
   await init();const connection=await pool.getConnection(),updatedAt=new Date();
   try{await connection.beginTransaction();const [[current]]=await connection.execute('SELECT revision FROM ku_catalog WHERE id=1 FOR UPDATE');if(current.revision!==revision){await connection.rollback();return null;}
    const [purged]=await connection.execute('SELECT url FROM ku_media_purged');const unavailable=new Set([...purged.map(row=>row.url),...urls]);
-   if(products.some(p=>[p.image,p.wallCover,...(p.gallery||[])].some(url=>unavailable.has(url))))throw Object.assign(Error('Et bilde er slettet permanent. Velg et annet bilde og lagre på nytt.'),{status:409});
+   if(products.some(p=>[p.image,p.wallCover,p.builderImage,...(p.gallery||[])].some(url=>unavailable.has(url))))throw Object.assign(Error('Et bilde er slettet permanent. Velg et annet bilde og lagre på nytt.'),{status:409});
    for(const url of urls){const [[trash]]=await connection.execute('SELECT url FROM ku_media_state WHERE url=? FOR UPDATE',[url]);if(!trash)throw Object.assign(Error('Papirkurven er endret. Last inn på nytt.'),{status:409});await connection.execute('INSERT IGNORE INTO ku_media_purged(url) VALUES (?)',[url]);if(/^\/media\/[a-f0-9]{32}$/.test(url))await connection.execute('DELETE FROM ku_media WHERE id=?',[url.slice(7)]);await connection.execute('DELETE FROM ku_media_state WHERE url=?',[url]);}
    await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(products),updatedAt]);await connection.commit();return {revision:revision+1,products,updatedAt};
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
@@ -64,6 +67,8 @@ export function createMysqlStore(env,seed){
   },
   async readDiscountCodes(){const [[r]]=await query('SELECT revision,body FROM ku_discounts WHERE id=1');return {revision:r.revision,codes:JSON.parse(r.body)};},
   async saveDiscountCodes(revision,codes){const [r]=await query('UPDATE ku_discounts SET revision=revision+1,body=? WHERE id=1 AND revision=?',[JSON.stringify(codes),revision]);return r.affectedRows?{revision:revision+1,codes}:null;},
+  async readSiteSettings(){const [[r]]=await query('SELECT revision,body FROM ku_site_settings WHERE id=1');return {revision:r.revision,settings:JSON.parse(r.body)};},
+  async saveSiteSettings(revision,settings){const [r]=await query('UPDATE ku_site_settings SET revision=revision+1,body=? WHERE id=1 AND revision=?',[JSON.stringify(settings),revision]);return r.affectedRows?{revision:revision+1,settings}:null;},
   async readCatalog(){const [[r]]=await query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1');return {revision:r.revision,products:migrateProducts(removeRetiredCosts(JSON.parse(r.body))),updatedAt:r.updated_at};},
   async saveCatalog(revision,products){return mutateCatalog(revision,products,[]);},
   async purgeTrash(revision,products,urls){return mutateCatalog(revision,products,urls);},
