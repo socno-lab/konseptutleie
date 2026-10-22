@@ -1,3 +1,5 @@
+import {rentalModuleRequirementError} from '../public/sofa-layout.js';
+import {salesEnabled} from '../public/sales-model.js';
 import nodemailer from 'nodemailer';
 import {createHash} from 'node:crypto';
 const fail=(message,status=400)=>Object.assign(Error(message),{status});
@@ -10,8 +12,9 @@ export function validateSubmission(input,products){
  if(!/^2026-\d\d-\d\d/.test(terms))throw fail('Godta gjeldende vilkår før innsending.');
  if(input.website)throw fail('Kunne ikke sende skjemaet.');
  if(!input.basket||typeof input.basket!=='object'||Array.isArray(input.basket)||Object.keys(input.basket).length>150)throw fail('Kontroller produktutvalget.');
- const lines=[];for(const [id,q] of Object.entries(input.basket)){const p=products.find(p=>p.id===id&&p.active&&!p.deletedAt);if(!p||!Number.isInteger(q)||q<1||q>999)throw fail('Et produkt er endret. Last inn siden på nytt og kontroller utvalget.');lines.push(`${q} × ${p.name} [${id}]`);}
+ const lines=[];for(const [id,q] of Object.entries(input.basket)){const p=products.find(p=>p.id===id&&p.active&&!p.deletedAt);if(!p||input.kind==='purchase'&&!salesEnabled(p)||!Number.isInteger(q)||q<1||q>999)throw fail('Et produkt er endret. Last inn siden på nytt og kontroller utvalget.');lines.push(`${q} × ${p.name} [${id}]`);}
  if(!lines.length&&(input.kind!=='rental'||input.customRequest!==true))throw fail('Velg produkter eller en tilpasset forespørsel.');
+ if(input.kind==='rental'){const requirement=rentalModuleRequirementError(input.basket,products);if(requirement)throw fail(requirement);}
  return {id:input.id,kind:input.kind,name,email,text,terms,lines};
 }
 export function createSubmissionSender(env,store,sendOverride){
