@@ -2,6 +2,7 @@
 export const tableTypes=['Spisebord','Sofabord','Sidebord','Nattbord','Ståbord','Skrivebord','Konsollbord','Andre bord'];
 export function tableType(product){
  if(product.category!=='Bord')return '';
+ if(tableTypes.includes(product.subcategory))return product.subcategory;
  const name=String(product.name||'').toLocaleLowerCase('nb-NO');
  if(/nattbord|bedside|nightstand/.test(name))return 'Nattbord';
  if(/ståbord|barbord|bar table|verticus/.test(name))return 'Ståbord';
@@ -26,8 +27,11 @@ const typeOrder={
  'Kunstige planter':['Trær','Grønne planter','Gress'],
  Utemøbler:['Loungemoduler','Utestoler','Utebord','Andre utemøbler']
 };
+export function subcategoryOptions(category){return [...(typeOrder[category]||[])];}
+export function validSubcategory(category,value){return value===''||subcategoryOptions(category).includes(value);}
 export function productSubcategory(p,category=p.category){
  if(p.category!==category)return '';
+ if(p.subcategory&&validSubcategory(category,p.subcategory))return p.subcategory;
  const n=String(p.name||'').toLocaleLowerCase('nb-NO');
  const text=n+' '+String(p.description||'').toLocaleLowerCase('nb-NO');
  if(category==='Bord')return tableType(p);

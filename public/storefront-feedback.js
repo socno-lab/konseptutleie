@@ -1,4 +1,4 @@
-import './customer-info.js?v=pickupdefault20261022';
+import './customer-info.js?v=adminsubcategory20261022';
 import './dialog-scroll-lock.js?v=dialoglock1';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');
