@@ -66,7 +66,7 @@ function syncRentalPricing(){
  mode.querySelector('[value=retail]').disabled=k==='package'||service;
  mode.querySelector('[value=components]').disabled=k!=='package';
  mode.querySelector('[value=period]').disabled=k!=='addon'||!service;
- el('objectPriceLabel').textContent=mode.value==='period'?'Fastpris per leieperiode inkl. mva. (kr)':'Døgnpris inkl. mva. (kr)';
+ el('objectPriceLabel').textContent=mode.value==='period'?'Pris per påbegynte 30 dager inkl. mva. (kr)':'Døgnpris inkl. mva. (kr)';
  if(mode.selectedOptions[0]?.disabled)mode.value='manual';
  const p=formProduct(),rates=rentalRateSets(p,products.map(item=>Object.hasOwn(componentPriceDrafts,item.id)?{...item,purchaseUnitPrice:componentPriceDrafts[item.id]}:item)),auto=['retail','components'].includes(mode.value);
  if(mode.value==='period'){el('objectWeekPrice').value=el('objectPrice').value;el('objectMonthPrice').value=el('objectPrice').value;}
@@ -74,7 +74,7 @@ function syncRentalPricing(){
  for(const id of ['objectPrice','objectWeekPrice','objectMonthPrice']){el(id).disabled=auto||el('objectPriceOnRequest').checked||(mode.value==='period'&&id!=='objectPrice');el(id).required=!el(id).disabled;}
  el('objectPriceOnRequest').disabled=auto;
  const row=(label,rate)=>'<tr><th>'+label+'</th>'+['price','weekPrice','monthPrice'].map(key=>'<td>'+(rate.priceOnRequest?'Avklares':rate[key].toLocaleString('nb-NO')+' kr')+'</td>').join('')+'</tr>';
- el('rentalPricingPreview').innerHTML=mode.value==='period'?'<p><strong>'+p.price.toLocaleString('nb-NO')+' kr inkl. mva.</strong> per pakke for én leieperiode inntil 30 dager. Samme pris for alle bruksområder. Over 30 dager: pris på forespørsel.</p>':'<table><caption>Leiepris per enhet inkl. mva.</caption><thead><tr><th>Bruk</th><th>Døgn</th><th>Uke</th><th>Måned</th></tr></thead><tbody>'+row('Boligfoto og visning',rates.standard)+row('Øvrig bruk (messe/event/bedrift)',rates.messe)+'</tbody></table>'+(mode.value==='retail'&&!p.purchaseUnitPrice?'<p>Legg inn veiledende nypris for å beregne leie.</p>':mode.value==='manual'&&!p.purchaseUnitPrice?'<p class="hint">Nypris mangler. Manuelle priser beholdes inntil nypris registreres. Velg «Fra veiledende nypris» for å bruke modellen.</p>':'');
+ el('rentalPricingPreview').innerHTML=mode.value==='period'?'<p><strong>'+p.price.toLocaleString('nb-NO')+' kr inkl. mva.</strong> per pakke inntil 30 dager. Samme pris for alle bruksområder. 31–60 dager: dobbel pris. Ny pakkepris per påbegynte 30 dager.</p>':'<table><caption>Leiepris per enhet inkl. mva.</caption><thead><tr><th>Bruk</th><th>Døgn</th><th>Uke</th><th>Måned</th></tr></thead><tbody>'+row('Boligfoto og visning',rates.standard)+row('Øvrig bruk (messe/event/bedrift)',rates.messe)+'</tbody></table>'+(mode.value==='retail'&&!p.purchaseUnitPrice?'<p>Legg inn veiledende nypris for å beregne leie.</p>':mode.value==='manual'&&!p.purchaseUnitPrice?'<p class="hint">Nypris mangler. Manuelle priser beholdes inntil nypris registreres. Velg «Fra veiledende nypris» for å bruke modellen.</p>':'');
 }
 el('objectRentalPricingMode').onchange=()=>{pricingModeTouched=true;syncRentalPricing();setDirty();};
 el('objectPurchaseUnitPrice').addEventListener('input',()=>{if(!pricingModeTouched&&!selected.purchaseUnitPrice&&!el('objectIsService').checked&&!['package','wall'].includes(el('productKind').value)&&Number(el('objectPurchaseUnitPrice').value)>0)el('objectRentalPricingMode').value='retail';syncRentalPricing();});
