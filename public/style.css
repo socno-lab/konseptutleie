@@ -620,3 +620,12 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #catalogPricingScope:has(>h3) .rental-usage-options button:hover,.rental-usage-dialog .rental-usage-options button:hover,#mobileUsageDialog .mobile-sheet-choices button:hover{background:#f4f6f0;border-color:var(--olive)}
 .rental-usage-dialog .rental-usage-options button[aria-pressed=true],#mobileUsageDialog .mobile-sheet-choices button[aria-pressed=true]{background:var(--olive);border-color:var(--olive);color:#fff}
 @media(max-width:640px){.mobile-catalog-usage{background:#e5e9df;border:1px solid #c3cdb9;border-left:4px solid var(--olive);padding:8px 12px}.mobile-catalog-usage>button{font-weight:600}}
+
+/* Optional rental items sit inside their parent product, with one period price. */
+.cart-product-group.has-addons{border:1px solid var(--line);padding:14px;margin-bottom:18px}
+.cart-product-group.has-addons>.cart-item:first-child{padding:0 0 16px}
+.cart-product-group .cart-addon{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 16px;margin:0 0 12px;padding:20px;border:0;background:#ecefe5}
+.cart-product-group .cart-addon:last-child{margin-bottom:0}.cart-addon:before{display:none}.cart-addon>.thumb{display:none}.cart-addon-label{letter-spacing:.15em;text-transform:uppercase;font-size:11px!important;font-weight:400;grid-column:1/-1;margin-bottom:10px!important}.cart-addon-label>span{display:none}
+.cart-addon .item-copy{min-width:0}.cart-addon .item-copy h3{font-size:16px;line-height:1.4;margin:0 0 4px}.cart-addon .cart-addon-composition{font-size:13px;line-height:1.5;margin:0 0 12px}.cart-period-price{margin:12px 0!important}.cart-period-price strong,.cart-period-price span{display:block}.cart-period-price strong{font-size:16px;line-height:1.5;color:var(--ink)}.cart-period-price span{font-size:13px;line-height:1.5}.cart-addon-note{font-size:12px!important;color:var(--muted);margin:10px 0 0!important}.cart-addon>.quantity{align-self:center;gap:10px}.cart-addon>.quantity button{width:36px;min-width:36px;height:40px}
+.package-cart-addon,.sofa-cart-textile{background:#ecefe5;padding:16px}.package-cart-addon>.thumb{display:none}
+@media(max-width:640px){.cart-product-group.has-addons{padding:10px}.cart-product-group .cart-addon{grid-template-columns:minmax(0,1fr) auto;padding:14px;gap:0 10px}.cart-addon .item-copy h3{font-size:14px}.cart-addon>.quantity{gap:4px}.cart-addon>.quantity button{width:30px;min-width:30px}.cart-addon>.quantity>span{min-width:24px!important}}
