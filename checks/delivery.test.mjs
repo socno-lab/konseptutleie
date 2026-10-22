@@ -116,3 +116,11 @@ test('Oversized rental orders never call Google, even if a standard price is alr
  }
  assert.equal(calls,1);
 });
+
+test('Custom rental enquiries always require agreed transport and never call Google',async()=>{
+ assert.equal(rentalDeliveryCapacity({chair:1},products,true).reason,'custom');
+ let calls=0;const estimator=createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'key'},async()=>{calls++;return route(1200);});
+ const quote=await estimator.estimate({...input,basket:{chair:1},customRequest:true},'a',products);
+ assert.equal(quote.manual,true);assert.equal(quote.reason,'custom');assert.equal(quote.total,undefined);assert.equal(calls,0);
+ assert.equal((await estimator.estimate({...input,basket:{chair:1}},'a',products)).manual,false);assert.equal(calls,1);
+});
