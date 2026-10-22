@@ -35,4 +35,12 @@ Tabellene med prefiks `ku_` opprettes automatisk ved første databaseforespørse
 
 Ta regelmessig backup av hele MySQL-databasen, inkludert `ku_media`. Katalognedlasting fra admin inkluderer ikke selve bildefilene. Kontroller lagring etter omstart/deploy før kundelansering.
 
-Avklar endelige priser, vilkår, tilgjengelighet og mottak av forespørsler. Forespørsler lastes foreløpig ned som tekstfil og sendes ikke via e-post.
+Avklar endelige priser, vilkår, tilgjengelighet og mottak av forespørsler. Forespørsler sendes via SMTP når SMTP_PASS er konfigurert. Uten e-postinnstillinger svarer API-et med en tydelig feil; kunden får ikke falsk sendebekreftelse.
+
+## E-post til post@konseptuell.no
+
+Hostinger Mail: SMTP_HOST=smtp.hostinger.com, SMTP_PORT=465, SMTP_USER=post@konseptuell.no, SMTP_PASS=postkassens passord (hemmelig miljøvariabel). Standard host/port/bruker er allerede satt i kode. Legg aldri passord i GitHub eller chat. Apply changes/redeploy etter endring. TLS-sertifikater valideres.
+
+/api/submissions sender kun til post@konseptuell.no. Kundens validerte adresse brukes som Reply-To, aldri som fri mottaker. Forespørselen er uforpliktende og mottar en referanse. Dobbeltklikk/gjentatt innsending med samme id sender ikke duplikat. Databasen begrenser til 3 innsendinger per socket-klient per 15-minuttersvindu, 30 globalt/time og 100/dag; reverse proxy kan gi en strengere delt klientgrense. Serveren lagrer bare referanse, kontrollsum, status og tidspunkt, maksimalt 30 dager. Ved usikkert SMTP-resultat sendes ikke automatisk på nytt; kontakt kan avklare med referansen. Ingen kundeautoresponder: unngår at skjemaet kan brukes til å sende spam til vilkårlige mottakere.
+
+Tilbud/ordrebekreftelse, gjeldende vilkår, angreskjema og Vipps-betalingslenke sendes manuelt ved oppfølging. En mottaksbekreftelse i skjemaet er ingen bindende avtale eller automatisk betaling.

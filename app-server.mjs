@@ -1,3 +1,4 @@
+import {createSubmissionSender} from './server/submissions.mjs';
 import {createRequestGuard,contentPolicy} from './server/request-guard.mjs';
 import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js';
 import {createDeliveryEstimator,deliveryRates,warehouse} from './server/delivery.mjs';
@@ -31,6 +32,7 @@ export function createServer(options={}){
  const env=options.env||process.env,store=options.store||createMysqlStore(env,seed);
  const origin=options.origin||env.APP_ORIGIN||'https://blueviolet-ant-597153.hostingersite.com';
  const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session':'konsept_session';
+ const submissions=createSubmissionSender(env,store,options.sendMail);
  const delivery=createDeliveryEstimator(env,options.deliveryFetch,{reserve:store.enabled?now=>store.reserveDeliveryCall(now):undefined});
  async function readCatalog(){const data=await store.readCatalog(),site=store.readSiteSettings?await store.readSiteSettings():{settings:defaultSettings};configureSiteSettings(site.settings);return {...data,settings:site.settings};}
  let images;const enterRequest=createRequestGuard(options.requestGuard),enterAuth=createRequestGuard({maxActive:2,maxClientActive:2});
@@ -53,6 +55,13 @@ export function createServer(options={}){
      const releaseAuth=enterAuth('auth');if(!releaseAuth)return out(429,{error:'Innlogging er opptatt. Vent litt og prøv igjen.'},{'Retry-After':'5'});
      res.once('finish',releaseAuth);res.once('close',releaseAuth);
     }
+   }
+   if(pathname==='/api/submissions'){
+    if(req.method==='GET')return out(200,{enabled:submissions.enabled});
+    if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
+    if(req.headers.origin!==origin)return out(403,{error:'Last inn siden på nytt før du sender.'});
+    const input=await json(req,90000),catalog=store.enabled?await readCatalog():seed;
+    return out(200,await submissions.submit(input,catalog.products,digest(String(req.socket.remoteAddress||'shared'))));
    }
    if(pathname==='/api/delivery-estimate'){
     if(req.method==='GET'){if(store.enabled)await readCatalog();return out(200,{enabled:delivery.enabled,rates:deliveryRates,warehouse});}
