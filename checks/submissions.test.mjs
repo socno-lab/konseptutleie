@@ -33,7 +33,7 @@ test('ambiguous DATA acknowledgement is quarantined, not blindly sent twice',asy
 });
 test('server ignores client prices; purchase, empty optional fields, custom requests, dates and period additions',()=>{
  configureSiteSettings(defaultSettings);const input=sample(),value=validateSubmission(input,products),s=createEnquirySnapshot(value,{...input,total:1,details:{...input.details,total:1}},products);assert.equal(s.total,200);
- const buy={...input,kind:'purchase',details:{...input.details,start:'',end:'',notes:'',company:'',deliveryDate:'2026-11-06',delivery:'Henter selv etter avtale'}};const snap=createEnquirySnapshot(validateSubmission(buy,products),buy,products);assert.equal(snap.total,1990);assert.ok(!enquiryEmail(snap).text.includes('Ønsket leieperiode'));
+ const buy={...input,kind:'purchase',details:{...input.details,start:'',end:'',notes:'',company:'',delivery:'Henter selv etter avtale'}};const snap=createEnquirySnapshot(validateSubmission(buy,products),buy,products);assert.equal(snap.total,1990);assert.ok(!enquiryEmail(snap).text.includes('Ønsket leieperiode'));
  const extra={...products[0],rentalPricingMode:'period',price:400};const long={...input,details:{...input.details,end:'2026-12-01'}};assert.equal(createEnquirySnapshot(value,long,[extra]).lines[0].total,800);
  for(const patch of [{email:'test@example.invalid\r\nBcc:evil@example.invalid'},{name:'Test\nBCC'},{terms:''},{basket:{missing:1}},{basket:{chair:0}},{basket:{}},{website:'spam'}])assert.throws(()=>validateSubmission({...input,...patch},products));
  for(const details of [{...input.details,end:'2026-02-30'},{...input.details,end:'2026-10-01'},{...input.details,notes:'x'.repeat(3001)}])assert.throws(()=>createEnquirySnapshot(value,{...input,details},products));
@@ -59,7 +59,7 @@ test('contact, complete address and relevant dates are required for delivery and
  const input=sample(),value=validateSubmission(input,products);
  for(const patch of [{phone:''},{phone:'   '},{address:''},{address:'1470 Eksempelsted'},{address:'Eksempelveien 12, 1470'},{occasion:''},{start:''},{end:''}])assert.throws(()=>createEnquirySnapshot(value,{...input,details:{...input.details,...patch}},products),e=>e.status===400);
  const noOptional={...input,details:{...input.details,company:'',notes:''}};assert.equal(createEnquirySnapshot(value,noOptional,products).total,200);
- const purchase={...noOptional,kind:'purchase',details:{...noOptional.details,start:'',end:'',delivery:'Henter selv etter avtale',deliveryDate:'2026-11-06'}};assert.equal(createEnquirySnapshot(validateSubmission(purchase,products),purchase,products).total,1990);
- assert.throws(()=>createEnquirySnapshot(validateSubmission(purchase,products),{...purchase,details:{...purchase.details,deliveryDate:''}},products),/leveringsdato/);
+ const purchase={...noOptional,kind:'purchase',details:{...noOptional.details,start:'',end:'',delivery:'Henter selv etter avtale'}};assert.equal(createEnquirySnapshot(validateSubmission(purchase,products),purchase,products).total,1990);
+ const receipt=createEnquirySnapshot(validateSubmission(purchase,products),{...purchase,details:{...purchase.details,deliveryDate:'2026-11-06'}},products);assert.ok(receipt.facts.some(([key,text])=>key==='Leveringstid'&&text.includes('2–3 uker')));assert.ok(!receipt.facts.some(([key])=>key==='Ønsket leveringsdato'));assert.doesNotMatch(enquiryEmail(receipt).text,/2026-11-06|Ønsket leveringsdato/);
  const custom={...input,basket:{},customRequest:true,details:{...input.details,start:'',end:'',delivery:'Avklares senere',customRequest:'Et rom med stoler'}};assert.throws(()=>createEnquirySnapshot(validateSubmission(custom,products),custom,products),/leieperiode/);
 });
