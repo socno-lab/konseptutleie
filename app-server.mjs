@@ -50,6 +50,7 @@ export function createServer(options={}){
    const url=new URL(req.url,'http://localhost');let pathname;try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
    if(['GET','HEAD'].includes(req.method)&&new URL(origin).hostname==='konseptuell.no'&&hosts.includes('www.konseptuell.no'))return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
    const indexing=store.enabled&&indexableEnvironment(origin,env,hosts);
+   if(pathname==='/anledning.html'&&(url.searchParams.get('anledning')==='boligfoto'||url.searchParams.get('bruk')==='boligsalg')&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/utvalg.html?bruk=boligsalg'});
    if(pathname==='/index.html'&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/'+url.search});
    if(['GET','HEAD'].includes(req.method)&&hosts.includes('konseptuell.no')&&req.headers['x-forwarded-proto']==='http')return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
    if(pathname==='/robots.txt'&&['GET','HEAD'].includes(req.method))return send(200,robots(indexing));
