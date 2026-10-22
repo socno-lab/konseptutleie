@@ -16,7 +16,7 @@ export function packageCartView(basket,products,saved=[],links={}){
  }
  for(const p of products.filter(p=>editablePackage(p)&&basket[p.id])){
   const q=basket[p.id],selection={},extras={};for(const c of p.components)add(selection,c.id,c.quantity*q);
-  for(const [id,link] of Object.entries(links)){const x=products.find(x=>x.id===id);if(link?.parentId===p.id&&p.relatedAddOns?.includes(id)&&loose[id])extras[id]=Math.min(loose[id],Number.isInteger(link.packageQuantity)?Math.max(0,link.packageQuantity):x?.category==='Styling'&&x.isService?1:q);}
+  for(const [id,link] of Object.entries(links)){const x=products.find(x=>x.id===id);if((link?.parentId===p.id||link?.packageAllocations?.[p.id])&&p.relatedAddOns?.includes(id)&&loose[id])extras[id]=Math.min(loose[id],link.packageAllocations&&typeof link.packageAllocations==='object'?Math.max(0,Number.isInteger(link.packageAllocations[p.id])?link.packageAllocations[p.id]:0):Number.isInteger(link.packageQuantity)?Math.max(0,link.packageQuantity):x?.category==='Styling'&&x.isService?1:q);}
   loose=subtract(loose,extras);delete loose[p.id];groups.push({id:'fixed:'+p.id,packageId:p.id,name:p.name,quantity:q,selection,extras,custom:false,product:p});
  }
  return {groups,loose,saved:groups.filter(g=>g.custom).map(({id,packageId,name,quantity,selection,acquisition})=>({id,packageId,name,quantity,selection,acquisition}))};
