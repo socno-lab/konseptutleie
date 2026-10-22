@@ -607,3 +607,6 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 /* Match the rental basket counter buttons and number vertically. */
 #cart .quantity{align-items:center;flex-shrink:0}
 #cart .quantity>button,#cart .quantity>span,#cart .quantity>output{display:grid;place-items:center;box-sizing:border-box;height:40px;min-height:40px;min-width:32px;margin:0;padding:0;line-height:1;align-self:center}
+
+/* Follow the centered 1500px content and its 5% inner gutter on wide screens. */
+@media(min-width:1600px){.commerce-mode-switch{margin-right:calc((100% - 1350px)/2)}}
