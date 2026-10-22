@@ -629,3 +629,8 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .cart-addon .item-copy{min-width:0}.cart-addon .item-copy h3{font-size:16px;line-height:1.4;margin:0 0 4px}.cart-addon .cart-addon-composition{font-size:13px;line-height:1.5;margin:0 0 12px}.cart-period-price{margin:12px 0!important}.cart-period-price strong,.cart-period-price span{display:block}.cart-period-price strong{font-size:16px;line-height:1.5;color:var(--ink)}.cart-period-price span{font-size:13px;line-height:1.5}.cart-addon-note{font-size:12px!important;color:var(--muted);margin:10px 0 0!important}.cart-addon>.quantity{align-self:center;gap:10px}.cart-addon>.quantity button{width:36px;min-width:36px;height:40px}
 .package-cart-addon,.sofa-cart-textile{background:#ecefe5;padding:16px}.package-cart-addon>.thumb{display:none}
 @media(max-width:640px){.cart-product-group.has-addons{padding:10px}.cart-product-group.has-addons>.cart-item.cart-addon{grid-template-columns:minmax(0,1fr) auto;padding:14px;gap:0 10px}.cart-addon .item-copy h3{font-size:14px}.cart-addon>.quantity{gap:4px}.cart-addon>.quantity button{width:30px;min-width:30px}.cart-addon>.quantity>span{min-width:24px!important}}
+
+/* Number inputs must not inherit the form field's top margin inside steppers. */
+.quantity>input[type=number]{margin:0;align-self:center}
+.product-quantity .quantity{align-items:center}
+.product-quantity .quantity>button,.product-quantity .quantity>input{box-sizing:border-box;align-self:center;height:48px;min-height:48px;margin:0}
