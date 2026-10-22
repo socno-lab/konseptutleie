@@ -126,3 +126,14 @@ test('Custom rental enquiries always require agreed transport and never call Goo
 });
 
 test('Pictures and wall arrangements do not use the ordinary freight item allowance, including package contents',()=>{const catalog=[...products,{id:'picture',category:'Bilder',isService:false},{id:'wall',category:'Bilder',isService:true},{id:'picturepack',isPackage:true,components:[{id:'picture',quantity:8}]}];const load=rentalDeliveryCapacity({chair:10,picture:20,wall:20,picturepack:5},catalog);assert.equal(load.manual,false);assert.equal(load.other,10);assert.equal(rentalDeliveryCapacity({chair:11,picture:1},catalog).manual,true);});
+test('signed transport receipt cannot change tariff/address, respects crew/capacity and uses no new paid call',async()=>{
+ let calls=0,now=100000;const estimator=createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'test-receipt-key'},async()=>{calls++;return route(1500);},{now:()=>now});
+ const quote=await estimator.estimate(input,'client',products);assert.ok(quote.receipt);
+ assert.equal(estimator.verifyQuote(quote.receipt,input.address,{chair:1},false,2,products).total,1380);
+ assert.equal(estimator.verifyQuote(quote.receipt,input.address,{sofa:1},false,2,products).total,2380);
+ assert.equal(estimator.verifyQuote(quote.receipt,'Annen vei 1, 2010 Strømmen',{chair:1},false,2,products),null);
+ assert.equal(estimator.verifyQuote(quote.receipt+'x',input.address,{chair:1},false,2,products),null);
+ assert.equal(estimator.verifyQuote(quote.receipt,input.address,{sofa:2},false,2,products),null);
+ assert.equal(estimator.verifyQuote(quote.receipt,input.address,{chair:1},true,2,products),null);
+ now+=600001;assert.equal(estimator.verifyQuote(quote.receipt,input.address,{chair:1},false,2,products),null);assert.equal(calls,1);
+});
