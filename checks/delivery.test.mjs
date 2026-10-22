@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {deliveryPrice,requiresTwoPeople,createDeliveryEstimator,warehouse} from '../server/delivery.mjs';
+import {deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity,createDeliveryEstimator,warehouse} from '../server/delivery.mjs';
 import {createServer} from '../app-server.mjs';
-const products=[{id:'chair',name:'Stol',active:true},{id:'sofa',name:'Moment',category:'Sofaer',active:true},{id:'table',name:'Sofabord',active:true},{id:'module',name:'Utemodul',moduleSeries:'outdoor',moduleRole:'middle',active:true},{id:'package',components:[{id:'sofa',quantity:1}],active:true},{id:'cycle',components:[{id:'cycle',quantity:1}],active:true}];
+const products=[{id:'chair',name:'Stol',active:true},{id:'sofa',name:'Moment',category:'Sofaer',active:true},{id:'table',name:'Sofabord',active:true},{id:'module',name:'Utemodul',moduleSeries:'outdoor',moduleRole:'middle',active:true},{id:'package',isPackage:true,components:[{id:'sofa',quantity:1}],active:true},{id:'cycle',components:[{id:'cycle',quantity:1}],active:true}];
 const input={address:'Karl Johans gate 1, 0154 Oslo',visits:2};
 const route=seconds=>({ok:true,json:async()=>({routes:[{legs:[{duration:seconds+'s'},{duration:'1900s'}]}]})});
 test('Time zones include return driving and apply exact 30/40 minute boundaries',()=>{
@@ -29,7 +29,7 @@ test('Server enforces sofa crew, rejects stale products and only sends addresses
  assert.equal((await createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'key'},async()=>route(2500)).estimate(input)).manual,true);
 });
 test('Missing key, uncertain routes and Google errors never produce free freight',async()=>{
- await assert.rejects(()=>createDeliveryEstimator({}).estimate({}),{status:503});
+ await assert.rejects(()=>createDeliveryEstimator({}).estimate(input),{status:503});
  for(const reply of [{ok:false},{ok:true,json:async()=>({routes:[]})},{ok:true,json:async()=>({routes:[{legs:[{duration:'bad'},{duration:'100s'}]}]})}])await assert.rejects(()=>createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'secret'},async()=>reply).estimate(input));
 });
 test('Public endpoint uses catalog, protects secrets, checks origin and throttles requests',async()=>{
@@ -89,4 +89,30 @@ test('Concurrency and client limits also apply, and failed address requests back
  const perClient=createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'key'},async()=>route(1200),{now:()=>now});
  for(let i=0;i<20;i++){now+=60000;await perClient.estimate({...input,address:`Gate ${i}, 2010 Strømmen`},'one-client');}
  now+=60000;await assert.rejects(()=>perClient.estimate({...input,address:'Gate overflow, 2010 Strømmen'},'one-client'),{status:429});
+});
+
+test('Rental capacity boundaries count physical modules and sofa quantities across the whole basket',()=>{
+ const catalog=[...products,{id:'base',moduleSeries:'Senzo',moduleRole:'base'},{id:'decor',category:'Dekor'},{id:'rug',category:'Tepper'},{id:'lamp',category:'Belysning'},{id:'service',isService:true}];
+ for(const basket of [{sofa:1,chair:6},{module:3,chair:6},{chair:10},{base:1,module:1,chair:6}])assert.equal(rentalDeliveryCapacity(basket,catalog).manual,false);
+ for(const basket of [{sofa:2},{module:4},{sofa:1,module:1},{sofa:1,chair:7},{module:3,chair:7},{chair:11},{base:2}])assert.equal(rentalDeliveryCapacity(basket,catalog).manual,true);
+ const load=rentalDeliveryCapacity({sofa:1,chair:6,decor:20,rug:20,lamp:20,service:20},catalog);assert.equal(load.manual,false);assert.equal(load.other,6);
+ assert.equal(rentalDeliveryCapacity({base:1,module:1},catalog).modules,3);
+});
+test('Packages expand recursively and quantities add to loose products; missing or cyclic contents fail closed',()=>{
+ const catalog=[...products,{id:'lounge',isPackage:true,components:[{id:'module',quantity:3},{id:'chair',quantity:2}]},{id:'mingle',isPackage:true,components:[{id:'chair',quantity:3}]},{id:'nested',isPackage:true,components:[{id:'mingle',quantity:2}]},{id:'broken',isPackage:true,components:[{id:'missing',quantity:1}]},{id:'cycle-package',isPackage:true,components:[{id:'cycle-package',quantity:1}]}];
+ assert.equal(rentalDeliveryCapacity({lounge:1},catalog).manual,false);
+ assert.equal(rentalDeliveryCapacity({lounge:1,mingle:1},catalog).manual,false);
+ const combined=rentalDeliveryCapacity({lounge:1,mingle:5},catalog);assert.equal(combined.manual,true);assert.equal(combined.modules,3);assert.equal(combined.other,17);
+ assert.equal(rentalDeliveryCapacity({mingle:3,chair:1},catalog).manual,false);
+ assert.equal(rentalDeliveryCapacity({mingle:3,chair:2},catalog).manual,true);
+ assert.equal(rentalDeliveryCapacity({nested:1},catalog).other,6);
+ for(const id of ['broken','cycle-package'])assert.equal(rentalDeliveryCapacity({[id]:1},catalog).reason,'unknown');
+});
+test('Oversized rental orders never call Google, even if a standard price is already cached',async()=>{
+ let calls=0;const estimator=createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'key'},async()=>{calls++;return route(1200);});
+ assert.equal((await estimator.estimate({...input,basket:{chair:10}},'a',products)).manual,false);
+ for(const basket of [{chair:11},{sofa:2},{module:4},{sofa:1,chair:7}]){
+  const quote=await estimator.estimate({...input,basket},'a',products);assert.equal(quote.manual,true);assert.equal(quote.reason,'capacity');assert.equal(quote.total,undefined);assert.equal(quote.prices,null);
+ }
+ assert.equal(calls,1);
 });
