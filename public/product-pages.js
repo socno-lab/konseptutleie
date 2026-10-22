@@ -18,7 +18,7 @@ if(refreshing){
 function pageHost(){
  if(host)return host;
  document.body.classList.add('product-page');document.body.classList.remove('catalog-page','occasion-page','home-page');host=document.createElement('div');host.id='productPageHost';
- const back=document.createElement('a');back.className='product-page-back';back.textContent='← Tilbake til utvalget';back.href=catalogReturn();host.append(back);
+ const back=document.createElement('a');back.className='product-page-back';back.textContent='← Tilbake til utvalget';back.href=catalogReturn();const crumbs=document.createElement('nav');crumbs.className='product-breadcrumbs';crumbs.setAttribute('aria-label','Brødsmuler');const home=document.createElement('a');home.href='/';home.textContent='Hjem';crumbs.append(home,document.createTextNode(' / '),back);host.append(crumbs);
  const scope=document.getElementById('catalogPricingScope');if(scope)host.append(scope);
  const status=document.createElement('p');status.id='productPageStatus';status.setAttribute('role','status');status.textContent='Laster produkt …';host.append(status);document.querySelector('main').prepend(host);return host;
 }
@@ -34,8 +34,12 @@ export function selectPageProduct(p,mode,context={}){
  if(!isProductPage)return;
  selectedRecommendation=p;
  const url=new URL(location.href);url.searchParams.set('produkt',p.id);for(const key of ['bruk','prisbruk','oppsett'])if(Object.hasOwn(context,key)){if(context[key])url.searchParams.set(key,context[key]);else url.searchParams.delete(key);}history.replaceState(null,'',url.pathname+url.search);
- document.title=(p.moduleSeries||p.name)+' · '+(mode==='buy'?'Kjøpe':'Leie')+' · Konseptuell';
+ document.title=(mode==='buy'?'Kjøp ':'Lei ')+p.name+' | Konseptuell';
  const description=document.querySelector('meta[name="description"]')||document.head.appendChild(document.createElement('meta'));description.name='description';description.content=[p.moduleSeries||p.name,p.material,mode==='buy'?'Bestill nytt produkt. Send en uforpliktende kjøpsforespørsel.':'Velg antall og send en uforpliktende leieforespørsel.'].filter(Boolean).join(' · ');
+ const canonical=new URL((mode==='buy'?'/kjopsprodukt.html':'/leieprodukt.html')+'?produkt='+encodeURIComponent(p.id),document.querySelector('link[rel=canonical]')?.href||location.origin).href;
+ const link=document.querySelector('link[rel=canonical]');if(link)link.href=canonical;
+ for(const [property,value] of [['og:title',document.title],['og:description',description.content],['og:url',canonical],['og:image',p.image?new URL(p.image,location.origin).href:'']]){const meta=document.querySelector('meta[property="'+property+'"]');if(meta)meta.content=value;}
+ const schema=document.querySelector('script[type="application/ld+json"]');if(schema){try{const data=JSON.parse(schema.textContent);for(const node of data['@graph']||[]){if(['Product','Service'].includes(node['@type']))Object.assign(node,{'@id':canonical+'#'+(mode==='buy'?'product':'rental'),name:(mode==='buy'?'':'Leie av ')+p.name,description:description.content,url:canonical,...(p.image?{image:new URL(p.image,location.origin).href}:{})});if(node['@type']==='BreadcrumbList'){const last=node.itemListElement.at(-1);last.name=p.name;last.item=canonical;}}schema.textContent=JSON.stringify(data);}catch{schema.remove();}}
  refreshPageRecommendations();
 }
 function arrangeProduct(root,sale){
@@ -48,6 +52,7 @@ function arrangeProduct(root,sale){
 }
 export function showSurface(node,label=''){
  if(!isProductPage||!primaryIds.has(node.id)){if(!node.open)node.showModal();return node;}
+ document.getElementById('seoProduct')?.remove();
  const target=pageHost();let section=node;
  if(node.tagName==='DIALOG'){
   section=document.createElement('section');for(const attr of node.attributes)if(!['open','role','aria-modal'].includes(attr.name))section.setAttribute(attr.name,attr.value);

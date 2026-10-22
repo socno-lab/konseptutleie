@@ -687,3 +687,8 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #cart .sofa-add-another,#saleCart .sofa-add-another{margin:12px 0;font-size:12px;}
 .cart-common-info{margin:4px 0 16px;}
 @media(max-width:640px){#cart,#saleCart{--cart-image-size:64px;--cart-image-gap:10px;}#cart .cart-sofa-row,#saleCart .cart-sofa-row{align-items:flex-start;}#cart .cart-thumbnail,#saleCart .cart-thumbnail{flex-shrink:0;} }
+
+/* Crawlable server content shares the existing restrained product layout. */
+.seo-links{display:flex;flex-wrap:wrap;gap:12px 24px;margin:24px 0;line-height:1.6}.seo-discovery{border-top:1px solid var(--line)}.seo-discovery p{max-width:780px}.seo-discovery h2{font-size:24px;margin-top:30px}.seo-card{min-width:0}.seo-card img{width:100%;height:auto;aspect-ratio:4/3;object-fit:contain;background:white}.seo-card h3{font-size:16px}.seo-card p{font-size:13px;line-height:1.6}.seo-card a{text-decoration:none}.seo-product-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px}.seo-product-grid figure{margin:0}.seo-product-grid img{width:100%;height:auto;object-fit:contain}.seo-product-grid p{line-height:1.7}.product-page main>#seoProduct{display:block!important}.seo-product nav{margin-bottom:28px;font-size:13px}@media(max-width:640px){.seo-product-grid{grid-template-columns:1fr;gap:24px}.seo-links{gap:12px 18px}.seo-discovery h2{font-size:22px}}
+
+.product-breadcrumbs{margin-bottom:24px;font-size:13px;line-height:1.6}.product-breadcrumbs .product-page-back{display:inline;margin:0}
