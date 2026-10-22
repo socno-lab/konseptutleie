@@ -11,13 +11,12 @@ const date=(value,label)=>{if(!value)return '';if(typeof value!=='string'||!/^\d
 export function requestDetails(input){
  const d=input.details;if(!d||typeof d!=='object'||Array.isArray(d))fail('Last inn siden på nytt før du sender forespørselen.');
  const text=(key,max=300)=>{const v=d[key]??'';if(typeof v!=='string'||v.length>max||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(v))fail('Kontroller '+key+'.');return v.trim();};
- return {phone:text('phone',40),company:text('company',150),address:text('address',300),comment:text('notes',3000),occasion:text('occasion',100),delivery:text('delivery',100),start:date(d.start,'fra-dato'),end:date(d.end,'til-dato'),deliveryDate:date(d.deliveryDate,'leveringsdato'),purchaseDelivery:date(d.purchaseDelivery,'leveringsdato for kjøp'),customText:text('customRequest',3000),stylingNotes:text('stylingNotes',2000),stylist:d.stylist==='yes',discountCode:text('discountCode',40),deliveryToken:text('deliveryToken',6000)};
+ return {phone:text('phone',40),company:text('company',150),address:text('address',300),comment:text('notes',3000),occasion:text('occasion',100),delivery:text('delivery',100),start:date(d.start,'fra-dato'),end:date(d.end,'til-dato'),customText:text('customRequest',3000),stylingNotes:text('stylingNotes',2000),stylist:d.stylist==='yes',discountCode:text('discountCode',40),deliveryToken:text('deliveryToken',6000)};
 }
 export function createEnquirySnapshot(value,input,products,{codes=[],verifyDelivery=()=>null}={}){
  const d=requestDetails(input),rental=value.kind==='rental',choices=input.businessChoices||{};
  if(!d.phone||!/[0-9]/.test(d.phone))fail('Oppgi telefonnummer.');
  if(!/^.{3,},?\s+[0-9]{4}\b[\s,]+\S.{1,}$/u.test(d.address))fail('Oppgi gateadresse, postnummer og poststed.');
- if(!rental&&!d.deliveryDate)fail('Velg ønsket leveringsdato.');
  if(rental&&!d.occasion)fail('Velg anledning.');
  if(!choices||typeof choices!=='object'||Array.isArray(choices)||Object.keys(choices).length>150)fail('Kontroller kjøpsvalg.');
  const rent={},buy={};for(const [id,q] of Object.entries(input.basket)){
@@ -25,7 +24,6 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
   if(mode&&!['rent','buy','try'].includes(mode)||mode&&!businessPurchaseEnabled(p))fail('Kontroller kjøpsvalg.');
   (rental&&mode==='buy'?buy:rent)[id]=q;
  }
- if(Object.keys(buy).length&&!d.purchaseDelivery)fail('Velg ønsket leveringsdato for kjøp.');
  const scope=scopeForOccasion(d.occasion),priced=products.map(p=>({...p,...rentalRateSets(p,products)[scope]}));
  if(rental){
   const normalized=normalizeBasket(rent,priced);
@@ -43,7 +41,7 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  for(const [id,q] of Object.entries(buy)){const p=products.find(x=>x.id===id),unit=resolvedPackagePurchasePrice(p,products);lines.push({id,name:p.name,quantity:q,basis:'Kjøpsønske · fast pakkeinnhold',total:unit===null?null:Math.round(unit*q*100)/100,contents:(p.components||[]).map(c=>c.quantity+' × '+products.find(x=>x.id===c.id)?.name)});}
  if(value.customRequest){if(!d.customText)fail('Beskriv den tilpassede forespørselen.');lines.push({id:'custom',name:'Tilpasset forespørsel',quantity:1,basis:d.customText,total:null});}
  const facts=[];if(rental&&d.start&&d.end)facts.push(['Ønsket leieperiode',d.start+' til '+d.end]);
- if(d.occasion)facts.push(['Bruksområde',d.occasion]);if(d.deliveryDate||d.purchaseDelivery)facts.push(['Ønsket leveringsdato',d.deliveryDate||d.purchaseDelivery]);
+ if(d.occasion)facts.push(['Bruksområde',d.occasion]);if(!rental||Object.keys(buy).length)facts.push(['Leveringstid','2–3 uker. Levering kan skje tidligere. Vi bekrefter leveringsdatoen i ordrebekreftelsen.']);
  if(d.stylist)facts.push(['Styling ønskes',d.stylingNotes||'Stylist – pris avklares i tilbudet']);
  for(const g of groups.filter(g=>g.custom))facts.push(['Tilpasset fra '+g.name,Object.entries(g.selection).map(([id,q])=>q+' × '+products.find(x=>x.id===id)?.name).join('; ')]);
  for(const [id,mode] of Object.entries(choices))if(mode==='try')facts.push(['Leie med kjøpsmulighet',products.find(x=>x.id===id)?.name+' – kjøpspris avtales separat']);
