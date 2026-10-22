@@ -20,6 +20,8 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_sessions (token_hash CHAR(64) PRIMARY KEY, expires_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_login_limits (bucket CHAR(64) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_delivery_limits (bucket VARCHAR(16) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_submissions (id CHAR(36) PRIMARY KEY, fingerprint CHAR(64) NOT NULL, status VARCHAR(16) NOT NULL, created_at BIGINT NOT NULL, INDEX(created_at))',
+    'CREATE TABLE IF NOT EXISTS ku_submission_limits (bucket VARCHAR(90) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media_purged (url VARCHAR(500) PRIMARY KEY)',
     'CREATE TABLE IF NOT EXISTS ku_media_state (url VARCHAR(500) PRIMARY KEY, deleted_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)'
@@ -52,6 +54,28 @@ export function createMysqlStore(env,seed){
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
  return {enabled,init,async close(){if(pool)await pool.end();},
+  async reserveSubmission(id,fingerprint,client,now){
+   await init();const connection=await pool.getConnection();
+   try{await connection.beginTransaction();
+    // Lock shared budget first so simultaneous requests cannot double-send an id.
+    const limits=[['global-hour',3600000,30],['global-day',86400000,100],['client-'+client,900000,3]];
+    for(const [bucket,ms,max] of limits){
+     const until=(Math.floor(now/ms)+1)*ms;
+     await connection.execute('INSERT IGNORE INTO ku_submission_limits(bucket,attempts,reset_at) VALUES (?,0,?)',[bucket,until]);
+     const [[row]]=await connection.execute('SELECT attempts,reset_at FROM ku_submission_limits WHERE bucket=? FOR UPDATE',[bucket]);
+     const [[existing]]=await connection.execute('SELECT fingerprint,status FROM ku_submissions WHERE id=?',[id]);
+     if(existing){await connection.rollback();return existing.fingerprint===fingerprint?existing.status:'conflict';}
+     const count=Number(row.reset_at)>now?row.attempts:0;
+     if(count>=max){await connection.rollback();return 'limited';}
+     await connection.execute('UPDATE ku_submission_limits SET attempts=?,reset_at=? WHERE bucket=?',[count+1,until,bucket]);
+    }
+    await connection.execute('DELETE FROM ku_submissions WHERE created_at<? LIMIT 100',[now-30*86400000]);
+    await connection.execute('DELETE FROM ku_submission_limits WHERE reset_at<? LIMIT 100',[now-86400000]);
+    await connection.execute("INSERT INTO ku_submissions(id,fingerprint,status,created_at) VALUES (?,?,'sending',?)",[id,fingerprint,now]);
+    await connection.commit();return 'new';
+   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
+  },
+  async completeSubmission(id,status){await query('UPDATE ku_submissions SET status=? WHERE id=?',[status,id]);},
   async reserveDeliveryCall(now){
    await init();const connection=await pool.getConnection();
    try{await connection.beginTransaction();
