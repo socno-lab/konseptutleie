@@ -61,3 +61,6 @@ export function isKiPhoto(src){if(!src)return false;try{return illustratedImages
 
 // Light beige colour edit of the customer-owned mirror photo.
 illustratedImages.add("/media/a0ee7f0d2f05794b55c50480840bc882");
+
+// White-background packshot edited from the owner's H&M floor-shelf photo.
+illustratedImages.add("/media/d2e7e7d209051412a226404a9dd9add8");
