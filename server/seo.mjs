@@ -1,3 +1,4 @@
+import {matchesPurpose} from '../public/rental-purpose-model.js?v=adminareas1';
 import {salesEnabled,saleUnitPrice} from '../public/sales-model.js';
 export const siteOrigin='https://konseptuell.no';
 export const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -15,14 +16,15 @@ export function pageModel(path,params,products){
  }
  if(path==='/anledning.html'){
   let key=params.get('anledning')||Object.keys(occasions).find(k=>occasions[k][1]===params.get('bruk'))||'alle';if(key==='event')key='messe';const [h1,area,description]=occasions[key]||occasions.alle;
-  const selected=pool.filter(p=>!p.areas?.length||p.areas.includes(area)||area==='alle');
+  const selected=pool.filter(p=>matchesPurpose(p,area));
   return {status:200,h1,title:h1+' | Konseptuell',description,canonical:'/anledning.html?bruk='+area+'&anledning='+(occasions[key]?key:'alle'),items:selected,buy:false};
  }
  if(path==='/midlertidig-moblering.html')return {status:200,h1:'Midlertidig møblering med møbler til leie',title:'Midlertidig møblering – leie møbler | Konseptuell',description:'Trenger du møbler i noen uker eller måneder? Velg sofaer, bord og stoler, og send en forespørsel med ønsket leieperiode.',canonical:path,items:pool.filter(p=>['Sofaer','Stoler','Bord','Hyller'].includes(p.category)),buy:false};
  if(path==='/utvalg.html'||path==='/kjop.html'){
-  const category=params.get('kategori'),validCategory=category&&pool.some(p=>p.category===category),items=validCategory?pool.filter(p=>p.category===category):pool;
-  const h1=buy?(validCategory?'Kjøp '+category.toLocaleLowerCase('nb-NO'):'Kjøp møbler og interiør'):validCategory?(category==='Pakker'?'Loungepakker og ferdige møbelpakker':category+' til leie'):'Møbler til leie';
-  return {status:200,h1,title:h1+' | Konseptuell',description:buy?'Se nye møbler og interiør fra salgssortimentet. Send en kjøpsforespørsel; pris og levering avklares før bekreftelse.':'Lei '+(validCategory?category.toLocaleLowerCase('nb-NO'):'møbler, interiør og dekor')+' til event, messe og midlertidige rom. Se utvalget og send en uforpliktende leieforespørsel.',canonical:path+(validCategory?'?kategori='+encodeURIComponent(category):''),items,buy};
+  const housing=!buy&&params.get('bruk')==='boligsalg';
+  const category=params.get('kategori'),validCategory=category&&pool.some(p=>p.category===category),items=(validCategory?pool.filter(p=>p.category===category):pool).filter(p=>!housing||matchesPurpose(p,'boligsalg'));
+  const h1=buy?(validCategory?'Kjøp '+category.toLocaleLowerCase('nb-NO'):'Kjøp møbler og interiør'):validCategory?(category==='Pakker'?'Loungepakker og ferdige møbelpakker':category+' til leie'):housing?'Møbelleie ved boligsalg':'Møbler til leie';
+  return {status:200,h1,title:h1+' | Konseptuell',description:buy?'Se nye møbler og interiør fra salgssortimentet. Send en kjøpsforespørsel; pris og levering avklares før bekreftelse.':housing?'Lei enkeltmøbler til boligfoto og visning ved boligsalg. Velg møbler og leieperiode, og send en uforpliktende forespørsel.':'Lei '+(validCategory?category.toLocaleLowerCase('nb-NO'):'møbler, interiør og dekor')+' til event, messe og midlertidige rom. Se utvalget og send en uforpliktende leieforespørsel.',canonical:path+(validCategory?'?kategori='+encodeURIComponent(category):housing?'?bruk=boligsalg':''),items,buy};
  }
  const info=path==='/kundeinfo.html';return {status:200,h1:info?'Kundeinformasjon':'Møbelutleie til event og messe',title:info?'Kontakt, vilkår og personvern | Konseptuell':'Møbelutleie til event og messe | Konseptuell',description:info?'Kontakt Konseptuell, og les om leie, kjøp, levering, personvern og informasjonskapsler.':'Lei møbler, interiør og dekor til event, messe og midlertidige rom. Se utvalget og send en forespørsel om tilgjengelighet og levering.',canonical:info?path:'/',items:pool,buy:false};
 }
@@ -54,5 +56,5 @@ export function renderSeo(source,m,products,indexable){let html=String(source).r
  if(!m.product&&m.status===200&&!m.canonical.startsWith('/kundeinfo'))html=html.replace('</main>',discovery(products)+'</main>');
  return html;
 }
-export function sitemap(products,indexable){const paths=indexable?['/','/utvalg.html','/kjop.html','/midlertidig-moblering.html','/kundeinfo.html',...Object.entries(occasions).map(([key,v])=>'/anledning.html?bruk='+v[1]+'&anledning='+key),...[...new Set(products.filter(rental).map(p=>p.category))].map(c=>'/utvalg.html?kategori='+encodeURIComponent(c)),...[...new Set(products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>p.category))].map(c=>'/kjop.html?kategori='+encodeURIComponent(c)),...products.filter(rental).map(p=>url(p)),...products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>url(p,true))]:[];return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+[...new Set(paths)].map(p=>'<url><loc>'+e(siteOrigin+p)+'</loc></url>').join('')+'</urlset>';}
+export function sitemap(products,indexable){const paths=indexable?['/','/utvalg.html','/kjop.html','/midlertidig-moblering.html','/kundeinfo.html','/utvalg.html?bruk=boligsalg',...Object.entries(occasions).filter(([key])=>key!=='boligfoto').map(([key,v])=>'/anledning.html?bruk='+v[1]+'&anledning='+key),...[...new Set(products.filter(rental).map(p=>p.category))].map(c=>'/utvalg.html?kategori='+encodeURIComponent(c)),...[...new Set(products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>p.category))].map(c=>'/kjop.html?kategori='+encodeURIComponent(c)),...products.filter(rental).map(p=>url(p)),...products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>url(p,true))]:[];return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+[...new Set(paths)].map(p=>'<url><loc>'+e(siteOrigin+p)+'</loc></url>').join('')+'</urlset>';}
 export function robots(indexable){return indexable?'User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /previews/\nDisallow: /*?*oppsett=\nDisallow: /*?*sok=\nSitemap: '+siteOrigin+'/sitemap.xml\n':'User-agent: *\nDisallow: /\n';}
