@@ -1,3 +1,4 @@
+import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js';
 import {createDeliveryEstimator,deliveryRates,warehouse} from './server/delivery.mjs';
 import {salesEnabled,saleUnitPrice} from './public/sales-model.js';
 import {discountQuote,validateDiscountCodes} from './server/discounts.mjs';
@@ -20,7 +21,7 @@ const root=path.dirname(fileURLToPath(import.meta.url)),publicRoot=path.join(roo
 const seed=JSON.parse(await readFile(path.join(root,'data/catalog-export-2026-10-17.json'),'utf8'));
 seed.products=migrateProducts(removeRetiredCosts(seed.products));
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.avif':'image/avif','.ico':'image/x-icon'};
-export function publicCatalog(data){return {...data,products:data.products.filter(p=>p.active&&!p.deletedAt).map(p=>{const {purchaseUnitPrice,acquisitionCost,...visible}=p;const rentalRates=rentalRateSets(p,data.products);return {...visible,rentalEnabled:p.rentalEnabled!==false,saleEnabled:salesEnabled(p),salePrice:saleUnitPrice(p),...rentalRates.standard,rentalRates,purchasePrice:resolvedPackagePurchasePrice(p,data.products),maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined};})};}
+export function publicCatalog(data){configureSiteSettings(data.settings);return {...data,products:sortProducts(data.products.filter(p=>p.active&&!p.deletedAt)).map(p=>{const {purchaseUnitPrice,acquisitionCost,...visible}=p;const rentalRates=rentalRateSets(p,data.products);return {...visible,rentalEnabled:p.rentalEnabled!==false,saleEnabled:salesEnabled(p),salePrice:saleUnitPrice(p),...rentalRates.standard,rentalRates,purchasePrice:resolvedPackagePurchasePrice(p,data.products),maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined};})};}
 const error=(message,status=400)=>Object.assign(Error(message),{status});
 async function bytes(req,max){let length=0,large=false;const chunks=[];for await(const chunk of req){length+=chunk.length;if(length>max){large=true;chunks.length=0;}else if(!large)chunks.push(chunk);}if(large)throw error('Filen eller forespørselen er for stor.',413);return Buffer.concat(chunks);}
 async function json(req,max=1500000){if(!req.headers['content-type']?.startsWith('application/json'))throw error('Forventet JSON.',415);try{return JSON.parse((await bytes(req,max)).toString('utf8'));}catch(e){if(e.status)throw e;throw error('Ugyldige data.');}}
@@ -30,6 +31,7 @@ export function createServer(options={}){
  const origin=options.origin||env.APP_ORIGIN||'https://blueviolet-ant-597153.hostingersite.com';
  const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session':'konsept_session';
  const delivery=createDeliveryEstimator(env,options.deliveryFetch,{reserve:store.enabled?now=>store.reserveDeliveryCall(now):undefined});
+ async function readCatalog(){const data=await store.readCatalog(),site=store.readSiteSettings?await store.readSiteSettings():{settings:defaultSettings};configureSiteSettings(site.settings);return {...data,settings:site.settings};}
  let images;
  const server=http.createServer(async(req,res)=>{
   const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...headers});res.end(req.method==='HEAD'?undefined:body);};
@@ -42,10 +44,10 @@ export function createServer(options={}){
    if(hosts.some(host=>['konseptboligstyling.com','www.konseptboligstyling.com'].includes(host)))return send(404,'<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ikke publisert</title></head><body><main><h1>Nettsiden er ikke publisert.</h1></main></body></html>','text/html; charset=utf-8');
    const url=new URL(req.url,'http://localhost');let pathname;try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
    if(pathname==='/api/delivery-estimate'){
-    if(req.method==='GET')return out(200,{enabled:delivery.enabled,rates:deliveryRates,warehouse});
+    if(req.method==='GET'){if(store.enabled)await readCatalog();return out(200,{enabled:delivery.enabled,rates:deliveryRates,warehouse});}
     if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
     if(req.headers.origin!==origin)return out(403,{error:'Last inn siden på nytt før du beregner frakt.'});
-    const input=await json(req,20000),catalog=store.enabled?await store.readCatalog():seed;return out(200,await delivery.estimate(input,digest(String(req.socket.remoteAddress||'shared')),catalog.products));
+    const input=await json(req,20000),catalog=store.enabled?await readCatalog():seed;return out(200,await delivery.estimate(input,digest(String(req.socket.remoteAddress||'shared')),catalog.products));
    }
    const admin=pathname==='/admin'||pathname.startsWith('/admin/')||pathname==='/api/admin'||pathname.startsWith('/api/admin/');
    if(admin){
@@ -85,24 +87,29 @@ export function createServer(options={}){
      const token=sessionToken(req,cookieName);const changed=await store.changePassword(digest(token),await hashPassword(data.password));if(!changed)return out(401,{error:'Innloggingen er utløpt. Logg inn på nytt.'});return out(200,{ok:true},{'Set-Cookie':await issueSession(store,cookieName,secure)});
     }
     if(pathname==='/api/admin/trash/purge'&&req.method==='POST'){
-     const input=await json(req,400000),current=await store.readCatalog();if(input.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});images??=staticImages(publicRoot);const trash=await store.mediaTrashState(),purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)).map(m=>({...m,deletedAt:trash[m.url]||''}));const plan=planTrashPurge(current,all,input),products=validateCatalog(plan.products),saved=await store.purgeTrash(current.revision,products,plan.mediaUrls);return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});
+     const input=await json(req,400000),current=await readCatalog();if(input.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});images??=staticImages(publicRoot);const trash=await store.mediaTrashState(),purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)).map(m=>({...m,deletedAt:trash[m.url]||''}));const plan=planTrashPurge(current,all,input),products=validateCatalog(plan.products),saved=await store.purgeTrash(current.revision,products,plan.mediaUrls);return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});
     }
     const lifecycle=pathname.match(/^\/api\/admin\/products\/([a-z0-9_-]+)\/(trash|restore)$/);
-    if(lifecycle&&req.method==='POST'){const data=await json(req,5000),current=await store.readCatalog();if(data.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});const products=validateCatalog(changeProductLifecycle(current.products,lifecycle[1],lifecycle[2]));const saved=await store.saveCatalog(current.revision,products);return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});}
+    if(lifecycle&&req.method==='POST'){const data=await json(req,5000),current=await readCatalog();if(data.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});const products=validateCatalog(changeProductLifecycle(current.products,lifecycle[1],lifecycle[2]));const saved=await store.saveCatalog(current.revision,products);return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});}
     if(pathname==='/api/admin/discounts'){
      if(req.method==='GET')return out(200,await store.readDiscountCodes());
      if(req.method==='PUT'){const data=await json(req,100000);if(!Number.isInteger(data.revision))throw error('Ugyldig versjon.');const codes=validateDiscountCodes(data.codes),saved=await store.saveDiscountCodes(data.revision,codes);return saved?out(200,saved):out(409,{error:'Rabattkodene er endret. Last inn siden på nytt.'});}
     }
+    if(pathname==='/api/admin/site-settings'){
+     if(req.method==='GET')return out(200,await store.readSiteSettings());
+     if(req.method==='PUT'){const input=await json(req,1000000);if(!Number.isInteger(input.revision))throw error('Ugyldig versjon.');const catalog=await readCatalog();let settings;try{settings=validateSiteSettings(input.settings);validateSettingsUsage(settings,catalog.products);}catch(e){throw error(e.message);}const saved=await store.saveSiteSettings(input.revision,settings);if(saved)configureSiteSettings(settings);return saved?out(200,saved):out(409,{error:'Innstillingene er endret i en annen fane. Last inn på nytt før lagring.'});}
+     return out(405,{error:'Metoden støttes ikke.'});
+    }
     if(pathname==='/api/admin/catalog'){
-     if(req.method==='GET')return out(200,await store.readCatalog());
-     if(req.method==='PUT'){const data=await json(req);if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');const products=validateCatalog(data.products);const result=await store.saveCatalog(data.revision,products);return result?out(200,result):out(409,{error:'Katalogen er endret av en annen administrator. Last inn på nytt før du lagrer.'});}
+     if(req.method==='GET')return out(200,await readCatalog());
+     if(req.method==='PUT'){const data=await json(req);if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');await readCatalog();const products=validateCatalog(data.products);const result=await store.saveCatalog(data.revision,products);return result?out(200,result):out(409,{error:'Katalogen er endret av en annen administrator. Last inn på nytt før du lagrer.'});}
     }
     if(['/api/admin/media/trash','/api/admin/media/restore'].includes(pathname)&&req.method==='POST'){
      const input=await json(req,5000);if(typeof input.url!=='string'||input.url.length>500)return out(400,{error:'Ugyldig bildelenke.'});images??=staticImages(publicRoot);const purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)),image=all.find(m=>m.url===input.url);if(!image)return out(404,{error:'Bildet finnes ikke.'});
-     if(pathname.endsWith('/trash')){const catalog=await store.readCatalog(),uses=mediaUsage(image,catalog.products);if(uses.length)return out(409,{error:'Bildet brukes av '+uses.map(p=>p.name+(p.deletedAt?' (i papirkurven)':'')).join(', ')+'. Fjern bildet fra produktene først.'});await store.trashMedia(image.url);}else await store.restoreMedia(image.url);return out(200,{ok:true});
+     if(pathname.endsWith('/trash')){const catalog=await readCatalog(),uses=mediaUsage(image,catalog.products,catalog.settings);if(uses.length)return out(409,{error:'Bildet brukes av '+uses.map(p=>p.name+(p.deletedAt?' (i papirkurven)':'')).join(', ')+'. Fjern bildet fra produktene først.'});await store.trashMedia(image.url);}else await store.restoreMedia(image.url);return out(200,{ok:true});
     }
     if(pathname==='/api/admin/media'){
-     if(req.method==='GET'){images??=staticImages(publicRoot);const data=await store.readCatalog();const all=[...(await store.mediaList()),...(await images)],trash=await store.mediaTrashState(),purged=await store.purgedMedia();return out(200,{images:all.filter(m=>!purged.includes(m.url)).map(image=>({...image,deletedAt:trash[image.url]||'',usedBy:mediaUsage(image,data.products)}))});}
+     if(req.method==='GET'){images??=staticImages(publicRoot);const data=await readCatalog();const all=[...(await store.mediaList()),...(await images)],trash=await store.mediaTrashState(),purged=await store.purgedMedia();return out(200,{images:all.filter(m=>!purged.includes(m.url)).map(image=>({...image,deletedAt:trash[image.url]||'',usedBy:mediaUsage(image,data.products,data.settings)}))});}
      if(req.method==='POST'){
       const body=await bytes(req,8*1024*1024),mime=imageMime(body);if(!mime)throw error('Velg JPG, PNG, WebP eller AVIF. SVG og andre filtyper støttes ikke.',415);
       let name;try{name=decodeURIComponent(req.headers['x-filename']||'bilde');}catch{name='bilde';}name=name.replace(/[\x00-\x1f/\\]/g,'').slice(0,180)||'bilde';
@@ -115,11 +122,12 @@ export function createServer(options={}){
     if(req.headers.origin!==origin)return out(403,{error:'Last inn siden på nytt.'});
     if(!store.enabled)return out(503,{error:'Rabattkoder er ikke tilgjengelige nå.'});
     if(!await store.attempt(digest('discount:'+req.socket.remoteAddress)))return out(429,{error:'For mange forsøk. Vent 15 minutter.'});
-    const input=await json(req,20000),catalog=await store.readCatalog(),discounts=await store.readDiscountCodes();
+    const input=await json(req,20000),catalog=await readCatalog(),discounts=await store.readDiscountCodes();
     const quote=discountQuote(input,catalog.products,discounts.codes);await store.resetAttempts(digest('discount:'+req.socket.remoteAddress));return out(200,quote);
    }
    if(!['GET','HEAD'].includes(req.method))return send(405,'Metoden støttes ikke.');
-   if(pathname==='/api/catalog'){const data=store.enabled?await store.readCatalog():seed;return out(200,{...publicCatalog(data),canAdmin:store.enabled&&await authenticated()});}
+   if(pathname==='/api/site-settings'){if(req.method!=='GET')return out(405,{error:'Metoden støttes ikke.'});const data=store.enabled?await readCatalog():{settings:defaultSettings};return out(200,{settings:data.settings});}
+   if(pathname==='/api/catalog'){const data=store.enabled?await readCatalog():seed;return out(200,{...publicCatalog(data),canAdmin:store.enabled&&await authenticated()});}
    if(store.enabled&&(pathname.startsWith('/assets/')||pathname.startsWith('/media/'))&&(await store.purgedMedia()).some(url=>decodeURIComponent(url)===pathname))return send(404,'Fant ikke bildet.');
    const media=pathname.match(/^\/media\/([a-f0-9]{32})$/);if(media){if(!store.enabled)return send(404,'Fant ikke bildet.');const image=await store.media(media[1]);return image?send(200,image.body,image.mime,{'Cache-Control':'public, max-age=31536000, immutable'}):send(404,'Fant ikke bildet.');}
    if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return send(404,'Fant ikke siden.');
