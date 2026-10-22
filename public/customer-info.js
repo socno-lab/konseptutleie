@@ -1,4 +1,4 @@
-import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=adminsubcategory20261022';
+import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=packagecart20261022';
 // Shared customer information for purchase, rental and information pages.
 export const rentalTermsVersion='2026-10-22-leie-5';
 export const termsVersion='2026-10-21-1';
