@@ -638,3 +638,10 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 /* Business customers start with ready packages, with individual products alongside. */
 .business-package-first>a:nth-child(2){background:#fff}
 .business-package-first>a:nth-child(2):hover{background:#f4f6f0}
+
+/* Heritage Small variants: match the natural bench's framing without changing geometry.
+   The green source has 429x401px of product versus 515x490px in the natural 800px photo. */
+.product-intro .product-art img[src*="heritage-bench-small-light-green-9a591c54361382624f0e51f2d58de0d2"],
+.sale-image-stage .sale-detail-photo[src*="heritage-bench-small-light-green-9a591c54361382624f0e51f2d58de0d2"]{transform:translate(-.5%,-9.443%) scale(1.21);transform-origin:center}
+#products .product-art img[src*="heritage-bench-small-light-green-9a591c54361382624f0e51f2d58de0d2"],
+#saleProducts .sale-photo img[src*="heritage-bench-small-light-green-9a591c54361382624f0e51f2d58de0d2"]{--catalog-scale:1.089;--catalog-x:-.609%;--catalog-y:-8.499%}
