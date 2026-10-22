@@ -63,3 +63,11 @@ test('explicit optional allocation never consumes identical independently added 
  const next=removePackageGroup({pack:3,decor:4},products,[],'fixed:pack',links);
  assert.deepEqual(next.basket,{decor:3});
 });
+test('different packages can own separate allocations of the same optional product',()=>{
+ const ps=products.map(p=>p.id==='other'?{...p,relatedAddOns:['decor']}:p);
+ const links={decor:{parentId:'other',packageAllocations:{pack:2,other:1}}};
+ const basket={pack:2,other:1,decor:5};const view=packageCartView(basket,ps,[],links);
+ assert.equal(view.groups.find(g=>g.packageId==='pack').extras.decor,2);assert.equal(view.groups.find(g=>g.packageId==='other').extras.decor,1);assert.equal(view.loose.decor,2);
+ const removed=removePackageGroup(basket,ps,[],'fixed:pack',links);assert.deepEqual(removed.basket,{other:1,decor:3});
+ const after=packageCartView(removed.basket,ps,[],links);assert.equal(after.groups[0].extras.decor,1);assert.equal(after.loose.decor,2);
+});
