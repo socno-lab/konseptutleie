@@ -14,3 +14,24 @@ export function deliveryPrice(oneWaySeconds,visits,twoPeople=false){
  const zone=oneWaySeconds<=1800?'normal':'extended',perVisit=zone==='normal'?(twoPeople?deliveryRates.normalTwo:deliveryRates.normalSingle):(twoPeople?deliveryRates.extendedTwo:deliveryRates.extendedSingle);
  return {manual:false,minutes,zone,crew,visits,perVisit,total:perVisit*visits,vatIncluded:true,estimated:true};
 }
+
+export const rentalDeliveryLimits=Object.freeze({sofas:1,modules:3,otherWithSofa:6,withoutSofa:10});
+export function rentalDeliveryCapacity(basket,products){
+ const byId=new Map(products.map(p=>[p.id,p]));let sofas=0,modules=0,other=0,unknown=false,steps=0;
+ const add=(id,quantity,path=new Set())=>{
+  if(!quantity)return;
+  if(!Number.isSafeInteger(quantity)||quantity<0||path.has(id)||path.size>30||++steps>10000){unknown=true;return;}
+  const p=byId.get(id);if(!p){unknown=true;return;}
+  if(p.isPackage){
+   if(!Array.isArray(p.components)||!p.components.length){unknown=true;return;}
+   const next=new Set(path);next.add(id);for(const c of p.components)add(c.id,quantity*c.quantity,next);return;
+  }
+  if(p.isService||['dekor','tepper','belysning'].includes(String(p.category||'').trim().toLocaleLowerCase('nb-NO')))return;
+  if(p.moduleSeries&&['base','left','right','end','middle'].includes(p.moduleRole)){modules+=quantity*(p.moduleRole==='base'?2:1);return;}
+  if(p.type==='sofa'||/sofa/i.test(p.category||'')||/\bsofa(?:er|en)?\b|modulsofa|sjeselong/iu.test(p.name||'')){sofas+=quantity;return;}
+  other+=quantity;
+ };
+ for(const [id,quantity] of Object.entries(basket||{}))add(id,quantity);
+ const hasSofa=sofas>0||modules>0,manual=unknown||sofas>rentalDeliveryLimits.sofas||modules>rentalDeliveryLimits.modules||(sofas>0&&modules>0)||other>(hasSofa?rentalDeliveryLimits.otherWithSofa:rentalDeliveryLimits.withoutSofa);
+ return {manual,sofas,modules,other,reason:unknown?'unknown':manual?'capacity':null};
+}
