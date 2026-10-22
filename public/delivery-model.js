@@ -3,7 +3,7 @@ export const deliveryRates=new Proxy({normalSingle:690,extendedSingle:890,normal
 export function requiresTwoPeople(basket,products){
  const byId=new Map(products.map(p=>[p.id,p])),seen=new Set();
  const sofa=id=>{if(seen.has(id))return false;seen.add(id);const p=byId.get(id);if(!p)return false;
-  if(p.type==='sofa'||/sofa/i.test(p.category||'')||/\bsofa(?:er|en)?\b|modulsofa|sjeselong/iu.test(p.name||'')||(p.moduleSeries&&['base','left','right','end','middle'].includes(p.moduleRole)))return true;
+  if(p.type==='sofa'||/sofa/i.test(p.category||'')||/\bsofa(?:er|en)?\b|modulsofa|sjeselong/iu.test(p.name||'')||(p.moduleSeries&&['base','left','right','end','middle','chaise'].includes(p.moduleRole)))return true;
   return (p.components||[]).some(c=>c.quantity>0&&sofa(c.id));
  };
  return Object.entries(basket||{}).some(([id,q])=>q>0&&sofa(id));
@@ -28,7 +28,7 @@ export function rentalDeliveryCapacity(basket,products,customRequest=false){
    const next=new Set(path);next.add(id);for(const c of p.components)add(c.id,quantity*c.quantity,next);return;
   }
   if(p.isService||['dekor','tepper','belysning','bilder'].includes(String(p.category||'').trim().toLocaleLowerCase('nb-NO')))return;
-  if(p.moduleSeries&&['base','left','right','end','middle'].includes(p.moduleRole)){modules+=quantity*(p.moduleRole==='base'?2:1);return;}
+  if(p.moduleSeries&&['base','left','right','end','middle','chaise'].includes(p.moduleRole)){modules+=quantity*(p.moduleRole==='base'?2:1);return;}
   if(p.type==='sofa'||/sofa/i.test(p.category||'')||/\bsofa(?:er|en)?\b|modulsofa|sjeselong/iu.test(p.name||'')){sofas+=quantity;return;}
   other+=quantity;
  };

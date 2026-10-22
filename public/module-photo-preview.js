@@ -52,6 +52,6 @@ export function modulePhotoPreview(modules,selection){
  const runs=leftHalves.length?leftHalves.map((p,i)=>[p,...(i===0?extras:[]),rightHalves[i]]):[parts];
  const rows=[];for(const run of runs){if(generated||run.some(p=>['left','right'].includes(p.role)))rows.push(run);else for(let i=0;i<run.length;i+=6)rows.push(run.slice(i,i+6));}
  const rowWidths=rows.map(row=>row.reduce((sum,p)=>sum+p.width,0)),width=Math.max(generated?120:240,...rowWidths),rowHeight=parts.some(p=>p.photo?.tall)?110:100;
- const images=rows.map((row,i)=>{let x=(width-rowWidths[i])/2;return row.map(part=>{const h=part.photo?.height||(/sjeselong/i.test(part.product.name)?88:78),y=part.photo?.top??88-h;const result=photo(part,x,i*rowHeight+y,part.width,h);x+=part.width;return result;}).join('');}).join('');
+ const images=rows.map((row,i)=>{let x=(width-rowWidths[i])/2;return row.map(part=>{const h=part.photo?.height||(/sjeselong/i.test(part.product.name)?88:78),y=part.photo?.top??(part.product.moduleRole==='chaise'?10:88-h);const result=photo(part,x,i*rowHeight+y,part.width,h);x+=part.width;return result;}).join('');}).join('');
  return `<figure class="module-photo" data-generated="${generated}"><svg viewBox="-8 0 ${width+16} ${rows.length*rowHeight}" role="img" aria-label="${escape(label)}">${images}</svg><figcaption>${generated?'KI-generert illustrasjon av valgt oppsett':'Illustrasjon av valgt oppsett · satt sammen av produktbilder'}</figcaption>${previewZoom()}</figure>`;
 }
