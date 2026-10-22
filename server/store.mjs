@@ -7,7 +7,7 @@ import {removeRetiredCosts} from './catalog.mjs';
 
 export function createMysqlStore(env,seed){
  const enabled=!!(env.DB_HOST&&env.DB_USER&&env.DB_NAME&&env.DB_PASSWORD);
- const pool=enabled?mysql.createPool({host:env.DB_HOST,port:Number(env.DB_PORT||3306),user:env.DB_USER,password:env.DB_PASSWORD,database:env.DB_NAME,connectionLimit:5,connectTimeout:8000,charset:'utf8mb4',timezone:'Z',ssl:env.DB_SSL==='true'?{rejectUnauthorized:true}:undefined}):null;
+ const pool=enabled?mysql.createPool({host:env.DB_HOST,port:Number(env.DB_PORT||3306),user:env.DB_USER,password:env.DB_PASSWORD,database:env.DB_NAME,connectionLimit:5,queueLimit:30,connectTimeout:8000,charset:'utf8mb4',timezone:'Z',ssl:env.DB_SSL==='true'?{rejectUnauthorized:true}:undefined}):null;
  let ready;
  async function init(){
   if(!enabled)throw Error('Database er ikke konfigurert.');

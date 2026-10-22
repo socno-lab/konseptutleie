@@ -40,7 +40,7 @@ export function createDeliveryEstimator(env,fetcher=fetch,options={}){
  }
  return {enabled:!!key,async estimate(input,client='shared',products=[]){
   if(!input||typeof input.address!=='string'||input.address.length<8||input.address.length>300||!/[0-9]{4}/.test(input.address)||/[\r\n\x00-\x1f]/.test(input.address)||![1,2].includes(input.visits))fail('Oppgi gateadresse, postnummer og sted.');
-  const basket=input.basket||{};if(!basket||typeof basket!=='object'||Array.isArray(basket)||Object.keys(basket).length>500||Object.entries(basket).some(([id,q])=>!Number.isInteger(q)||q<1||q>99||!products.some(p=>p.id===id&&p.active&&!p.deletedAt&&p.rentalEnabled!==false)))fail('Produktutvalget er endret. Oppdater siden før du beregner frakt.');
+  const basket=input.basket||{};if(!basket||typeof basket!=='object'||Array.isArray(basket)||Object.keys(basket).length===0||Object.keys(basket).length>500||Object.entries(basket).some(([id,q])=>!Number.isInteger(q)||q<1||q>99||!products.some(p=>p.id===id&&p.active&&!p.deletedAt&&p.rentalEnabled!==false)))fail('Produktutvalget er endret. Oppdater siden før du beregner frakt.');
   const capacity=rentalDeliveryCapacity(basket,products,input.customRequest===true);
   if(capacity.manual)return {manual:true,reason:capacity.reason,capacity,prices:null,crew:requiresTwoPeople(basket,products)?2:1,visits:input.visits,estimated:true,vatIncluded:true};
   if(!key)fail('Frakt beregnes i tilbudet. Du kan sende forespørselen uten fraktestimat.',503);
