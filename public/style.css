@@ -657,5 +657,11 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  #cart input[type="date"]::-webkit-calendar-picker-indicator,#saleCart input[type="date"]::-webkit-calendar-picker-indicator{margin:0;padding:0;width:16px;}
 }
 
-/* The complete sofa preview is sufficient on desktop; a single module thumbnail is redundant. */
-@media(min-width:641px){.sofa-cart-product>.cart-thumbnail{display:none;}}
+/* One image per sofa: a compact complete setup on desktop, the larger preview on mobile. */
+.sofa-cart-config-thumb{display:none;}
+@media(min-width:641px){
+ .sofa-cart-config-thumb{display:flex;align-items:center;justify-content:center;width:72px;height:72px;flex:0 0 72px;background:white;border:1px solid var(--line);overflow:hidden;}
+ .sofa-cart-config-thumb .module-photo{width:100%;height:100%;margin:0;padding:4px;display:flex;align-items:center;justify-content:center;}
+ .sofa-cart-config-thumb .module-photo>img,.sofa-cart-config-thumb .module-photo>svg{display:block;width:100%;height:100%;max-height:none;object-fit:contain;}
+ .sofa-cart-config-thumb figcaption,.sofa-cart-config-thumb .module-photo-zoom>span,.sofa-cart-sketch{display:none;}
+}
