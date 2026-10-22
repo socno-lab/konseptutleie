@@ -3,13 +3,13 @@ import {submitEnquiry} from './submission-ui.js';
 import {decorExamples} from './decor-examples.js?v=realdecor20261022';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=fixeddecor20261022';
-import {rentalDeliveryExport,rentalDeliveryReceipt} from './customer-info.js?v=security20261022';
+import {rentalDeliveryExport,rentalDeliveryReceipt} from './customer-info.js?v=required-fields-20261022';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=rentalalternatives1';
 import {moduleQuantityLimit} from './sofa-layout.js?v=joinedsofa1';
 import {modulePhotoPreview} from './module-photo-preview.js?v=admincontrol20261022';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=admincontrol20261022';
 import {cartThumbnail} from './cart-thumbnail.js?v=cartimages1';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=security20261022';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=required-fields-20261022';
 import {rentalUsageLabels,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=usagechoice1';
 import {mountDiscount} from './discount-ui.js';
 let discount;
@@ -203,7 +203,7 @@ function renderEstimate(){
  if(!hasQuotedPackage())discount?.refresh();el('discountCode').hidden=empty||hasQuotedPackage();
  const rental=needsRentalDates();if(el('rentalTermsLabel')){el('rentalTermsLabel').hidden=!rental;el('rentalTermsAccepted').disabled=!rental;el('rentalTermsAccepted').required=rental;}const purchases=purchaseBasket(),hasPurchases=Object.keys(purchases).length>0;
  el('rentalDates').hidden=!rental;el('start').disabled=el('end').disabled=!rental;el('start').required=el('end').required=rental;
- el('purchaseDates').hidden=!hasPurchases;el('purchaseDelivery').disabled=!hasPurchases;
+ el('purchaseDates').hidden=!hasPurchases;el('purchaseDelivery').disabled=!hasPurchases;el('purchaseDelivery').required=hasPurchases;
  const quote=rentalEstimate(rentalBasket(),products,el('start').value,el('end').value);
  if(hasQuotedPackage()){quote.hasUnpriced=true;quote.total=null;}if(customRequest.active){quote.hasUnpriced=true;quote.lines.push({quantity:1,name:'Tilpasset forespørsel',plan:null});}
  const purchaseLines=products.filter(p=>purchases[p.id]).map(p=>`<div class="estimate-line"><span>${purchases[p.id]} × ${html(p.name)}<small>Kjøp · pris, tilstand og levering avklares</small></span><strong>${packagePurchasePrice(p,purchases[p.id])===null?'Pris på forespørsel':money(packagePurchasePrice(p,purchases[p.id]))}</strong></div>`).join('');

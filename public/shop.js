@@ -5,7 +5,7 @@ import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=joinedsofa
 import {modulePhotoPreview} from './module-photo-preview.js?v=admincontrol20261022';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=admincontrol20261022';
 import {cartThumbnail} from './cart-thumbnail.js?v=cartimages1';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=security20261022';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=required-fields-20261022';
 import {variantFields} from './product-variants.js?v=admincontrol20261022';
 import {salesEnabled,saleUnitPrice,saleEstimate,cleanSaleBasket,saleModuleError,saleTerms,deliveryText,saleTermsForProduct,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=admincontrol20261022';
 import {mountDiscount} from './discount-ui.js';
