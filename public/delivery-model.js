@@ -27,7 +27,7 @@ export function rentalDeliveryCapacity(basket,products,customRequest=false){
    if(!Array.isArray(p.components)||!p.components.length){unknown=true;return;}
    const next=new Set(path);next.add(id);for(const c of p.components)add(c.id,quantity*c.quantity,next);return;
   }
-  if(p.isService||['dekor','tepper','belysning'].includes(String(p.category||'').trim().toLocaleLowerCase('nb-NO')))return;
+  if(p.isService||['dekor','tepper','belysning','bilder'].includes(String(p.category||'').trim().toLocaleLowerCase('nb-NO')))return;
   if(p.moduleSeries&&['base','left','right','end','middle'].includes(p.moduleRole)){modules+=quantity*(p.moduleRole==='base'?2:1);return;}
   if(p.type==='sofa'||/sofa/i.test(p.category||'')||/\bsofa(?:er|en)?\b|modulsofa|sjeselong/iu.test(p.name||'')){sofas+=quantity;return;}
   other+=quantity;
