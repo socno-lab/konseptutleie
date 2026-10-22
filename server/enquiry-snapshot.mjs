@@ -15,18 +15,23 @@ export function requestDetails(input){
 }
 export function createEnquirySnapshot(value,input,products,{codes=[],verifyDelivery=()=>null}={}){
  const d=requestDetails(input),rental=value.kind==='rental',choices=input.businessChoices||{};
+ if(!d.phone||!/[0-9]/.test(d.phone))fail('Oppgi telefonnummer.');
+ if(!/^.{3,},?\s+[0-9]{4}\b[\s,]+\S.{1,}$/u.test(d.address))fail('Oppgi gateadresse, postnummer og poststed.');
+ if(!rental&&!d.deliveryDate)fail('Velg ønsket leveringsdato.');
+ if(rental&&!d.occasion)fail('Velg anledning.');
  if(!choices||typeof choices!=='object'||Array.isArray(choices)||Object.keys(choices).length>150)fail('Kontroller kjøpsvalg.');
  const rent={},buy={};for(const [id,q] of Object.entries(input.basket)){
   const p=products.find(x=>x.id===id),mode=choices[id];
   if(mode&&!['rent','buy','try'].includes(mode)||mode&&!businessPurchaseEnabled(p))fail('Kontroller kjøpsvalg.');
   (rental&&mode==='buy'?buy:rent)[id]=q;
  }
+ if(Object.keys(buy).length&&!d.purchaseDelivery)fail('Velg ønsket leveringsdato for kjøp.');
  const scope=scopeForOccasion(d.occasion),priced=products.map(p=>({...p,...rentalRateSets(p,products)[scope]}));
  if(rental){
   const normalized=normalizeBasket(rent,priced);
   if(Object.keys(rent).some(id=>rent[id]!==normalized[id]))fail('Beholdningen eller tilvalgene er endret. Kontroller utvalget.');
   const addonError=addonRequirementError(rent,priced);if(addonError)fail(addonError);
-  if(Object.keys(rent).length&&(!d.start||!d.end))fail('Velg ønsket leieperiode.');
+  if((Object.keys(rent).length||value.customRequest)&&(!d.start||!d.end))fail('Velg ønsket leieperiode.');
   if(d.start&&d.end&&(d.end<d.start||Date.parse(d.end)-Date.parse(d.start)>365*86400000))fail('Leieperioden må være mellom ett døgn og ett år.');
  }
  if(input.packageGroups&&(!Array.isArray(input.packageGroups)||input.packageGroups.length>100)||input.cartLinks&&(typeof input.cartLinks!=='object'||Array.isArray(input.cartLinks)||Object.keys(input.cartLinks).length>150))fail('Kontroller pakker og tilvalg.');
