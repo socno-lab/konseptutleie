@@ -53,6 +53,7 @@ export function createDeliveryEstimator(env,fetcher=fetch,options={}){
   if(!key)fail('Frakt beregnes i tilbudet. Du kan sende forespørselen uten fraktestimat.',503);
   const address=input.address.normalize('NFKC').trim().replace(/[\s,]+/g,' '),id=createHmac('sha256',salt).update(address.toLocaleLowerCase('nb-NO')+'|'+JSON.stringify(getSiteSettings().delivery)).digest('hex');
   const offer=await tariff(address,id,client),crew=requiresTwoPeople(basket,products)?2:1,perVisit=offer.manual?undefined:offer.prices[crew===2?'twoPeople':'onePerson'];
-  return {...offer,crew,visits:input.visits,...(offer.manual?{}:{perVisit,total:perVisit*input.visits}),vatIncluded:true,estimated:true,rates:deliveryRates,warehouse};
+  const body=Buffer.from(JSON.stringify({until:clock()+600000,address:addressHash(input.address),settings:JSON.stringify(getSiteSettings().delivery),prices:offer.prices})).toString('base64url');
+  return {...offer,crew,visits:input.visits,...(offer.manual?{}:{perVisit,total:perVisit*input.visits,receipt:body+'.'+sign(body)}),vatIncluded:true,estimated:true,rates:deliveryRates,warehouse};
  }};
 }
