@@ -12,7 +12,7 @@ export function modulePhotoParts(modules,selection){
  const universal=[];for(const p of ends)for(let n=0;n<amount(selection,p.id);n++)universal.push(p);
  const leftOccupied=parts.some(p=>p.role==='left'),universalLeft=!leftOccupied?universal.shift():null;
  if(universalLeft)add(universalLeft,'left');
- push('middle');push('right');
+ push('middle');push('chaise');push('right');
  for(const p of universal)add(p,'right');
  for(const p of bases)for(let n=0;n<amount(selection,p.id);n++)add(p,'right','right');
  return parts;

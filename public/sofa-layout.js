@@ -23,3 +23,14 @@ export function fitSofaEnds(modules,selection){
  for(const id of Object.keys(result))if(!result[id])delete result[id];
  return result;
 }
+
+// Rental minimum applies to modules together, never to textile/decor add-ons.
+export function moduleRentalMinimum(modules){return Math.max(1,...modules.filter(p=>p.active&&!p.deletedAt&&p.rentalEnabled!==false).map(p=>Number.isInteger(p.rentalModuleMinimum)?p.rentalModuleMinimum:1));}
+export function rentalModuleRequirementError(basket,products){
+ const totals=new Map(),series=new Map();
+ for(const p of products)if(p.active&&!p.deletedAt&&p.moduleSeries){const list=series.get(p.moduleSeries)||[];list.push(p);series.set(p.moduleSeries,list);}
+ const add=(p,q)=>{if(p?.moduleSeries&&p.rentalEnabled!==false)totals.set(p.moduleSeries,(totals.get(p.moduleSeries)||0)+q*(p.moduleRole==='base'?2:1));};
+ for(const [id,q] of Object.entries(basket)){const p=products.find(p=>p.id===id);if(!p||!Number.isInteger(q)||q<1)continue;if(p.isPackage)for(const c of p.components||[])add(products.find(p=>p.id===c.id),q*c.quantity);else add(p,q);}
+ for(const [name,count] of totals){const min=moduleRentalMinimum(series.get(name)||[]);if(count<min)return `${name}: Velg minst ${min} moduler totalt fra samme serie.`;}
+ return '';
+}
