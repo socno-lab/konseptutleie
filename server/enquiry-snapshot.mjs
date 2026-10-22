@@ -60,5 +60,6 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  if(self)facts.push(['Henting',rental?'Segelckes vei 15, 2010 Strømmen. Tidspunkt avtales.':'Hentested og tidspunkt avtales.']);
  const hasUnpriced=lines.some(l=>l.total===null),subtotal=Math.round(lines.reduce((sum,l)=>sum+(l.total||0),0)*100)/100;
  const total=hasUnpriced||delivery.total===null?null:Math.round((subtotal-(discount?.discount||0)+delivery.total)*100)/100;
+ for(const line of lines){const image=products.find(p=>p.id===line.id)?.image;if(typeof image==='string'&&/^\/(?:assets\/|media\/)/.test(image)&&!image.includes('..'))line.image=image;}
  return {id:value.id,kind:value.kind,name:value.name,email:value.email,terms:value.terms,receivedAt:new Date().toISOString(),phone:d.phone,company:d.company,address:d.address,comment:d.comment,facts,lines,delivery,discount,total,vatIncluded:true};
 }

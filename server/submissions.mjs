@@ -3,6 +3,10 @@ import {salesEnabled} from '../public/sales-model.js';
 import {createEnquirySnapshot,requestDetails} from './enquiry-snapshot.mjs';
 import {enquiryEmail} from './enquiry-email.mjs';
 import {readFile} from 'node:fs/promises';
+import path from 'node:path';
+import sharp from 'sharp';
+import {fileURLToPath} from 'node:url';
+import {imageMime} from './images.mjs';
 import nodemailer from 'nodemailer';
 import {createHash} from 'node:crypto';
 const fail=(message,status=400)=>Object.assign(Error(message),{status});
@@ -29,6 +33,22 @@ export function createSubmissionSender(env,store,sendOverride){
  const enabled=Boolean(store.enabled&&env.SMTP_PASS&&user===mailbox&&[465,587].includes(port));
  const transport=enabled&&!sendOverride?nodemailer.createTransport({host,port,secure:port===465,requireTLS:true,auth:{user,pass:env.SMTP_PASS},tls:{minVersion:'TLSv1.2',rejectUnauthorized:true},connectionTimeout:8000,greetingTimeout:8000,socketTimeout:15000,disableFileAccess:true,disableUrlAccess:true}):null;
  const send=sendOverride||((message)=>transport.sendMail(message));let active=0,draining=false,lastPruned=0;
+ const assetsRoot=fileURLToPath(new URL('../public/assets/',import.meta.url));
+ async function illustrated(snapshot){
+  const attachments=[],lines=[];let budget=4*1024*1024;
+  for(const [i,line] of snapshot.lines.entries()){
+   const copy={...line};
+   try{
+    if(line.image&&attachments.length<20){let image;
+     if(/^\/media\/[a-f0-9]{32}$/.test(line.image))image=await store.media(line.image.slice(7));
+     else if(line.image.startsWith('/assets/')){const filename=path.resolve(assetsRoot,line.image.slice(8));if(filename.startsWith(assetsRoot)){const body=await readFile(filename);image={body,mime:imageMime(body)};}}
+     if(image?.body?.length<=8*1024*1024&&['image/png','image/jpeg','image/webp','image/avif'].includes(image.mime)){const thumbnail=await sharp(image.body,{limitInputPixels:40000000}).resize({width:112,height:112,fit:'contain',background:'#ffffff'}).flatten({background:'#ffffff'}).jpeg({quality:82}).timeout({seconds:3}).toBuffer();if(thumbnail.length<=budget){const cid='product-'+i+'@konseptuell.no';attachments.push({filename:'produkt-'+(i+1)+'.jpg',content:thumbnail,contentType:'image/jpeg',cid,contentDisposition:'inline'});copy.imageSrc='cid:'+cid;budget-=thumbnail.length;}}
+    }
+   }catch{/* A missing optional picture must not prevent the receipt. Use its public URL. */}
+   lines.push(copy);
+  }
+  return {snapshot:{...snapshot,lines},attachments};
+ }
  let logo;const logoBytes=()=>logo??=readFile(new URL('../public/assets/konseptuell-leie-og-kjop-logo.png',import.meta.url));
  async function flush(){
   if(!enabled||draining)return;draining=true;
@@ -39,7 +59,7 @@ export function createSubmissionSender(env,store,sendOverride){
     const internal=job.channel==='internal',to=internal?mailbox:job.snapshot.email;
     let status='uncertain';
     try{
-     const message=enquiryEmail(job.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'}],disableFileAccess:true,disableUrlAccess:true});
+     const pictures=await illustrated(job.snapshot),message=enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments],disableFileAccess:true,disableUrlAccess:true});
      status=result.accepted?.some(address=>String(address).toLowerCase()===to.toLowerCase())?'sent':'pending';
     }catch(error){status=retryableMailError(error)?'pending':'uncertain';console.error('E-post '+job.channel+' '+job.id+': '+String(error.code||'SMTP').replace(/[^A-Z0-9_]/gi,''));}
     await store.finishEnquiryMail(job.id,job.channel,status,Date.now());
