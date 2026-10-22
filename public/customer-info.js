@@ -1,4 +1,4 @@
-import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=transportlock20261022';
+import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=pickupdefault20261022';
 // Shared customer information for purchase, rental and information pages.
 export const rentalTermsVersion='2026-10-22-leie-5';
 export const termsVersion='2026-10-21-1';
@@ -85,7 +85,7 @@ export function rentalDeliveryExport(){
 }
 function mountRentalDelivery(form){
  const select=form.querySelector('[name="delivery"]'),address=form.querySelector('[name="address"]');
- const choices=[['Ønsker levering og henting','Levering og henting etter leieperioden',2],['Kun levering – jeg returnerer selv','Kun levering – jeg returnerer selv',1],['Kun henting – jeg henter selv','Jeg henter selv – dere henter ved leieslutt',1],['Henter og returnerer selv','Jeg henter og returnerer selv',0],['Avklares senere','Transport avklares i tilbudet',null]];
+ const choices=[['Henter og returnerer selv','Jeg henter og returnerer selv',0],['Ønsker levering og henting','Levering og henting etter leieperioden',2],['Kun levering – jeg returnerer selv','Kun levering – jeg returnerer selv',1],['Kun henting – jeg henter selv','Jeg henter selv – dere henter ved leieslutt',1],['Avklares senere','Transport avklares i tilbudet',null]];
  select.innerHTML=choices.map(([value,label])=>'<option>'+value+'</option>').join('');mountAddressFields(form);
  const group=document.createElement('fieldset');group.className='rental-options';group.innerHTML='<legend>Levering eller henting</legend><div class="addon-choices">'+choices.map(([value,label,visits],i)=>'<label class="addon-choice"><input type="radio" name="delivery" value="'+value+'" '+(i===0?'checked':'')+'><span style="flex:1">'+label+'</span><strong data-delivery-price="'+i+'" style="white-space:nowrap;font-size:12px">'+(visits===0?'0 kr':visits===null?'Avklares':'Adresse kreves')+'</strong></label>').join('')+'</div><p class="hint">Prisene inkluderer mva.</p><div role="status" aria-live="polite"></div>';
  select.closest('label').replaceWith(group);
