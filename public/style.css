@@ -634,3 +634,7 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .quantity>input[type=number]{margin:0;align-self:center}
 .product-quantity .quantity{align-items:center}
 .product-quantity .quantity>button,.product-quantity .quantity>input{box-sizing:border-box;align-self:center;height:48px;min-height:48px;margin:0}
+
+/* Business customers start with ready packages, with individual products alongside. */
+.business-package-first>a:nth-child(2){background:#fff}
+.business-package-first>a:nth-child(2):hover{background:#f4f6f0}
