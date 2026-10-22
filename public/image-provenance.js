@@ -64,3 +64,6 @@ illustratedImages.add("/media/a0ee7f0d2f05794b55c50480840bc882");
 
 // White-background packshot edited from the owner's H&M floor-shelf photo.
 illustratedImages.add("/media/d2e7e7d209051412a226404a9dd9add8");
+
+// Beige colour edit of the owner's H&M asymmetric desk packshot.
+illustratedImages.add("/media/1b1e57d6f002d2f5dadcf3333350c7b7");
