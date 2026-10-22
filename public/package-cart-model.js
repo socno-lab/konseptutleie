@@ -44,5 +44,5 @@ export function packageGroupRates(group,products){
 }
 export function packageGroupPeriodTotal(group,products,days){
  const lines=group.custom?Object.entries(group.selection):[[group.packageId,group.quantity]];
- if(!Number.isInteger(days)||days<1)return null;let sum=0;for(const [id,q] of lines){const p=products.find(p=>p.id===id);if(!p||p.priceOnRequest)return null;const plan=ratePlan(p,days);if(!plan)return null;sum+=plan.total*q;}return Math.round(sum*100)/100;
+ if(!Number.isInteger(days)||days<1)return null;let sum=0;for(const [id,q] of lines){const p=products.find(p=>p.id===id);if(!p||p.priceOnRequest)return null;const plan=ratePlan(p,days,products);if(!plan)return null;sum+=plan.total*q;}return Math.round(sum*100)/100;
 }
