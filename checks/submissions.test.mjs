@@ -31,3 +31,8 @@ test('Public email endpoint enforces origin and JSON, and fails closed without S
  assert.equal((await fetch(base+'/api/submissions',{method:'POST',headers:{origin:'https://konseptuell.no','content-type':'application/json'},body:JSON.stringify(sample())})).status,503);
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
+test('the server rejects a rental below the combined module minimum',()=>{
+ const lagoon=[{id:'chair',name:'Lagoon',moduleSeries:'Lagoon',rentalModuleMinimum:2,active:true,moduleRole:'left'},{id:'right',name:'Lagoon right',moduleSeries:'Lagoon',rentalModuleMinimum:2,active:true,moduleRole:'right'}];
+ assert.throws(()=>validateSubmission(sample(),lagoon),/minst 2/);
+ assert.doesNotThrow(()=>validateSubmission({...sample(),basket:{chair:1,right:1}},lagoon));
+});
