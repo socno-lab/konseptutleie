@@ -1,7 +1,7 @@
 import {createHmac,randomBytes} from 'node:crypto';
-import {deliveryRates,deliveryPrice,requiresTwoPeople} from '../public/delivery-model.js';
+import {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity} from '../public/delivery-model.js';
 export const warehouse='Segelckes vei 15, 2010 Strømmen, Norge';
-export {deliveryRates,deliveryPrice,requiresTwoPeople};
+export {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity};
 export const deliveryCallLimits=Object.freeze([{name:'minute',ms:60000,max:10},{name:'hour',ms:3600000,max:100},{name:'day',ms:86400000,max:500}]);
 const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
 const limited=()=>fail('Fraktberegning er midlertidig begrenset. Frakten avklares i tilbudet.',429);
@@ -38,9 +38,11 @@ export function createDeliveryEstimator(env,fetcher=fetch,options={}){
   });pending.set(id,work);return work;
  }
  return {enabled:!!key,async estimate(input,client='shared',products=[]){
-  if(!key)fail('Frakt beregnes i tilbudet. Du kan sende forespørselen uten fraktestimat.',503);
   if(!input||typeof input.address!=='string'||input.address.length<8||input.address.length>300||!/[0-9]{4}/.test(input.address)||/[\r\n\x00-\x1f]/.test(input.address)||![1,2].includes(input.visits))fail('Oppgi gateadresse, postnummer og sted.');
   const basket=input.basket||{};if(!basket||typeof basket!=='object'||Array.isArray(basket)||Object.keys(basket).length>500||Object.entries(basket).some(([id,q])=>!Number.isInteger(q)||q<1||q>99||!products.some(p=>p.id===id&&p.active&&!p.deletedAt&&p.rentalEnabled!==false)))fail('Produktutvalget er endret. Oppdater siden før du beregner frakt.');
+  const capacity=rentalDeliveryCapacity(basket,products);
+  if(capacity.manual)return {manual:true,reason:capacity.reason,capacity,prices:null,crew:requiresTwoPeople(basket,products)?2:1,visits:input.visits,estimated:true,vatIncluded:true};
+  if(!key)fail('Frakt beregnes i tilbudet. Du kan sende forespørselen uten fraktestimat.',503);
   const address=input.address.normalize('NFKC').trim().replace(/[\s,]+/g,' '),id=createHmac('sha256',salt).update(address.toLocaleLowerCase('nb-NO')).digest('hex');
   const offer=await tariff(address,id,client),crew=requiresTwoPeople(basket,products)?2:1,perVisit=offer.manual?undefined:offer.prices[crew===2?'twoPeople':'onePerson'];
   return {...offer,crew,visits:input.visits,...(offer.manual?{}:{perVisit,total:perVisit*input.visits}),vatIncluded:true,estimated:true,rates:deliveryRates,warehouse};
