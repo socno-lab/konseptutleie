@@ -47,3 +47,10 @@ test('origin, unavailable SMTP, spam limits and module minimum remain enforced',
  const server=createServer({env:{},origin:'https://konseptuell.no'});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
  try{assert.deepEqual(await(await fetch(base+'/api/submissions')).json(),{enabled:false});assert.equal((await fetch(base+'/api/submissions',{method:'POST',headers:{origin:'https://evil.invalid','content-type':'application/json'},body:JSON.stringify(sample())})).status,403);}finally{await new Promise(resolve=>server.close(resolve));}
 });
+
+test('product images come from the saved catalog snapshot, are CID attachments when small, and are escaped in both variants',async()=>{
+ const store=memory(),messages=[],sender=createSubmissionSender(env,store,async m=>{messages.push(m);return {accepted:[m.to]};});
+ const pictured=products.map(p=>({...p,image:'/assets/konseptuell-leie-og-kjop-logo.png'}));await sender.submit(sample(),pictured,'client');await settle(store);
+ assert.equal(messages.length,2);for(const message of messages){assert.match(message.html,/cid:product-0@konseptuell.no/);assert.equal(message.attachments.length,2);assert.equal(message.attachments[1].contentType,'image/jpeg');assert.ok(message.attachments[1].content.length<20000);assert.match(message.html,/&lt;uønsket&gt;/);}
+ const request=store.rows.get(sample().id).snapshot;assert.equal(request.lines[0].image,pictured[0].image);
+});
