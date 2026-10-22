@@ -61,7 +61,7 @@ export function createServer(options={}){
     if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
     if(req.headers.origin!==origin)return out(403,{error:'Last inn siden på nytt før du sender.'});
     const input=await json(req,90000),catalog=store.enabled?await readCatalog():seed;
-    return out(200,await submissions.submit(input,catalog.products,digest(String(req.socket.remoteAddress||'shared'))));
+    return out(200,await submissions.submit(input,catalog.products,digest(String(req.socket.remoteAddress||'shared')),{verifyDelivery:(...args)=>delivery.verifyQuote(...args,catalog.products)}));
    }
    if(pathname==='/api/delivery-estimate'){
     if(req.method==='GET'){if(store.enabled)await readCatalog();return out(200,{enabled:delivery.enabled,rates:deliveryRates,warehouse});}
@@ -101,6 +101,11 @@ export function createServer(options={}){
     if(['/admin/login.js','/admin/admin.css'].includes(pathname)&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,pathname)),types[path.extname(pathname)]);
     if(!await authenticated())return pathname.startsWith('/api/')?out(401,{error:'Logg inn for å fortsette.'}):redirect('/admin/login');
     if(['/admin','/admin/','/admin/index.html'].includes(pathname)&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'admin/index.html')),'text/html; charset=utf-8');
+    if(pathname==='/api/admin/enquiry-mail'&&req.method==='GET')return out(200,{messages:await store.enquiryMailStatus()});
+    if(pathname==='/api/admin/enquiry-mail/retry'&&req.method==='POST'){
+     const data=await json(req,1000);if(!/^[a-f0-9-]{36}$/.test(data.reference||'')||!['internal','customer'].includes(data.channel))throw error('Ugyldig sendereferanse.');
+     const queued=await store.retryEnquiryMail(data.reference,data.channel,data.acknowledgeUncertain===true);if(!queued)return out(409,{error:'E-posten er allerede sendt, venter i kø eller behandles. Last inn status på nytt.'});void submissions.flush();return out(200,{ok:true});
+    }
     if(pathname==='/api/admin/account'&&req.method==='GET'){const user=await store.admin();return out(200,{email:user.email});}
     if(pathname==='/api/admin/password'&&req.method==='PUT'){
      const data=await json(req,5000);if(typeof data.password!=='string'||data.password.length<12||data.password.length>128||data.password!==data.confirmation)return out(400,{error:'Passordene må være like og ha 12–128 tegn.'});
@@ -161,6 +166,8 @@ export function createServer(options={}){
    console.error('Admin/katalog: '+(e.code||e.name||'serverfeil'));return out(503,{error:'Kunne ikke kontakte lagringen. Kontroller databaseinnstillinger eller prøv igjen.'});
   }
  });
+ const emailTimer=setInterval(()=>void submissions.flush(),60000);emailTimer.unref();
+ server.once('listening',()=>void submissions.flush());server.once('close',()=>{clearInterval(emailTimer);submissions.close();});
  server.requestTimeout=30000;server.headersTimeout=15000;server.maxHeadersCount=64;server.maxRequestsPerSocket=200;
  return server;
 }
