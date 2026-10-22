@@ -48,3 +48,8 @@ test('rental module minimum combines the series, counts base as two and excludes
  const base=[{...make('base','base'),rentalModuleMinimum:2}];assert.equal(moduleConfiguration('Test',{base:1},{},base).valid,true);
  const saved=saveSofa([],{},lagoon,{id:'a',series:'Test',selection:{l:1},textileId:''});assert.equal(saved,null);
 });
+test('an armless chaise counts as a module within the three-module delivery limit',async()=>{
+ const {rentalDeliveryCapacity}=await import('../public/delivery-model.js');
+ const group=[make('l','left'),make('r','right'),make('c','chaise')];
+ const result=rentalDeliveryCapacity({l:1,r:1,c:1},group);assert.equal(result.manual,false);assert.equal(result.modules,3);assert.equal(result.sofas,0);
+});
