@@ -665,3 +665,25 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  .sofa-cart-config-thumb .module-photo>img,.sofa-cart-config-thumb .module-photo>svg{display:block;width:100%;height:100%;max-height:none;object-fit:contain;}
  .sofa-cart-config-thumb figcaption,.sofa-cart-config-thumb .module-photo-zoom>span,.sofa-cart-sketch{display:none;}
 }
+
+/* A single cart image field and text origin for ordinary products and sofa setups. */
+#cart,#saleCart{--cart-image-size:72px;--cart-image-gap:12px;}
+#cart .cart-thumbnail,#saleCart .cart-thumbnail{width:var(--cart-image-size);height:var(--cart-image-size);min-width:var(--cart-image-size);max-width:none;flex:0 0 var(--cart-image-size);padding:4px;box-sizing:border-box;background:white;border:1px solid var(--line);overflow:hidden;}
+#cart .cart-thumbnail>img,#saleCart .cart-thumbnail>img{width:100%;height:100%;object-fit:contain;}
+.cart-thumbnail>.module-photo{display:flex;align-items:center;justify-content:center;width:100%;height:100%;margin:0;padding:0;background:white;}
+.cart-thumbnail>.module-photo>img,.cart-thumbnail>.module-photo>svg{display:block;width:100%;height:100%;max-height:none;object-fit:contain;}
+#cart .cart-item .thumb,#saleCart .cart-item .thumb{width:var(--cart-image-size);min-width:var(--cart-image-size);flex:0 0 var(--cart-image-size);background:transparent;}
+#cart .cart-item,#saleCart .cart-item,#saleCart .cart-product-summary{gap:var(--cart-image-gap);}
+#cart .cart-product-group.has-addons{border:0;padding:0;margin:0;background:transparent;}
+#cart .cart-product-group.has-addons>.cart-item{grid-template-columns:var(--cart-image-size) minmax(0,1fr) auto;}
+#cart .item-copy>h3,#saleCart .sale-row-copy>strong,#saleCart .item-copy>h3{font-size:14px;font-weight:600;line-height:1.45;margin:0;overflow-wrap:anywhere;}
+#cart .item-copy>p,#saleCart .sale-row-copy>small,#saleCart .item-copy>p{font-size:12px;font-weight:400;line-height:1.6;}
+#cart .cart-sofa-row,#saleCart .cart-sofa-row{display:flex;align-items:center;min-width:0;margin:0;padding:16px 0;border:0;border-bottom:1px solid var(--line);background:transparent;}
+.cart-sofa-row .item-copy{flex:1;min-width:0;overflow-wrap:anywhere;}
+#cart .cart-sofa-row p,#saleCart .cart-sofa-row p{margin:2px 0;}
+.cart-sofa-dimensions,.cart-sofa-extra{color:var(--muted);}
+.cart-line-actions{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:5px;}
+#cart .cart-line-action,#saleCart .cart-line-action{display:inline-block;width:auto;padding:0;border:0;background:transparent;font:inherit;font-size:11px;font-weight:400;color:var(--ink);line-height:1.6;text-align:left;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+#cart .sofa-add-another,#saleCart .sofa-add-another{margin:12px 0;font-size:12px;}
+.cart-common-info{margin:4px 0 16px;}
+@media(max-width:640px){#cart,#saleCart{--cart-image-size:64px;--cart-image-gap:10px;}#cart .cart-sofa-row,#saleCart .cart-sofa-row{align-items:flex-start;}#cart .cart-thumbnail,#saleCart .cart-thumbnail{flex-shrink:0;} }
