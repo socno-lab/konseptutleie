@@ -16,7 +16,7 @@ export function deliveryPrice(oneWaySeconds,visits,twoPeople=false){
 }
 
 export const rentalDeliveryLimits=Object.freeze({sofas:1,modules:3,otherWithSofa:6,withoutSofa:10});
-export function rentalDeliveryCapacity(basket,products){
+export function rentalDeliveryCapacity(basket,products,customRequest=false){
  const byId=new Map(products.map(p=>[p.id,p]));let sofas=0,modules=0,other=0,unknown=false,steps=0;
  const add=(id,quantity,path=new Set())=>{
   if(!quantity)return;
@@ -32,6 +32,6 @@ export function rentalDeliveryCapacity(basket,products){
   other+=quantity;
  };
  for(const [id,quantity] of Object.entries(basket||{}))add(id,quantity);
- const hasSofa=sofas>0||modules>0,manual=unknown||sofas>rentalDeliveryLimits.sofas||modules>rentalDeliveryLimits.modules||(sofas>0&&modules>0)||other>(hasSofa?rentalDeliveryLimits.otherWithSofa:rentalDeliveryLimits.withoutSofa);
- return {manual,sofas,modules,other,reason:unknown?'unknown':manual?'capacity':null};
+ const hasSofa=sofas>0||modules>0,manual=customRequest||unknown||sofas>rentalDeliveryLimits.sofas||modules>rentalDeliveryLimits.modules||(sofas>0&&modules>0)||other>(hasSofa?rentalDeliveryLimits.otherWithSofa:rentalDeliveryLimits.withoutSofa);
+ return {manual,sofas,modules,other,reason:customRequest?'custom':unknown?'unknown':manual?'capacity':null};
 }
