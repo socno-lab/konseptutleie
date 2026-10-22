@@ -20,6 +20,8 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_sessions (token_hash CHAR(64) PRIMARY KEY, expires_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_login_limits (bucket CHAR(64) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_delivery_limits (bucket VARCHAR(16) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_enquiries (id CHAR(36) PRIMARY KEY, fingerprint CHAR(64) NOT NULL, body LONGTEXT NOT NULL, created_at BIGINT NOT NULL, INDEX(created_at))',
+    "CREATE TABLE IF NOT EXISTS ku_enquiry_mail (submission_id CHAR(36) NOT NULL, channel VARCHAR(12) NOT NULL, status VARCHAR(16) NOT NULL DEFAULT 'pending', attempts INT NOT NULL DEFAULT 0, next_at BIGINT NOT NULL, lease_until BIGINT NOT NULL DEFAULT 0, PRIMARY KEY(submission_id,channel), INDEX(status,next_at))",
     'CREATE TABLE IF NOT EXISTS ku_submissions (id CHAR(36) PRIMARY KEY, fingerprint CHAR(64) NOT NULL, status VARCHAR(16) NOT NULL, created_at BIGINT NOT NULL, INDEX(created_at))',
     'CREATE TABLE IF NOT EXISTS ku_submission_limits (bucket VARCHAR(90) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media_purged (url VARCHAR(500) PRIMARY KEY)',
@@ -54,6 +56,48 @@ export function createMysqlStore(env,seed){
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
  return {enabled,init,async close(){if(pool)await pool.end();},
+  async readEnquiry(id){
+   const [[row]]=await query('SELECT fingerprint,body FROM ku_enquiries WHERE id=?',[id]);
+   if(row)return {fingerprint:row.fingerprint,snapshot:JSON.parse(row.body)};
+   const [[legacy]]=await query('SELECT fingerprint,status FROM ku_submissions WHERE id=?',[id]);
+   return legacy?{legacy:true,status:legacy.status}:null;
+  },
+  async reserveEnquiry(id,fingerprint,snapshot,client,now){
+   await init();const connection=await pool.getConnection();
+   try{await connection.beginTransaction();
+    for(const [bucket,ms,max] of [['global-hour',3600000,30],['global-day',86400000,100],['client-'+client,900000,3]]){
+     const until=(Math.floor(now/ms)+1)*ms;
+     await connection.execute('INSERT IGNORE INTO ku_submission_limits(bucket,attempts,reset_at) VALUES (?,0,?)',[bucket,until]);
+     const [[row]]=await connection.execute('SELECT attempts,reset_at FROM ku_submission_limits WHERE bucket=? FOR UPDATE',[bucket]);
+     const [[existing]]=await connection.execute('SELECT fingerprint,body FROM ku_enquiries WHERE id=?',[id]);
+     if(existing){await connection.rollback();return existing.fingerprint===fingerprint?{snapshot:JSON.parse(existing.body)}:{conflict:true};}
+     const [[legacy]]=await connection.execute('SELECT id FROM ku_submissions WHERE id=?',[id]);
+     if(legacy){await connection.rollback();return {conflict:true};}
+     const count=Number(row.reset_at)>now?row.attempts:0;
+     if(count>=max){await connection.rollback();return {limited:true};}
+     await connection.execute('UPDATE ku_submission_limits SET attempts=?,reset_at=? WHERE bucket=?',[count+1,until,bucket]);
+    }
+    await connection.execute('INSERT INTO ku_enquiries(id,fingerprint,body,created_at) VALUES (?,?,?,?)',[id,fingerprint,JSON.stringify(snapshot),now]);
+    for(const channel of ['internal','customer'])await connection.execute("INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,?,?)",[id,channel,now]);
+    await connection.commit();return {snapshot};
+   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
+  },
+  async pendingEnquiryMail(now){
+   // A process may have stopped after SMTP accepted DATA. Never blindly resend an expired lease.
+   await query("UPDATE ku_enquiry_mail SET status='uncertain' WHERE status='sending' AND lease_until<?",[now]);
+   const [rows]=await query("SELECT m.submission_id AS id,m.channel,e.body FROM ku_enquiry_mail m JOIN ku_enquiries e ON e.id=m.submission_id WHERE m.status='pending' AND m.attempts<5 AND m.next_at<=? ORDER BY m.next_at LIMIT 10",[now]);
+   return rows.map(row=>({id:row.id,channel:row.channel,snapshot:JSON.parse(row.body)}));
+  },
+  async claimEnquiryMail(id,channel,now){const [result]=await query("UPDATE ku_enquiry_mail SET status='sending',attempts=attempts+1,lease_until=? WHERE submission_id=? AND channel=? AND status='pending' AND attempts<5 AND next_at<=?",[now+120000,id,channel,now]);return result.affectedRows===1;},
+  async finishEnquiryMail(id,channel,status,now){await query("UPDATE ku_enquiry_mail SET status=IF(?='pending' AND attempts>=5,'failed',?),next_at=?,lease_until=0 WHERE submission_id=? AND channel=? AND status='sending'",[status,status,now+300000,id,channel]);},
+  async enquiryMailStatus(){const [rows]=await query('SELECT m.submission_id AS reference,m.channel,m.status,m.attempts,e.created_at AS receivedAt FROM ku_enquiry_mail m JOIN ku_enquiries e ON e.id=m.submission_id ORDER BY e.created_at DESC LIMIT 200');return rows;},
+  async retryEnquiryMail(id,channel,acknowledgeUncertain){const [result]=await query("UPDATE ku_enquiry_mail SET status='pending',attempts=0,next_at=0 WHERE submission_id=? AND channel=? AND (status='failed' OR (status='uncertain' AND ?=1))",[id,channel,acknowledgeUncertain?1:0]);return result.affectedRows===1;},
+  async pruneEnquiries(now){
+   await query('DELETE m FROM ku_enquiry_mail m JOIN ku_enquiries e ON e.id=m.submission_id WHERE e.created_at<?',[now-30*86400000]);
+   await query('DELETE FROM ku_enquiries WHERE created_at<?',[now-30*86400000]);
+   await query('DELETE FROM ku_submissions WHERE created_at<? LIMIT 100',[now-30*86400000]);
+   await query('DELETE FROM ku_submission_limits WHERE reset_at<? LIMIT 100',[now-86400000]);
+  },
   async reserveSubmission(id,fingerprint,client,now){
    await init();const connection=await pool.getConnection();
    try{await connection.beginTransaction();

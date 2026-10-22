@@ -1,5 +1,5 @@
 import {getSiteSettings} from '../public/site-settings.js';
-import {createHmac,randomBytes} from 'node:crypto';
+import {createHmac,randomBytes,timingSafeEqual} from 'node:crypto';
 import {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity} from '../public/delivery-model.js';
 export const warehouse='Segelckes vei 15, 2010 Strømmen, Norge';
 export {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity};
@@ -38,7 +38,14 @@ export function createDeliveryEstimator(env,fetcher=fetch,options={}){
    }finally{active--;pending.delete(id);}
   });pending.set(id,work);return work;
  }
- return {enabled:!!key,async estimate(input,client='shared',products=[]){
+ const addressHash=address=>createHmac('sha256',key||salt).update(address.normalize('NFKC').trim().toLocaleLowerCase('nb-NO').replace(/[\s,]+/g,' ')).digest('hex');
+ const sign=body=>createHmac('sha256',key||salt).update(body).digest('base64url');
+ return {enabled:!!key,verifyQuote(token,address,basket,customRequest,visits,productsForQuote=[]){
+  try{if(typeof token!=='string'||token.length>6000)return null;const [body,signature]=token.split('.');const expected=sign(body);if(!signature||signature.length!==expected.length||!timingSafeEqual(Buffer.from(signature),Buffer.from(expected)))return null;
+   const receipt=JSON.parse(Buffer.from(body,'base64url').toString());if(receipt.until<clock()||receipt.address!==addressHash(address)||receipt.settings!==JSON.stringify(getSiteSettings().delivery)||rentalDeliveryCapacity(basket,productsForQuote,customRequest).manual)return null;
+   const total=receipt.prices[requiresTwoPeople(basket,productsForQuote)?'twoPeople':'onePerson']*visits;return Number.isFinite(total)?{total}:null;
+  }catch{return null;}
+ },async estimate(input,client='shared',products=[]){
   if(!input||typeof input.address!=='string'||input.address.length<8||input.address.length>300||!/[0-9]{4}/.test(input.address)||/[\r\n\x00-\x1f]/.test(input.address)||![1,2].includes(input.visits))fail('Oppgi gateadresse, postnummer og sted.');
   const basket=input.basket||{};if(!basket||typeof basket!=='object'||Array.isArray(basket)||Object.keys(basket).length===0||Object.keys(basket).length>500||Object.entries(basket).some(([id,q])=>!Number.isInteger(q)||q<1||q>99||!products.some(p=>p.id===id&&p.active&&!p.deletedAt&&p.rentalEnabled!==false)))fail('Produktutvalget er endret. Oppdater siden før du beregner frakt.');
   const capacity=rentalDeliveryCapacity(basket,products,input.customRequest===true);
