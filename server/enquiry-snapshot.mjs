@@ -6,6 +6,7 @@ import {packageCartView} from '../public/package-cart-model.js';
 import {rentalDeliveryCapacity} from '../public/delivery-model.js';
 import {addonRequirementError} from '../public/addon-model.js';
 import {discountQuote} from './discounts.mjs';
+import {validSaleSetup,saleSetupBasket} from '../public/sale-sofa-model.js';
 const fail=message=>{throw Object.assign(Error(message),{status:400});};
 const date=(value,label)=>{if(!value)return '';if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value)||!Number.isFinite(Date.parse(value+'T00:00:00Z'))||new Date(value+'T00:00:00Z').toISOString().slice(0,10)!==value)fail('Kontroller '+label+'.');return value;};
 export function requestDetails(input){
@@ -40,7 +41,9 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const lines=(rental?quote.lines.map(l=>{const p=priced.find(x=>x.id===l.id);return {id:l.id,name:l.name,quantity:l.quantity,basis:l.plan?new Intl.NumberFormat('nb-NO').format(l.plan.total)+' kr per stk. · '+planText(l.plan):'Leie · pris avklares',total:l.plan?Math.round(l.plan.total*l.quantity*100)/100:null,contents:p.isPackage?(p.components||[]).map(c=>c.quantity+' × '+(products.find(x=>x.id===c.id)?.name||'Produkt')):[]};}):quote.lines.map(l=>({...l,basis:l.unitPrice===null?'Kjøp · pris avklares':new Intl.NumberFormat('nb-NO').format(l.unitPrice)+' kr per stk.'}))).map(l=>({...l,...(rental&&quoteOnly?{total:null,basis:'Tilpasset innhold · pris avklares'}:{})}));
  for(const [id,q] of Object.entries(buy)){const p=products.find(x=>x.id===id),unit=resolvedPackagePurchasePrice(p,products);lines.push({id,name:p.name,quantity:q,basis:'Kjøpsønske · fast pakkeinnhold',total:unit===null?null:Math.round(unit*q*100)/100,contents:(p.components||[]).map(c=>c.quantity+' × '+products.find(x=>x.id===c.id)?.name)});}
  if(value.customRequest){if(!d.customText)fail('Beskriv den tilpassede forespørselen.');lines.push({id:'custom',name:'Tilpasset forespørsel',quantity:1,basis:d.customText,total:null});}
- const facts=[];if(rental&&d.start&&d.end)facts.push(['Ønsket leieperiode',d.start+' til '+d.end]);
+ const facts=[];
+ if(!rental&&input.purchaseSofas!==undefined){const setups=input.purchaseSofas;if(!Array.isArray(setups)||setups.length>50||setups.some(s=>!validSaleSetup(s,products))||new Set(setups.map(s=>s.id)).size!==setups.length)fail('Kontroller sofaoppsettene.');if(Object.entries(saleSetupBasket(setups)).some(([id,q])=>q>(input.basket[id]||0)))fail('Kontroller modulene i handlekurven.');for(const [i,s] of setups.entries())facts.push(['Sofa '+(i+1)+' · '+s.series,Object.entries(s.selection).map(([id,q])=>q+' × '+products.find(p=>p.id===id).name).join(' · ')]);}
+ if(rental&&d.start&&d.end)facts.push(['Ønsket leieperiode',d.start+' til '+d.end]);
  if(d.occasion)facts.push(['Bruksområde',d.occasion]);if(!rental||Object.keys(buy).length)facts.push(['Leveringstid','2–3 uker. Levering kan skje tidligere. Vi bekrefter leveringsdatoen i ordrebekreftelsen.']);
  if(d.stylist)facts.push(['Styling ønskes',d.stylingNotes||'Stylist – pris avklares i tilbudet']);
  for(const g of groups.filter(g=>g.custom))facts.push(['Tilpasset fra '+g.name,Object.entries(g.selection).map(([id,q])=>q+' × '+products.find(x=>x.id===id)?.name).join('; ')]);
