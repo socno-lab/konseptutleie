@@ -1,3 +1,4 @@
+import {getSiteSettings} from './site-settings.js';
 // Known generated illustrations and edited assets; supplier photos remain unmarked.
 export const kiDisclosure='Bildet kan være retusjert eller generert med KI';
 const illustratedImages=new Set([
@@ -42,7 +43,7 @@ const illustratedImages=new Set([
  "/assets/sofa-tekstilpakke-eksempel.png",
  "/assets/spisebord-eikefarget-illustrasjon.png"
 ]);
-export function isKiPhoto(src){if(!src)return false;try{return illustratedImages.has(new URL(src,'https://example.invalid').pathname);}catch{return false;}}
+export function isKiPhoto(src){if(!src)return false;const configured=getSiteSettings().imageLabels.find(m=>m.url===src);if(configured)return configured.generated;try{return illustratedImages.has(new URL(src,'https://example.invalid').pathname);}catch{return false;}}
 
 // Packshots edited from the supplied references; disclosure appears below the product photo.
 [

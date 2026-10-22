@@ -23,7 +23,7 @@ export function packageCartView(basket,products,saved=[],links={}){
 }
 export function changePackageItem(basket,products,saved,groupId,itemId,quantity,links={}){
  if(!Number.isInteger(quantity)||quantity<0||quantity>99)return null;
- const view=packageCartView(basket,products,saved,links),group=view.groups.find(g=>g.id===groupId);if(!group||!Object.hasOwn(group.selection,itemId)&&!Object.hasOwn(group.extras||{},itemId))return null;
+ const view=packageCartView(basket,products,saved,links),group=view.groups.find(g=>g.id===groupId);if(!group||group.product?.packageEditable===false||!Object.hasOwn(group.selection,itemId)&&!Object.hasOwn(group.extras||{},itemId))return null;
  const selection={...group.selection};for(const [id,q] of Object.entries(group.extras||{}))add(selection,id,q);
  let draft=group.custom?subtract(basket,selection):subtract(basket,{[group.packageId]:group.quantity,...group.extras});
  if(quantity)selection[itemId]=quantity;else delete selection[itemId];for(const [id,q] of Object.entries(selection))add(draft,id,q);

@@ -18,10 +18,10 @@ export function modulePhotoParts(modules,selection){
  return parts;
 }
 function photo(part,x,y,width,height){
- const p=part.product,profile=part.photo||photoProfiles[p.id],source=part.photo?.source||p.image,known=profile&&profile.source===source;
+ const p=part.product,custom=p.builderImage?{source:p.builderImage,size:[100,100],crop:p.builderCrop||[0,0,100,100],mirror:p.builderMirror}:null,profile=custom||part.photo||photoProfiles[p.id],source=custom?.source||part.photo?.source||p.image,known=profile&&profile.source===source;
  const size=known?profile.size:[1,1],crop=known?[...profile.crop]:[0,0,1,1];
  if(part.half&&!part.photo){const mid=(crop[0]+crop[2])/2;if(part.half==='left')crop[2]=mid;else crop[0]=mid;}
- const mirror=part.photo?.mirror??(!part.photo&&p.moduleRole==='end'&&part.role==='left');
+ const mirror=custom?.mirror??part.photo?.mirror??(!part.photo&&p.moduleRole==='end'&&part.role==='left');
  const viewport=`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${crop[3]-crop[1]}`;
  return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title><svg style="width:${width+.15}px;height:${height}px" width="${width+.15}" height="${height}" viewBox="${viewport}" preserveAspectRatio="${known?'none':'xMidYMax meet'}" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}" preserveAspectRatio="none"/></svg></g>`;
 }
@@ -31,7 +31,7 @@ export function modulePhotoPreview(modules,selection){
  if(!parts.length)return '<p class="module-photo-empty">Velg moduler for å se oppsettet.</p>';
  const label='Valgt oppsett: '+modules.filter(p=>amount(selection,p.id)).map(p=>`${amount(selection,p.id)} × ${p.name}`).join(', ');
  const beigeEnd=modules.find(p=>p.id==='obj_371e3a52807c452ea1280dafd434b7e4'),beigeMiddle=modules.find(p=>p.id==='obj_d9314111959a42bf8b7ca3015af09003');
- const beige=beigeEnd&&beigeMiddle&&beigeEnd.image==='/assets/beige-endemodul.webp'&&beigeMiddle.image==='/assets/beige-midtmodul.webp';
+ const beige=!modules.some(p=>p.builderImage)&&beigeEnd&&beigeMiddle&&beigeEnd.image==='/assets/beige-endemodul.webp'&&beigeMiddle.image==='/assets/beige-midtmodul.webp';
  const ends=beige?amount(selection,beigeEnd.id):0,middles=beige?amount(selection,beigeMiddle.id):0;
  // Use the exact assembled supplier photographs for the matching beige setups.
  if(beige&&ends===2&&middles<=1){const src=middles?'/assets/beige-sofa-tre-moduler.webp':'/assets/beige-sofa-to-moduler.webp';return `<figure class="module-photo"><img data-complete-sofa="true" src="${src}" alt="${escape(label)}"><figcaption>Valgt oppsett · produktbilde</figcaption>${previewZoom()}</figure>`;}

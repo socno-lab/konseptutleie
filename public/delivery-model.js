@@ -1,4 +1,5 @@
-export const deliveryRates=Object.freeze({normalSingle:690,extendedSingle:890,normalTwo:1190,extendedTwo:1390,normalMinutes:30,maxMinutes:40,vatIncluded:true});
+import {getSiteSettings} from './site-settings.js';
+export const deliveryRates=new Proxy({normalSingle:690,extendedSingle:890,normalTwo:1190,extendedTwo:1390,normalMinutes:30,maxMinutes:40,vatIncluded:true},{get:(target,key)=>key==='vatIncluded'?true:getSiteSettings().delivery[key]??target[key]});
 export function requiresTwoPeople(basket,products){
  const byId=new Map(products.map(p=>[p.id,p])),seen=new Set();
  const sofa=id=>{if(seen.has(id))return false;seen.add(id);const p=byId.get(id);if(!p)return false;
@@ -10,12 +11,12 @@ export function requiresTwoPeople(basket,products){
 export function deliveryPrice(oneWaySeconds,visits,twoPeople=false){
  if(!Number.isFinite(oneWaySeconds)||oneWaySeconds<0||![1,2].includes(visits))throw Object.assign(Error('Frakt må avklares i tilbudet.'),{status:422});
  const minutes=Math.ceil(oneWaySeconds/60),crew=twoPeople?2:1;
- if(oneWaySeconds>2400)return {manual:true,minutes,visits,crew,estimated:true};
- const zone=oneWaySeconds<=1800?'normal':'extended',perVisit=zone==='normal'?(twoPeople?deliveryRates.normalTwo:deliveryRates.normalSingle):(twoPeople?deliveryRates.extendedTwo:deliveryRates.extendedSingle);
+ if(oneWaySeconds>deliveryRates.maxMinutes*60)return {manual:true,minutes,visits,crew,estimated:true};
+ const zone=oneWaySeconds<=deliveryRates.normalMinutes*60?'normal':'extended',perVisit=zone==='normal'?(twoPeople?deliveryRates.normalTwo:deliveryRates.normalSingle):(twoPeople?deliveryRates.extendedTwo:deliveryRates.extendedSingle);
  return {manual:false,minutes,zone,crew,visits,perVisit,total:perVisit*visits,vatIncluded:true,estimated:true};
 }
 
-export const rentalDeliveryLimits=Object.freeze({sofas:1,modules:3,otherWithSofa:6,withoutSofa:10});
+export const rentalDeliveryLimits=new Proxy({sofas:1,modules:3,otherWithSofa:6,withoutSofa:10},{get:(target,key)=>getSiteSettings().delivery[key]??target[key]});
 export function rentalDeliveryCapacity(basket,products,customRequest=false){
  const byId=new Map(products.map(p=>[p.id,p]));let sofas=0,modules=0,other=0,unknown=false,steps=0;
  const add=(id,quantity,path=new Set())=>{

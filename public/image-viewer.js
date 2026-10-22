@@ -1,5 +1,5 @@
 import './product-carousel.js?v=productdensity1';
-import {kiDisclosure,isKiPhoto} from './image-provenance.js?v=ki1';
+import {kiDisclosure,isKiPhoto} from './image-provenance.js?v=admincontrol20261022';
 const viewer=document.createElement('dialog');
 viewer.id='imageViewer';viewer.className='image-viewer';viewer.setAttribute('aria-labelledby','imageViewerTitle');
 viewer.innerHTML='<div class="image-viewer-header"><h2 id="imageViewerTitle">Bildevisning</h2><button type="button" class="image-viewer-close" aria-label="Lukk bildevisning">✕</button></div><img class="image-viewer-image" alt=""><div class="image-viewer-graphic" hidden></div><p class="image-viewer-notice" hidden></p><div class="image-viewer-controls"><button type="button" class="image-viewer-prev" aria-label="Forrige bilde">← Forrige</button><p role="status" class="image-viewer-count"></p><button type="button" class="image-viewer-next" aria-label="Neste bilde">Neste →</button></div>';

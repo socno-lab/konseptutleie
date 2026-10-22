@@ -1,3 +1,4 @@
+import {getSiteSettings,subcategoryLabel} from './site-settings.js';
 // Shared table types for the rental and new-product catalogues.
 export const tableTypes=['Spisebord','Sofabord','Sidebord','Nattbord','Ståbord','Skrivebord','Konsollbord','Andre bord'];
 export function tableType(product){
@@ -15,7 +16,7 @@ export function tableType(product){
  return 'Andre bord';
 }
 export function availableTableTypes(products){const found=new Set(products.filter(p=>!p.deletedAt&&p.active!==false&&!p.addonOnly&&!p.isPackage).map(tableType));return tableTypes.filter(type=>found.has(type));}
-export function tableTypeButtons(types,selected){return ['Alle bord',...types].map((label,index)=>{const value=index?label:'';return `<button type="button" data-table-type="${value}" aria-pressed="${selected===value}">${label}</button>`;}).join('');}
+export function tableTypeButtons(types,selected){return ['Alle bord',...types].map((label,index)=>{const value=index?label:'';return `<button type="button" data-table-type="${String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}" aria-pressed="${selected===value}">${label}</button>`;}).join('');}
 
 const typeOrder={
  Bord:tableTypes,
@@ -27,7 +28,7 @@ const typeOrder={
  'Kunstige planter':['Trær','Grønne planter','Gress'],
  Utemøbler:['Loungemoduler','Utestoler','Utebord','Andre utemøbler']
 };
-export function subcategoryOptions(category){return [...(typeOrder[category]||[])];}
+export function subcategoryOptions(category){return getSiteSettings().categories.find(c=>c.id===category)?.subcategories.map(s=>s.id)||[];}
 export function validSubcategory(category,value){return value===''||subcategoryOptions(category).includes(value);}
 export function productSubcategory(p,category=p.category){
  if(p.category!==category)return '';
@@ -87,9 +88,9 @@ export function productSubcategory(p,category=p.category){
 }
 export function availableSubcategories(products,category){
  const found=new Set(products.filter(p=>p.active!==false&&!p.deletedAt&&!p.addonOnly&&!p.isPackage).map(p=>productSubcategory(p,category)));
- return (typeOrder[category]||[]).filter(type=>found.has(type));
+ return subcategoryOptions(category).filter(type=>found.has(type));
 }
 export function subcategoryButtons(types,selected,category){
  const all={Bord:'Alle bord',Stoler:'Alle stoler',Sofaer:'Alle sofaer',Belysning:'All belysning',Hyller:'All oppbevaring',Tepper:'Alle tepper','Kunstige planter':'Alle planter',Utemøbler:'Alle utemøbler'}[category]||'Alle';
- return [all,...types].map((label,index)=>{const value=index?label:'';return `<button type="button" data-table-type="${value}" aria-pressed="${selected===value}">${label}</button>`;}).join('');
+ return [all,...types].map((label,index)=>{const value=index?label:'';return `<button type="button" data-table-type="${String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}" aria-pressed="${selected===value}">${subcategoryLabel(category,label).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</button>`;}).join('');
 }
