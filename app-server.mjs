@@ -1,3 +1,4 @@
+import {createRequestGuard,contentPolicy} from './server/request-guard.mjs';
 import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js';
 import {createDeliveryEstimator,deliveryRates,warehouse} from './server/delivery.mjs';
 import {salesEnabled,saleUnitPrice} from './public/sales-model.js';
@@ -23,8 +24,8 @@ seed.products=migrateProducts(removeRetiredCosts(seed.products));
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.avif':'image/avif','.ico':'image/x-icon'};
 export function publicCatalog(data){configureSiteSettings(data.settings);return {...data,products:sortProducts(data.products.filter(p=>p.active&&!p.deletedAt)).map(p=>{const {purchaseUnitPrice,acquisitionCost,...visible}=p;const rentalRates=rentalRateSets(p,data.products);return {...visible,rentalEnabled:p.rentalEnabled!==false,saleEnabled:salesEnabled(p),salePrice:saleUnitPrice(p),...rentalRates.standard,rentalRates,purchasePrice:resolvedPackagePurchasePrice(p,data.products),maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined};})};}
 const error=(message,status=400)=>Object.assign(Error(message),{status});
-async function bytes(req,max){let length=0,large=false;const chunks=[];for await(const chunk of req){length+=chunk.length;if(length>max){large=true;chunks.length=0;}else if(!large)chunks.push(chunk);}if(large)throw error('Filen eller forespørselen er for stor.',413);return Buffer.concat(chunks);}
-async function json(req,max=1500000){if(!req.headers['content-type']?.startsWith('application/json'))throw error('Forventet JSON.',415);try{return JSON.parse((await bytes(req,max)).toString('utf8'));}catch(e){if(e.status)throw e;throw error('Ugyldige data.');}}
+async function bytes(req,max){if(Number(req.headers['content-length'])>max)throw error('Filen eller forespørselen er for stor.',413);let length=0,large=false;const chunks=[];for await(const chunk of req){length+=chunk.length;if(length>max){large=true;chunks.length=0;}else if(!large)chunks.push(chunk);}if(large)throw error('Filen eller forespørselen er for stor.',413);return Buffer.concat(chunks);}
+async function json(req,max=1500000){if(!req.headers['content-type']?.startsWith('application/json'))throw error('Forventet JSON.',415);try{const value=JSON.parse((await bytes(req,max)).toString('utf8'));if(!value||typeof value!=='object'||Array.isArray(value))throw error('Forventet et JSON-objekt.');return value;}catch(e){if(e.status)throw e;throw error('Ugyldige data.');}}
 
 export function createServer(options={}){
  const env=options.env||process.env,store=options.store||createMysqlStore(env,seed);
@@ -32,9 +33,9 @@ export function createServer(options={}){
  const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session':'konsept_session';
  const delivery=createDeliveryEstimator(env,options.deliveryFetch,{reserve:store.enabled?now=>store.reserveDeliveryCall(now):undefined});
  async function readCatalog(){const data=await store.readCatalog(),site=store.readSiteSettings?await store.readSiteSettings():{settings:defaultSettings};configureSiteSettings(site.settings);return {...data,settings:site.settings};}
- let images;
+ let images;const enterRequest=createRequestGuard(options.requestGuard),enterAuth=createRequestGuard({maxActive:2,maxClientActive:2});
  const server=http.createServer(async(req,res)=>{
-  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...headers});res.end(req.method==='HEAD'?undefined:body);};
+  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...headers});res.end(req.method==='HEAD'?undefined:body);};
   const out=(status,data,headers)=>send(status,JSON.stringify(data),'application/json; charset=utf-8',headers);
   const redirect=location=>send(302,'','text/plain',{Location:location});
   const authenticated=async()=>{const token=sessionToken(req,cookieName);return token.length===43&&!!(await store.session(digest(token)));};
@@ -44,6 +45,15 @@ export function createServer(options={}){
    if(hosts.some(host=>['konseptboligstyling.com','www.konseptboligstyling.com'].includes(host)))return send(404,'<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ikke publisert</title></head><body><main><h1>Nettsiden er ikke publisert.</h1></main></body></html>','text/html; charset=utf-8');
    const url=new URL(req.url,'http://localhost');let pathname;try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
    if(['GET','HEAD'].includes(req.method)&&new URL(origin).hostname==='konseptuell.no'&&hosts.includes('www.konseptuell.no'))return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
+   if(pathname.startsWith('/api/')){
+    const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));
+    if(!release)return out(429,{error:'For mange forespørsler. Vent litt og prøv igjen.'},{'Retry-After':'60'});
+    res.once('finish',release);res.once('close',release);
+    if(['/api/admin/login','/api/admin/setup','/api/admin/password'].includes(pathname)&&!['GET','HEAD'].includes(req.method)){
+     const releaseAuth=enterAuth('auth');if(!releaseAuth)return out(429,{error:'Innlogging er opptatt. Vent litt og prøv igjen.'},{'Retry-After':'5'});
+     res.once('finish',releaseAuth);res.once('close',releaseAuth);
+    }
+   }
    if(pathname==='/api/delivery-estimate'){
     if(req.method==='GET'){if(store.enabled)await readCatalog();return out(200,{enabled:delivery.enabled,rates:deliveryRates,warehouse});}
     if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
@@ -124,7 +134,7 @@ export function createServer(options={}){
     if(!store.enabled)return out(503,{error:'Rabattkoder er ikke tilgjengelige nå.'});
     if(!await store.attempt(digest('discount:'+req.socket.remoteAddress)))return out(429,{error:'For mange forsøk. Vent 15 minutter.'});
     const input=await json(req,20000),catalog=await readCatalog(),discounts=await store.readDiscountCodes();
-    const quote=discountQuote(input,catalog.products,discounts.codes);await store.resetAttempts(digest('discount:'+req.socket.remoteAddress));return out(200,quote);
+    const quote=discountQuote(input,catalog.products,discounts.codes);return out(200,quote);
    }
    if(!['GET','HEAD'].includes(req.method))return send(405,'Metoden støttes ikke.');
    if(pathname==='/api/site-settings'){if(req.method!=='GET')return out(405,{error:'Metoden støttes ikke.'});const data=store.enabled?await readCatalog():{settings:defaultSettings};return out(200,{settings:data.settings});}
@@ -142,6 +152,6 @@ export function createServer(options={}){
    console.error('Admin/katalog: '+(e.code||e.name||'serverfeil'));return out(503,{error:'Kunne ikke kontakte lagringen. Kontroller databaseinnstillinger eller prøv igjen.'});
   }
  });
- server.requestTimeout=30000;server.headersTimeout=15000;
+ server.requestTimeout=30000;server.headersTimeout=15000;server.maxHeadersCount=64;server.maxRequestsPerSocket=200;
  return server;
 }
