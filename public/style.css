@@ -610,3 +610,4 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 
 /* Follow the centered 1500px content and its 5% inner gutter on wide screens. */
 @media(min-width:1600px){.commerce-mode-switch{margin-right:calc((100% - 1350px)/2)}}
+@media(min-width:1600px){body>header{max-width:none;padding-inline:calc((100% - 1350px)/2)}}
