@@ -1,10 +1,10 @@
-import {rentalDeliveryExport} from './customer-info.js?v=customerinfo1';
+import {rentalDeliveryExport} from './customer-info.js?v=capacity20261022';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=rentalalternatives1';
 import {moduleQuantityLimit} from './sofa-layout.js?v=joinedsofa1';
 import {modulePhotoPreview} from './module-photo-preview.js?v=magnifier1';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=alltypes1';
 import {cartThumbnail} from './cart-thumbnail.js?v=cartimages1';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=compactmodal1';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=capacity20261022';
 import {rentalUsageLabels,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=usagechoice1';
 import {mountDiscount} from './discount-ui.js';
 let discount;
