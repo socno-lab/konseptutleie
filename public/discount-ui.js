@@ -16,5 +16,5 @@ export function mountDiscount(target,payload){
  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();target.querySelector('#couponApply').click();}});
  input.addEventListener('input',()=>{if(code&&input.value.trim().toUpperCase()!==code)clear();});
  remove.onclick=()=>{clear();input.value='';input.focus();};
- return {refresh,lines:()=>result?['','RABATTKODE: '+result.code+' ('+result.percent+' %)','Prisede produkter før rabatt: '+money(result.subtotal),'Rabatt: −'+money(result.discount),(result.hasUnpriced?'Delpris':'Sum')+' etter rabatt: '+money(result.total)+' inkl. mva.','Transport, styling og andre tillegg avklares separat.']:code?['','Rabattkode ønsket: '+code+' – ikke validert, må avklares i tilbudet.']:[]};
+ return {refresh,code:()=>code,lines:()=>result?['','RABATTKODE: '+result.code+' ('+result.percent+' %)','Prisede produkter før rabatt: '+money(result.subtotal),'Rabatt: −'+money(result.discount),(result.hasUnpriced?'Delpris':'Sum')+' etter rabatt: '+money(result.total)+' inkl. mva.','Transport, styling og andre tillegg avklares separat.']:code?['','Rabattkode ønsket: '+code+' – ikke validert, må avklares i tilbudet.']:[]};
 }
