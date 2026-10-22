@@ -646,11 +646,13 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #products .product-art img[src*="heritage-bench-small-light-green-9a591c54361382624f0e51f2d58de0d2"],
 #saleProducts .sale-photo img[src*="heritage-bench-small-light-green-9a591c54361382624f0e51f2d58de0d2"]{--catalog-scale:1.089;--catalog-x:-.609%;--catalog-y:-8.499%}
 
-/* Native date controls need a full row on narrow screens, including iOS Safari. */
+/* Keep native date controls inside their columns, including iOS Safari. */
 #cart input[type="date"],#saleCart input[type="date"]{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-inline-size:0;}
 #cart input[type="date"]::-webkit-date-and-time-value,#saleCart input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:left;}
 @media(max-width:640px){
- #cart #rentalDates .two{grid-template-columns:minmax(0,1fr);gap:12px;}
+ #cart #rentalDates .two{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
  #cart #rentalDates label,#cart #purchaseDates label,#saleCart label:has(input[type="date"]){min-width:0;max-width:100%;}
- #cart input[type="date"],#saleCart input[type="date"]{font-size:16px;min-height:48px;}
+ #cart input[type="date"],#saleCart input[type="date"]{appearance:none;-webkit-appearance:none;inline-size:100%;max-inline-size:100%;padding:10px 6px;font-size:16px;min-height:48px;}
+ #cart input[type="date"]::-webkit-datetime-edit,#saleCart input[type="date"]::-webkit-datetime-edit{min-width:0;padding:0;}
+ #cart input[type="date"]::-webkit-calendar-picker-indicator,#saleCart input[type="date"]::-webkit-calendar-picker-indicator{margin:0;padding:0;width:16px;}
 }
