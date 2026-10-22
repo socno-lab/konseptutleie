@@ -1,3 +1,4 @@
+import {indexableEnvironment,pageModel,renderSeo,sitemap,robots} from './server/seo.mjs';
 import {createSubmissionSender} from './server/submissions.mjs';
 import {createRequestGuard,contentPolicy} from './server/request-guard.mjs';
 import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js';
@@ -47,6 +48,10 @@ export function createServer(options={}){
    if(hosts.some(host=>['konseptboligstyling.com','www.konseptboligstyling.com'].includes(host)))return send(404,'<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ikke publisert</title></head><body><main><h1>Nettsiden er ikke publisert.</h1></main></body></html>','text/html; charset=utf-8');
    const url=new URL(req.url,'http://localhost');let pathname;try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
    if(['GET','HEAD'].includes(req.method)&&new URL(origin).hostname==='konseptuell.no'&&hosts.includes('www.konseptuell.no'))return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
+   const indexing=store.enabled&&indexableEnvironment(origin,env,hosts);
+   if(pathname==='/index.html'&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/'+url.search});
+   if(['GET','HEAD'].includes(req.method)&&hosts.includes('konseptuell.no')&&req.headers['x-forwarded-proto']==='http')return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
+   if(pathname==='/robots.txt'&&['GET','HEAD'].includes(req.method))return send(200,robots(indexing));
    if(pathname.startsWith('/api/')){
     const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));
     if(!release)return out(429,{error:'For mange forespørsler. Vent litt og prøv igjen.'},{'Retry-After':'60'});
@@ -156,9 +161,20 @@ export function createServer(options={}){
    if(store.enabled&&(pathname.startsWith('/assets/')||pathname.startsWith('/media/'))&&(await store.purgedMedia()).some(url=>decodeURIComponent(url)===pathname))return send(404,'Fant ikke bildet.');
    const media=pathname.match(/^\/media\/([a-f0-9]{32})$/);if(media){if(!store.enabled)return send(404,'Fant ikke bildet.');const image=await store.media(media[1]);return image?send(200,image.body,image.mime,{'Cache-Control':'public, max-age=31536000, immutable'}):send(404,'Fant ikke bildet.');}
    if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return send(404,'Fant ikke siden.');
+   const seoPaths=['/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
+   if(seoPaths.includes(pathname)&&['GET','HEAD'].includes(req.method)){
+    const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));if(!release)return send(429,'For mange forespørsler. Prøv igjen senere.','text/plain',{'Retry-After':'60'});res.once('finish',release);res.once('close',release);
+    const catalog=publicCatalog(store.enabled?await readCatalog():seed);
+    if(pathname==='/sitemap.xml')return send(200,sitemap(catalog.products,indexing),'application/xml; charset=utf-8');
+    const model=pageModel(pathname,url.searchParams,catalog.products);
+    const sourcePath=pathname==='/midlertidig-moblering.html'?'/index.html':pathname==='/'?'/index.html':pathname;
+    let source=await readFile(path.join(publicRoot,sourcePath),'utf8');
+    if(model.status===404)source='<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Produktet er ikke tilgjengelig</title></head><body><main></main></body></html>';
+    return send(model.status,renderSeo(source,model,catalog.products,indexing),'text/html; charset=utf-8',{'X-Robots-Tag':indexing&&model.status===200?'index, follow, max-image-preview:large':'noindex, nofollow, noarchive'});
+   }
    const target=path.resolve(publicRoot,'.'+(pathname==='/'?'/index.html':pathname));if(!target.startsWith(publicRoot+path.sep))return send(404,'Fant ikke siden.');
    const type=types[path.extname(target).toLowerCase()];if(!type)return send(404,'Fant ikke siden.');
-   return send(200,await readFile(target),type);
+   return send(200,await readFile(target),type,pathname.startsWith('/admin/')||path.extname(target)==='.html'?{}:{'Cache-Control':'public, max-age=3600'});
   }catch(e){
    if(e.code==='ENOENT'||e.code==='EISDIR')return send(404,'Fant ikke siden.');
    if(e.status)return out(e.status,{error:e.message});
