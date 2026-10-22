@@ -124,3 +124,5 @@ test('Custom rental enquiries always require agreed transport and never call Goo
  assert.equal(quote.manual,true);assert.equal(quote.reason,'custom');assert.equal(quote.total,undefined);assert.equal(calls,0);
  assert.equal((await estimator.estimate({...input,basket:{chair:1}},'a',products)).manual,false);assert.equal(calls,1);
 });
+
+test('Pictures and wall arrangements do not use the ordinary freight item allowance, including package contents',()=>{const catalog=[...products,{id:'picture',category:'Bilder',isService:false},{id:'wall',category:'Bilder',isService:true},{id:'picturepack',isPackage:true,components:[{id:'picture',quantity:8}]}];const load=rentalDeliveryCapacity({chair:10,picture:20,wall:20,picturepack:5},catalog);assert.equal(load.manual,false);assert.equal(load.other,10);assert.equal(rentalDeliveryCapacity({chair:11,picture:1},catalog).manual,true);});
