@@ -1,3 +1,4 @@
+import {readHtmlTemplate} from './server/html-templates.mjs';
 import {indexableEnvironment,pageModel,renderSeo,sitemap,robots} from './server/seo.mjs';
 import {createSubmissionSender} from './server/submissions.mjs';
 import {createRequestGuard,contentPolicy} from './server/request-guard.mjs';
@@ -168,7 +169,7 @@ export function createServer(options={}){
     if(pathname==='/sitemap.xml')return send(200,sitemap(catalog.products,indexing),'application/xml; charset=utf-8');
     const model=pageModel(pathname,url.searchParams,catalog.products);
     const sourcePath=pathname==='/midlertidig-moblering.html'?'/index.html':pathname==='/'?'/index.html':pathname;
-    let source=await readFile(path.join(publicRoot,sourcePath),'utf8');
+    let source=await readHtmlTemplate(sourcePath.slice(1));
     if(model.status===404)source='<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Produktet er ikke tilgjengelig</title></head><body><main></main></body></html>';
     return send(model.status,renderSeo(source,model,catalog.products,indexing),'text/html; charset=utf-8',{'X-Robots-Tag':indexing&&model.status===200?'index, follow, max-image-preview:large':'noindex, nofollow, noarchive'});
    }
