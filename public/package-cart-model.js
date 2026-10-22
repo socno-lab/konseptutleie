@@ -1,4 +1,4 @@
-import {remaining,ratePlan} from './catalog-model.js?v=joinedsofa1';
+import {remaining,ratePlan} from './catalog-model.js?v=fixeddecor20261022';
 import {addonRequirementError} from './addon-model.js?v=tableware2';
 const count=q=>Number.isInteger(q)&&q>0&&q<=9999;
 export const editablePackage=p=>!!p?.isPackage&&!p.isProposal&&!!p.components?.length;
@@ -44,5 +44,5 @@ export function packageGroupRates(group,products){
 }
 export function packageGroupPeriodTotal(group,products,days){
  const lines=group.custom?Object.entries(group.selection):[[group.packageId,group.quantity]];
- if(!Number.isInteger(days)||days<1)return null;let sum=0;for(const [id,q] of lines){const p=products.find(p=>p.id===id);if(!p||p.priceOnRequest)return null;sum+=ratePlan(p,days).total*q;}return Math.round(sum*100)/100;
+ if(!Number.isInteger(days)||days<1)return null;let sum=0;for(const [id,q] of lines){const p=products.find(p=>p.id===id);if(!p||p.priceOnRequest)return null;const plan=ratePlan(p,days);if(!plan)return null;sum+=plan.total*q;}return Math.round(sum*100)/100;
 }
