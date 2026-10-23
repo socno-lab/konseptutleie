@@ -37,5 +37,5 @@ export function showEnquiryConfirmation({reference,kind,email}){
  const link=document.createElement('a');link.className='button dark';link.href=kind==='purchase'?'/kjop.html':'/utvalg.html?bruk=alle#utvalg';link.textContent='Tilbake til produktene';main.append(link);
  document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close());
  document.body.style.cssText='margin:0;overflow:auto;position:static;width:auto;height:auto';document.documentElement.style.overflow='auto';
- document.body.replaceChildren(main);document.title='Forespørsel mottatt · Konseptuell';heading.tabIndex=-1;heading.focus();window.scrollTo(0,0);
+ document.body.className='enquiry-confirmation-page';document.body.replaceChildren(main);document.title='Forespørsel mottatt · Konseptuell';heading.tabIndex=-1;heading.focus();window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));
 }
