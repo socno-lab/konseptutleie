@@ -137,3 +137,23 @@ function mountRentalDelivery(form){
  dialog?.addEventListener('close',()=>{clearTimeout(timer);controller?.abort();revision++;pendingKey='';deliveryQuote=null;});if(dialog)new MutationObserver(()=>{if(dialog.open)schedule();}).observe(dialog,{attributes:true,attributeFilter:['open']});
  render();fetch('/api/delivery-estimate',{signal:AbortSignal.timeout(8000)}).then(r=>r.ok?r.json():null).then(data=>{enabled=data?.enabled===true;schedule();}).catch(()=>render());
 }
+
+// Scoped to enquiry drawers: Safari must not zoom when editing contact fields.
+if(rentalForm||saleForm){
+ const style=document.createElement('style');style.textContent='@media(max-width:640px){#cart input:not([type=checkbox]):not([type=radio]),#cart select,#cart textarea,#saleCart input:not([type=checkbox]):not([type=radio]),#saleCart select,#saleCart textarea{font-size:16px}#cart,#saleCart{overflow-anchor:none;scroll-behavior:auto}}';document.head.append(style);
+ for(const form of [rentalForm,saleForm].filter(Boolean)){
+  const fields=[...form.querySelectorAll('input,select,textarea')].filter(field=>!['hidden','checkbox','radio'].includes(field.type));
+  for(const field of fields)if(field.tagName==='INPUT'&&!['date','number'].includes(field.type))field.enterKeyHint='next';
+  form.addEventListener('keydown',event=>{
+   if(event.key!=='Enter'||event.isComposing||!matchMedia('(max-width:640px)').matches||event.target.tagName!=='INPUT'||['date','number','checkbox','radio'].includes(event.target.type))return;
+   const next=fields.slice(fields.indexOf(event.target)+1).find(field=>!field.disabled&&field.getClientRects().length);
+   if(next){event.preventDefault();next.focus();}
+  });
+ }
+ const start=rentalForm?.querySelector('#start'),end=rentalForm?.querySelector('#end');
+ start?.addEventListener('change',()=>{
+  if(!matchMedia('(max-width:640px)').matches||!start.value||!start.validity.valid||end.disabled)return;
+  end.min=start.value;end.setCustomValidity('');end.focus({preventScroll:true});
+  try{end.showPicker?.();}catch{/* iOS may require another tap to open the native picker. */}
+ });
+}
