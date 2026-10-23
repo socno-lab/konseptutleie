@@ -1,3 +1,4 @@
+import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js';
 import {remaining,ratePlan} from './catalog-model.js?v=fixeddecor20261022';
 import {addonRequirementError} from './addon-model.js?v=tableware2';
 const count=q=>Number.isInteger(q)&&q>0&&q<=9999;
@@ -26,7 +27,9 @@ export function changePackageItem(basket,products,saved,groupId,itemId,quantity,
  const view=packageCartView(basket,products,saved,links),group=view.groups.find(g=>g.id===groupId);if(!group||group.product?.packageEditable===false||!Object.hasOwn(group.selection,itemId)&&!Object.hasOwn(group.extras||{},itemId))return null;
  const selection={...group.selection};for(const [id,q] of Object.entries(group.extras||{}))add(selection,id,q);
  let draft=group.custom?subtract(basket,selection):subtract(basket,{[group.packageId]:group.quantity,...group.extras});
- if(quantity)selection[itemId]=quantity;else delete selection[itemId];for(const [id,q] of Object.entries(selection))add(draft,id,q);
+ if(quantity)selection[itemId]=quantity;else delete selection[itemId];
+ if(inheritsPackageAddons(group.product,products)){const optional=new Set(packageAddonChoices(group.product,products).map(c=>c.id)),main=Object.fromEntries(Object.entries(selection).filter(([id])=>!optional.has(id))),limits=new Map(packageAddonChoices(group.product,products,main).map(c=>[c.id,c.quantity]));for(const id of optional)if((selection[id]||0)>(limits.get(id)||0))return null;}
+ for(const [id,q] of Object.entries(selection))add(draft,id,q);
  if(!validPackageBasket(draft,products))return null;
  const next=view.saved.filter(g=>g.id!==group.id);if(Object.keys(selection).length)next.push({id:group.custom?group.id:'custom:'+group.packageId,packageId:group.packageId,name:group.name,quantity:group.quantity,acquisition:group.acquisition,selection});
  // A second edited batch of the same package joins its existing customised group.

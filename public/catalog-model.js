@@ -1,3 +1,4 @@
+import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js';
 import {sofaLayoutError,moduleRentalMinimum} from './sofa-layout.js?v=joinedsofa1';
 import {addonRequirementError,normalizeAddOnBasket} from './addon-model.js?v=tableware2';
 export function demand(product,quantity=1){return product.isPackage?(product.components||[]).map(c=>({id:c.id,quantity:c.quantity*quantity})):[{id:product.id,quantity}];}
@@ -41,9 +42,11 @@ export function isStylingService(product){return product?.category==='Styling'&&
 
 // Product add-ons follow the person count; a styling quote is requested once.
 export function packageSelectionDraft(basket,products,id,quantity,extraIds=[]){
- const p=products.find(x=>x.id===id);if((!p?.isPackage&&p?.offeringType!=='service')||!Array.isArray(extraIds)||new Set(extraIds).size!==extraIds.length)return null;
+ const p=products.find(x=>x.id===id);if((!p?.isPackage&&p?.offeringType!=='service')||!Array.isArray(extraIds))return null;
+ const choices=extraIds.map(x=>typeof x==='string'?{id:x}:x);if(choices.some(x=>!x||typeof x.id!=='string')||new Set(choices.map(x=>x.id)).size!==choices.length)return null;
+ const inherited=inheritsPackageAddons(p,products),limits=new Map(packageAddonChoices(p,products).map(c=>[c.id,c.quantity*quantity]));
  const draft=selectionDraft(basket,products,id,quantity);if(!draft)return null;
- for(const extraId of extraIds){const extra=products.find(x=>x.id===extraId&&x.active&&!x.isPackage);if(!extra||!p.relatedAddOns?.includes(extraId))return null;const count=isStylingService(extra)?Math.max(0,1-(draft[extraId]||0)):quantity;if(count>remaining(extraId,draft,products))return null;if(count)draft[extraId]=(draft[extraId]||0)+count;}
+ for(const choice of choices){const extra=products.find(x=>x.id===choice.id&&x.active&&!x.isPackage),limit=inherited?limits.get(choice.id):p.relatedAddOns?.includes(choice.id)?(isStylingService(extra)?1:quantity):undefined;if(!extra||limit===undefined)return null;const count=choice.quantity??(isStylingService(extra)?Math.max(0,1-(draft[choice.id]||0)):limit);if(!Number.isInteger(count)||count<0||count>limit||count>remaining(choice.id,draft,products))return null;if(count)draft[choice.id]=(draft[choice.id]||0)+count;}
  return addonRequirementError(draft,products)?null:draft;
 }
 
