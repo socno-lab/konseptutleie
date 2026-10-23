@@ -95,12 +95,18 @@ function mountRentalDelivery(form){
  select.closest('label').replaceWith(group);
  const addressNotice=document.createElement('p');addressNotice.className='hint';addressNotice.textContent='Komplett adresse brukes automatisk til fraktberegning via Google Maps.';addressNotice.id='rentalAddressPrivacy';address.setAttribute('aria-describedby',addressNotice.id);address.closest('label').after(addressNotice);
  const result=group.querySelector('[role="status"]'),dialog=form.closest('dialog');let enabled=false,revision=0,timer,controller,offer=null,pendingKey='',wasLocked=false,previousChoice=choices[0][0],retryAfter=0;
+ // Autofill can update the whole address while the customer is still editing their name.
+ const contactNames=new Set(['name','email','phone','company','address','postalCode','postalCity']);
+ const editingContact=()=>matchMedia('(max-width:640px)').matches&&form.contains(document.activeElement)&&contactNames.has(document.activeElement.name);
+ let deferredDelivery=false;
  const selected=()=>choices.find(([value])=>value===group.querySelector('[name="delivery"]:checked')?.value)||choices[0];
  const addressKey=()=>completeAddress(form).normalize('NFKC').trim().toLocaleLowerCase('nb-NO').replace(/[\s,]+/g,' ');
  const ready=()=>address.value.trim().length>=3&&/^[0-9]{4}$/.test(form.querySelector('[name="postalCode"]').value)&&form.querySelector('[name="postalCity"]').value.trim().length>=2;
  const money=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:0}).format(n);
  const capacity=()=>rentalDeliveryCapacity(deliverySelection?.basket||{},deliverySelection?.products||[],deliverySelection?.customRequest===true);
  const render=()=>{
+  if(editingContact()){deferredDelivery=true;return;}
+  deferredDelivery=false;
   const load=capacity();
   if(load.manual&&!wasLocked)previousChoice=selected()[0];
   for(const radio of group.querySelectorAll('[name="delivery"]')){
@@ -120,7 +126,8 @@ function mountRentalDelivery(form){
   result.textContent=pendingKey===addressKey()?'Beregner transportpris …':'Transportpris avklares i tilbudet.';
  };
  const schedule=()=>{
-  clearTimeout(timer);const key=addressKey();if(offer?.key!==key)offer=null;
+  clearTimeout(timer);
+  if(editingContact()){deferredDelivery=true;return;}const key=addressKey();if(offer?.key!==key)offer=null;
   if(pendingKey&&pendingKey!==key){revision++;controller?.abort();pendingKey='';}
   if(capacity().manual||!Object.keys(deliverySelection?.basket||{}).length){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
   render();if(!enabled||!ready()||!dialog?.open||Date.now()<retryAfter||(offer?.key===key&&offer.until>Date.now())||pendingKey===key)return;
@@ -133,6 +140,7 @@ function mountRentalDelivery(form){
    offer={key,until:Date.now()+300000,manual:quote.manual,prices:quote.prices,receipt:quote.receipt};pendingKey='';render();
   }catch(error){if(current!==revision||error.name==='AbortError')return;pendingKey='';offer=null;retryAfter=Math.max(retryAfter,Date.now()+30000);render();result.textContent=error.name==='TimeoutError'?'Fraktberegningen tok for lang tid. Frakt avklares i tilbudet.':error.message||'Transportpris avklares i tilbudet.';}
  }
+ form.addEventListener('focusout',()=>{if(deferredDelivery)requestAnimationFrame(()=>{if(!editingContact())schedule();});});
  document.addEventListener('rental-delivery-selection',event=>{deliverySelection=event.detail;schedule();});
  form.addEventListener('input',event=>{if(['address','postalCode','postalCity'].includes(event.target.name))schedule();});form.addEventListener('change',event=>{if(['delivery','address','postalCode','postalCity'].includes(event.target.name))schedule();});
  dialog?.addEventListener('close',()=>{clearTimeout(timer);controller?.abort();revision++;pendingKey='';deliveryQuote=null;});if(dialog)new MutationObserver(()=>{if(dialog.open)schedule();}).observe(dialog,{attributes:true,attributeFilter:['open']});
@@ -143,10 +151,21 @@ function mountRentalDelivery(form){
 if(rentalForm||saleForm){
  const style=document.createElement('style');style.textContent='@media(max-width:640px){#cart input:not([type=checkbox]):not([type=radio]),#cart select,#cart textarea,#saleCart input:not([type=checkbox]):not([type=radio]),#saleCart select,#saleCart textarea{font-size:16px}#cart,#saleCart{overflow-anchor:none;scroll-behavior:auto}}';document.head.append(style);
  for(const form of [rentalForm,saleForm].filter(Boolean)){
+  const dialog=form.closest('dialog');
+  // Safari may pan an overflow dialog to an autofilled address below the active name field.
+  // Only repair an off-screen active field after editing/keyboard resize, never during ordinary scrolling.
+  const keepContactVisible=()=>{
+   const field=document.activeElement;if(!dialog?.open||!matchMedia('(max-width:640px)').matches||!form.contains(field)||!['name','email','phone','company','address','postalCode','postalCity'].includes(field.name))return;
+   const box=field.getBoundingClientRect(),frame=dialog.getBoundingClientRect(),view=window.visualViewport,top=Math.max(frame.top,view?.offsetTop||0)+16,bottom=Math.min(frame.bottom,(view?.offsetTop||0)+(view?.height||innerHeight))-16;
+   if(box.top<top)dialog.scrollTop+=box.top-top;else if(box.bottom>bottom)dialog.scrollTop+=box.bottom-bottom;
+  };
+  let focusRepair;const afterContactEdit=event=>{if(!['name','email','phone','company','address','postalCode','postalCity'].includes(event.target.name))return;requestAnimationFrame(keepContactVisible);clearTimeout(focusRepair);focusRepair=setTimeout(keepContactVisible,250);};
+  form.addEventListener('input',afterContactEdit);form.addEventListener('change',afterContactEdit);window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(keepContactVisible));
+  dialog?.addEventListener('close',()=>clearTimeout(focusRepair));dialog?.addEventListener('touchmove',()=>clearTimeout(focusRepair),{passive:true});dialog?.addEventListener('wheel',()=>clearTimeout(focusRepair),{passive:true});
   const fields=[...form.querySelectorAll('input,select,textarea')].filter(field=>!['hidden','checkbox','radio'].includes(field.type));
   for(const field of fields)if(field.tagName==='INPUT'&&!['date','number'].includes(field.type))field.enterKeyHint='next';
   form.addEventListener('keydown',event=>{
-   if(event.key!=='Enter'||event.isComposing||!matchMedia('(max-width:640px)').matches||event.target.tagName!=='INPUT'||['date','number','checkbox','radio'].includes(event.target.type))return;
+   if(event.key!=='Enter'||event.isComposing||['start','end'].includes(event.target.id)||!matchMedia('(max-width:640px)').matches||event.target.tagName!=='INPUT'||['date','number','checkbox','radio'].includes(event.target.type))return;
    const next=fields.slice(fields.indexOf(event.target)+1).find(field=>!field.disabled&&field.getClientRects().length);
    if(next){event.preventDefault();next.focus();}
   });
