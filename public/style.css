@@ -694,3 +694,6 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .product-breadcrumbs{margin-bottom:24px;font-size:13px;line-height:1.6}.product-breadcrumbs .product-page-back{display:inline;margin:0}
 
 .catalog-page main>.seo-discovery,.occasion-page main>.seo-discovery{display:block!important}.catalog-page #utvalg>.section-head h1{font-size:52px;line-height:1.12;letter-spacing:-2px;margin:0 0 24px}@media(max-width:640px){.catalog-page #utvalg>.section-head h1{font-size:29px;line-height:1.2;letter-spacing:-1px;margin:0}}
+
+/* Keep occasion-card proportions responsive, even with cached intrinsic image dimensions. */
+.use-case-grid img{height:auto;}
