@@ -65,7 +65,7 @@ function syncRentalPricing(){
  const k=el('productKind').value,mode=el('objectRentalPricingMode'),service=el('objectIsService').checked||k==='wall';
  mode.querySelector('[value=retail]').disabled=k==='package'||service;
  mode.querySelector('[value=components]').disabled=k!=='package';
- mode.querySelector('[value=period]').disabled=k!=='addon'||!service;
+ mode.querySelector('[value=period]').disabled=!service||['package','module','wall'].includes(k);
  el('objectPriceLabel').textContent=mode.value==='period'?'Pris per påbegynte 30 dager inkl. mva. (kr)':'Døgnpris inkl. mva. (kr)';
  if(mode.selectedOptions[0]?.disabled)mode.value='manual';
  const p=formProduct(),rates=rentalRateSets(p,products.map(item=>Object.hasOwn(componentPriceDrafts,item.id)?{...item,purchaseUnitPrice:componentPriceDrafts[item.id]}:item)),auto=['retail','components'].includes(mode.value);
