@@ -50,6 +50,8 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  for(const [id,mode] of Object.entries(choices))if(mode==='try')facts.push(['Leie med kjøpsmulighet',products.find(x=>x.id===id)?.name+' – kjøpspris avtales separat']);
  // Preserve optional textile/colour wishes, never prices or arbitrary HTML.
  for(const [id,link] of Object.entries(input.cartLinks||{}))if(input.basket[id]&&Array.isArray(link?.choices)){
+  // Decor is already a priced product line; its standard stylist text is not a customer wish.
+  if(/^dekorpakke\b/i.test(products.find(p=>p.id===id)?.name||''))continue;
   const wishes=link.choices.slice(0,30).filter(c=>Number.isInteger(c.quantity)&&c.quantity>0&&c.quantity<=input.basket[id]&&typeof c.color==='string'&&c.color.length<=150&&(!c.duvets||typeof c.duvets==='string'&&c.duvets.length<=150)).map(c=>c.quantity+' sett: '+c.color+(c.duvets?' · '+c.duvets:''));
   if(wishes.length)facts.push(['Ønsker til '+products.find(p=>p.id===id).name,wishes.join('; ')]);
  }
