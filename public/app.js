@@ -1,5 +1,5 @@
 import {rentalModuleRequirementError} from './sofa-layout.js?v=joinedsofa1';
-import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receipt20261023';
+import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receipt20261023b';
 import {decorExamples} from './decor-examples.js?v=realdecor20261022';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=fixeddecor20261022';
