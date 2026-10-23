@@ -77,3 +77,9 @@ test('migrated media-library images are embedded in both rental and purchase rec
   assert.equal(store.rows.get(input.id).snapshot.lines[0].image,image);
  }
 });
+test('email highlights Norwegian rental dates and keeps each linked add-on directly after its product in both variants',()=>{
+ const request={id:'test-reference',kind:'rental',name:'Emilie Eksempel',email:'customer@example.invalid',facts:[['Ønsket leieperiode','2026-11-01 til 2026-12-02']],lines:[{id:'decor',name:'Dekorpakke',quantity:1,basis:'250 kr / påbegynte 30 dager',total:500,addonFor:[{id:'table',name:'Sofabord'}]},{id:'table',name:'Sofabord',quantity:1,basis:'Leie',total:1000},{id:'chair',name:'Lenestol',quantity:1,basis:'Leie',total:600}],delivery:{label:'Hentes',total:0},total:2100};
+ for(const audience of ['customer','internal']){const mail=enquiryEmail(request,audience);assert.match(mail.text,/01\.11\.2026 – 02\.12\.2026/);assert.ok(mail.html.indexOf('ØNSKET LEIEPERIODE')<mail.html.indexOf('Dette har du sendt inn'));const productLines=mail.text.split('\n').filter(l=>l.includes(' × '));assert.match(productLines[0],/Sofabord/);assert.match(productLines[1],/Tilvalg til Sofabord.*Dekorpakke/);assert.match(productLines[2],/Lenestol/);assert.equal((mail.html.match(/01\.11\.2026 – 02\.12\.2026/g)||[]).length,1);}
+ const linked=[{...products[0],relatedAddOns:['decor']},{...products[0],id:'table',name:'Bord',relatedAddOns:['decor']},{id:'decor',name:'Dekorpakke',active:true,isService:true,rentalPricingMode:'period',price:250,stock:0}];
+ const input={...sample(),basket:{chair:1,table:1,decor:1},cartLinks:{decor:{parentId:'table'}}};const snap=createEnquirySnapshot(validateSubmission(input,linked),input,linked);assert.deepEqual(snap.lines.find(l=>l.id==='decor').addonFor,[{id:'table',name:'Bord'}]);
+});
