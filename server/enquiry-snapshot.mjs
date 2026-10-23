@@ -1,3 +1,4 @@
+import {withPackageAddons} from '../public/package-addon-model.js';
 import {rentalEstimate,normalizeBasket,planText} from '../public/catalog-model.js';
 import {rentalRateSets,scopeForOccasion} from '../public/rental-pricing-model.js';
 import {saleEstimate,saleModuleError} from '../public/sales-model.js';
@@ -15,6 +16,7 @@ export function requestDetails(input){
  return {phone:text('phone',40),company:text('company',150),address:text('address',300),comment:text('notes',3000),occasion:text('occasion',100),delivery:text('delivery',100),start:date(d.start,'fra-dato'),end:date(d.end,'til-dato'),customText:text('customRequest',3000),stylingNotes:text('stylingNotes',2000),stylist:d.stylist==='yes',discountCode:text('discountCode',40),deliveryToken:text('deliveryToken',6000)};
 }
 export function createEnquirySnapshot(value,input,products,{codes=[],verifyDelivery=()=>null}={}){
+ products=withPackageAddons(products);
  const d=requestDetails(input),rental=value.kind==='rental',choices=input.businessChoices||{};
  if(!d.phone||!/[0-9]/.test(d.phone))fail('Oppgi telefonnummer.');
  if(!/^.{3,},?\s+[0-9]{4}\b[\s,]+\S.{1,}$/u.test(d.address))fail('Oppgi gateadresse, postnummer og poststed.');
