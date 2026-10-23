@@ -63,3 +63,17 @@ test('contact, complete address and relevant dates are required for delivery and
  const receipt=createEnquirySnapshot(validateSubmission(purchase,products),{...purchase,details:{...purchase.details,deliveryDate:'2026-11-06'}},products);assert.ok(receipt.facts.some(([key,text])=>key==='Leveringstid'&&text.includes('2–3 uker')));assert.ok(!receipt.facts.some(([key])=>key==='Ønsket leveringsdato'));assert.doesNotMatch(enquiryEmail(receipt).text,/2026-11-06|Ønsket leveringsdato/);
  const custom={...input,basket:{},customRequest:true,details:{...input.details,start:'',end:'',delivery:'Avklares senere',customRequest:'Et rom med stoler'}};assert.throws(()=>createEnquirySnapshot(validateSubmission(custom,products),custom,products),/leieperiode/);
 });
+
+test('migrated media-library images are embedded in both rental and purchase receipts without external image requests',async()=>{
+ const {readFile}=await import('node:fs/promises');const image='/media/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',body=await readFile(new URL('../public/assets/heritage-sofabord-produkt.jpg',import.meta.url));
+ for(const kind of ['rental','purchase']){
+  const store=memory(),messages=[],lookups=[];store.media=async id=>{lookups.push(id);return {body,mime:'image/jpeg'};};
+  const sender=createSubmissionSender(env,store,async m=>{messages.push(m);return {accepted:[m.to]};});
+  const input={...sample(),kind,image:'https://untrusted.invalid/ignore.jpg',details:{...sample().details,delivery:kind==='rental'?'Henter og returnerer selv':'Henter selv etter avtale'}};
+  await sender.submit(input,products.map(p=>({...p,image})),'client');await settle(store);
+  assert.equal(messages.length,2);assert.ok(store.jobs.every(j=>j.status==='sent'));
+  assert.deepEqual(lookups,['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']);
+  for(const message of messages){const attachment=message.attachments.find(a=>a.cid==='product-0@konseptuell.no');assert.ok(attachment);assert.equal(attachment.contentType,'image/jpeg');assert.ok(attachment.content.length<20000);assert.match(message.html,/src="cid:product-0@konseptuell.no"/);assert.doesNotMatch(message.html,/untrusted.invalid/);assert.equal(message.disableUrlAccess,true);}
+  assert.equal(store.rows.get(input.id).snapshot.lines[0].image,image);
+ }
+});
