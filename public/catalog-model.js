@@ -9,6 +9,7 @@ export function rentalEstimate(basket,products,start,end){const days=rentalDays(
 export function ratePlan(product,days,products=[],seen=new Set()){
  if(!Number.isInteger(days)||days<1)return null;
  if(product.isPackage&&product.rentalPricingMode==='components'&&products.length){if(seen.has(product.id))return null;const next=new Set(seen).add(product.id),plans=(product.components||[]).map(c=>{const p=products.find(x=>x.id===c.id);return {quantity:c.quantity,plan:p&&!p.priceOnRequest?ratePlan(p,days,products,next):null};});if(!plans.length||plans.some(x=>!x.plan))return null;return {total:Math.round(plans.reduce((sum,x)=>sum+x.quantity*x.plan.total,0)*100)/100,coveredDays:days,saving:plans.reduce((sum,x)=>sum+x.quantity*x.plan.saving,0),breakdown:[{count:1,days,price:plans.reduce((sum,x)=>sum+x.quantity*x.plan.total,0),label:'samlet pakkeinnhold'}]};}
+ if(product.rentalPricingMode==='fixed')return {total:product.price,coveredDays:days,saving:0,breakdown:[{count:1,days,price:product.price,label:'fastpris for sesongen'}]};
  if(product.rentalPricingMode==='period'){const count=Math.ceil(days/30);return {total:Math.round(product.price*count*100)/100,coveredDays:count*30,saving:0,breakdown:[{count,days:30,price:product.price,label:'periode inntil 30 dager'}]};}
  const rates=[{days:1,price:product.price,label:'døgn'},{days:7,price:product.weekPrice??product.price*5,label:'uke'},{days:30,price:product.monthPrice??product.price*15,label:'måned'}];
  const cost=new Float64Array(days+1),coverage=new Int32Array(days+1),choice=new Uint8Array(days+1);

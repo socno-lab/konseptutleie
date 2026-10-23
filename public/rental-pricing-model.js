@@ -15,7 +15,7 @@ export function retailRentalRates(reference, scope = 'standard') {
 }
 export function resolvedRentalRates(p, products = [], scope = 'standard') {
   const mode = rentalPricingMode(p);
-  if (mode === 'period') return {price:p.price,weekPrice:p.price,monthPrice:p.price,priceOnRequest:!!p.priceOnRequest};
+  if (mode === 'period' || mode === 'fixed') return {price:p.price,weekPrice:p.price,monthPrice:p.price,priceOnRequest:!!p.priceOnRequest};
   if (mode === 'retail') return retailRentalRates(p.purchaseUnitPrice, scope);
   if (mode === 'components') {
     const parts = (p.components || []).map(c => ({quantity: c.quantity, product: products.find(x => x.id === c.id && !x.isPackage && !x.deletedAt)}));

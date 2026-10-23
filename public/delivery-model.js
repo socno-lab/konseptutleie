@@ -2,7 +2,7 @@ import {getSiteSettings} from './site-settings.js';
 export const deliveryRates=new Proxy({normalSingle:690,extendedSingle:890,normalTwo:1190,extendedTwo:1390,normalMinutes:30,maxMinutes:40,vatIncluded:true},{get:(target,key)=>key==='vatIncluded'?true:getSiteSettings().delivery[key]??target[key]});
 export function requiresTwoPeople(basket,products){
  const byId=new Map(products.map(p=>[p.id,p])),seen=new Set();
- const sofa=id=>{if(seen.has(id))return false;seen.add(id);const p=byId.get(id);if(!p)return false;
+ const sofa=id=>{if(seen.has(id))return false;seen.add(id);const p=byId.get(id);if(!p||p.deliveryIncluded)return false;
   if(p.type==='sofa'||/sofa/i.test(p.category||'')||/\bsofa(?:er|en)?\b|modulsofa|sjeselong/iu.test(p.name||'')||(p.moduleSeries&&['base','left','right','end','middle','chaise'].includes(p.moduleRole)))return true;
   return (p.components||[]).some(c=>c.quantity>0&&sofa(c.id));
  };
@@ -23,6 +23,7 @@ export function rentalDeliveryCapacity(basket,products,customRequest=false){
   if(!quantity)return;
   if(!Number.isSafeInteger(quantity)||quantity<0||path.has(id)||path.size>30||++steps>10000){unknown=true;return;}
   const p=byId.get(id);if(!p){unknown=true;return;}
+  if(p.deliveryIncluded)return;
   if(p.isPackage){
    if(!Array.isArray(p.components)||!p.components.length){unknown=true;return;}
    const next=new Set(path);next.add(id);for(const c of p.components)add(c.id,quantity*c.quantity,next);return;
@@ -34,5 +35,6 @@ export function rentalDeliveryCapacity(basket,products,customRequest=false){
  };
  for(const [id,quantity] of Object.entries(basket||{}))add(id,quantity);
  const hasSofa=sofas>0||modules>0,manual=customRequest||unknown||sofas>rentalDeliveryLimits.sofas||modules>rentalDeliveryLimits.modules||(sofas>0&&modules>0)||other>(hasSofa?rentalDeliveryLimits.otherWithSofa:rentalDeliveryLimits.withoutSofa);
- return {manual,sofas,modules,other,reason:customRequest?'custom':unknown?'unknown':manual?'capacity':null};
+ const includedOnly=!customRequest&&Object.keys(basket||{}).length>0&&Object.keys(basket).every(id=>byId.get(id)?.deliveryIncluded===true);
+ return {manual,sofas,modules,other,includedOnly,reason:customRequest?'custom':unknown?'unknown':manual?'capacity':null};
 }

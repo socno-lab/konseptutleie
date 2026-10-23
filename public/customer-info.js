@@ -3,7 +3,7 @@ import {mountStorageNotice} from './storage-notice.js?v=security20261022';
 mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js';
 try{const response=await fetch('/api/site-settings',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(response.ok)configureSiteSettings((await response.json()).settings);}catch{}
-import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=cartalign20261022';
+import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=christmas20261023c';
 // Shared customer information for purchase, rental and information pages.
 export const rentalTermsVersion='2026-10-22-leie-9-'+[...JSON.stringify(getSiteSettings().delivery)].reduce((h,c)=>((h*31+c.charCodeAt(0))>>>0),0).toString(36);
 export const termsVersion='2026-10-22-2';
@@ -84,6 +84,7 @@ var deliveryQuote=null,deliverySelection={basket:{},products:[]};
 export function rentalDeliveryReceipt(){return deliveryQuote?.receipt||'';}
 export function rentalDeliveryExport(){
  if(document.querySelector('#requestForm [name="delivery"]:checked')?.value==='Henter og returnerer selv')return ['Frakt: 0 kr – egen henting og retur på Segelckes vei 15, 2010 Strømmen.'];
+ if(deliveryQuote?.included)return ['Levering og henting inkludert i fastprisen.'];
  if(!deliveryQuote||deliveryQuote.manual)return ['Frakt: Avklares i tilbudet.'];
  return [`Veiledende frakt inkl. mva.: ${deliveryQuote.total} kr. Endelig frakt bekreftes i tilbudet.`];
 }
@@ -108,6 +109,8 @@ function mountRentalDelivery(form){
   if(editingContact()){deferredDelivery=true;return;}
   deferredDelivery=false;
   const load=capacity();
+  let includedNote=group.querySelector('.rental-included-note');if(!includedNote){includedNote=document.createElement('p');includedNote.className='hint rental-included-note';group.querySelector('legend').after(includedNote);}includedNote.textContent=Object.keys(deliverySelection?.basket||{}).some(id=>deliverySelection.products.find(p=>p.id===id)?.deliveryIncluded)&&!load.includedOnly?'Juletreet leveres og hentes som del av fastprisen. Transportvalget og eventuell fraktpris nedenfor gjelder bare øvrige produkter.':'';includedNote.hidden=!includedNote.textContent;
+  if(load.includedOnly){for(const radio of group.querySelectorAll('[name=delivery]')){radio.checked=radio.value==='Ønsker levering og henting';radio.closest('label').hidden=!radio.checked;radio.closest('label').style.display=radio.checked?'':'none';}group.querySelector('[data-delivery-price="1"]').textContent='Inkludert';deliveryQuote={manual:false,total:0,included:true};addressNotice.hidden=true;result.textContent='Levering, oppsett, nedpakking og henting av juletreet er inkludert i fastprisen.';return;}
   if(load.manual&&!wasLocked)previousChoice=selected()[0];
   for(const radio of group.querySelectorAll('[name="delivery"]')){
    if(load.manual)radio.checked=radio.value==='Avklares senere';
@@ -129,12 +132,12 @@ function mountRentalDelivery(form){
   clearTimeout(timer);
   if(editingContact()){deferredDelivery=true;return;}const key=addressKey();if(offer?.key!==key)offer=null;
   if(pendingKey&&pendingKey!==key){revision++;controller?.abort();pendingKey='';}
-  if(capacity().manual||!Object.keys(deliverySelection?.basket||{}).length){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
+  if(capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
   render();if(!enabled||!ready()||!dialog?.open||Date.now()<retryAfter||(offer?.key===key&&offer.until>Date.now())||pendingKey===key)return;
   result.textContent='Beregner transportpris …';timer=setTimeout(calculate,1800);
  };
  async function calculate(){
-  if(!enabled||!ready()||!dialog?.open||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length||Date.now()<retryAfter)return;const key=addressKey(),current=++revision;pendingKey=key;controller=new AbortController();render();
+  if(!enabled||!ready()||!dialog?.open||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length||Date.now()<retryAfter)return;const key=addressKey(),current=++revision;pendingKey=key;controller=new AbortController();render();
   try{const response=await fetch('/api/delivery-estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:completeAddress(form),visits:1,basket:deliverySelection.basket,customRequest:deliverySelection.customRequest===true}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(12000)])});const quote=await response.json();if(current!==revision)return;if(!response.ok){retryAfter=Date.now()+(response.status===429?60000:30000);throw Error(quote.error||'Transportpris avklares i tilbudet.');}
    if(!quote.manual&&(!Number.isFinite(quote.prices?.onePerson)||!Number.isFinite(quote.prices?.twoPeople)))throw Error('Transportpris avklares i tilbudet.');
    offer={key,until:Date.now()+300000,manual:quote.manual,prices:quote.prices,receipt:quote.receipt};pendingKey='';render();
