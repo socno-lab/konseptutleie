@@ -697,3 +697,13 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 
 /* Keep occasion-card proportions responsive, even with cached intrinsic image dimensions. */
 .use-case-grid img{height:auto;}
+
+/* Preserve catalogue framing after supplier images move to our media library.
+   Exact source selectors only; homepage cards and product geometry are unchanged. */
+#products .product-art img[src="/media/73c49cd2b92a987fb22ae340307580c7"]{--catalog-scale:1.4458;--catalog-x:-0.301%;--catalog-y:-27.350%}
+#saleProducts .sale-photo img[src="/media/73c49cd2b92a987fb22ae340307580c7"]{--catalog-scale:1.2048;--catalog-x:-0.301%;--catalog-y:-22.792%}
+#saleProducts .sale-photo img[src="/media/bd0130d8268a56eb9fbca74e2571cc01"]{--catalog-scale:1.1746;--catalog-x:0.210%;--catalog-y:-20.259%}
+#saleProducts .sale-photo img[src="/media/571abdf637bd24f157229dfaeebf1430"]{--catalog-scale:1.4165;--catalog-x:-0.506%;--catalog-y:-20.235%}
+#saleProducts .sale-photo img[src="/media/d507f13aa9185accd4ea2796c75ca4fc"]{--catalog-scale:1.4249;--catalog-x:-0.254%;--catalog-y:-20.851%}
+#saleProducts .sale-photo img[src="/media/1290c93f890f17594320207b2c470a0a"]{--catalog-scale:1.4082;--catalog-x:-0.251%;--catalog-y:-20.117%}
+#saleProducts .sale-photo img[src="/media/f9a3d213b98b4ba70a9c1f43e791a8b6"]{--catalog-scale:1.4165;--catalog-x:-0.506%;--catalog-y:-20.482%}
