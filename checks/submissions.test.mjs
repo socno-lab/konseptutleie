@@ -11,7 +11,7 @@ function memory(){const rows=new Map(),jobs=[];return {enabled:true,rows,jobs,as
 async function settle(store){for(let i=0;i<100&&store.jobs.some(j=>['pending','sending'].includes(j.status)&&j.next<=Date.now());i++)await new Promise(r=>setTimeout(r,5));}
 test('one registered snapshot sends distinct HTML + text customer and internal messages exactly once on repeat',async()=>{
  const messages=[],store=memory(),sender=createSubmissionSender(env,store,async message=>{messages.push(message);return {accepted:[message.to]};});const value=sample();
- await sender.submit(value,products,'client');await settle(store);await sender.submit(value,products,'client');await sender.flush();
+ const first=await sender.submit(value,products,'client');await settle(store);const repeat=await sender.submit(value,products,'client');await sender.flush();assert.deepEqual(first.receipt,repeat.receipt);assert.deepEqual(first.receipt.lines,store.rows.get(value.id).snapshot.lines);assert.equal(first.receipt.total,200);assert.equal(first.receipt.terms,undefined);
  assert.equal(messages.length,2);const internal=messages.find(m=>m.to==='post@konseptuell.no'),customer=messages.find(m=>m.to===value.email);
  assert.equal(customer.from.address,'post@konseptuell.no');assert.equal(customer.replyTo.address,'post@konseptuell.no');assert.equal(internal.replyTo.address,value.email);assert.notEqual(customer.messageId,internal.messageId);
  for(const m of messages){assert.match(m.text,/200 kr/);assert.match(m.text,new RegExp(value.id));assert.ok(m.attachments[0].content.length>100);assert.match(m.html,/&lt;script&gt;/);assert.doesNotMatch(m.html,/<script>/);assert.equal(m.disableUrlAccess,true);}
