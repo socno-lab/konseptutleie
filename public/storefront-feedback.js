@@ -1,4 +1,4 @@
-import './customer-info.js?v=mobile-form-20261023';
+import './customer-info.js?v=mobile-form-20261023b';
 import './dialog-scroll-lock.js?v=dialoglock1';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');

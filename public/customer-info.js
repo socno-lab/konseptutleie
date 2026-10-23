@@ -1,3 +1,4 @@
+import {mountMobileRentalDates} from './mobile-rental-dates.js?v=20261023';
 import {mountStorageNotice} from './storage-notice.js?v=security20261022';
 mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js';
@@ -150,10 +151,5 @@ if(rentalForm||saleForm){
    if(next){event.preventDefault();next.focus();}
   });
  }
- const start=rentalForm?.querySelector('#start'),end=rentalForm?.querySelector('#end');
- start?.addEventListener('change',()=>{
-  if(!matchMedia('(max-width:640px)').matches||!start.value||!start.validity.valid||end.disabled)return;
-  end.min=start.value;end.setCustomValidity('');end.focus({preventScroll:true});
-  try{end.showPicker?.();}catch{/* iOS may require another tap to open the native picker. */}
- });
+ if(rentalForm)mountMobileRentalDates(rentalForm);
 }
