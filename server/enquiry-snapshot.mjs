@@ -41,6 +41,13 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const lines=(rental?quote.lines.map(l=>{const p=priced.find(x=>x.id===l.id);return {id:l.id,name:l.name,quantity:l.quantity,basis:l.plan?new Intl.NumberFormat('nb-NO').format(l.plan.total)+' kr per stk. · '+planText(l.plan):'Leie · pris avklares',total:l.plan?Math.round(l.plan.total*l.quantity*100)/100:null,contents:p.isPackage?(p.components||[]).map(c=>c.quantity+' × '+(products.find(x=>x.id===c.id)?.name||'Produkt')):[]};}):quote.lines.map(l=>({...l,basis:l.unitPrice===null?'Kjøp · pris avklares':new Intl.NumberFormat('nb-NO').format(l.unitPrice)+' kr per stk.'}))).map(l=>({...l,...(rental&&quoteOnly?{total:null,basis:'Tilpasset innhold · pris avklares'}:{})}));
  for(const [id,q] of Object.entries(buy)){const p=products.find(x=>x.id===id),unit=resolvedPackagePurchasePrice(p,products);lines.push({id,name:p.name,quantity:q,basis:'Kjøpsønske · fast pakkeinnhold',total:unit===null?null:Math.round(unit*q*100)/100,contents:(p.components||[]).map(c=>c.quantity+' × '+products.find(x=>x.id===c.id)?.name)});}
  if(value.customRequest){if(!d.customText)fail('Beskriv den tilpassede forespørselen.');lines.push({id:'custom',name:'Tilpasset forespørsel',quantity:1,basis:d.customText,total:null});}
+ // Store only catalog-verified relationships; prices and quantities stay unchanged.
+ for(const line of lines){
+  const linked=input.cartLinks?.[line.id]?.parentId;
+  const eligible=lines.filter(parent=>parent.id!==line.id&&products.find(p=>p.id===parent.id)?.relatedAddOns?.includes(line.id));
+  const parents=eligible.some(p=>p.id===linked)?eligible.filter(p=>p.id===linked):eligible;
+  if(parents.length)line.addonFor=parents.map(p=>({id:p.id,name:p.name}));
+ }
  const facts=[];
  if(!rental&&input.purchaseSofas!==undefined){const setups=input.purchaseSofas;if(!Array.isArray(setups)||setups.length>50||setups.some(s=>!validSaleSetup(s,products))||new Set(setups.map(s=>s.id)).size!==setups.length)fail('Kontroller sofaoppsettene.');if(Object.entries(saleSetupBasket(setups)).some(([id,q])=>q>(input.basket[id]||0)))fail('Kontroller modulene i handlekurven.');for(const [i,s] of setups.entries())facts.push(['Sofa '+(i+1)+' · '+s.series,Object.entries(s.selection).map(([id,q])=>q+' × '+products.find(p=>p.id===id).name).join(' · ')]);}
  if(rental&&d.start&&d.end)facts.push(['Ønsket leieperiode',d.start+' til '+d.end]);
