@@ -20,7 +20,7 @@ for(const form of document.querySelectorAll('#requestForm, #saleRequestForm')){
 }
 
 // The server has persisted the enquiry before this screen replaces the form.
-export function showEnquiryConfirmation({reference,kind,email}){
+export function showEnquiryConfirmation({reference,kind,email,receipt}){
  const main=document.createElement('main');
  main.style.cssText='max-width:720px;margin:clamp(24px,8vw,80px) auto;padding:24px;box-sizing:border-box;overflow-wrap:anywhere';
  const logo=document.createElement('a');logo.href='/';logo.textContent='KONSEPTUELL';logo.style.cssText='font-family:Georgia,serif;font-size:28px;color:inherit;text-decoration:none';main.append(logo);
@@ -30,6 +30,7 @@ export function showEnquiryConfirmation({reference,kind,email}){
  add('Din '+(kind==='purchase'?'kjøpsforespørsel':'leieforespørsel')+' er sendt inn og registrert.');
  add('Referanse: '+reference);
  const info=document.createElement('div');info.style.cssText='background:#ecefe5;padding:20px;margin:24px 0;line-height:1.7';info.textContent='En kopi av forespørselen sendes til '+email+'. Sjekk gjerne søppelpost hvis du ikke finner e-posten.';main.append(info);
+ if(receipt)main.append(enquiryReceipt(receipt));
  const next=document.createElement('h2');next.textContent='Hva skjer videre?';main.append(next);
  add('Vi sjekker tilgjengelighet og kommer tilbake med en avklaring. Når vi har avklart at vi kan levere, sender vi en egen bekreftelse med leveringsinformasjon og betalingslenke til Vipps.');
  add('Forespørselen er uforpliktende. Varene og leveringstidspunktet er foreløpig ikke bekreftet. Du skal ikke betale noe nå.');
@@ -38,4 +39,25 @@ export function showEnquiryConfirmation({reference,kind,email}){
  document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close());
  document.body.style.cssText='margin:0;overflow:auto;position:static;width:auto;height:auto';document.documentElement.style.overflow='auto';
  document.body.className='enquiry-confirmation-page';document.body.replaceChildren(main);document.title='Forespørsel mottatt · Konseptuell';heading.tabIndex=-1;heading.focus();window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));
+}
+
+// Render only the server-confirmed snapshot, using textContent for customer content.
+export function enquiryReceipt(receipt){
+ const section=document.createElement('section');section.style.cssText='margin:28px 0;min-width:0';
+ const node=(tag,text,parent=section)=>{const el=document.createElement(tag);el.textContent=text;parent.append(el);return el;};
+ const money=n=>new Intl.NumberFormat('nb-NO',{maximumFractionDigits:2}).format(n)+' kr';
+ node('h2','Dette har du sendt inn');
+ const period=receipt.facts?.find(([label])=>label==='Ønsket leieperiode')?.[1];
+ if(period){const box=node('div','');box.style.cssText='background:#ecefe5;padding:16px;margin:16px 0;border-left:3px solid #414b38';node('small','ØNSKET LEIEPERIODE',box);node('strong',period.replace(/(\d{4})-(\d{2})-(\d{2})/g,'$3.$2.$1').replace(/ til /g,' – '),box).style.cssText='display:block;margin-top:6px';}
+ const remaining=[...(receipt.lines||[])],ordered=[];
+ while(remaining.length){const ready=l=>!l.addonFor?.some(parent=>remaining.some(p=>p.id===parent.id));let index=remaining.findIndex(l=>l.addonFor?.length&&ready(l));if(index<0)index=remaining.findIndex(ready);ordered.push(...remaining.splice(index<0?0:index,1));}
+ for(const line of ordered){const row=node('div','');row.style.cssText='display:flex;gap:14px;padding:16px 0;border-bottom:1px solid #d9dbcf;align-items:flex-start;min-width:0';if(line.addonFor?.length)row.style.background='#ecefe5';
+ if(typeof line.image==='string'&&/^\/(assets|media)\//.test(line.image)&&!line.image.includes('..')){const img=document.createElement('img');img.src=line.image;img.alt=line.name;img.width=56;img.height=56;img.style.cssText='width:56px;height:56px;flex-shrink:0;object-fit:contain;background:white';row.append(img);}
+ const copy=node('div','',row);copy.style.cssText='flex:1;min-width:0;overflow-wrap:anywhere';if(line.addonFor?.length)node('small','Tilvalg til '+line.addonFor.map(p=>p.name).join(' / '),copy);node('strong',line.name,copy).style.display='block';node('div',line.quantity+' stk. · '+line.basis,copy).style.cssText='font-size:13px;line-height:1.6';if(line.contents?.length)node('small',line.contents.join('; '),copy);node('div',line.total===null?'Pris på forespørsel':money(line.total),copy).style.marginTop='6px';}
+ if(receipt.discount)node('p','Rabatt ('+receipt.discount.code+'): −'+money(receipt.discount.discount));
+ if(receipt.delivery?.total!==null&&receipt.delivery?.total!==undefined)node('p','Transport: '+money(receipt.delivery.total));
+ node('strong',receipt.total===null?'Samlet pris avklares i tilbudet.':'Foreløpig total: '+money(receipt.total)).style.cssText='display:block;margin:20px 0 8px';
+ node('small',receipt.vatIncluded?'Alle priser er inkludert mva.':'Alle priser er ekskludert mva.');
+ for(const [label,value] of [...(receipt.facts||[]).filter(([label])=>label!=='Ønsket leieperiode'),['Leveringsmåte',receipt.delivery?.label],['Adresse',receipt.address],['Din kommentar',receipt.comment]])if(value){const p=node('p','');node('strong',label,p);node('span',value,p).style.cssText='display:block;white-space:pre-line;line-height:1.7';}
+ return section;
 }
