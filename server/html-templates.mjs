@@ -17,6 +17,8 @@ async function styleVersion(base){
 export async function readHtmlTemplate(name,base=root){
  if(!publicHtmlNames.includes(name))throw Error('Ukjent HTML-mal.');
  let html;try{html=await readFile(path.join(base,'server','templates',name),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;html=await readFile(path.join(base,'public',name),'utf8');}
+ // A count is unknown until the saved basket has been read and validated.
+ html=html.replace(/(<span id="(?:count|saleCount)">)0(<\/span>)/g,'$1…$2');
  // A new stylesheet must bypass the previous release's one-hour browser cache.
  html=html.replace(/(src=["']\/(?:app|shop)\.js)(?:\?[^"']*)?(["'])/g,'$1?v=mobile-form-20261023b$2');
  const version=await styleVersion(base);
