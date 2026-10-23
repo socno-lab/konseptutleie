@@ -65,14 +65,16 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  let discount=null;
  if(d.discountCode&&!quoteOnly&&Object.keys(rent).length){try{discount=discountQuote({mode:rental?'rent':'buy',code:d.discountCode,basket:rental?rent:input.basket,start:d.start,end:d.end,scope},products,codes);}catch{facts.push(['Ønsket rabattkode',d.discountCode+' – må avklares i tilbudet']);}}
  const capacity=rental?rentalDeliveryCapacity(rent,products,value.customRequest):{manual:false};
+ const included=rental&&capacity.includedOnly;
  const self=!capacity.manual&&(rental?d.delivery==='Henter og returnerer selv':d.delivery==='Henter selv etter avtale');
  const labels=rental?['Henter og returnerer selv','Ønsker levering og henting','Kun levering – jeg returnerer selv','Kun henting – jeg henter selv','Avklares senere']:['Ønsker levering','Henter selv etter avtale'];
  if(!labels.includes(d.delivery))fail('Velg levering eller henting.');
  const visits=d.delivery==='Ønsker levering og henting'?2:1;
  const receipt=rental&&!self&&!capacity.manual?verifyDelivery(d.deliveryToken,d.address,rent,value.customRequest,visits):null;
- const delivery={label:capacity.manual||d.delivery==='Avklares senere'?'Transport avklares i tilbudet':d.delivery,total:self?0:receipt?.total??null};
+ const delivery={label:included?'Levering og henting inkludert i fastprisen':capacity.manual||d.delivery==='Avklares senere'?'Transport avklares i tilbudet':d.delivery,total:included||self?0:receipt?.total??null};
  if(!self&&!capacity.manual&&d.delivery!=='Avklares senere'&&(!d.address||!/[0-9]{4}/.test(d.address)))fail('Oppgi komplett leveringsadresse med postnummer.');
- if(self)facts.push(['Henting',rental?'Segelckes vei 15, 2010 Strømmen. Tidspunkt avtales.':'Hentested og tidspunkt avtales.']);
+ if(rental&&Object.keys(rent).some(id=>products.find(p=>p.id===id)?.deliveryIncluded))facts.push(['Inkludert transport','Levering og henting av juletreet er inkludert. Eventuell transportpris gjelder øvrige produkter.']);
+ if(self&&!included)facts.push(['Henting',rental?'Segelckes vei 15, 2010 Strømmen. Tidspunkt avtales.':'Hentested og tidspunkt avtales.']);
  const hasUnpriced=lines.some(l=>l.total===null),subtotal=Math.round(lines.reduce((sum,l)=>sum+(l.total||0),0)*100)/100;
  const total=hasUnpriced||delivery.total===null?null:Math.round((subtotal-(discount?.discount||0)+delivery.total)*100)/100;
  for(const line of lines){const image=products.find(p=>p.id===line.id)?.image;if(typeof image==='string'&&/^\/(?:assets\/|media\/)/.test(image)&&!image.includes('..'))line.image=image;}
