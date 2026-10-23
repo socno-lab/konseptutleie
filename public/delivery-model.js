@@ -35,6 +35,6 @@ export function rentalDeliveryCapacity(basket,products,customRequest=false){
  };
  for(const [id,quantity] of Object.entries(basket||{}))add(id,quantity);
  const hasSofa=sofas>0||modules>0,manual=customRequest||unknown||sofas>rentalDeliveryLimits.sofas||modules>rentalDeliveryLimits.modules||(sofas>0&&modules>0)||other>(hasSofa?rentalDeliveryLimits.otherWithSofa:rentalDeliveryLimits.withoutSofa);
- const includedOnly=!customRequest&&Object.keys(basket||{}).length>0&&Object.keys(basket).every(id=>byId.get(id)?.deliveryIncluded===true);
+ const includedOnly=!customRequest&&Object.keys(basket||{}).some(id=>byId.get(id)?.deliveryIncluded===true)&&Object.keys(basket).every(id=>{const p=byId.get(id);return p?.deliveryIncluded===true||p?.isService===true&&p.offeringType!=='service';});
  return {manual,sofas,modules,other,includedOnly,reason:customRequest?'custom':unknown?'unknown':manual?'capacity':null};
 }

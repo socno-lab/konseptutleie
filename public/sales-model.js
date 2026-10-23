@@ -4,7 +4,7 @@ export const initialSaleIds=new Set(["obj_f7eabd51fbc14447b71e2b5ec81f21f5", "ob
 export function deliveryText(p){return p.deliveryNote||'Levering normalt 2–3 uker';}
 export function saleTermsForProduct(p){return 'Nytt produkt · '+deliveryText(p)+'. Endelig pris og levering bekreftes i tilbudet. Betaling ved bekreftet ordrebekreftelse.';}
 export const saleTerms='Nytt produkt · Normal leveringstid 2–3 uker. Endelig pris og levering bekreftes i tilbudet. Betaling ved bekreftet ordrebekreftelse.';
-export function saleTypeAllowed(p){return !!p&&!p.isPackage&&!p.isService&&!p.addonOnly&&!p.wallGroup&&!p.isExample&&!['Kunstige planter','Kunstige blomster','Senger'].includes(p.category);}
+export function saleTypeAllowed(p){return !!p&&p.offeringType!=='service'&&!p.isPackage&&!p.isService&&!p.addonOnly&&!p.wallGroup&&!p.isExample&&!['Kunstige planter','Kunstige blomster','Senger'].includes(p.category);}
 export function salesEnabled(p){return saleTypeAllowed(p)&&(p.saleEnabled??initialSaleIds.has(p.id))===true;}
 export function saleUnitPrice(p){const value=p?.salePrice??p?.purchaseUnitPrice;return salesEnabled(p)&&typeof value==='number'&&Number.isFinite(value)&&value>0?value:null;}
 export function cleanSaleBasket(raw,products){const out={};if(!raw||typeof raw!=='object'||Array.isArray(raw))return out;for(const p of products){const q=raw[p.id];if(p.active&&!p.deletedAt&&salesEnabled(p)&&Number.isInteger(q)&&q>0&&q<=99)out[p.id]=q;}return out;}

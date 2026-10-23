@@ -3,7 +3,7 @@ import {mountStorageNotice} from './storage-notice.js?v=security20261022';
 mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js';
 try{const response=await fetch('/api/site-settings',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(response.ok)configureSiteSettings((await response.json()).settings);}catch{}
-import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=christmas20261023c';
+import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=services20261023';
 // Shared customer information for purchase, rental and information pages.
 export const rentalTermsVersion='2026-10-22-leie-9-'+[...JSON.stringify(getSiteSettings().delivery)].reduce((h,c)=>((h*31+c.charCodeAt(0))>>>0),0).toString(36);
 export const termsVersion='2026-10-22-2';
@@ -109,8 +109,8 @@ function mountRentalDelivery(form){
   if(editingContact()){deferredDelivery=true;return;}
   deferredDelivery=false;
   const load=capacity();
-  let includedNote=group.querySelector('.rental-included-note');if(!includedNote){includedNote=document.createElement('p');includedNote.className='hint rental-included-note';group.querySelector('legend').after(includedNote);}includedNote.textContent=Object.keys(deliverySelection?.basket||{}).some(id=>deliverySelection.products.find(p=>p.id===id)?.deliveryIncluded)&&!load.includedOnly?'Juletreet leveres og hentes som del av fastprisen. Transportvalget og eventuell fraktpris nedenfor gjelder bare øvrige produkter.':'';includedNote.hidden=!includedNote.textContent;
-  if(load.includedOnly){for(const radio of group.querySelectorAll('[name=delivery]')){radio.checked=radio.value==='Ønsker levering og henting';radio.closest('label').hidden=!radio.checked;radio.closest('label').style.display=radio.checked?'':'none';}group.querySelector('[data-delivery-price="1"]').textContent='Inkludert';deliveryQuote={manual:false,total:0,included:true};addressNotice.hidden=true;result.textContent='Levering, oppsett, nedpakking og henting av juletreet er inkludert i fastprisen.';return;}
+  let includedNote=group.querySelector('.rental-included-note');if(!includedNote){includedNote=document.createElement('p');includedNote.className='hint rental-included-note';group.querySelector('legend').after(includedNote);}includedNote.textContent=Object.keys(deliverySelection?.basket||{}).some(id=>deliverySelection.products.find(p=>p.id===id)?.deliveryIncluded)&&!load.includedOnly?'Varer og tjenester merket med inkludert transport leveres og hentes uten ekstra frakt. Transportvalget og eventuell fraktpris nedenfor gjelder bare øvrige produkter.':'';includedNote.hidden=!includedNote.textContent;
+  if(load.includedOnly){for(const radio of group.querySelectorAll('[name=delivery]')){radio.checked=radio.value==='Ønsker levering og henting';radio.closest('label').hidden=!radio.checked;radio.closest('label').style.display=radio.checked?'':'none';}group.querySelector('[data-delivery-price="1"]').textContent='Inkludert';deliveryQuote={manual:false,total:0,included:true};addressNotice.hidden=true;result.textContent='Levering og henting er inkludert i prisen.';return;}
   if(load.manual&&!wasLocked)previousChoice=selected()[0];
   for(const radio of group.querySelectorAll('[name="delivery"]')){
    if(load.manual)radio.checked=radio.value==='Avklares senere';

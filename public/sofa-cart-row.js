@@ -1,4 +1,4 @@
-import {cartThumbnail} from './cart-thumbnail.js?v=compactrows20261022';
+import {cartThumbnail} from './cart-thumbnail.js?v=producticons20261023';
 import {modulePhotoPreview} from './module-photo-preview.js?v=admincontrol20261022';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function sofaCartRow({setup,index,modules,count,width,widthKnown,priceText,textile='',purchase=false}){

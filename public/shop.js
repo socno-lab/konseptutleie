@@ -4,12 +4,12 @@ import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=joinedsofa1';
 import {modulePhotoPreview} from './module-photo-preview.js?v=admincontrol20261022';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=admincontrol20261022';
-import {cartThumbnail} from './cart-thumbnail.js?v=compactrows20261022';
-import {sofaCartRow} from './sofa-cart-row.js?v=compactrows20261022';
+import {cartThumbnail} from './cart-thumbnail.js?v=producticons20261023';
+import {sofaCartRow} from './sofa-cart-row.js?v=producticons20261023';
 import {saveSaleSetup,restoreSaleSetups,saleWithoutSetups,saleSetupSummary} from './sale-sofa-model.js?v=compactrows20261022';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=christmas20261023c';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=services20261023';
 import {variantFields} from './product-variants.js?v=admincontrol20261022';
-import {salesEnabled,saleUnitPrice,saleEstimate,cleanSaleBasket,saleModuleError,saleTerms,deliveryText,saleTermsForProduct,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=admincontrol20261022';
+import {salesEnabled,saleUnitPrice,saleEstimate,cleanSaleBasket,saleModuleError,saleTerms,deliveryText,saleTermsForProduct,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=services20261023';
 import {mountDiscount} from './discount-ui.js';
 const el=id=>document.getElementById(id),html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),money=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:2}).format(n),price=p=>saleUnitPrice(p)===null?'Pris på forespørsel':money(saleUnitPrice(p));
 let products=[],basket={},catalogReady=false,category='',tableFilter='',saleSetups=[],editingSaleSofa='';
