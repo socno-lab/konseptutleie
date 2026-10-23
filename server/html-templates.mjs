@@ -20,7 +20,7 @@ export async function readHtmlTemplate(name,base=root){
  // A count is unknown until the saved basket has been read and validated.
  html=html.replace(/(<span id="(?:count|saleCount)">)0(<\/span>)/g,'$1…$2');
  // A new stylesheet must bypass the previous release's one-hour browser cache.
- html=html.replace(/(src=["']\/(?:app|shop)\.js)(?:\?[^"']*)?(["'])/g,'$1?v=christmas20261023e$2');
+ html=html.replace(/(src=["']\/(?:app|shop)\.js)(?:\?[^"']*)?(["'])/g,'$1?v=services20261023$2');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;
 }
