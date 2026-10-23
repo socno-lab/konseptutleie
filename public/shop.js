@@ -4,8 +4,8 @@ import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=joinedsofa1';
 import {modulePhotoPreview} from './module-photo-preview.js?v=admincontrol20261022';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=admincontrol20261022';
-import {cartThumbnail} from './cart-thumbnail.js?v=producticons20261023';
-import {sofaCartRow} from './sofa-cart-row.js?v=producticons20261023';
+import {cartThumbnail} from './cart-thumbnail.js?v=textileicons20261023';
+import {sofaCartRow} from './sofa-cart-row.js?v=textileicons20261023';
 import {saveSaleSetup,restoreSaleSetups,saleWithoutSetups,saleSetupSummary} from './sale-sofa-model.js?v=compactrows20261022';
 import {mountStorefrontFeedback} from './storefront-feedback.js?v=services20261023';
 import {variantFields} from './product-variants.js?v=admincontrol20261022';
