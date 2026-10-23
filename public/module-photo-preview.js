@@ -1,4 +1,4 @@
-import {photoProfiles} from './module-photo-profiles.js?v=modulephotos1';
+import {photoProfiles} from './module-photo-profiles.js?v=localimages20261023';
 import {joinedPhotoParts} from './module-joined-profiles.js?v=joinedall1';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const amount=(selection,id)=>Math.min(99,Math.max(0,Math.floor(Number(selection[id])||0)));
@@ -18,7 +18,7 @@ export function modulePhotoParts(modules,selection){
  return parts;
 }
 function photo(part,x,y,width,height){
- const p=part.product,custom=p.builderImage?{source:p.builderImage,size:[100,100],crop:p.builderCrop||[0,0,100,100],mirror:p.builderMirror}:null,profile=custom||part.photo||photoProfiles[p.id],source=custom?.source||part.photo?.source||p.image,known=profile&&profile.source===source;
+ const p=part.product,custom=p.builderImage?{source:p.builderImage,size:[100,100],crop:p.builderCrop||[0,0,100,100],mirror:p.builderMirror}:null,profile=custom||part.photo||photoProfiles[p.id],source=custom?.source||part.photo?.source||p.image,known=profile&&(profile.source===source||profile.aliases?.includes(source));
  const size=known?profile.size:[1,1],crop=known?[...profile.crop]:[0,0,1,1];
  if(part.half&&!part.photo){const mid=(crop[0]+crop[2])/2;if(part.half==='left')crop[2]=mid;else crop[0]=mid;}
  const mirror=custom?.mirror??part.photo?.mirror??(!part.photo&&p.moduleRole==='end'&&part.role==='left');
@@ -42,7 +42,7 @@ export function modulePhotoPreview(modules,selection){
   for(const part of parts){const crop=part.role==='left'?[8,64,800,612]:part.role==='right'?[1376,64,2162,612]:[800,64,1376,612];part.photo={source:'/assets/beige-sofa-front-connected-v2.png',size:[2170,725],crop};}
  }
  const base=modules.find(p=>p.moduleRole==='base'&&amount(selection,p.id)===1),baseProfile=base&&photoProfiles[base.id];
- if(base&&baseProfile?.source===base.image&&/Senzo/i.test(base.moduleSeries||'')){
+ if(base&&(baseProfile?.source===base.image||baseProfile?.aliases?.includes(base.image))&&/Senzo/i.test(base.moduleSeries||'')){
   const [x1,y1,x2,y2]=baseProfile.crop,span=x2-x1,mid=(x1+x2)/2;
   for(const part of parts){const crop=part.role==='left'?[x1,y1,mid,y2]:part.role==='right'?[mid,y1,x2,y2]:[x1+span*.2475,y1,x1+span*.63,y2];part.photo={...baseProfile,crop};}
  }
