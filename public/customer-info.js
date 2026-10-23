@@ -1,4 +1,4 @@
-import {mountMobileRentalDates} from './mobile-rental-dates.js?v=20261023';
+import {mountMobileRentalDates} from './mobile-rental-dates.js?v=20261023b';
 import {mountStorageNotice} from './storage-notice.js?v=security20261022';
 mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js';
@@ -156,3 +156,6 @@ if(rentalForm||saleForm){
 
 // Keep ordinary cart rows readable beside their fixed image field on phones.
 if(rentalForm||saleForm){const style=document.createElement('style');style.textContent='@media(max-width:640px){#cart .cart-item:not(.cart-sofa-row):not(.cart-addon){display:grid;grid-template-columns:var(--cart-image-size) minmax(0,1fr);align-items:start;column-gap:var(--cart-image-gap);row-gap:8px}#cart .cart-item:not(.cart-sofa-row):not(.cart-addon)>.thumb{grid-column:1;grid-row:1 / span 2}#cart .cart-item:not(.cart-sofa-row):not(.cart-addon)>.item-copy{grid-column:2;grid-row:1}#cart .cart-item:not(.cart-sofa-row):not(.cart-addon)>.quantity{grid-column:2;grid-row:2;justify-self:start}}';document.head.append(style);}
+
+// Package rows must allocate the same width as the shared thumbnail component.
+if(rentalForm){const style=document.createElement('style');style.textContent='#cart .package-cart-line{grid-template-columns:var(--cart-image-size) minmax(0,1fr) auto;column-gap:var(--cart-image-gap);align-items:start}#cart .package-cart-copy{min-width:0;overflow-wrap:anywhere}#cart .package-cart-line>.cart-thumbnail{grid-column:1;grid-row:1}#cart .package-cart-line>.package-cart-copy{grid-column:2;grid-row:1}#cart .package-cart-line>.quantity{grid-column:3;grid-row:1}#cart .package-cart-addon>.cart-thumbnail{display:none}#cart .package-cart-addon{grid-template-columns:minmax(0,1fr) auto}#cart .package-cart-addon>.package-cart-copy{grid-column:1}#cart .package-cart-addon>.quantity{grid-column:2}@media(max-width:640px){#cart .package-cart-line{grid-template-columns:var(--cart-image-size) minmax(0,1fr);row-gap:10px}#cart .package-cart-line>.cart-thumbnail{grid-row:1 / span 2}#cart .package-cart-line>.quantity{grid-column:2;grid-row:2;justify-self:start;margin-top:0}#cart .package-cart-addon{grid-template-columns:minmax(0,1fr)}#cart .package-cart-addon>.package-cart-copy,#cart .package-cart-addon>.quantity{grid-column:1}#cart .package-cart-copy h4{overflow-wrap:anywhere}}';document.head.append(style);}
