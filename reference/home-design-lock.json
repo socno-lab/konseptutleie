@@ -1,0 +1,23 @@
+{
+  "approved": "2026-10-23",
+  "reason": "Bruker godkjente opprinnelig overskrift og korrigert responsiv kortvisning.",
+  "mobile": {
+    "viewport": 390,
+    "columns": 2,
+    "imageAspectRatio": 1.15
+  },
+  "desktop": {
+    "viewport": 1280,
+    "columns": 3,
+    "imageAspectRatio": 1.6
+  },
+  "fingerprints": {
+    "shared-styles": "3308f308ea7da4652bbbcdb6d8dc32f99eae09cd11f603857ee35c794a5168df",
+    "commerce-styles": "86a2306765b53db23579e396aaafbe0e1632b038e7b175ca3a7b55a5bd8e1dd0",
+    "home-hero": "18edc3a545e6c0576434dd6fdb3776a5c104730c955213f4ca788490b8911044",
+    "rendered-home-hero": "18edc3a545e6c0576434dd6fdb3776a5c104730c955213f4ca788490b8911044",
+    "home-card-renderer": "093ba3fcf4ba6582337f962f65c63cca604d78c616027af4672e43e2aa5da247",
+    "rental-image-markup": "edf5df3af8320c63c4855cf864aec8aca32ab8aeff02f90abdac1c9cc0548eb9",
+    "purchase-image-markup": "964cf50cd133b6e384e21d2f5619a608ffd42b31bca2649e7b237aaef500a415"
+  }
+}
