@@ -1,4 +1,4 @@
-import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receipt20261023';
+import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receipt20261023b';
 import {configureSiteSettings,categoryLabel,getSiteSettings} from './site-settings.js';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=seo20261022';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=joinedsofa1';
