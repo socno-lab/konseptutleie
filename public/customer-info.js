@@ -153,3 +153,6 @@ if(rentalForm||saleForm){
  }
  if(rentalForm)mountMobileRentalDates(rentalForm);
 }
+
+// Keep ordinary cart rows readable beside their fixed image field on phones.
+if(rentalForm||saleForm){const style=document.createElement('style');style.textContent='@media(max-width:640px){#cart .cart-item:not(.cart-sofa-row):not(.cart-addon){display:grid;grid-template-columns:var(--cart-image-size) minmax(0,1fr);align-items:start;column-gap:var(--cart-image-gap);row-gap:8px}#cart .cart-item:not(.cart-sofa-row):not(.cart-addon)>.thumb{grid-column:1;grid-row:1 / span 2}#cart .cart-item:not(.cart-sofa-row):not(.cart-addon)>.item-copy{grid-column:2;grid-row:1}#cart .cart-item:not(.cart-sofa-row):not(.cart-addon)>.quantity{grid-column:2;grid-row:2;justify-self:start}}';document.head.append(style);}
