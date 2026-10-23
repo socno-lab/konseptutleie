@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+import {designSources,verifyDesign,assertDesignLock} from '../server/design-lock.mjs';
+const baseline=JSON.parse(await readFile(new URL('../reference/home-design-lock.json',import.meta.url),'utf8'));
+test('approved home design passes the publication guard',async()=>{await assertDesignLock();});
+test('design guard blocks the actual fixed-height image regression and style overrides',async()=>{const source=await designSources();for(const changed of [{...source,css:source.css+'\n.use-case-grid img{height:360px}'},{...source,app:source.app.replace('loading="lazy" decoding="async"','loading="lazy" decoding="async" width="480" height="360"')}])assert.throws(()=>verifyDesign(changed,baseline),/DESIGNLÅS/);});
+test('design guard blocks an unrequested hero replacement but permits metadata-only editing',async()=>{const source=await designSources();assert.throws(()=>verifyDesign({...source,home:source.home.replace('Hva skal du <em>leie til?</em>','Møbelutleie til event og messe')},baseline),/DESIGNLÅS/);assert.doesNotThrow(()=>verifyDesign({...source,home:source.home.replace(/<title>.*?<\/title>/,'<title>Oppdatert søkemotortittel</title>')},baseline));});
