@@ -1,4 +1,4 @@
-import './customer-info.js?v=range-calendar-20261023b';
+import './customer-info.js?v=compact-range-20261023';
 import './dialog-scroll-lock.js?v=dialoglock1';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');

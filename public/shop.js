@@ -7,7 +7,7 @@ import {productSubcategory,availableSubcategories,subcategoryButtons} from './ca
 import {cartThumbnail} from './cart-thumbnail.js?v=compactrows20261022';
 import {sofaCartRow} from './sofa-cart-row.js?v=compactrows20261022';
 import {saveSaleSetup,restoreSaleSetups,saleWithoutSetups,saleSetupSummary} from './sale-sofa-model.js?v=compactrows20261022';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=range-calendar-20261023b';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=compact-range-20261023';
 import {variantFields} from './product-variants.js?v=admincontrol20261022';
 import {salesEnabled,saleUnitPrice,saleEstimate,cleanSaleBasket,saleModuleError,saleTerms,deliveryText,saleTermsForProduct,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=admincontrol20261022';
 import {mountDiscount} from './discount-ui.js';
