@@ -3,14 +3,14 @@ import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receip
 import {decorExamples} from './decor-examples.js?v=realdecor20261022';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=fixeddecor20261022';
-import {rentalDeliveryExport,rentalDeliveryReceipt} from './customer-info.js?v=textile-card-20261023';
+import {rentalDeliveryExport,rentalDeliveryReceipt} from './customer-info.js?v=range-calendar-20261023b';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=seo20261022';
 import {moduleQuantityLimit} from './sofa-layout.js?v=joinedsofa1';
 import {modulePhotoPreview} from './module-photo-preview.js?v=admincontrol20261022';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=admincontrol20261022';
 import {cartThumbnail} from './cart-thumbnail.js?v=compactrows20261022';
 import {sofaCartRow} from './sofa-cart-row.js?v=compactrows20261022';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=textile-card-20261023';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=range-calendar-20261023b';
 import {rentalUsageLabels,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=usagechoice1';
 import {mountDiscount} from './discount-ui.js';
 let discount;

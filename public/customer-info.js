@@ -1,4 +1,4 @@
-import {mountMobileRentalDates} from './mobile-rental-dates.js?v=20261023b';
+import {mountMobileRentalDates} from './mobile-rental-dates.js?v=range20261023b';
 import {mountStorageNotice} from './storage-notice.js?v=security20261022';
 mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js';
