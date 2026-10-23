@@ -1,3 +1,4 @@
+const customerReceipt=s=>({lines:s.lines,facts:s.facts,delivery:s.delivery,discount:s.discount,total:s.total,vatIncluded:s.vatIncluded,address:s.address,comment:s.comment});
 import {rentalModuleRequirementError} from '../public/sofa-layout.js';
 import {salesEnabled} from '../public/sales-model.js';
 import {createEnquirySnapshot,requestDetails} from './enquiry-snapshot.mjs';
@@ -76,7 +77,7 @@ export function createSubmissionSender(env,store,sendOverride){
    const fingerprint=submissionFingerprint(input),existing=await store.readEnquiry(input.id);
    if(existing){
     if(existing.legacy||existing.fingerprint!==fingerprint)throw fail('Referansen er allerede brukt. Kontakt post@konseptuell.no før du sender på nytt.',409);
-    void flush();return {ok:true,reference:input.id};
+    void flush();return {ok:true,reference:input.id,receipt:customerReceipt(existing.snapshot)};
    }
    const value=validateSubmission(input,products);requestDetails(input);
    const codes=store.readDiscountCodes?(await store.readDiscountCodes()).codes:[];
@@ -84,7 +85,7 @@ export function createSubmissionSender(env,store,sendOverride){
    const claim=await store.reserveEnquiry(value.id,fingerprint,snapshot,client,Date.now());
    if(claim.limited)throw fail('For mange innsendinger. Vent 15 minutter eller kontakt post@konseptuell.no.',429);
    if(claim.conflict)throw fail('Denne referansen er allerede brukt av en annen forespørsel.',409);
-   void flush();return {ok:true,reference:value.id};
+   void flush();return {ok:true,reference:value.id,receipt:customerReceipt(claim.snapshot||snapshot)};
   }finally{active--;}
  },close(){transport?.close();}};
 }
