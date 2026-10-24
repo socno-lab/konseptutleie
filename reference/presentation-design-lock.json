@@ -2,12 +2,13 @@
   "approved": "2026-10-24",
   "reason": "Eier godkjente samlet uttrykk etter rettelser av kurv, tilvalg, antallsknapper, ikonsentrering, tjenestetypografi og bekreftelse, og ba uttrykkelig om en felles designstandard.",
   "fingerprints": {
-    "public/cart-addons.css": "c5d33699a97a34ebe9cef51ac39db546bbefac020b986f073df7d98216536d51",
+    "public/cart-addons.css": "28824818eeec9b25bbec2f708dc812218dba2fed36512bdc206d346ce8e61653",
     "public/service-detail.css": "3e1740045550914721641c9df29428f1609f8d56d23371fe3f3a5f613ff075bc",
     "public/cart-thumbnail.js": "deef4cb0e6d49f42b77313d8821ea8db0ea54a2707c3dbfba5ca4f6d91d3f162",
     "public/sofa-cart-row.js": "3df859a1edc9cf87a56796ae84a226a3f5d1a8f3e933ef991dd856afcc97a82c",
     "public/receipt-layout.js": "fca72df94bac853db512d1c32f7b2058c67f4e977668d07b8b8df2115f7dbe34",
     "server/enquiry-email.mjs": "d730eca7c5b3694e8ba73af7b8282bd12a1605ea297d85f22eb232ab34206ebc",
     "confirmation-rendering": "f138c6698d2402419f8209f0e00ec09d93f3c7af1744bd303b5484a968bdaa41"
-  }
+  },
+  "formFieldsReview": "2026-10-24: Uttrykkelig brukerbestilt samordning av Fra/Til dato og rabattkode med Anledning, samt 48 px felthøyde og Bruk kode-knapp. Målt desktop: 13 px / 400 og 48 px. Mobil 390 px: 16 px / 400 og 48 px for alle feltene. Kodefelt og knapp har identisk toppkant. Ingen andre beskyttede referanser endret."
 }
