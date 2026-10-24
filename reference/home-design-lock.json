@@ -17,10 +17,11 @@
     "home-hero": "e1fdb30104d58ab80dabed9e457ce0e9bd4f6b5d5466c180826bc7ae87b54a59",
     "rendered-home-hero": "e1fdb30104d58ab80dabed9e457ce0e9bd4f6b5d5466c180826bc7ae87b54a59",
     "home-card-renderer": "093ba3fcf4ba6582337f962f65c63cca604d78c616027af4672e43e2aa5da247",
-    "rental-image-markup": "edf5df3af8320c63c4855cf864aec8aca32ab8aeff02f90abdac1c9cc0548eb9",
+    "rental-image-markup": "7ee70c3b94193e7f528c7edcc7ea4f73fdb9d8fc46ecae7a892e60c06a9ced01",
     "purchase-image-markup": "964cf50cd133b6e384e21d2f5619a608ffd42b31bca2649e7b237aaef500a415"
   },
   "catalogFramingReview": "2026-10-23: Brukerbestilt retting av Jakobsdals-fargevarianter. Syv eksisterende katalogregler er kopiert til de samme bildenes lokale /media-adresser. Ingen generelle stilregler, hero, bruksområdekort eller bildemarkup endres. Senzo/Senza kontrollert i desktop- og mobilforhåndsvisning uten horisontal scrolling.",
   "addonLayoutReview": "2026-10-23: Brukerbestilt retting av tilvalg. Produktlinjens tre kolonner gjelder nå bare linjer uten cart-addon. Kontrollert tilvalg desktop og 390 px; forside 320/390/1280 med uendret 2/2/3 kolonner og uten horisontal scrolling.",
-  "introReview": "2026-10-24: Eier godkjente ny innledning: Lei møbler, interiør og dekor til bolig, bedrift og arrangementer. Velg enkeltprodukter, ferdige pakker eller få et forslag tilpasset deg. Bare teksten er endret; overskrift, stilark og bildemarkup beholdes. Kontrollert desktop 1280 px og mobil 390/320 px uten overlapp eller horisontal scrolling."
+  "introReview": "2026-10-24: Eier godkjente ny innledning: Lei møbler, interiør og dekor til bolig, bedrift og arrangementer. Velg enkeltprodukter, ferdige pakker eller få et forslag tilpasset deg. Bare teksten er endret; overskrift, stilark og bildemarkup beholdes. Kontrollert desktop 1280 px og mobil 390/320 px uten overlapp eller horisontal scrolling.",
+  "thumbnailReview": "2026-10-24: Eier rapporterte periodisk svarte produktbilder på iPhone/Safari med skjermbilde av Kid Carsten og H&M TV-bord. Kun srcset/sizes er lagt til eksisterende katalogbilder fra mediebiblioteket; opprinnelig src beholdes slik at eksakte CSS-utsnitt fortsatt gjelder. Ingen stilark eller beskjæring endret. Små JPEG-varianter 320/640 reduserer overføring og dekodet bildestørrelse, original bevares. Kontrollert 390/320 px og desktop; årsaken i fysisk iPhone er ikke bekreftet."
 }
