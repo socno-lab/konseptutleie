@@ -61,3 +61,5 @@ Modulsofa i bekreftelse: Vis oppsett, moduler, tilvalg og deres prislinjer, men 
 Mobilkort for ferdige pakker og tjenester bruker samme kortbredde, bildeforhold og typografiskala. Tjenester som «Klart til jul» skal bruke samme ready-package-card som øvrige ferdigpakker, også når tjenesten ikke har komponentprodukter. Variantpriser og innhold beholdes. Presisert av eier 24. oktober 2026.
 
 Prisgrunnlag har to valg på desktop og mobil: «Boligfoto og visning» og «Arrangementer og annen bruk». Sistnevnte har underteksten «Til selskap, messe, arbeidsplassen eller hjemmet.» Bruksområdekortene på forsiden beholdes for å finne relevant utvalg; de gir ikke egne prisnivåer. Eksisterende interne nøkler standard/messe, satser og lagrede valg beholdes. Godkjent av eier 24. oktober 2026.
+
+Juleutvalget (bruk=jul): «Klart til jul» vises først blant treffene, både på mobil og desktop, også etter vanlig pakkeprioritering. Øvrige treff beholder innbyrdes rekkefølge. Søkeord, kategori, synlighet og valgt bruksområde gjelder fortsatt; andre bruksområder påvirkes ikke. Godkjent av eier 24. oktober 2026.
