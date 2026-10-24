@@ -30,7 +30,8 @@ test('API flood is rejected before database work, forwarding headers cannot bypa
  let reads=0;const server=createServer({store:{enabled:true,readCatalog:async()=>{reads++;return {products:[]};}},requestGuard:{now:()=>0}});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
  try{for(let i=0;i<120;i++)assert.equal((await fetch(base+'/api/catalog',{headers:{'X-Forwarded-For':'10.1.1.'+i}})).status,200);
- const denied=await fetch(base+'/api/catalog');assert.equal(denied.status,429);assert.equal(denied.headers.get('retry-after'),'60');assert.equal(reads,120);
+ const beforeDenied=reads;assert.ok(beforeDenied>0&&beforeDenied<=120);
+ const denied=await fetch(base+'/api/catalog');assert.equal(denied.status,429);assert.equal(denied.headers.get('retry-after'),'60');assert.equal(reads,beforeDenied,'rate-limited requests must not reach storage, including with catalog caching');
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
 test('Empty baskets and invalid JSON never reach paid Google routing',async()=>{
