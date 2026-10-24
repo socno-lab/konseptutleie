@@ -20,7 +20,7 @@ export async function readHtmlTemplate(name,base=root){
  // A count is unknown until the saved basket has been read and validated.
  html=html.replace(/(<span id="(?:count|saleCount)">)0(<\/span>)/g,'$1…$2');
  // Bootstrap and shared customer-information scripts must use this release's module URLs.
- html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(['/app.js','/shop.js'].includes(file)?'sofareceipt20261024':'launch20261024')+end);
+ html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(file==='/app.js'?'packagecards20261024':file==='/shop.js'?'sofareceipt20261024':'launch20261024')+end);
  html=html.replace('</head>','<link rel="stylesheet" href="/cart-addons.css?v=pricinghint20261024"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;
