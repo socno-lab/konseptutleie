@@ -10,7 +10,7 @@ import {receiptEntries} from './receipt-layout.js?v=sofareceipt20261024';
 import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js?v=launch20261024';
 import {isServiceOffering,serviceVariants,groupedServiceCards} from './service-model.js?v=launch20261024';
 import {rentalModuleRequirementError} from './sofa-layout.js?v=launch20261024';
-import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=sofareceipt20261024';
+import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=serviceinfo20261024';
 import {decorExamples} from './decor-examples.js?v=launch20261024';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=launch20261024';
