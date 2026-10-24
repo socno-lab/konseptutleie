@@ -19,8 +19,8 @@ export async function readHtmlTemplate(name,base=root){
  let html;try{html=await readFile(path.join(base,'server','templates',name),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;html=await readFile(path.join(base,'public',name),'utf8');}
  // A count is unknown until the saved basket has been read and validated.
  html=html.replace(/(<span id="(?:count|saleCount)">)0(<\/span>)/g,'$1…$2');
- // A new stylesheet must bypass the previous release's one-hour browser cache.
- html=html.replace(/(src=["']\/(?:app|shop)\.js)(?:\?[^"']*)?(["'])/g,'$1?v=pricinghint20261024$2');
+ // Bootstrap and shared customer-information scripts must use this release's module URLs.
+ html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v=launch20261024'+end);
  html=html.replace('</head>','<link rel="stylesheet" href="/cart-addons.css?v=pricinghint20261024"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;

@@ -1,6 +1,6 @@
-const customerReceipt=s=>({lines:s.lines,facts:s.facts,delivery:s.delivery,discount:s.discount,total:s.total,vatIncluded:s.vatIncluded,address:s.address,comment:s.comment});
-import {rentalModuleRequirementError} from '../public/sofa-layout.js';
+const customerReceipt=s=>({acquisition:s.acquisition,lines:s.lines,facts:s.facts,delivery:s.delivery,discount:s.discount,total:s.total,vatIncluded:s.vatIncluded,address:s.address,comment:s.comment});
 import {salesEnabled} from '../public/sales-model.js';
+import {validateEnquiryTerms} from '../public/terms-versions.js';
 import {createEnquirySnapshot,requestDetails} from './enquiry-snapshot.mjs';
 import {enquiryEmail} from './enquiry-email.mjs';
 import {readFile} from 'node:fs/promises';
@@ -17,13 +17,12 @@ export function validateSubmission(input,products){
  const clean=(key,max,required=false)=>{const v=input[key]??'';if(typeof v!=='string'||v.length>max||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(v)||(required&&!v.trim()))throw fail('Kontroller '+key+' i skjemaet.');return v.trim();};
  const name=clean('name',100,true),email=clean('email',200,true),terms=clean('terms',100,true);clean('text',60000);
  if(/[\r\n]/.test(name+email+terms)||! /^[^\s<>@,;:]+@[^\s<>@,;:]+\.[^\s<>@,;:]+$/.test(email))throw fail('Oppgi en gyldig e-postadresse.');
- if(!/^2026-\d\d-\d\d/.test(terms))throw fail('Godta gjeldende vilkår før innsending.');
  if(input.website)throw fail('Kunne ikke sende skjemaet.');
  if(!input.basket||typeof input.basket!=='object'||Array.isArray(input.basket)||Object.keys(input.basket).length>150)throw fail('Kontroller produktutvalget.');
  for(const [id,q] of Object.entries(input.basket)){const p=products.find(p=>p.id===id&&p.active&&!p.deletedAt);if(!p||input.kind==='purchase'&&!salesEnabled(p)||input.kind==='rental'&&p.rentalEnabled===false||!Number.isInteger(q)||q<1||q>99)throw fail('Et produkt er endret. Last inn siden på nytt og kontroller utvalget.');}
  if(!Object.keys(input.basket).length&&(input.kind!=='rental'||input.customRequest!==true))throw fail('Velg produkter eller en tilpasset forespørsel.');
- if(input.kind==='rental'){const requirement=rentalModuleRequirementError(input.basket,products);if(requirement)throw fail(requirement);}
- return {id:input.id,kind:input.kind,name,email,terms,customRequest:input.customRequest===true};
+ const acceptedTerms=validateEnquiryTerms({...input,terms},products);
+ return {id:input.id,kind:input.kind,name,email,terms:acceptedTerms,customRequest:input.customRequest===true};
 }
 const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonical(value[k])])):value;
 export function submissionFingerprint(input){const {text,id,website,...stable}=input;if(stable.details)stable.details={...stable.details,deliveryToken:''};return createHash('sha256').update(JSON.stringify(canonical(stable))).digest('hex');}
@@ -59,9 +58,11 @@ export function createSubmissionSender(env,store,sendOverride){
  }
  let logo;const logoBytes=()=>logo??=readFile(new URL('../public/assets/konseptuell-leie-og-kjop-logo.png',import.meta.url));
  async function flush(){
-  if(!enabled||draining)return;draining=true;
+  // Retention is independent of SMTP: disabling mail must not retain customer data.
+  if(!store.enabled||draining)return;draining=true;
   try{
-   if(Date.now()-lastPruned>3600000){await store.pruneEnquiries(Date.now());lastPruned=Date.now();}
+   if(typeof store.pruneEnquiries==='function'&&Date.now()-lastPruned>3600000){await store.pruneEnquiries(Date.now());lastPruned=Date.now();}
+   if(!enabled)return;
    for(const job of await store.pendingEnquiryMail(Date.now())){
     if(!await store.claimEnquiryMail(job.id,job.channel,Date.now()))continue;
     const internal=job.channel==='internal',to=internal?mailbox:job.snapshot.email;

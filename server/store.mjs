@@ -145,6 +145,7 @@ export function createMysqlStore(env,seed){
   async saveCatalog(revision,products){return mutateCatalog(revision,products,[]);},
   async purgeTrash(revision,products,urls){return mutateCatalog(revision,products,urls);},
   async purgedMedia(){const [rows]=await query('SELECT url FROM ku_media_purged');return rows.map(row=>row.url);},
+  async mediaPurged(url){const [[row]]=await query('SELECT url FROM ku_media_purged WHERE url=? LIMIT 1',[url]);return !!row;},
   async admin(){const [[r]]=await query('SELECT email,password_hash AS passwordHash FROM ku_admin WHERE id=1');return r||null;},
   async createAdmin(email,passwordHash){const [r]=await query('INSERT IGNORE INTO ku_admin (id,email,password_hash) VALUES (1,?,?)',[email,passwordHash]);return r.affectedRows===1;},
   async changePassword(sessionHash,passwordHash){
