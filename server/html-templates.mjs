@@ -20,8 +20,8 @@ export async function readHtmlTemplate(name,base=root){
  // A count is unknown until the saved basket has been read and validated.
  html=html.replace(/(<span id="(?:count|saleCount)">)0(<\/span>)/g,'$1…$2');
  // A new stylesheet must bypass the previous release's one-hour browser cache.
- html=html.replace(/(src=["']\/(?:app|shop)\.js)(?:\?[^"']*)?(["'])/g,'$1?v=purchasefields220261024$2');
- html=html.replace('</head>','<link rel="stylesheet" href="/cart-addons.css?v=purchasefields220261024"><link rel="stylesheet" href="/service-detail.css?v=purchasefields220261024"></head>');
+ html=html.replace(/(src=["']\/(?:app|shop)\.js)(?:\?[^"']*)?(["'])/g,'$1?v=pricinghint20261024$2');
+ html=html.replace('</head>','<link rel="stylesheet" href="/cart-addons.css?v=pricinghint20261024"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;
 }
