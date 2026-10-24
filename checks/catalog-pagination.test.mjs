@@ -111,8 +111,8 @@ test('24 rental matches still offer the final product after an initial batch of 
  button.click();assert.equal(controller.visibleCount,24);assert.equal(button.hidden,true);assert.equal(status.textContent,'Viser 24 av 24 produkter');assert.equal(view.grid.childNodes.length,25);
 });
 
-test('mobile rental batches reserve two grid slots for the full-width request teaser',()=>{
- const items=Array.from({length:80},(_,index)=>({id:'mobile-'+index,name:'Produkt '+index})),view=fixture(),options={items,key:'mobile',initialPageSize:22,countAlignment:2,renderItem,tailHtml:'<aside>Tilpasset forespørsel</aside>'};
+test('mobile package batches reserve two grid slots for their full-width request teaser',()=>{
+ const items=Array.from({length:80},(_,index)=>({id:'mobile-'+index,name:'Produkt '+index})),view=fixture(),options={items,key:'mobile-packages',initialPageSize:22,countAlignment:2,renderItem,tailHtml:'<aside>Tilpasset pakkeforespørsel</aside>'};
  const controller=mountCatalogPagination(view.grid,options),[status,button]=view.controls.childNodes,first=view.grid.childNodes[0],tail=view.grid.childNodes.at(-1);
  assert.equal(controller.visibleCount,22);assert.equal(controller.total,80);assert.equal(view.grid.childNodes.length,23);assert.equal(status.textContent,'Viser 22 av 80 produkter');assert.equal(button.textContent,'Vis 24 flere');
  button.click();
@@ -120,7 +120,7 @@ test('mobile rental batches reserve two grid slots for the full-width request te
  mountCatalogPagination(view.grid,options);assert.equal(controller.visibleCount,46);assert.equal(view.grid.childNodes.at(-1).markup,tail.markup);
 });
 
-test('responsive row changes retain seen products and reveal at most three extra products',()=>{
+test('responsive package row changes retain seen products and reveal at most three extra products',()=>{
  const items=Array.from({length:100},(_,index)=>({id:'resize-'+index,name:'Produkt '+index})),view=fixture(),options={items,key:'same-filter',storage:memoryStorage(),renderItem,tailHtml:'<aside>Tilpasset forespørsel</aside>'};
  const controller=mountCatalogPagination(view.grid,{...options,initialPageSize:23,countAlignment:4});assert.equal(controller.visibleCount,23);
  for(const [initialPageSize,countAlignment,expected] of [[22,2,24],[23,4,27],[22,2,28],[23,3,29],[23,4,31]]){
@@ -135,4 +135,17 @@ test('responsive row changes retain seen products and reveal at most three extra
  mountCatalogPagination(view.grid,{...options,initialPageSize:23,countAlignment:4});assert.equal(controller.visibleCount,55);
  const returned=fixture();
  assert.equal(mountCatalogPagination(returned.grid,{...options,initialPageSize:22,countAlignment:2}).visibleCount,56);
+});
+
+test('the compact mobile generic teaser occupies one card slot after 23 products, just as on desktop',()=>{
+ const storage=memoryStorage(),view=fixture(storage),options={items:products,key:'generic-catalog',initialPageSize:23,countAlignment:2,renderItem,tailHtml:'<article><h3>Savner du noe?</h3><p>Vi har mye mer enn det som vises her. Fortell oss hva du trenger.</p><button>Fortell oss ↗</button></article>'};
+ const controller=mountCatalogPagination(view.grid,options),first=view.grid.childNodes[0],tail=view.grid.childNodes.at(-1);
+ assert.equal(controller.visibleCount,23);assert.equal(controller.total,59);assert.equal(view.grid.childNodes.length,24);assert.equal(view.controls.childNodes[0].textContent,'Viser 23 av 59 produkter');
+ controller.showMore();assert.equal(controller.visibleCount,47);assert.equal(view.grid.childNodes.length,48);assert.equal(view.grid.childNodes[0],first);assert.equal(view.grid.childNodes.at(-1),tail);
+ for(const countAlignment of [3,4,2]){
+  mountCatalogPagination(view.grid,{...options,countAlignment});
+  assert.equal(controller.visibleCount,47);assert.equal((controller.visibleCount+1)%countAlignment,0);assert.equal(view.grid.childNodes.at(-1).markup,tail.markup);
+ }
+ const returned=fixture(storage);assert.equal(mountCatalogPagination(returned.grid,options).visibleCount,47);
+ controller.showMore();assert.equal(controller.visibleCount,59);assert.equal(view.controls.childNodes[1].hidden,true);
 });
