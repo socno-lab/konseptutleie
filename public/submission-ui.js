@@ -30,7 +30,7 @@ export async function submitEnquiry(form,{kind,basket,customRequest=false,lines,
 for(const form of document.querySelectorAll('#requestForm, #saleRequestForm')){
  const trap=document.createElement('input');trap.type='text';trap.name='website';trap.tabIndex=-1;trap.autocomplete='off';trap.hidden=true;trap.setAttribute('aria-hidden','true');form.append(trap);
  const notice=form.querySelector('.demo-info')||[...form.querySelectorAll('p')].find(p=>p.textContent.includes('Prototypen laster ned'));
- if(notice)notice.textContent='Du får en mottaksbekreftelse på e-post når forespørselen er registrert. Vi følger opp med en avklaring før endelig bekreftelse og betalingslenke. Innsendingen er uforpliktende.';
+ if(notice)notice.textContent='Du får en mottaksbekreftelse på e-post når forespørselen er registrert. Vi svarer normalt innen én virkedag. Vi følger opp med en avklaring før endelig bekreftelse og betalingslenke. Innsendingen er uforpliktende.';
  const button=form.querySelector('[type="submit"], #saleExport');if(button)button.textContent=form.id==='requestForm'?'Send leieforespørsel ↗':'Send bestillingsforespørsel ↗';
 }
 
@@ -45,7 +45,7 @@ export function showEnquiryConfirmation({reference,kind,email,receipt}){
  const add=(text)=>{const p=document.createElement('p');p.textContent=text;p.style.lineHeight='1.7';main.append(p);};
  add('Din '+copy.noun+' er sendt inn og registrert.');
  add('Referanse: '+reference);
- const info=document.createElement('div');info.style.cssText='background:#ecefe5;padding:20px;margin:24px 0;line-height:1.7';info.textContent='En kopi av forespørselen sendes til '+email+'. Sjekk gjerne søppelpost hvis du ikke finner e-posten.';main.append(info);
+ const info=document.createElement('div');info.style.cssText='background:#ecefe5;padding:20px;margin:24px 0;line-height:1.7';info.textContent='En kopi av forespørselen sendes til '+email+'. Sjekk gjerne søppelpost hvis du ikke finner e-posten. Vi svarer normalt innen én virkedag.';main.append(info);
  if(receipt)main.append(enquiryReceipt(receipt));
  const next=document.createElement('h2');next.textContent='Hva skjer videre?';main.append(next);
  add('Vi sjekker tilgjengelighet og kommer tilbake med en avklaring. Når vi har avklart at vi kan levere, sender vi en egen bekreftelse med leveringsinformasjon og betalingslenke til Vipps.');
