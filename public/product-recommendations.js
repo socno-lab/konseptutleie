@@ -1,5 +1,5 @@
-import {recommendProducts} from './recommendation-model.js?v=rentalalternatives1';
-import {saleUnitPrice} from './sales-model.js';
+import {recommendProducts} from './recommendation-model.js?v=launch20261024';
+import {saleUnitPrice} from './sales-model.js?v=launch20261024';
 const html=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:0}).format(n);
 export function renderRecommendations(host,current,products,mode,context,link){

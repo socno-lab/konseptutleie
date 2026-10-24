@@ -43,7 +43,7 @@ const illustratedImages=new Set([
  "/assets/sofa-tekstilpakke-eksempel.png",
  "/assets/spisebord-eikefarget-illustrasjon.png"
 ]);
-export function isKiPhoto(src){if(!src)return false;const configured=getSiteSettings().imageLabels.find(m=>m.url===src);if(configured)return configured.generated;try{return illustratedImages.has(new URL(src,'https://example.invalid').pathname);}catch{return false;}}
+export function isKiPhoto(src,site=getSiteSettings()){if(!src)return false;const configured=site.imageLabels.find(m=>m.url===src);if(configured)return configured.generated;try{return illustratedImages.has(new URL(src,'https://example.invalid').pathname);}catch{return false;}}
 
 // Packshots edited from the supplied references; disclosure appears below the product photo.
 [

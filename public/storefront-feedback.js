@@ -1,5 +1,5 @@
-import './customer-info.js?v=services20261023';
-import './dialog-scroll-lock.js?v=dialoglock1';
+import './customer-info.js?v=launch20261024';
+import './dialog-scroll-lock.js?v=launch20261024';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');
  const buying=document.body.classList.contains('buy-page'),addedLabel=buying?'Lagt i handlekurven':'Lagt til i forespørselen';

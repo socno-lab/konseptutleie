@@ -1,4 +1,5 @@
 // Shared ordering for customer email, internal email and the on-screen receipt.
+export function receiptGroupLabel(group){return group.type==='sofa'?group.name:group.name+' · '+group.quantity+(group.quantity===1?' pakke':' pakker');}
 export function receiptEntries(lines){
  const buckets=new Map();for(const l of lines){const key=l.group?.id||'';if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(l);}
  const entries=[];

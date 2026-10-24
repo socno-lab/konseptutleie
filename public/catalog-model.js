@@ -1,10 +1,11 @@
-import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js';
-import {sofaLayoutError,moduleRentalMinimum} from './sofa-layout.js?v=joinedsofa1';
-import {addonRequirementError,normalizeAddOnBasket} from './addon-model.js?v=tableware2';
+import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js?v=launch20261024';
+import {sofaLayoutError,moduleRentalMinimum} from './sofa-layout.js?v=launch20261024';
+import {addonRequirementError,normalizeAddOnBasket} from './addon-model.js?v=launch20261024';
+import {rentalDayCount,MAX_RENTAL_DAYS} from './rental-dates.js?v=launch20261024';
 export function demand(product,quantity=1){return product.isPackage?(product.components||[]).map(c=>({id:c.id,quantity:c.quantity*quantity})):[{id:product.id,quantity}];}
 export function remaining(id,basket,products){const p=products.find(p=>p.id===id);if(!p||!p.active||p.rentalEnabled===false)return 0;if(p.isService)return Math.max(0,(p.isProposal?(p.maximumQuantity||40):99)-(basket[id]||0));const used={};for(const [key,q] of Object.entries(basket)){const item=products.find(x=>x.id===key);if(item)for(const d of demand(item,q))used[d.id]=(used[d.id]||0)+d.quantity;}const requirements=demand(p);if(!requirements.length)return 0;return Math.max(0,Math.min((p.isProposal?(p.maximumQuantity||40):99)-(basket[id]||0),...requirements.map(d=>{const item=products.find(x=>x.id===d.id);return item&&item.active?Math.floor(((item.isService?99:Math.max(0,item.stock-item.unavailable))-(used[d.id]||0))/d.quantity):0;})));}
 export function normalizeBasket(basket,products){const out={};for(const p of products){const requested=Number(basket[p.id]);if(Number.isInteger(requested)&&requested>0){const q=Math.min(requested,remaining(p.id,out,products));if(q>0&&(!p.isProposal||q>=(p.minimumQuantity||4)))out[p.id]=q;}}return normalizeAddOnBasket(out,products);}
-export function rentalDays(start,end){if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end))return null;const a=Date.parse(start+'T00:00:00Z'),b=Date.parse(end+'T00:00:00Z');return Number.isFinite(a)&&Number.isFinite(b)&&b>=a?Math.round((b-a)/86400000)+1:null;}
+export function rentalDays(start,end){const days=rentalDayCount(start,end);return days!==null&&days<=MAX_RENTAL_DAYS?days:null;}
 export function rentalEstimate(basket,products,start,end){const days=rentalDays(start,end);const chosen=products.filter(p=>basket[p.id]);const daily=chosen.reduce((sum,p)=>sum+(p.priceOnRequest?0:basket[p.id]*p.price),0);const lines=days===null?[]:chosen.map(p=>({id:p.id,name:p.name,quantity:basket[p.id],plan:p.priceOnRequest?null:ratePlan(p,days,products)}));const hasUnpriced=chosen.some(p=>p.priceOnRequest)||lines.some(line=>!line.plan);const knownSubtotal=days===null?null:Math.round(lines.reduce((sum,line)=>sum+(line.plan?line.quantity*line.plan.total:0),0)*100)/100;const total=hasUnpriced?null:knownSubtotal;return {days,daily,total,lines,hasUnpriced,knownSubtotal,saving:days===null?0:Math.round(lines.reduce((sum,line)=>sum+(line.plan?.saving||0)*line.quantity,0)*100)/100};}
 
 export function ratePlan(product,days,products=[],seen=new Set()){

@@ -1,5 +1,5 @@
-import {sofaLayoutError,fitSofaEnds} from './sofa-layout.js?v=joinedsofa1';
-import {cleanSaleBasket,saleEstimate,saleModuleError} from './sales-model.js?v=admincontrol20261022';
+import {sofaLayoutError,fitSofaEnds} from './sofa-layout.js?v=launch20261024';
+import {cleanSaleBasket,saleEstimate,saleModuleError} from './sales-model.js?v=launch20261024';
 export function saleSetupBasket(setups){const result={};for(const s of setups)for(const [id,q] of Object.entries(s.selection))result[id]=(result[id]||0)+q;return result;}
 export function saleWithoutSetups(basket,setups){const result={...basket};for(const [id,q] of Object.entries(saleSetupBasket(setups))){const left=(result[id]||0)-q;if(left>0)result[id]=left;else delete result[id];}return result;}
 export function validSaleSetup(s,products){if(!s||typeof s.id!=='string'||!s.id||s.id.length>100||typeof s.series!=='string'||!s.selection||typeof s.selection!=='object'||Array.isArray(s.selection)||!Object.keys(s.selection).length)return false;const clean=cleanSaleBasket(s.selection,products),modules=products.filter(p=>p.moduleSeries===s.series);return Object.entries(s.selection).every(([id,q])=>clean[id]===q&&modules.some(p=>p.id===id))&&!sofaLayoutError(modules,s.selection)&&!saleModuleError(s.selection,products);}

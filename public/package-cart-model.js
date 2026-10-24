@@ -1,6 +1,6 @@
-import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js';
-import {remaining,ratePlan} from './catalog-model.js?v=fixeddecor20261022';
-import {addonRequirementError} from './addon-model.js?v=tableware2';
+import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js?v=launch20261024';
+import {remaining,ratePlan} from './catalog-model.js?v=launch20261024';
+import {addonRequirementError} from './addon-model.js?v=launch20261024';
 const count=q=>Number.isInteger(q)&&q>0&&q<=9999;
 export const editablePackage=p=>!!p?.isPackage&&!p.isProposal&&!!p.components?.length;
 const add=(basket,id,q)=>{if(q)basket[id]=(basket[id]||0)+q;};

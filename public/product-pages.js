@@ -1,5 +1,5 @@
-import {renderRecommendations} from './product-recommendations.js?v=rentalalternatives1';
-import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=productpages2';
+import {renderRecommendations} from './product-recommendations.js?v=launch20261024';
+import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);
 const primaryIds=new Set(['detail','modules','wall','saleDetail']);
 let host,recommendationSource,selectedRecommendation;
