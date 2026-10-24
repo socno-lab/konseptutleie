@@ -47,3 +47,5 @@ Referansebilder: reference/approved-cart-2026-10-24.png, reference/approved-rece
 Bekreftelser viser transport som egen rad med lastebilikon, leveringsmåte og pris (også 0 kr eller uavklart). Standardtekst for tekstil-/dekortilvalg gjentas ikke under produktoversikten. Egne farge- og dyneønsker beholdes. Presisert av eier 24. oktober 2026.
 
 Transportikon i bekreftelser bruker samme hvite bildefelt som hovedproduktene, med et mindre, sentrert lastebilsymbol og god innvendig luft. Ikonet skal ikke fylle hele bildefeltet. Presisert av eier 24. oktober 2026.
+
+E-post: bilde og produkttekst beholder hver sin tabellkolonne også på mobil. Tilvalgsikon sentreres vannrett og loddrett i bildekolonnen. Transportikon bygges inn som CID-vedlegg på samme måte som produktbilder, slik at det ikke avhenger av visning av eksterne bilder. Gjelder både kunde- og internbekreftelser. Rettet etter eiers skjermbilder 24. oktober 2026.
