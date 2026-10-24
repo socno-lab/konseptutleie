@@ -1,0 +1,4 @@
+/* Service detail pages use the same type scale as ordinary product controls and rates. */
+#detail .rental-options>h3{font-size:14px;font-weight:600;line-height:1.5;margin:0 0 10px}
+#detail #selectionTotals>.cart-period-price strong,#detail #selectionTotals>.quote-only strong{font-size:13px;font-weight:500;line-height:1.5}
+#detail #selectionTotals>.cart-period-price span{font-size:12px;font-weight:400;line-height:1.5}
