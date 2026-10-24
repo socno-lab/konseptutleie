@@ -5,11 +5,13 @@ import nodemailer from 'nodemailer';
 import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';
 import {validateSubmission} from '../server/submissions.mjs';
 import {enquiryEmail} from '../server/enquiry-email.mjs';
+import {getTermsVersions} from '../public/terms-versions.js';
+import {osloToday,addDateDays} from '../public/rental-dates.js';
 const out=path.resolve(process.argv[2]||'../../outputs/email-previews');await mkdir(out,{recursive:true});
 const products=[{id:'sofa',image:'/assets/beige-sofa-to-moduler.webp',active:true,stock:10,unavailable:0,category:'Sofaer',name:'Eksempelsofa med ekstra langt produktnavn – lys beige, natur eik og mykt tekstil',price:500,weekPrice:1200,monthPrice:2000,rentalPricingMode:'manual',saleEnabled:true,salePrice:6490},{id:'addon',active:true,stock:10,unavailable:0,category:'Tilvalg',isService:true,name:'Tekstilpakke til sofa',rentalPricingMode:'period',price:400}];
 const base={id:'e1a289b6-c470-4125-8000-123456789abc',name:'Emilie Eksempel',email:'emilie@example.invalid',terms:'2026-10-22-2',basket:{sofa:1},details:{}};
-const rental={...base,kind:'rental',basket:{sofa:1,addon:1},details:{start:'2026-11-01',end:'2026-12-01',delivery:'Ønsker levering og henting',occasion:'Messe, stand og event',address:'Eksempelveien 12, 1470 Eksempelsted',phone:'00000000',company:'Eksempel AS',notes:'Vi ønsker møblene samlet i en lounge. Ring ved ankomst.'}};
-const purchase={...base,id:'e1a289b6-c470-4125-8000-123456789abd',kind:'purchase',basket:{sofa:2},details:{phone:'00000000',address:'Eksempelveien 12, 1470 Eksempelsted',delivery:'Henter selv etter avtale'}};
+const rental={...base,terms:getTermsVersions().rental,kind:'rental',basket:{sofa:1,addon:1},details:{start:addDateDays(osloToday(),7),end:addDateDays(osloToday(),37),delivery:'Ønsker levering og henting',occasion:'Messe, stand og event',address:'Eksempelveien 12, 1470 Eksempelsted',phone:'00000000',company:'Eksempel AS',notes:'Vi ønsker møblene samlet i en lounge. Ring ved ankomst.'}};
+const purchase={...base,terms:getTermsVersions().purchase,id:'e1a289b6-c470-4125-8000-123456789abd',kind:'purchase',basket:{sofa:2},details:{phone:'00000000',address:'Eksempelveien 12, 1470 Eksempelsted',delivery:'Henter selv etter avtale'}};
 const logo=await readFile(new URL('../public/assets/konseptuell-leie-og-kjop-logo.png',import.meta.url));
 const mime=nodemailer.createTransport({streamTransport:true,buffer:true,newline:'unix'});
 for(const [kind,input] of [['leie',rental],['kjop',purchase]]){
