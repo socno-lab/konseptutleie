@@ -43,3 +43,5 @@ Kjør node build.mjs og relevante tester. Den eksisterende forsidelåsen og den 
 Ved legitim endring: sammenlign berørte visninger på desktop og mobil, kontroller funksjonene, oppdater denne standarden og referansen bevisst med begrunnelse. Ikke oppdater referansen automatisk bare for å få grønt bygg. Brukerens nye, uttrykkelige ønsker går foran denne godkjenningen. Pris, lager og innhold i admin kan fortsatt endres uten å endre designstandarden.
 
 Referansebilder: reference/approved-cart-2026-10-24.png, reference/approved-receipt-2026-10-24.png og reference/approved-service-2026-10-24.png. De er visuelle kontroller av utforming med eksempeldata, ikke fasit for priser eller beholdning.
+
+Bekreftelser viser transport som egen rad med lastebilikon, leveringsmåte og pris (også 0 kr eller uavklart). Standardtekst for tekstil-/dekortilvalg gjentas ikke under produktoversikten. Egne farge- og dyneønsker beholdes. Presisert av eier 24. oktober 2026.
