@@ -12,6 +12,8 @@ Tjenester kan ha mer forklarende innhold, men følger produktenes typografiskala
 
 På enkeltproduktsiden viser oppsummeringen over døgn-/uke-/månedspris bare hovedproduktet og antallet. Valgte tilvalg vises i tilvalgsfeltet med egen pris og som egen prislinje i kurven; de skal ikke legges til i denne oppsummeringsteksten. Presisert av eier 24. oktober 2026.
 
+Produktkort med fastpris per påbegynte 30 dager bruker vanlig tredelt prisrute: Døgn og Uke står uten pris, Måned · 30 døgn viser fastprisen fra produktdata. Samme prisfont og vekt som de øvrige kortene. Leieberegningen er fortsatt per påbegynte 30 dager. Presisert av eier 24. oktober 2026.
+
 ## Handlekurv og Din forespørsel
 
 - Alle hovedprodukter og tjenester bruker samme produktlinje, navn-, pris- og informasjonstypografi. Fastpris får ikke større eller fetere pris enn ordinære leieprodukter.
