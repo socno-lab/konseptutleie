@@ -1,13 +1,15 @@
 import {renderRecommendations} from './product-recommendations.js?v=launch20261024';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
+import {mountPageAnchor} from './page-anchor.js?v=anchor20261024';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);
 const primaryIds=new Set(['detail','modules','wall','saleDetail']);
 let host,recommendationSource,selectedRecommendation;
-// A reload starts at the top; returning from a product keeps the catalog position.
+// Content anchors wait for the rendered page; catalog returns keep their position.
 const navigationType=performance.getEntriesByType('navigation')[0]?.type;
 const refreshing=navigationType==='reload';
+const pageAnchor=isProductPage?null:mountPageAnchor();
 function scrollToPageTop(){scrollTo({top:0,left:0,behavior:'instant'});}
-if(refreshing){
+if(refreshing&&!pageAnchor?.hasTarget()){
  const previousRestoration=history.scrollRestoration;history.scrollRestoration='manual';
  scrollToPageTop();
  addEventListener('load',scrollToPageTop,{once:true});
@@ -75,6 +77,7 @@ export function closeSurface(node){if(node?.tagName==='DIALOG')node.close();}
 export function productPageError(message){if(!isProductPage)return;const target=pageHost();const status=target.querySelector('#productPageStatus');status.hidden=false;status.textContent=message;}
 export function restoreCatalogPosition(){
  if(isProductPage)return;
+ if(pageAnchor.restore())return;
  if(refreshing){requestAnimationFrame(scrollToPageTop);return;}
  try{
   const referrer=document.referrer?new URL(document.referrer):null;
