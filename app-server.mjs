@@ -1,3 +1,4 @@
+import {catalogThumbnail} from './server/catalog-thumbnails.mjs';
 import {withPackageAddons} from './public/package-addon-model.js';
 import {readHtmlTemplate} from './server/html-templates.mjs';
 import {indexableEnvironment,pageModel,renderSeo,sitemap,robots} from './server/seo.mjs';
@@ -165,7 +166,7 @@ export function createServer(options={}){
    if(pathname==='/api/catalog'){const data=store.enabled?await readCatalog():seed;return out(200,{...publicCatalog(data),canAdmin:store.enabled&&await authenticated()});}
    if(pathname.startsWith('/api/'))return out(404,{error:'Fant ikke endepunktet.'});
    if(store.enabled&&(pathname.startsWith('/assets/')||pathname.startsWith('/media/'))&&(await store.purgedMedia()).some(url=>decodeURIComponent(url)===pathname))return send(404,'Fant ikke bildet.');
-   const media=pathname.match(/^\/media\/([a-f0-9]{32})$/);if(media){if(!store.enabled)return send(404,'Fant ikke bildet.');const image=await store.media(media[1]);return image?send(200,image.body,image.mime,{'Cache-Control':'public, max-age=31536000, immutable'}):send(404,'Fant ikke bildet.');}
+   const media=pathname.match(/^\/media\/([a-f0-9]{32})$/);if(media){if(!store.enabled)return send(404,'Fant ikke bildet.');const image=await store.media(media[1]);if(!image)return send(404,'Fant ikke bildet.');const width=Number(new URL(req.url,'http://localhost').searchParams.get('thumb'));const thumbnail=await catalogThumbnail(media[1],width,image);return send(200,thumbnail||image.body,thumbnail?'image/jpeg':image.mime,{'Cache-Control':thumbnail||!width?'public, max-age=31536000, immutable':'no-store'});}
    if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return await missing();
    const seoPaths=['/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
    if(seoPaths.includes(pathname)&&['GET','HEAD'].includes(req.method)){
