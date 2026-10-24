@@ -12,6 +12,7 @@ async function settle(store){for(let i=0;i<100&&store.jobs.some(j=>['pending','s
 test('one registered snapshot sends distinct HTML + text customer and internal messages exactly once on repeat',async()=>{
  const messages=[],store=memory(),sender=createSubmissionSender(env,store,async message=>{messages.push(message);return {accepted:[message.to]};});const value=sample();
  const first=await sender.submit(value,products,'client');await settle(store);const repeat=await sender.submit(value,products,'client');await sender.flush();assert.deepEqual(first.receipt,repeat.receipt);assert.deepEqual(first.receipt.lines,store.rows.get(value.id).snapshot.lines);assert.equal(first.receipt.total,200);assert.equal(first.receipt.terms,undefined);
+ for(const m of messages){assert.ok(m.attachments.some(a=>a.cid==='transport@konseptuell.no'&&a.content.length>100));assert.match(m.html,/src="cid:transport@konseptuell.no"/);assert.doesNotMatch(m.html,/display:block!important;width:100%!important/);}
  assert.equal(messages.length,2);const internal=messages.find(m=>m.to==='post@konseptuell.no'),customer=messages.find(m=>m.to===value.email);
  assert.equal(customer.from.address,'post@konseptuell.no');assert.equal(customer.replyTo.address,'post@konseptuell.no');assert.equal(internal.replyTo.address,value.email);assert.notEqual(customer.messageId,internal.messageId);
  for(const m of messages){assert.match(m.text,/200 kr/);assert.match(m.text,new RegExp(value.id));assert.ok(m.attachments[0].content.length>100);assert.match(m.html,/&lt;script&gt;/);assert.doesNotMatch(m.html,/<script>/);assert.equal(m.disableUrlAccess,true);}
@@ -51,7 +52,7 @@ test('origin, unavailable SMTP, spam limits and module minimum remain enforced',
 test('product images come from the saved catalog snapshot, are CID attachments when small, and are escaped in both variants',async()=>{
  const store=memory(),messages=[],sender=createSubmissionSender(env,store,async m=>{messages.push(m);return {accepted:[m.to]};});
  const pictured=products.map(p=>({...p,image:'/assets/konseptuell-leie-og-kjop-logo.png'}));await sender.submit(sample(),pictured,'client');await settle(store);
- assert.equal(messages.length,2);for(const message of messages){assert.match(message.html,/cid:product-0@konseptuell.no/);assert.equal(message.attachments.length,2);assert.equal(message.attachments[1].contentType,'image/jpeg');assert.ok(message.attachments[1].content.length<20000);assert.match(message.html,/&lt;uønsket&gt;/);}
+ assert.equal(messages.length,2);for(const message of messages){assert.match(message.html,/cid:product-0@konseptuell.no/);assert.equal(message.attachments.length,3);assert.equal(message.attachments[1].contentType,'image/jpeg');assert.ok(message.attachments[1].content.length<20000);assert.match(message.html,/&lt;uønsket&gt;/);}
  const request=store.rows.get(sample().id).snapshot;assert.equal(request.lines[0].image,pictured[0].image);
 });
 
