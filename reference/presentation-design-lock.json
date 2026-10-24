@@ -7,9 +7,10 @@
     "public/cart-thumbnail.js": "deef4cb0e6d49f42b77313d8821ea8db0ea54a2707c3dbfba5ca4f6d91d3f162",
     "public/sofa-cart-row.js": "3df859a1edc9cf87a56796ae84a226a3f5d1a8f3e933ef991dd856afcc97a82c",
     "public/receipt-layout.js": "7e05d9a27d9402b7c27169e50e7e37c5144e53cd5d395791dc5567401d8c987a",
-    "server/enquiry-email.mjs": "e4725756196f02018668540c9465526097583d4ee3a4889afec2ab5b178e99da",
+    "server/enquiry-email.mjs": "2a5cd73f0c1249361b29450aa1dd5513174c93fb9b5754c764cacd7ba15e0456",
     "confirmation-rendering": "4a7a73aeb2c4d483fd0a3b24fc62c8ca8cd55b83a75752c7dd69cf0fad8f2747"
   },
   "formFieldsReview": "2026-10-24: Uttrykkelig brukerbestilt samordning av Fra/Til dato og rabattkode med Anledning, samt 48 px felthøyde og Bruk kode-knapp. Målt desktop: 13 px / 400 og 48 px. Mobil 390 px: 16 px / 400 og 48 px for alle feltene. Kodefelt og knapp har identisk toppkant. Ingen andre beskyttede referanser endret.",
-  "transportReview": "2026-10-24: Eier ba om å fjerne gjentatt standardtekst for tekstiltilvalg og vise transport med lastebilikon, leveringsmåte og pris i e-post og nettbekreftelse. Kontrollert desktop og mobil 390 px uten overlapp eller horisontal scrolling; egne ønsker og beløp beholdes."
+  "transportReview": "2026-10-24: Eier ba om å fjerne gjentatt standardtekst for tekstiltilvalg og vise transport med lastebilikon, leveringsmåte og pris i e-post og nettbekreftelse. Kontrollert desktop og mobil 390 px uten overlapp eller horisontal scrolling; egne ønsker og beløp beholdes.",
+  "emailIconsReview": "2026-10-24: Rettet etter eiers faktiske e-postskjermbilder: behold tabellkolonner på mobil, sentrer tilvalgsikon vannrett/loddrett og bygg transportikon inn som CID i både intern- og kundemelding. Visuelt kontrollert på 390 px og desktop; sendetester bekrefter CID-vedlegg og HTML-referanse i begge mottakervarianter."
 }
