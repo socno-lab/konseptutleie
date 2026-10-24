@@ -801,7 +801,7 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  body>header.has-mobile-menu>.brand{order:0;min-width:0;justify-self:start;width:min(100%,175px)}
  body>header.has-mobile-menu>.brand img{width:100%;max-width:175px;height:auto}
  .mobile-menu-toggle{display:grid;place-items:center;width:44px;height:44px;padding:10px;border:0;background:transparent;color:var(--ink)}
- .mobile-menu-toggle svg{width:24px;height:24px}
+ .mobile-menu-toggle svg{width:24px;height:24px;transform:translateY(-.75px)}
  body>header.has-mobile-menu>.bag{display:flex;align-items:center;justify-content:center;gap:5px;width:60px;height:44px;padding:6px;border:1px solid var(--line);font-size:12px;white-space:nowrap}
  body>header.has-mobile-menu>.bag>.mobile-bag-label,body>header.has-mobile-menu>.bag>.icon-arrow-up-right{display:none}
  body>header.has-mobile-menu>.bag>span:not(.mobile-bag-label){width:20px;height:20px;margin:0;font-size:11px}
