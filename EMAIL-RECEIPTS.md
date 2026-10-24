@@ -6,11 +6,11 @@ Leie og kjøp bruker eksisterende `/api/submissions`, Hostinger Mail og den eksi
 
 - `ku_enquiries` lagrer et uforanderlig øyeblikksbilde med serverberegnede priser, rabatt, bekreftet egen frakttariff og praktiske opplysninger. Begge e-postvariantene bygges fra dette øyeblikksbildet.
 - `ku_enquiry_mail` har egen tilstand og atomisk sendelås per referanse og mottaker. Allerede vellykket mottaker sendes ikke igjen ved nytt innsendingforsøk eller prosessrestart.
-- Skjemaet beholder referanse og kontrollsum i fanens sessionStorage, ikke personopplysninger. Endret innhold blir en ny forespørsel. Nettleseren beholder kurven.
+- Skjemaet beholder referanse og kontrollsum i fanens sessionStorage, ikke personopplysninger. Endret innhold blir en ny forespørsel. Kurven beholdes ved feil, og tømmes først når serveren har bekreftet registrering.
 - Køen starter ved mottak og kontrolleres hvert minutt. Kjente SMTP-feil forsøkes igjen etter fem minutter, maksimalt fem forsøk. Bare den feilede mottakeren forsøkes igjen.
 - SMTP kan ikke garantere eksakt én levering når forbindelsen brytes etter DATA. Slike feil, og utløpte sendelåser etter prosesskrasj, blir `uncertain` og sendes ikke automatisk igjen. Admin → E-poststatus viser dem og har eksplisitt varsel før nytt forsøk. Meldings-ID er stabil per mottaker.
 - SMTP-aksept betyr ikke at e-posten nådde innboksen. Kontroller SPF/DKIM/DMARC og eventuelle returer i Hostinger Mail. Løsningen setter ikke opp eller endrer DNS.
-- Forespørsel og køstatus slettes automatisk etter 30 dager. Dette er opplyst i personvern. Inngåtte avtaler og regnskapsopplysninger håndteres videre i virksomhetens ordinære systemer.
+- Forespørsel og køstatus slettes automatisk etter 30 dager, også om SMTP er deaktivert, så lenge appen kjører og databasen er tilgjengelig. Dette er opplyst i personvern. Jobben sletter ikke kopier i e-postsystem eller eksterne sikkerhetskopier. Inngåtte avtaler og regnskapsopplysninger håndteres videre i virksomhetens ordinære systemer.
 - Eksisterende katalog og miljøvariabler endres ikke av migreringen. Den oppretter bare nye tabeller. Eksisterende `ku_submissions` beholdes for gamle referanser.
 
 ## Priser og frakt

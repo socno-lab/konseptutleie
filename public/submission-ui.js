@@ -1,7 +1,9 @@
-import {receiptEntries,receiptFacts,deliveryReceiptLine} from './receipt-layout.js?v=receipttransport20261024';
+import {enquiryAcquisition,enquiryCopy} from './enquiry-copy.js?v=launch20261024';
+import {receiptEntries,receiptFacts,deliveryReceiptLine,receiptGroupLabel} from './receipt-layout.js?v=launch20261024';
+import {acceptedEnquiryTerms} from './enquiry-terms.js?v=launch20261024';
 const submissions=new WeakMap();
-export async function submitEnquiry(form,{kind,basket,customRequest=false,lines,businessChoices={},packageGroups=[],cartLinks={},purchaseSofas=[],deliveryToken='',discountCode=''}){
- const fields=Object.fromEntries(new FormData(form)),payload={kind,name:fields.name||'',email:fields.email||'',terms:fields.termsAccepted||fields.rentalTermsAccepted||'',website:fields.website||'',basket,purchaseSofas,customRequest,businessChoices,packageGroups,cartLinks,details:{phone:fields.phone||'',company:fields.company||'',address:fields.address||'',notes:fields.notes||'',occasion:fields.occasion||'',delivery:fields.delivery||fields.shipping||'',start:fields.start||'',end:fields.end||'',stylist:fields.stylist||'',stylingNotes:fields.stylingNotes||'',customRequest:fields.customRequest||'',deliveryToken,discountCode}};
+export async function submitEnquiry(form,{kind,basket,customRequest=false,lines,businessChoices={},packageGroups=[],cartLinks={},purchaseSofas=[],rentalSofas=[],deliveryToken='',discountCode=''}){
+ const fields=Object.fromEntries(new FormData(form)),payload={kind,name:fields.name||'',email:fields.email||'',terms:acceptedEnquiryTerms(fields),website:fields.website||'',basket,purchaseSofas,rentalSofas,customRequest,businessChoices,packageGroups,cartLinks,details:{phone:fields.phone||'',company:fields.company||'',address:fields.address||'',notes:fields.notes||'',occasion:fields.occasion||'',delivery:fields.delivery||fields.shipping||'',start:fields.start||'',end:fields.end||'',stylist:fields.stylist||'',stylingNotes:fields.stylingNotes||'',customRequest:fields.customRequest||'',deliveryToken,discountCode}};
  const signature=JSON.stringify({...payload,details:{...payload.details,deliveryToken:''}}).replace(/\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z/g,'[tidspunkt]');
  let record=submissions.get(form);if(!record||record.signature!==signature){const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(signature)))].map(b=>b.toString(16).padStart(2,'0')).join('');let saved;try{saved=JSON.parse(sessionStorage.getItem('konsept-enquiry-'+kind)||'null');}catch{}record={signature,id:saved?.digest===digest?saved.id:crypto.randomUUID(),payload};try{sessionStorage.setItem('konsept-enquiry-'+kind,JSON.stringify({digest,id:record.id}));}catch{}submissions.set(form,record);}
  if(record.result)return record.result;
@@ -34,13 +36,14 @@ for(const form of document.querySelectorAll('#requestForm, #saleRequestForm')){
 
 // The server has persisted the enquiry before this screen replaces the form.
 export function showEnquiryConfirmation({reference,kind,email,receipt}){
+ const copy=enquiryCopy(enquiryAcquisition({kind,acquisition:receipt?.acquisition}));
  const main=document.createElement('main');
  main.style.cssText='max-width:720px;margin:clamp(24px,8vw,80px) auto;padding:24px;box-sizing:border-box;overflow-wrap:anywhere';
  const logo=document.createElement('a');logo.href='/';logo.textContent='KONSEPTUELL';logo.style.cssText='font-family:Georgia,serif;font-size:28px;color:inherit;text-decoration:none';main.append(logo);
  const label=document.createElement('p');label.className='eyebrow';label.style.marginTop='48px';label.textContent='FORESPØRSEL MOTTATT';main.append(label);
  const heading=document.createElement('h1');heading.textContent='Takk for forespørselen din!';heading.style.cssText='font-size:clamp(30px,6vw,48px);line-height:1.15;outline:none';main.append(heading);
  const add=(text)=>{const p=document.createElement('p');p.textContent=text;p.style.lineHeight='1.7';main.append(p);};
- add('Din '+(kind==='purchase'?'kjøpsforespørsel':'leieforespørsel')+' er sendt inn og registrert.');
+ add('Din '+copy.noun+' er sendt inn og registrert.');
  add('Referanse: '+reference);
  const info=document.createElement('div');info.style.cssText='background:#ecefe5;padding:20px;margin:24px 0;line-height:1.7';info.textContent='En kopi av forespørselen sendes til '+email+'. Sjekk gjerne søppelpost hvis du ikke finner e-posten.';main.append(info);
  if(receipt)main.append(enquiryReceipt(receipt));
@@ -63,7 +66,7 @@ export function enquiryReceipt(receipt){
  const period=receipt.facts?.find(([label])=>label==='Ønsket leieperiode')?.[1];
  if(period){const box=node('div','');box.style.cssText='background:#ecefe5;padding:16px;margin:16px 0;border-left:3px solid #414b38';node('small','ØNSKET LEIEPERIODE',box);node('strong',period.replace(/(\d{4})-(\d{2})-(\d{2})/g,'$3.$2.$1').replace(/ til /g,' – '),box).style.cssText='display:block;margin-top:6px';}
  const entries=receiptEntries(receipt.lines||[]);const transport=deliveryReceiptLine(receipt.delivery);if(transport)entries.push({type:'line',line:transport});
- for(const entry of entries){if(entry.type==='group'){node('h3',entry.group.name+' · '+entry.group.quantity+(entry.group.quantity===1?' pakke':' pakker'));continue;}if(entry.type==='subtotal'){node('p','Delsum '+entry.group.name+': '+(entry.total===null?'Avklares':money(entry.total))).style.fontWeight='bold';continue;}const line=entry.line;const row=node('div','');row.style.cssText='display:flex;gap:14px;padding:16px 0;border-bottom:1px solid #d9dbcf;align-items:flex-start;min-width:0';if(line.addonFor?.length)row.style.cssText+=';padding:8px 0;gap:14px;font-size:13px';
+ for(const entry of entries){if(entry.type==='group'){node('h3',receiptGroupLabel(entry.group));if(entry.group.type==='sofa'&&entry.group.description)node('small',entry.group.description);continue;}if(entry.type==='subtotal'){node('p','Delsum '+entry.group.name+': '+(entry.total===null?'Avklares':money(entry.total))).style.fontWeight='bold';continue;}const line=entry.line;const row=node('div','');row.style.cssText='display:flex;gap:14px;padding:16px 0;border-bottom:1px solid #d9dbcf;align-items:flex-start;min-width:0';if(line.addonFor?.length)row.style.cssText+=';padding:8px 0;gap:14px;font-size:13px';
  if(typeof line.image==='string'&&/^\/(assets|media)\//.test(line.image)&&!line.image.includes('..')){const img=document.createElement('img');img.src=line.image;img.alt=line.name;img.width=line.addonFor?.length?24:56;img.height=img.width;img.style.cssText='width:'+img.width+'px;height:'+img.height+'px;flex-shrink:0;object-fit:contain;background:transparent';const imageBox=document.createElement('span');imageBox.style.cssText='display:flex;justify-content:center;width:56px;min-width:56px';if(line.addonFor?.length)imageBox.style.alignSelf='center';imageBox.append(img);row.append(imageBox);}
  const copy=node('div','',row);copy.style.cssText='flex:1;min-width:0;overflow-wrap:anywhere';node('strong',(line.addonFor?.length?'+ ':'')+line.name,copy).style.cssText='display:block;'+(line.addonFor?.length?'font-size:13px;font-weight:500':'');node('div',(line.transport?'':line.quantity+' stk. · ')+line.basis,copy).style.cssText='font-size:13px;line-height:1.6';if(line.contents?.length)node('small',line.contents.join('; '),copy);node('div',line.total===null?'Pris på forespørsel':money(line.total),copy).style.marginTop='6px';}
  if(receipt.discount)node('p','Rabatt ('+receipt.discount.code+'): −'+money(receipt.discount.discount));

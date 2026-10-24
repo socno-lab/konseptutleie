@@ -1,5 +1,5 @@
 // Explicit admin assignments override legacy category-based navigation.
-import {matchesPurpose as matchesCatalogPurpose,prioritizePackages} from './purpose-model.js?v=adminareas1';
+import {matchesPurpose as matchesCatalogPurpose,prioritizePackages} from './purpose-model.js?v=launch20261024';
 export {prioritizePackages};
 export const purposes=[
  {id:'boligsalg',label:'Boligfoto og visning'},

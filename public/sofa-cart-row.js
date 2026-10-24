@@ -1,5 +1,5 @@
-import {cartThumbnail} from './cart-thumbnail.js?v=textileicons20261023';
-import {modulePhotoPreview} from './module-photo-preview.js?v=admincontrol20261022';
+import {cartThumbnail} from './cart-thumbnail.js?v=launch20261024';
+import {modulePhotoPreview} from './module-photo-preview.js?v=launch20261024';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function sofaCartRow({setup,index,modules,count,width,widthKnown,priceText,textile='',purchase=false}){
  // Same thumbnail component and dimensions as every ordinary cart product.

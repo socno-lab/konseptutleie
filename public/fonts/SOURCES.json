@@ -1,0 +1,46 @@
+{
+  "downloaded": "2026-10-24",
+  "stylesheet": "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400..700&family=Manrope:wght@400..700&display=swap",
+  "files": [
+    {
+      "name": "dm-sans-latin-ext-v17.woff2",
+      "bytes": 18192,
+      "source": "https://fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu6-K6z9mXgjU0.woff2"
+    },
+    {
+      "name": "dm-sans-latin-v17.woff2",
+      "bytes": 36980,
+      "source": "https://fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu0-K6z9mXg.woff2"
+    },
+    {
+      "name": "manrope-cyrillic-ext-v20.woff2",
+      "bytes": 2592,
+      "source": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggqxSvfedN62Zw.woff2"
+    },
+    {
+      "name": "manrope-cyrillic-v20.woff2",
+      "bytes": 14544,
+      "source": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggOxSvfedN62Zw.woff2"
+    },
+    {
+      "name": "manrope-greek-v20.woff2",
+      "bytes": 9360,
+      "source": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggSxSvfedN62Zw.woff2"
+    },
+    {
+      "name": "manrope-vietnamese-v20.woff2",
+      "bytes": 8492,
+      "source": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggixSvfedN62Zw.woff2"
+    },
+    {
+      "name": "manrope-latin-ext-v20.woff2",
+      "bytes": 15240,
+      "source": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggmxSvfedN62Zw.woff2"
+    },
+    {
+      "name": "manrope-latin-v20.woff2",
+      "bytes": 24576,
+      "source": "https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggexSvfedN4.woff2"
+    }
+  ]
+}

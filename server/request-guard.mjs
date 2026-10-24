@@ -16,4 +16,4 @@ export function createRequestGuard({now=Date.now,maxClients=2000,maxActive=24,ma
   let released=false;return ()=>{if(released)return;released=true;bucket.active--;inFlight--;};
  };
 }
-export const contentPolicy="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'";
+export const contentPolicy="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' https: data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'";

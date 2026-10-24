@@ -5,10 +5,30 @@ import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';
 import {enquiryEmail} from '../server/enquiry-email.mjs';
 import {createServer} from '../app-server.mjs';
 import {configureSiteSettings,defaultSettings} from '../public/site-settings.js';
+import {getTermsVersions} from '../public/terms-versions.js';
+import {osloToday,addDateDays} from '../public/rental-dates.js';
 const products=[{id:'chair',name:'Stol med et langt navn og <uønsket> HTML & tekst',active:true,stock:10,unavailable:0,rentalPricingMode:'manual',price:100,weekPrice:300,monthPrice:500,saleEnabled:true,salePrice:1990,category:'Stoler'}],env={SMTP_PASS:'test-only',SMTP_USER:'post@konseptuell.no'};
-const sample=()=>({id:'efc79d30-2390-43e7-9c3b-46e287867060',kind:'rental',name:'Emilie Eksempel',email:'customer@example.invalid',terms:'2026-10-22-leie-8-test',basket:{chair:1},details:{phone:'00000000',address:'Eksempelveien 12, 1470 Eksempelsted',start:'2026-11-01',end:'2026-11-02',delivery:'Henter og returnerer selv',occasion:'Boligfoto og visning',notes:'<script>alert(1)</script>'}});
+const sample=()=>({id:'efc79d30-2390-43e7-9c3b-46e287867060',kind:'rental',name:'Emilie Eksempel',email:'customer@example.invalid',terms:getTermsVersions().rental,basket:{chair:1},details:{phone:'00000000',address:'Eksempelveien 12, 1470 Eksempelsted',start:addDateDays(osloToday(),7),end:addDateDays(osloToday(),8),delivery:'Henter og returnerer selv',occasion:'Boligfoto og visning',notes:'<script>alert(1)</script>'}});
 function memory(){const rows=new Map(),jobs=[];return {enabled:true,rows,jobs,async readEnquiry(id){return rows.get(id);},async reserveEnquiry(id,fingerprint,snapshot){if(rows.has(id))return rows.get(id).fingerprint===fingerprint?rows.get(id):{conflict:true};rows.set(id,{fingerprint,snapshot:structuredClone(snapshot)});for(const channel of ['internal','customer'])jobs.push({id,channel,snapshot:structuredClone(snapshot),status:'pending',next:0});return {snapshot};},async pruneEnquiries(){},async pendingEnquiryMail(now){return jobs.filter(j=>j.status==='pending'&&j.next<=now);},async claimEnquiryMail(id,channel){const j=jobs.find(j=>j.id===id&&j.channel===channel);if(j.status!=='pending')return false;j.status='sending';return true;},async finishEnquiryMail(id,channel,status,now){const j=jobs.find(j=>j.id===id&&j.channel===channel);j.status=status;j.next=now+300000;}};}
 async function settle(store){for(let i=0;i<100&&store.jobs.some(j=>['pending','sending'].includes(j.status)&&j.next<=Date.now());i++)await new Promise(r=>setTimeout(r,5));}
+test('retention runs without SMTP, is throttled, and never drains or sends disabled mail',async()=>{
+ for(const settings of [{},{SMTP_PASS:'test-only',SMTP_USER:'other@example.invalid'},{...env,SMTP_PORT:'25'}]){
+  let pruned=0,queueReads=0,sent=0;
+  const store={enabled:true,async pruneEnquiries(now){assert.ok(Number.isFinite(now));pruned++;},async pendingEnquiryMail(){queueReads++;return [];}};
+  const sender=createSubmissionSender(settings,store,async()=>{sent++;});
+  await sender.flush();await sender.flush();
+  assert.equal(pruned,1);assert.equal(queueReads,0);assert.equal(sent,0);
+ }
+ let pruned=0;
+ await createSubmissionSender({}, {enabled:false,async pruneEnquiries(){pruned++;}},async()=>{assert.fail('must not send');}).flush();
+ assert.equal(pruned,0);
+});
+test('retention failure without SMTP is retried and logs no customer data',async()=>{
+ let attempts=0;const logs=[],original=console.error;
+ const sender=createSubmissionSender({}, {enabled:true,async pruneEnquiries(){attempts++;if(attempts===1)throw Object.assign(Error('private customer data'),{code:'ER_LOCK_WAIT_TIMEOUT'});}},async()=>{assert.fail('must not send');});
+ try{console.error=message=>logs.push(message);await sender.flush();await sender.flush();await sender.flush();}finally{console.error=original;}
+ assert.equal(attempts,2);assert.deepEqual(logs,['E-postkø: ER_LOCK_WAIT_TIMEOUT']);
+});
 test('one registered snapshot sends distinct HTML + text customer and internal messages exactly once on repeat',async()=>{
  const messages=[],store=memory(),sender=createSubmissionSender(env,store,async message=>{messages.push(message);return {accepted:[message.to]};});const value=sample();
  const first=await sender.submit(value,products,'client');await settle(store);const repeat=await sender.submit(value,products,'client');await sender.flush();assert.deepEqual(first.receipt,repeat.receipt);assert.deepEqual(first.receipt.lines,store.rows.get(value.id).snapshot.lines);assert.equal(first.receipt.total,200);assert.equal(first.receipt.terms,undefined);
@@ -34,8 +54,8 @@ test('ambiguous DATA acknowledgement is quarantined, not blindly sent twice',asy
 });
 test('server ignores client prices; purchase, empty optional fields, custom requests, dates and period additions',()=>{
  configureSiteSettings(defaultSettings);const input=sample(),value=validateSubmission(input,products),s=createEnquirySnapshot(value,{...input,total:1,details:{...input.details,total:1}},products);assert.equal(s.total,200);
- const buy={...input,kind:'purchase',details:{...input.details,start:'',end:'',notes:'',company:'',delivery:'Henter selv etter avtale'}};const snap=createEnquirySnapshot(validateSubmission(buy,products),buy,products);assert.equal(snap.total,1990);assert.ok(!enquiryEmail(snap).text.includes('Ønsket leieperiode'));
- const extra={...products[0],rentalPricingMode:'period',price:400};const long={...input,details:{...input.details,end:'2026-12-01'}};assert.equal(createEnquirySnapshot(value,long,[extra]).lines[0].total,800);
+ const buy={...input,kind:'purchase',terms:getTermsVersions().purchase,details:{...input.details,start:'',end:'',notes:'',company:'',delivery:'Henter selv etter avtale'}};const snap=createEnquirySnapshot(validateSubmission(buy,products),buy,products);assert.equal(snap.total,1990);assert.ok(!enquiryEmail(snap).text.includes('Ønsket leieperiode'));
+ const extra={...products[0],rentalPricingMode:'period',price:400};const long={...input,details:{...input.details,end:addDateDays(input.details.start,30)}};assert.equal(createEnquirySnapshot(value,long,[extra]).lines[0].total,800);
  for(const patch of [{email:'test@example.invalid\r\nBcc:evil@example.invalid'},{name:'Test\nBCC'},{terms:''},{basket:{missing:1}},{basket:{chair:0}},{basket:{}},{website:'spam'}])assert.throws(()=>validateSubmission({...input,...patch},products));
  for(const details of [{...input.details,end:'2026-02-30'},{...input.details,end:'2026-10-01'},{...input.details,notes:'x'.repeat(3001)}])assert.throws(()=>createEnquirySnapshot(value,{...input,details},products));
  const custom={...input,basket:{},customRequest:true,details:{...input.details,delivery:'Avklares senere',customRequest:'Et rom med stoler'}};assert.equal(createEnquirySnapshot(validateSubmission(custom,products),custom,products).total,null);
@@ -44,7 +64,7 @@ test('server ignores client prices; purchase, empty optional fields, custom requ
 test('origin, unavailable SMTP, spam limits and module minimum remain enforced',async()=>{
  await assert.rejects(createSubmissionSender({},memory()).submit(sample(),products,'client'),e=>e.status===503);
  const limited=createSubmissionSender(env,{enabled:true,readEnquiry:async()=>null,reserveEnquiry:async()=>({limited:true})},async()=>{});await assert.rejects(limited.submit(sample(),products,'client'),e=>e.status===429);
- const lagoon=products.map(p=>({...p,moduleSeries:'Lagoon',rentalModuleMinimum:2,moduleRole:'left'}));assert.throws(()=>validateSubmission(sample(),lagoon),/minst 2/);
+ const lagoon=products.map(p=>({...p,moduleSeries:'Lagoon',rentalModuleMinimum:2,moduleRole:'left'})),lagoonInput=sample();assert.throws(()=>createEnquirySnapshot(validateSubmission(lagoonInput,lagoon),lagoonInput,lagoon),/minst 2/);
  const server=createServer({env:{},origin:'https://konseptuell.no'});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
  try{assert.deepEqual(await(await fetch(base+'/api/submissions')).json(),{enabled:false});assert.equal((await fetch(base+'/api/submissions',{method:'POST',headers:{origin:'https://evil.invalid','content-type':'application/json'},body:JSON.stringify(sample())})).status,403);}finally{await new Promise(resolve=>server.close(resolve));}
 });
@@ -60,7 +80,7 @@ test('contact, complete address and relevant dates are required for delivery and
  const input=sample(),value=validateSubmission(input,products);
  for(const patch of [{phone:''},{phone:'   '},{address:''},{address:'1470 Eksempelsted'},{address:'Eksempelveien 12, 1470'},{occasion:''},{start:''},{end:''}])assert.throws(()=>createEnquirySnapshot(value,{...input,details:{...input.details,...patch}},products),e=>e.status===400);
  const noOptional={...input,details:{...input.details,company:'',notes:''}};assert.equal(createEnquirySnapshot(value,noOptional,products).total,200);
- const purchase={...noOptional,kind:'purchase',details:{...noOptional.details,start:'',end:'',delivery:'Henter selv etter avtale'}};assert.equal(createEnquirySnapshot(validateSubmission(purchase,products),purchase,products).total,1990);
+ const purchase={...noOptional,kind:'purchase',terms:getTermsVersions().purchase,details:{...noOptional.details,start:'',end:'',delivery:'Henter selv etter avtale'}};assert.equal(createEnquirySnapshot(validateSubmission(purchase,products),purchase,products).total,1990);
  const receipt=createEnquirySnapshot(validateSubmission(purchase,products),{...purchase,details:{...purchase.details,deliveryDate:'2026-11-06'}},products);assert.ok(receipt.facts.some(([key,text])=>key==='Leveringstid'&&text.includes('2–3 uker')));assert.ok(!receipt.facts.some(([key])=>key==='Ønsket leveringsdato'));assert.doesNotMatch(enquiryEmail(receipt).text,/2026-11-06|Ønsket leveringsdato/);
  const custom={...input,basket:{},customRequest:true,details:{...input.details,start:'',end:'',delivery:'Avklares senere',customRequest:'Et rom med stoler'}};assert.throws(()=>createEnquirySnapshot(validateSubmission(custom,products),custom,products),/leieperiode/);
 });
@@ -70,7 +90,7 @@ test('migrated media-library images are embedded in both rental and purchase rec
  for(const kind of ['rental','purchase']){
   const store=memory(),messages=[],lookups=[];store.media=async id=>{lookups.push(id);return {body,mime:'image/jpeg'};};
   const sender=createSubmissionSender(env,store,async m=>{messages.push(m);return {accepted:[m.to]};});
-  const input={...sample(),kind,image:'https://untrusted.invalid/ignore.jpg',details:{...sample().details,delivery:kind==='rental'?'Henter og returnerer selv':'Henter selv etter avtale'}};
+  const input={...sample(),kind,terms:getTermsVersions()[kind==='rental'?'rental':'purchase'],image:'https://untrusted.invalid/ignore.jpg',details:{...sample().details,delivery:kind==='rental'?'Henter og returnerer selv':'Henter selv etter avtale'}};
   await sender.submit(input,products.map(p=>({...p,image})),'client');await settle(store);
   assert.equal(messages.length,2);assert.ok(store.jobs.every(j=>j.status==='sent'));
   assert.deepEqual(lookups,['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']);

@@ -1,0 +1,156 @@
+{
+  "products": [
+    {
+      "id": "obj_371e3a52807c452ea1280dafd434b7e4",
+      "name": "Lys beige – hjørne-/endemodul",
+      "moduleSeries": "Modulsofa, lys beige",
+      "moduleRole": "end",
+      "moduleWidth": 92,
+      "image": "/assets/beige-endemodul.webp"
+    },
+    {
+      "id": "obj_d9314111959a42bf8b7ca3015af09003",
+      "name": "Lys beige – midtmodul",
+      "moduleSeries": "Modulsofa, lys beige",
+      "moduleRole": "middle",
+      "moduleWidth": 70,
+      "image": "/assets/beige-midtmodul.webp"
+    },
+    {
+      "id": "obj_c274f2d322614de4be80c2b891a78174",
+      "name": "Venture Home loungestol, beige",
+      "moduleSeries": "Venture Home lounge, beige",
+      "moduleRole": "middle",
+      "moduleWidth": 70,
+      "image": "/assets/venture-home-lounge-front.webp"
+    },
+    {
+      "id": "obj_ad4086d4e89041529b6c6563f220b046",
+      "name": "Venture Home loungestol, hvit",
+      "moduleSeries": "Venture Home lounge, hvit",
+      "moduleRole": "middle",
+      "moduleWidth": 70,
+      "image": "/assets/venture-home-lounge-hvit-front.webp"
+    },
+    {
+      "id": "obj_4e31c6c5bcca4f91abad27609806ac0f",
+      "name": "Jakobsdals Senzo – grunnsofa med begge ender, sennep",
+      "moduleSeries": "Jakobsdals Senzo, sennep",
+      "moduleRole": "base",
+      "moduleWidth": 220,
+      "image": "https://cdn.shopify.com/s/files/1/0262/5811/2563/files/8133615.webp?v=1787812247"
+    },
+    {
+      "id": "obj_742f0d2dc6e24339ae594b05ac88c747",
+      "name": "Jakobsdals Senzo – midtmodul, sennep",
+      "moduleSeries": "Jakobsdals Senzo, sennep",
+      "moduleRole": "middle",
+      "moduleWidth": 81,
+      "image": "https://cdn.shopify.com/s/files/1/0262/5811/2563/files/8133715.webp?v=1787812348"
+    },
+    {
+      "id": "obj_7cd158cfb2cf4e51b9f6644ba0544082",
+      "name": "Kid Isa – venstre endemodul, natur",
+      "moduleSeries": "Kid Isa, natur",
+      "moduleRole": "left",
+      "moduleWidth": 110,
+      "image": "/media/e7e28a4539ea9d1a3da014e8d385130e"
+    },
+    {
+      "id": "obj_834d73bb940f495b81853eaf5f7f5a39",
+      "name": "Kid Isa – høyre endemodul, natur",
+      "moduleSeries": "Kid Isa, natur",
+      "moduleRole": "right",
+      "moduleWidth": 110,
+      "image": "/media/e95963ce8cfd07380f5a36fe9b736e17"
+    },
+    {
+      "id": "obj_18a7f0aad41741e6a7dd860bc4cd9bca",
+      "name": "Kid Isa – midtmodul, natur",
+      "moduleSeries": "Kid Isa, natur",
+      "moduleRole": "middle",
+      "moduleWidth": 90,
+      "image": "/media/15a398cc2b02b86428f05f8df740561a"
+    },
+    {
+      "id": "obj_e96a0e321c9f4fff8740247d00166d0a",
+      "name": "Kid Isa – sjeselong høyre, natur",
+      "moduleSeries": "Kid Isa, natur",
+      "moduleRole": "right",
+      "moduleWidth": 114,
+      "image": "/media/13b472d7600de7893d16dc8d70fa3ba8"
+    },
+    {
+      "id": "obj_dbf1ef0037c54e0caa4962d4e20a99da",
+      "name": "Kid Juno – venstre endemodul, beige",
+      "moduleSeries": "Kid Juno, beige",
+      "moduleRole": "left",
+      "moduleWidth": 110,
+      "image": "/media/a885295b8a5807a4470e500f12163a88"
+    },
+    {
+      "id": "obj_053c65ceffb2449ebfd703abe8536a3c",
+      "name": "Kid Juno – høyre endemodul, beige",
+      "moduleSeries": "Kid Juno, beige",
+      "moduleRole": "right",
+      "moduleWidth": 110,
+      "image": "/media/081f837f836045da7d37131b6feb0755"
+    },
+    {
+      "id": "obj_56ba54bbfc4f4a16a31aed4acf134364",
+      "name": "Kid Juno – midtmodul, beige",
+      "moduleSeries": "Kid Juno, beige",
+      "moduleRole": "middle",
+      "moduleWidth": 90,
+      "image": "/media/6d05052432518e521573c4635fbc980b"
+    },
+    {
+      "id": "obj_jakobsdals_8133678",
+      "name": "Jakobsdals Senzo – grunnsofa med begge ender, mosegrønn",
+      "moduleSeries": "Jakobsdals Senzo, mosegrønn",
+      "moduleRole": "base",
+      "moduleWidth": 220,
+      "image": "/assets/jakobsdals-8133678-white.jpg"
+    },
+    {
+      "id": "obj_jakobsdals_8133680",
+      "name": "Jakobsdals Senzo – grunnsofa med begge ender, offwhite",
+      "moduleSeries": "Jakobsdals Senzo, offwhite",
+      "moduleRole": "base",
+      "moduleWidth": 220,
+      "image": "https://cdn.shopify.com/s/files/1/0262/5811/2563/files/8133680.webp?v=1787812302"
+    },
+    {
+      "id": "obj_jakobsdals_8133683",
+      "name": "Jakobsdals Senzo – grunnsofa med begge ender, beige",
+      "moduleSeries": "Jakobsdals Senzo, beige",
+      "moduleRole": "base",
+      "moduleWidth": 220,
+      "image": "/assets/jakobsdals-8133683-white.jpg"
+    },
+    {
+      "id": "obj_jakobsdals_8133778",
+      "name": "Jakobsdals Senzo – midtmodul, mosegrønn",
+      "moduleSeries": "Jakobsdals Senzo, mosegrønn",
+      "moduleRole": "middle",
+      "moduleWidth": 81,
+      "image": "https://cdn.shopify.com/s/files/1/0262/5811/2563/files/8133778.webp?v=1787812368"
+    },
+    {
+      "id": "obj_jakobsdals_8133780",
+      "name": "Jakobsdals Senzo – midtmodul, offwhite",
+      "moduleSeries": "Jakobsdals Senzo, offwhite",
+      "moduleRole": "middle",
+      "moduleWidth": 81,
+      "image": "https://cdn.shopify.com/s/files/1/0262/5811/2563/files/8133780.webp?v=1787812383"
+    },
+    {
+      "id": "obj_jakobsdals_8133783",
+      "name": "Jakobsdals Senzo – midtmodul, beige",
+      "moduleSeries": "Jakobsdals Senzo, beige",
+      "moduleRole": "middle",
+      "moduleWidth": 81,
+      "image": "https://cdn.shopify.com/s/files/1/0262/5811/2563/files/8133783.webp?v=1787814060"
+    }
+  ]
+}
