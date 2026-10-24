@@ -1,4 +1,4 @@
-import {mountCatalogPagination} from './catalog-pagination.js?v=catalogcontrols20261024a';
+import {mountCatalogPagination} from './catalog-pagination.js?v=catalogmore20261024a';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=serviceinfo20261024';
 import {configureSiteSettings,categoryLabel,getSiteSettings} from './site-settings.js';

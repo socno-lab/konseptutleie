@@ -771,3 +771,11 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #saleProducts .sale-photo img[src="/media/d507f13aa9185accd4ea2796c75ca4fc"]{--catalog-scale:1.4249;--catalog-x:-0.254%;--catalog-y:-20.851%}
 #saleProducts .sale-photo img[src="/media/1290c93f890f17594320207b2c470a0a"]{--catalog-scale:1.4082;--catalog-x:-0.251%;--catalog-y:-20.117%}
 #saleProducts .sale-photo img[src="/media/f9a3d213b98b4ba70a9c1f43e791a8b6"]{--catalog-scale:1.4165;--catalog-x:-0.506%;--catalog-y:-20.482%}
+
+/* A shared, visible continuation control outside the full catalog grid. */
+.catalog-pagination{display:flex;grid-column:1 / -1;flex-direction:column;align-items:center;gap:14px;width:100%;box-sizing:border-box;margin:40px auto 24px;text-align:center}
+.catalog-pagination[hidden],.catalog-pagination .catalog-pagination-button[hidden]{display:none}
+.catalog-pagination .catalog-pagination-status{margin:0;padding:0;border:0;color:var(--muted);font-size:12px;font-weight:400;line-height:1.6;text-align:center}
+.catalog-pagination .catalog-pagination-button{display:flex;align-items:center;justify-content:center;gap:12px;width:min(100%,360px);min-height:52px;box-sizing:border-box;margin:0;padding:15px 24px;border:1px solid var(--olive);background:var(--olive);color:var(--paper);font-family:inherit;font-size:13px;font-weight:500;line-height:1.4;text-align:center}
+.catalog-pagination .catalog-pagination-button::after{content:"";width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);flex-shrink:0}
+.catalog-pagination .catalog-pagination-button:hover{filter:brightness(.92)}
