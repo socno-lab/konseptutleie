@@ -71,3 +71,5 @@ Leieutvalget med generelt informasjonskort bygger først 23 faktiske produktkort
 Leveringsinformasjon på forsiden: Hele Østlandet og henting på Strømmen etter avtale vises i eksisterende introtypografi. Leverings-FAQ forklarer større oppdrag andre steder og særskilt fraktberegning ved over 40 minutters kjøretid én vei fra lageret. Svartid «Vi svarer normalt innen én virkedag.» vises ved innsending, øverst på nettbekreftelsen og i kundens e-post for leie/kjøp. Eksisterende fonter, kolonner og ikoner beholdes. Godkjent av eier 24. oktober 2026.
 
 Leveringsområde presisert av eier 24. oktober 2026: Forsiden opplyser også at større arrangementer og messer kan få levering i store deler av landet. FAQ presiserer at dette avtales. Eksisterende introtypografi, henting på Strømmen og fraktgrensen på 40 minutter én vei beholdes.
+
+Overskrifter bruker rett skrift uten kursiv, også der deler av teksten er markert med em/i. Eksisterende skriftfamilier, størrelser, vekter, farger og linjeskift beholdes. Uttrykkelig bestilt av eier 24. oktober 2026.
