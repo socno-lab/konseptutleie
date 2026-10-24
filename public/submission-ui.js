@@ -8,8 +8,20 @@ export async function submitEnquiry(form,{kind,basket,customRequest=false,lines,
  if(record.busy)throw Error('Forespørselen sendes allerede. Vent på bekreftelsen.');
  record.busy=true;
  try{
-  const response=await fetch('/api/submissions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...record.payload,id:record.id}),signal:AbortSignal.timeout(25000)});
-  const result=await response.json();if(!response.ok||!result.ok)throw Error(result.error||'Sendingen kunne ikke bekreftes. Kontakt post@konseptuell.no.');
+  let result;
+  const body=JSON.stringify({...record.payload,id:record.id});
+  for(let attempt=0;attempt<2;attempt++){
+   const response=await fetch('/api/submissions',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body,signal:AbortSignal.timeout(25000)});
+   const text=await response.text();
+   try{result=JSON.parse(text);}catch{
+    // A hosting restart/proxy can return HTML or no body. Reuse the same id,
+    // so a registered request is recovered without sending duplicate mail.
+    if(attempt===0&&(response.ok||[502,503,504].includes(response.status)))continue;
+    throw Error('Serveren ga ikke en gyldig bekreftelse (HTTP '+response.status+'). Kurven er beholdt. Prøv igjen; samme referanse brukes for å unngå dobbel innsending. Referanse: '+record.id);
+   }
+   if(!response.ok||!result?.ok)throw Error(result?.error||'Sendingen kunne ikke bekreftes. Kontakt post@konseptuell.no med referanse '+record.id+'.');
+   break;
+  }
   record.result=result;return result;
  }catch(error){if(error.name==='TimeoutError')throw Error('Sendingen tok for lang tid. Kontakt post@konseptuell.no med referanse '+record.id+' før du sender på nytt.');throw error;}finally{record.busy=false;}
 }

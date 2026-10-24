@@ -2,7 +2,7 @@ import {receiptEntries} from './receipt-layout.js?v=packageitems20261023';
 import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js?v=inheritedaddons20261023';
 import {isServiceOffering,serviceVariants,groupedServiceCards} from './service-model.js?v=services20261023';
 import {rentalModuleRequirementError} from './sofa-layout.js?v=joinedsofa1';
-import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=compactaddons20261024';
+import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=robustreceipt20261024';
 import {decorExamples} from './decor-examples.js?v=realdecor20261022';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=inheritedaddons20261023';
