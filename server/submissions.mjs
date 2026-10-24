@@ -48,7 +48,14 @@ export function createSubmissionSender(env,store,sendOverride){
    }catch{/* A missing optional picture must not prevent the receipt. Use its public URL. */}
    lines.push(copy);
   }
-  return {snapshot:{...snapshot,lines},attachments};
+  // Transport is generated after product ordering, so embed it explicitly too.
+  let delivery=snapshot.delivery;
+  if(delivery){
+   const cid='transport@konseptuell.no';
+   attachments.push({filename:'transport.png',content:await readFile(path.join(assetsRoot,'transport-truck.png')),contentType:'image/png',cid,contentDisposition:'inline'});
+   delivery={...delivery,imageSrc:'cid:'+cid};
+  }
+  return {snapshot:{...snapshot,lines,delivery},attachments};
  }
  let logo;const logoBytes=()=>logo??=readFile(new URL('../public/assets/konseptuell-leie-og-kjop-logo.png',import.meta.url));
  async function flush(){
