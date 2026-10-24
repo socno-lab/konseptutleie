@@ -11,6 +11,8 @@ Brukeren godkjente gjeldende uttrykk 23. oktober 2026 og ba om at det låses mot
 - SEO må ikke skrive om synlig overskrift, endre bildenes utsnitt eller innføre en ny visuell profil. Metadata kan forbedres uten å endre kundens opplevelse.
 - Produktutvalg, bilder og innhold som allerede styres fra admin kan fortsatt oppdateres der. Låsen skal ikke endre lager, priser, katalogdata eller bestillingsfunksjoner.
 
+- Handlekurv: produkter og tjenester med bilde/ikon bruker samme navn-, pris- og informasjonstypografi. Fastpris skal ikke være større eller fetere enn vanlig leiepris. Bilder starter øverst på raden. Tilvalg forblir mindre, kompakte tillegg.
+
 ## Kontroll ved endringer
 
 `node build.mjs` og testsuiten kontrollerer `reference/home-design-lock.json`. Låsen dekker delte stilark, hero før og etter serverrendering, forsiderendereren og bildemarkup i leie/kjøp. Fordi stilark er delt, kan også en endring på en annen side utløse kontrollen. Dette er et signal om visuell gjennomgang, ikke en grunn til å omgå kontrollen.
