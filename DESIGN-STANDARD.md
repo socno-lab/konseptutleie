@@ -10,6 +10,8 @@ Behold logo, grønn/hvit profil, DM Sans på nettstedet, typografihierarki, skil
 
 Tjenester kan ha mer forklarende innhold, men følger produktenes typografiskala. Fastpris i detaljvisning: 13 px / vekt 500, som ordinære produktpriser. Mellomoverskrifter som «Dette er inkludert»: 14 px / vekt 600, som øvrige valgoverskrifter. Hovedtitler følger vanlige produkttitler. Ikke forstørr pris eller overskrift bare fordi varen er en tjeneste. Forsidens sesongfelt har ingen pris; prisene finnes på tjenestesiden. Variantpriser i oversikten bruker vanlig kompakt prisoppsett.
 
+På enkeltproduktsiden viser oppsummeringen over døgn-/uke-/månedspris bare hovedproduktet og antallet. Valgte tilvalg vises i tilvalgsfeltet med egen pris og som egen prislinje i kurven; de skal ikke legges til i denne oppsummeringsteksten. Presisert av eier 24. oktober 2026.
+
 ## Handlekurv og Din forespørsel
 
 - Alle hovedprodukter og tjenester bruker samme produktlinje, navn-, pris- og informasjonstypografi. Fastpris får ikke større eller fetere pris enn ordinære leieprodukter.
