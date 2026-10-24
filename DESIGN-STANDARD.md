@@ -24,6 +24,8 @@ Produktkort med fastpris per påbegynte 30 dager bruker vanlig tredelt prisrute:
 - Tilvalgenes antallsvelgere har samme knapper, skrift, avstand og plassering som hovedproduktets antallsvelgere: vanlige rader 32 × 40 px, 9 px mellomrom; eksisterende pakkerader 40 × 40 px uten mellomrom. Tall og knapper står på samme loddrette linjer som i tilhørende hovedrad. Tilvalgstekst og ikon forblir kompakte.
 - Varsler fra handlinger i en åpen kurv/dialog skal vises skarpt i den aktive dialogen, ikke i den uskarpe bakgrunnen.
 
+Datofelt og rabattkodefelt i leiekurven følger samme tekststørrelse og vekt som Anledning: 13 px / 400 på desktop, 16 px / 400 på mobil for å unngå feltzoom. Datofelt, rabattkodefelt og Bruk kode-knappen er 48 px høye og står på samme linje uten ekstra toppmarg på kodefeltet. Presisert av eier 24. oktober 2026.
+
 ## Bekreftelse på nettstedet og e-post
 
 Vis bekreftet innhold med produkter, bilder/ikoner, antall og priser. Pakker er grupper av faktiske produkter med tilvalg under riktig produkt, ikke bare én tekstlinje med pakkeinnhold. Ikke tell pakkesummen dobbelt. Gruppering og rekkefølge skal samsvare mellom kurv, e-post og bekreftelsesside.
