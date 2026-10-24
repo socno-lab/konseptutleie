@@ -1,18 +1,19 @@
 import {getSiteSettings} from './site-settings.js';
 
 const header=document.querySelector('body>header');
-if(header?.querySelector('.brand')&&!header.querySelector('.mobile-menu-toggle'))mountMobileMenu(header);
+if(header?.querySelector('.brand')&&!header.hasAttribute('data-mobile-menu-bound'))mountMobileMenu(header);
 
 function mountMobileMenu(header){
+ header.setAttribute('data-mobile-menu-bound','');
  const mobile=matchMedia('(max-width:640px)'),brand=header.querySelector('.brand'),desktopNav=header.querySelector('nav'),bag=header.querySelector('.bag');
- const toggle=document.createElement('button');toggle.type='button';toggle.className='mobile-menu-toggle';toggle.setAttribute('aria-label','Åpne meny');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls','mobileMenuPanel');toggle.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
- header.prepend(toggle);header.classList.add('has-mobile-menu');
- const layer=document.createElement('div');layer.className='mobile-menu-layer';layer.hidden=true;
- const outside=document.createElement('button');outside.type='button';outside.className='mobile-menu-outside';outside.tabIndex=-1;outside.setAttribute('aria-label','Lukk meny');
- const panel=document.createElement('nav');panel.id='mobileMenuPanel';panel.className='mobile-menu-panel';panel.setAttribute('aria-label','Mobilmeny');layer.append(outside,panel);header.after(layer);
+ const toggle=header.querySelector('.mobile-menu-toggle')||document.createElement('button');toggle.type='button';toggle.className='mobile-menu-toggle';toggle.setAttribute('aria-label','Åpne meny');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls','mobileMenuPanel');toggle.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+ if(!toggle.parentNode)header.prepend(toggle);header.classList.add('has-mobile-menu');
+ const layer=header.nextElementSibling?.classList.contains('mobile-menu-layer')?header.nextElementSibling:document.createElement('div');layer.className='mobile-menu-layer';layer.hidden=true;
+ const outside=layer.querySelector('.mobile-menu-outside')||document.createElement('button');outside.type='button';outside.className='mobile-menu-outside';outside.tabIndex=-1;outside.setAttribute('aria-label','Lukk meny');
+ const panel=layer.querySelector('#mobileMenuPanel')||document.createElement('nav');panel.id='mobileMenuPanel';panel.className='mobile-menu-panel';panel.setAttribute('aria-label','Mobilmeny');if(!outside.parentNode)layer.append(outside);if(!panel.parentNode)layer.append(panel);if(!layer.parentNode)header.after(layer);
  if(bag){
   for(const node of [...bag.childNodes])if(node.nodeType===Node.TEXT_NODE&&node.textContent.trim()&&node.textContent.trim()!=='↗'){const label=document.createElement('span');label.className='mobile-bag-label';label.textContent=node.textContent.replace('↗','');node.replaceWith(label);}
-  const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','mobile-bag-icon');icon.setAttribute('aria-hidden','true');icon.innerHTML='<path d="M5 7h14l1 14H4L5 7Zm3 0V5a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>';bag.prepend(icon);
+  const icon=bag.querySelector('.mobile-bag-icon')||document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','mobile-bag-icon');icon.setAttribute('aria-hidden','true');icon.innerHTML='<path d="M5 7h14l1 14H4L5 7Zm3 0V5a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>';if(!icon.parentNode)bag.prepend(icon);
   // Keep the existing basket element, count node and click handlers intact.
   const count=bag.querySelector('#count,#saleCount'),updateLabel=()=>bag.setAttribute('aria-label',(bag.id==='openSaleCart'?'Handlekurv for kjøp':'Din leieforespørsel')+(count?' – '+count.textContent.trim()+(count.textContent.trim()==='1'?' vare':' varer'):''));
   if(count)new MutationObserver(updateLabel).observe(count,{childList:true,subtree:true,characterData:true});updateLabel();
