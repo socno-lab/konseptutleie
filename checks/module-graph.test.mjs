@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {readHtmlTemplate,publicHtmlNames} from '../server/html-templates.mjs';
 const root=fileURLToPath(new URL('../public/',import.meta.url)),origin='https://example.invalid',version='?v=launch20261024',shared=new Set(['/site-settings.js','/business-purchase-model.js']);
 const updated=new Set(['/app.js','/shop.js','/submission-ui.js','/receipt-layout.js']);
-const versionFor=file=>shared.has(file)?'':updated.has(file)?'?v=sofareceipt20261024':version;
+const versionFor=file=>shared.has(file)?'':file==='/app.js'?'?v=packagecards20261024':updated.has(file)?'?v=sofareceipt20261024':version;
 const imports=source=>[...source.matchAll(/\b(?:from|import)\s*['"]((?:\.{1,2}\/|\/)[^'"\s]+\.js(?:\?[^'"]*)?)['"]/g)].map(m=>m[1]);
 async function walk(directory){const files=[];for(const entry of await readdir(directory,{withFileTypes:true})){const name=path.join(directory,entry.name);if(entry.isDirectory())files.push(...await walk(name));else files.push(name);}return files;}
 async function graph(entry){
