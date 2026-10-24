@@ -49,3 +49,5 @@ Bekreftelser viser transport som egen rad med lastebilikon, leveringsmåte og pr
 Transportikon i bekreftelser bruker samme hvite bildefelt som hovedproduktene, med et mindre, sentrert lastebilsymbol og god innvendig luft. Ikonet skal ikke fylle hele bildefeltet. Presisert av eier 24. oktober 2026.
 
 E-post: bilde og produkttekst beholder hver sin tabellkolonne også på mobil. Tilvalgsikon sentreres vannrett og loddrett i bildekolonnen. Transportikon bygges inn som CID-vedlegg på samme måte som produktbilder, slik at det ikke avhenger av visning av eksterne bilder. Gjelder både kunde- og internbekreftelser. Rettet etter eiers skjermbilder 24. oktober 2026.
+
+Kjøpskurven følger samme feltskala som leiekurven: kodefelt, Bruk kode-knapp og levering/henting er 48 px høye. Kontaktfelt, kode og leveringsvalg bruker samme skrifttype, 13 px på desktop og 16 px på mobil. Leveringsvalget fyller tilgjengelig feltbredde. Presisert av eier 24. oktober 2026.
