@@ -41,3 +41,11 @@
 #cart #couponApply{padding:0 16px;display:flex;align-items:center;justify-content:center}
 #cart .coupon-entry{align-items:center}
 @media(max-width:640px){#cart .rental-date-trigger,#cart #couponInput,#cart #couponApply{font-size:16px}}
+/* Purchase checkout uses the same control scale as the rental checkout. */
+#saleCart #couponInput,#saleCart form input:not([type=checkbox]),#saleCart form select,#saleCart form textarea,#saleCart #couponApply{font-family:inherit;font-size:13px;font-weight:400;box-sizing:border-box}
+#saleCart #couponInput,#saleCart form input:not([type=checkbox]),#saleCart form select,#saleCart #couponApply{height:48px;min-height:48px}
+#saleCart form select{display:block;width:100%;min-width:0;padding:11px 12px;border:1px solid #bbc0b4;background:transparent;color:inherit}
+#saleCart #couponInput,#saleCart #couponApply{margin:0;align-self:center}
+#saleCart #couponApply{padding:0 16px;display:flex;align-items:center;justify-content:center}
+#saleCart .coupon-entry{align-items:center}
+@media(max-width:640px){#saleCart #couponInput,#saleCart form input:not([type=checkbox]),#saleCart form select,#saleCart form textarea,#saleCart #couponApply{font-size:16px}}
