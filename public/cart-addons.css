@@ -23,3 +23,8 @@
 #cart .cart-item:not(.cart-addon) .item-copy>.cart-period-price,#cart .package-cart-line:not(.package-cart-addon) .cart-period-price{margin:2px 0 6px!important;font-size:12px;font-weight:400;line-height:1.6;color:var(--muted)}
 #cart .cart-item:not(.cart-addon) .cart-period-price strong,#cart .cart-item:not(.cart-addon) .cart-period-price span,#cart .package-cart-line:not(.package-cart-addon) .cart-period-price strong,#cart .package-cart-line:not(.package-cart-addon) .cart-period-price span{font-size:12px;font-weight:400;line-height:1.6;color:var(--muted)}
 #cart .cart-item:not(.cart-addon) .item-copy>.quote-only strong{font-size:12px;font-weight:400;line-height:1.6;color:var(--muted)}
+
+/* Keep the smaller add-on stepper centred on its parent counter. */
+#cart .cart-addon>.quantity{width:114px;justify-content:center;justify-self:end}
+#cart .package-cart-line.package-cart-addon>.quantity{width:120px;justify-content:center}
+@media(max-width:640px){#cart .cart-addon>.quantity,#cart .package-cart-line.package-cart-addon>.quantity{justify-self:start}}
