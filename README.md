@@ -27,7 +27,11 @@ Lagre produktet for å publisere. Revisjonskontroll beskytter samtidige endringe
 
 Uten database er eksportkatalogen skrivebeskyttet. Konfigurert database som ikke svarer gir feilmelding, uten å vise utdaterte eksportdata som gjeldende lager.
 
-Forespørsler lastes fortsatt ned som tekstfil. E-post, betaling og datoreservasjoner er ikke implementert. Prisene er foreløpige eksempelpriser.
+Leie- og kjøpsforespørsler registreres via `/api/submissions`. Serveren beregner priser og lagrer et uforanderlig øyeblikksbilde med kontaktopplysninger, produkter, tilvalg, valgt periode og transport. Intern mottaksbekreftelse og kundekopi legges i separate, varige e-postkøer. Innsendingen bekrefter registrering, ikke at e-posten allerede er levert. Ved vellykket registrering vises innholdet på bekreftelsessiden og den aktuelle handlekurven tømmes. Ved feil beholdes kurven.
+
+Forespørsel og sendestatus slettes automatisk fra databasen etter 30 dager, også dersom SMTP senere deaktiveres, så lenge appen kjører og databasen er tilgjengelig. E-postkopier og sikkerhetskopier må håndteres etter virksomhetens egne lagringsrutiner. Se [EMAIL-RECEIPTS.md](EMAIL-RECEIPTS.md) for kø, gjentatte forsøk og lokal forhåndsvisning.
+
+Dette er et forespørselsløp, ikke automatisk ordrebehandling: datoer eller lager reserveres ikke, betaling gjennomføres ikke, og innsendingen oppretter ingen bindende avtale. Tilgjengelighet, endelig tilbud/ordrebekreftelse, vilkår og Vipps-betalingslenke følges opp manuelt. Priser og beholdning administreres i admin og må avklares av eier før lansering.
 
 `public/` inneholder frontend og bilder, `server/` database, innlogging og validering, `app-server.mjs` HTTP-ruter og `server.mjs` oppstartspunkt. `reference/sites/` er historisk forretningskode som ikke kjøres. Ingen passord, tokens eller miljøfiler skal i GitHub.
 
@@ -60,3 +64,7 @@ Papirkurven støtter permanent sletting av enkeltprodukter/bilder og tømming av
 Sengeoppredning er kun tilvalg: eksisterende enkelt-/dobbelsett migreres med addonOnly og krav om henholdsvis 1/2 ILSKOV-senger per sett. Admin har en egen produkttype «Tilvalg» og redigerbare antallskrav. Kravene gjelder også etter kurvendringer, gjenlasting og for sengepakker. Lager, priser og bilder beholdes.
 
 Vase med kunstige blomster vises som én sammensetning under Dekor, med et galleri av illustrasjonseksempler. Vase og blomster velges av stylist og kan variere. Bestillingsvarer kan vises uten oppdiktet lagerantall; tjenester koblet som tilvalg (f.eks. tekstilpakke) forblir skjult fra enkeltproduktoversikten. Pris på forespørsel brukes til pris er fastsatt. Bildene er lastet opp i det varige bildebiblioteket.
+
+## Drift og lanseringskontroll
+
+Se [OPERATIONS.md](OPERATIONS.md) for sikkerhetskopi/gjenoppretting, tilbakerulling, e-postkø, lagringstid og kontroller som må utføres i driftsmiljøet. `node scripts/preflight.mjs` gjør en lokal, nettverksfri kontroll; eksterne helsesjekker må velges uttrykkelig. CI kjører tester, bygg og avhengighetskontroll uten deploytilgang.
