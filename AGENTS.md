@@ -26,3 +26,9 @@ Når kontrollen feiler:
 Referansebilder ligger i `reference/home-mobile-approved-2026-10-23.png` og `reference/home-desktop-approved-2026-10-23.png`.
 
 Låsen er en regresjonskontroll, ikke tilgangskontroll eller en garanti mot alle mulige visuelle feil. Nye komponenter og uvanlige CSS-overstyringer må også vurderes visuelt.
+
+## Felles designstandard – godkjent 24. oktober 2026
+
+Les [DESIGN-STANDARD.md](DESIGN-STANDARD.md) før endringer i kundevendt utforming, inkludert nye produkter, tjenester, tilvalg, kurv og bekreftelser. Gjenbruk godkjente komponenter og typografiskala. Ny funksjonalitet eller en tjeneste med mer tekst gir ikke i seg selv grunn til større fonter eller ny visningsprofil.
+
+`node build.mjs` kontrollerer også `reference/presentation-design-lock.json` gjennom `server/presentation-lock.mjs`. Låsen dekker kurvstil, tjenestetypografi, produktbilder, sofarader, rekkefølge på kvitteringer, bekreftelsesvisning og e-postmal. Bevisst endring krever visuell gjennomgang og dokumentert referanseoppdatering; aldri automatisk oppdatering for å omgå kontrollen. Vanlige adminendringer i pris, lager, bilder og innhold er fortsatt tillatt. Brukerens uttrykkelige nye designønsker går foran standarden.

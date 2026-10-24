@@ -1,3 +1,4 @@
+import {assertPresentationLock} from './server/presentation-lock.mjs';
 import {assertDesignLock} from './server/design-lock.mjs';
 import {readFile,access} from 'node:fs/promises';
 import path from 'node:path';
@@ -7,5 +8,6 @@ const {products}=JSON.parse(await readFile(path.join(root,'data/catalog-export-2
 for(const p of products)for(const image of [p.image,...(p.gallery||[])].filter(Boolean))if(image.startsWith('/assets/'))await access(path.join(root,'public',image));
 await access(path.join(root,'public/index.html'));
 await assertDesignLock();
+await assertPresentationLock();
 console.log('Godkjent uttrykk kontrollert.');
 console.log(`Katalog og bildelenker kontrollert: ${products.length} oppføringer. Node-serveren krever ingen kompilering.`);
