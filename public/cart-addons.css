@@ -30,3 +30,8 @@
 #cart .package-cart-line.package-cart-addon>.quantity{width:120px;gap:0;justify-content:center}
 #cart .package-cart-line.package-cart-addon>.quantity>button,#cart .package-cart-line.package-cart-addon>.quantity>output{width:40px;min-width:40px;height:40px;min-height:40px;font-size:15px}
 @media(max-width:640px){#cart .cart-addon>.quantity,#cart .package-cart-line.package-cart-addon>.quantity{justify-self:start}}
+/* Centre optional-extra icons in their row while keeping them smaller than product pictures. */
+#cart .cart-addon>.thumb,#cart .package-cart-line.package-cart-addon>.cart-thumbnail{align-self:center}
+#cart .cart-addon .cart-thumbnail,#cart .package-cart-addon .cart-thumbnail{height:32px;align-items:center}
+#cart .cart-addon .cart-thumbnail svg,#cart .cart-addon .cart-thumbnail img,#cart .package-cart-addon .cart-thumbnail svg,#cart .package-cart-addon .cart-thumbnail img{width:32px;height:32px}
+@media(max-width:640px){#cart .cart-addon>.thumb,#cart .package-cart-line.package-cart-addon>.cart-thumbnail{grid-column:1;grid-row:1 / span 2;align-self:center}}
