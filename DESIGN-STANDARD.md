@@ -45,3 +45,5 @@ Ved legitim endring: sammenlign berørte visninger på desktop og mobil, kontrol
 Referansebilder: reference/approved-cart-2026-10-24.png, reference/approved-receipt-2026-10-24.png og reference/approved-service-2026-10-24.png. De er visuelle kontroller av utforming med eksempeldata, ikke fasit for priser eller beholdning.
 
 Bekreftelser viser transport som egen rad med lastebilikon, leveringsmåte og pris (også 0 kr eller uavklart). Standardtekst for tekstil-/dekortilvalg gjentas ikke under produktoversikten. Egne farge- og dyneønsker beholdes. Presisert av eier 24. oktober 2026.
+
+Transportikon i bekreftelser bruker samme hvite bildefelt som hovedproduktene, med et mindre, sentrert lastebilsymbol og god innvendig luft. Ikonet skal ikke fylle hele bildefeltet. Presisert av eier 24. oktober 2026.
