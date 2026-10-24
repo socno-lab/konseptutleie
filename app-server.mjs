@@ -44,11 +44,13 @@ export function createServer(options={}){
   const out=(status,data,headers)=>send(status,JSON.stringify(data),'application/json; charset=utf-8',headers);
   const redirect=location=>send(302,'','text/plain',{Location:location});
   const authenticated=async()=>{const token=sessionToken(req,cookieName);return token.length===43&&!!(await store.session(digest(token)));};
+  let pathname='';
+  const missing=async()=>send(404,await readFile(path.join(publicRoot,'404.html')),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow','Cache-Control':'no-store'});
   try{
    // Keep the custom domain unpublished during the temporary-domain preview.
    const hosts=[req.headers.host,req.headers['x-forwarded-host']].flatMap(value=>String(value||'').split(',')).map(value=>value.trim().toLowerCase().replace(/:\d+$/,'').replace(/\.$/,''));
    if(hosts.some(host=>['konseptboligstyling.com','www.konseptboligstyling.com'].includes(host)))return send(404,'<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ikke publisert</title></head><body><main><h1>Nettsiden er ikke publisert.</h1></main></body></html>','text/html; charset=utf-8');
-   const url=new URL(req.url,'http://localhost');let pathname;try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
+   const url=new URL(req.url,'http://localhost');try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
    if(['GET','HEAD'].includes(req.method)&&new URL(origin).hostname==='konseptuell.no'&&hosts.includes('www.konseptuell.no'))return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
    const indexing=store.enabled&&indexableEnvironment(origin,env,hosts);
    if(pathname==='/anledning.html'&&(url.searchParams.get('anledning')==='boligfoto'||url.searchParams.get('bruk')==='boligsalg')&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/utvalg.html?bruk=boligsalg'});
@@ -161,9 +163,10 @@ export function createServer(options={}){
    if(!['GET','HEAD'].includes(req.method))return send(405,'Metoden støttes ikke.');
    if(pathname==='/api/site-settings'){if(req.method!=='GET')return out(405,{error:'Metoden støttes ikke.'});const data=store.enabled?await readCatalog():{settings:defaultSettings};return out(200,{settings:data.settings});}
    if(pathname==='/api/catalog'){const data=store.enabled?await readCatalog():seed;return out(200,{...publicCatalog(data),canAdmin:store.enabled&&await authenticated()});}
+   if(pathname.startsWith('/api/'))return out(404,{error:'Fant ikke endepunktet.'});
    if(store.enabled&&(pathname.startsWith('/assets/')||pathname.startsWith('/media/'))&&(await store.purgedMedia()).some(url=>decodeURIComponent(url)===pathname))return send(404,'Fant ikke bildet.');
    const media=pathname.match(/^\/media\/([a-f0-9]{32})$/);if(media){if(!store.enabled)return send(404,'Fant ikke bildet.');const image=await store.media(media[1]);return image?send(200,image.body,image.mime,{'Cache-Control':'public, max-age=31536000, immutable'}):send(404,'Fant ikke bildet.');}
-   if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return send(404,'Fant ikke siden.');
+   if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return await missing();
    const seoPaths=['/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
    if(seoPaths.includes(pathname)&&['GET','HEAD'].includes(req.method)){
     const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));if(!release)return send(429,'For mange forespørsler. Prøv igjen senere.','text/plain',{'Retry-After':'60'});res.once('finish',release);res.once('close',release);
@@ -172,14 +175,15 @@ export function createServer(options={}){
     const model=pageModel(pathname,url.searchParams,catalog.products);
     const sourcePath=pathname==='/midlertidig-moblering.html'?'/index.html':pathname==='/'?'/index.html':pathname;
     let source=await readHtmlTemplate(sourcePath.slice(1));
-    if(model.status===404)source='<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Produktet er ikke tilgjengelig</title></head><body><main></main></body></html>';
+    if(model.status===404)return await missing();
     return send(model.status,renderSeo(source,model,catalog.products,indexing),'text/html; charset=utf-8',{'X-Robots-Tag':indexing&&model.status===200?'index, follow, max-image-preview:large':'noindex, nofollow, noarchive'});
    }
-   const target=path.resolve(publicRoot,'.'+(pathname==='/'?'/index.html':pathname));if(!target.startsWith(publicRoot+path.sep))return send(404,'Fant ikke siden.');
-   const type=types[path.extname(target).toLowerCase()];if(!type)return send(404,'Fant ikke siden.');
+   const target=path.resolve(publicRoot,'.'+(pathname==='/'?'/index.html':pathname));if(!target.startsWith(publicRoot+path.sep))return await missing();
+   if(pathname==='/404.html')return await missing();
+   const type=types[path.extname(target).toLowerCase()];if(!type)return await missing();
    return send(200,await readFile(target),type,pathname.startsWith('/admin/')||path.extname(target)==='.html'?{}:{'Cache-Control':'public, max-age=3600'});
   }catch(e){
-   if(e.code==='ENOENT'||e.code==='EISDIR')return send(404,'Fant ikke siden.');
+   if(e.code==='ENOENT'||e.code==='EISDIR')return /\.(?:html)?$/.test(pathname)||!path.extname(pathname)?await missing():send(404,'Fant ikke filen.');
    if(e.status)return out(e.status,{error:e.message});
    if(e.message&&/^Ugyldig|^Katalogen|^Et bildevegg|^Rammene|^Bildeveggoppsett|^Objekt|^En modul|^Oppgi|^Pakker|^Anbefalinger|^Tilvalg|^Priser|^Prisen|^En pakke|^Utilgjengelig|^Bildelenken|^Bruk en/.test(e.message))return out(400,{error:e.message});
    console.error('Admin/katalog: '+(e.code||e.name||'serverfeil'));return out(503,{error:'Kunne ikke kontakte lagringen. Kontroller databaseinnstillinger eller prøv igjen.'});
