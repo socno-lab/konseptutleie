@@ -8,3 +8,12 @@ export function receiptEntries(lines){
  }
  return entries;
 }
+
+// Older saved receipts may contain generated addon text in the facts as well.
+export function receiptFacts(facts=[]){
+ return facts.filter(([label,value])=>!(/^Ønsker til (Tekstilpakke|Dekorpakke)\b/i.test(label)&&/^\d+ sett: Stylistens (valg|sammensetning)\b/i.test(value)&&!/(?:dyne|enkel|dobbel)/i.test(value)));
+}
+export function deliveryReceiptLine(delivery){
+ if(!delivery)return null;
+ return {id:'receipt-transport',name:'Transport',image:'/assets/transport-truck.png',quantity:1,basis:delivery.label||'Transport avklares i tilbudet',total:delivery.total??null,transport:true};
+}
