@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {rentalUsageState,rentalUsageLabels,rentalUsageExplanation} from '../public/rental-usage-model.js';
+import {rentalUsageState,rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from '../public/rental-usage-model.js';
 import {applyRentalScope,rentalRateSets} from '../public/rental-pricing-model.js';
 import {rentalEstimate} from '../public/catalog-model.js';
 test('A new visitor in all uses must choose before seeing prices',()=>{
@@ -12,7 +12,10 @@ test('A new visitor in all uses must choose before seeing prices',()=>{
 test('Only housing photo and viewing use housing rates; concrete use overrides saved scope',()=>{
  assert.deepEqual(rentalUsageState({purpose:'boligsalg',saved:'messe'}),{scope:'standard',confirmed:true});
  for(const purpose of ['messe','bedrift','fest','jul'])assert.deepEqual(rentalUsageState({purpose,saved:'standard',explicit:'standard'}),{scope:'messe',confirmed:true});
- assert.equal(rentalUsageLabels.messe,'Messe, event, bedrift og øvrig bruk');
+ assert.deepEqual(Object.keys(rentalUsageLabels),['standard','messe']);
+ assert.equal(rentalUsageLabels.standard,'Boligfoto og visning');
+ assert.equal(rentalUsageLabels.messe,'Arrangementer og annen bruk');
+ assert.equal(rentalUsageDescriptions.messe,'Til selskap, messe, arbeidsplassen eller hjemmet.');
  assert.equal(rentalUsageExplanation,'Prisen tar hensyn til bruk og forventet slitasje.');
 });
 test('Changing use recalculates the same quantities and dates without adding a surcharge line',()=>{
