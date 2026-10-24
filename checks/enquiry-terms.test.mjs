@@ -44,11 +44,11 @@ test('release URLs refresh rental and purchase terms once without loading a seco
  const customerInfo=await readFile(new URL('../public/customer-info.js',import.meta.url),'utf8');assert.match(customerInfo,/id="purchaseTermsLabel" hidden style="display:none!important"/,'inactive purchase terms must stay hidden before cart synchronisation despite important label display rules');
  for(const name of publicHtmlNames){
   const html=await readHtmlTemplate(name),scripts=[...html.matchAll(/src="\/(app|shop|customer-info)\.js\?([^\"]+)"/g)];
-  assert.ok(scripts.length,'bootstrap missing from '+name);for(const [,module,query] of scripts)assert.equal(new URLSearchParams(query).get('v'),module==='app'?'packagecards20261024':module==='shop'?receiptToken:token,name+' loads stale '+module);
+  assert.ok(scripts.length,'bootstrap missing from '+name);for(const [,module,query] of scripts)assert.equal(new URLSearchParams(query).get('v'),'pricingchoices20261024',name+' loads stale '+module);
  }
  const files=await Promise.all(['app','shop','storefront-feedback','submission-ui'].map(async name=>[name,await readFile(new URL('../public/'+name+'.js',import.meta.url),'utf8')]));
  const moduleUrls=name=>files.flatMap(([file,source])=>[...source.matchAll(new RegExp("['\"](?:\\./)("+name+"\\.js[^'\"]*)['\"]",'g'))].map(([,url])=>({file,url})));
  for(const name of ['customer-info','storefront-feedback','submission-ui','enquiry-terms']){
-  const imports=moduleUrls(name);assert.ok(imports.length,name+' import missing');assert.deepEqual([...new Set(imports.map(x=>x.url))],[name+'.js?v='+(name==='submission-ui'?receiptToken:token)],name+' must have one release URL to avoid duplicate mounting');
+  const imports=moduleUrls(name);assert.ok(imports.length,name+' import missing');assert.deepEqual([...new Set(imports.map(x=>x.url))],[name+'.js?v='+(name==='submission-ui'?receiptToken:['customer-info','storefront-feedback'].includes(name)?'pricingchoices20261024':token)],name+' must have one release URL to avoid duplicate mounting');
  }
 });

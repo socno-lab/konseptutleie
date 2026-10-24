@@ -1,4 +1,4 @@
-import './customer-info.js?v=launch20261024';
+import './customer-info.js?v=pricingchoices20261024';
 import './dialog-scroll-lock.js?v=launch20261024';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');

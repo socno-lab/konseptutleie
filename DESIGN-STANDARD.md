@@ -59,3 +59,5 @@ Lanseringsgjennomgang 24. oktober 2026: Bruksområdekort har samme server- og kl
 Modulsofa i bekreftelse: Vis oppsett, moduler, tilvalg og deres prislinjer, men ingen egen delsum under sofaoppsettet. Samlet totalsum beholdes. Gjelder nettside samt kunde- og internmail, presisert av eier 24. oktober 2026. Vanlige pakkedelsummer beholdes.
 
 Mobilkort for ferdige pakker og tjenester bruker samme kortbredde, bildeforhold og typografiskala. Tjenester som «Klart til jul» skal bruke samme ready-package-card som øvrige ferdigpakker, også når tjenesten ikke har komponentprodukter. Variantpriser og innhold beholdes. Presisert av eier 24. oktober 2026.
+
+Prisgrunnlag har to valg på desktop og mobil: «Boligfoto og visning» og «Arrangementer og annen bruk». Sistnevnte har underteksten «Til selskap, messe, arbeidsplassen eller hjemmet.» Bruksområdekortene på forsiden beholdes for å finne relevant utvalg; de gir ikke egne prisnivåer. Eksisterende interne nøkler standard/messe, satser og lagrede valg beholdes. Godkjent av eier 24. oktober 2026.

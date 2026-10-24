@@ -12,15 +12,15 @@ import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=sofare
 import {decorExamples} from './decor-examples.js?v=launch20261024';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=launch20261024';
-import {rentalDeliveryExport,rentalDeliveryReceipt} from './customer-info.js?v=launch20261024';
+import {rentalDeliveryExport,rentalDeliveryReceipt} from './customer-info.js?v=pricingchoices20261024';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=launch20261024';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=launch20261024';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=launch20261024';
 import {cartThumbnail,productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
 import {sofaCartRow} from './sofa-cart-row.js?v=launch20261024';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=launch20261024';
-import {rentalUsageLabels,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=launch20261024';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=pricingchoices20261024';
+import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=pricingchoices20261024';
 import {mountDiscount} from './discount-ui.js?v=launch20261024';
 let discount;
 import {applyRentalScope,scopeForPurpose,scopeForOccasion} from './rental-pricing-model.js?v=launch20261024';
@@ -246,7 +246,7 @@ let savedPurpose='alle';try{savedPurpose=sessionStorage.getItem('konsept-purpose
 let purpose='alle';
 const occasionForPurpose={boligsalg:'Boligsalg',messe:'Messe og stand',fest:'Event og selskap',bedrift:'Bedrift',jul:'Annet'};
 function pricingScopeLabel(){return rentalUsageLabels[rentalScope];}
-function usageButtons(){return `<div class="rental-usage-options" role="group" aria-label="Velg bruk for leiepriser">${Object.entries(rentalUsageLabels).map(([scope,label])=>`<button type="button" data-rental-scope-choice="${scope}" aria-pressed="${rentalScopeConfirmed&&rentalScope===scope}"><strong>${label}</strong><span>${scope==='standard'?'Møbler til boligfoto og visning ved boligsalg':'Messe, stand, event, arbeidsplass, fest og annen bruk'}</span></button>`).join('')}</div>`;}
+function usageButtons(){return `<div class="rental-usage-options" role="group" aria-label="Velg bruk for leiepriser">${Object.entries(rentalUsageLabels).map(([scope,label])=>`<button type="button" data-rental-scope-choice="${scope}" aria-pressed="${rentalScopeConfirmed&&rentalScope===scope}"><strong>${label}</strong><span>${rentalUsageDescriptions[scope]}</span></button>`).join('')}</div>`;}
 function renderPricingScope(){
  const explanation=`<p class="hint">${rentalUsageExplanation} Alle viste leiepriser inkluderer valgt bruk og mva. Transport og eventuelt oppsett avklares i tilbudet.</p>`;
  const catalog=el('catalogPricingScope');if(catalog)catalog.innerHTML=rentalScopeConfirmed?`<p class="rental-selected-usage">Leiepriser for: <strong>${pricingScopeLabel()}</strong></p><p class="hint">${rentalUsageExplanation} Prisene inkluderer valgt bruk og mva.</p><details><summary>Endre bruk</summary>${usageButtons()}</details>`:`<h3>Hva skal du bruke møblene til?</h3><p>Velg bruk for å se riktige leiepriser.</p>${usageButtons()}${explanation}`;
@@ -260,7 +260,7 @@ function setRentalScope(scope,confirmed=true){
  if(catalogProducts.length){for(const id of ['detail','modules','wall'])if(el(id).open)closeSurface(el(id));renderProducts();renderCart();if(isProductPage){const p=products.find(p=>p.id===new URL(location.href).searchParams.get('produkt'));if(el('modules').open)renderModuleBuilder();else if(el('wall').open)refreshWall();else if(el('detail').open&&p){const quantity=el('productQuantity')?.value;openProduct(p);if(quantity&&el('productQuantity')){el('productQuantity').value=quantity;refreshSelection();}}if(p)selectPageProduct(p,'rent',{bruk:purpose,prisbruk:rentalScope});}}
 }
 function syncRentalPurpose(){if(lastPricingPurpose===purpose)return;const explicit=lastPricingPurpose===null?new URL(location.href).searchParams.get('prisbruk'):null;lastPricingPurpose=purpose;const state=rentalUsageState({purpose,explicit,saved:savedRentalScope});el('occasion').value=purpose==='alle'?(state.scope==='standard'?'Boligsalg':'Annet'):occasionForPurpose[purpose]||'Annet';setRentalScope(state.scope,state.confirmed);}
-document.addEventListener('click',event=>{const choice=event.target.closest('[data-rental-scope-choice]');if(!choice)return;const scope=choice.dataset.rentalScopeChoice;if(purpose!=='alle'&&scopeForPurpose(purpose)!==scope){purpose='alle';rememberPurpose();lastPricingPurpose='alle';}el('occasion').value=scope==='standard'?'Boligsalg':scopeForOccasion(el('occasion').value)==='messe'?el('occasion').value:'Annet';setRentalScope(scope);if(isCatalogPage)writePurpose(false);if(el('pricingChoice').open)el('pricingChoice').close();const action=pendingUsageAction;pendingUsageAction=null;action?.();});
+document.addEventListener('click',event=>{const choice=event.target.closest('[data-rental-scope-choice]');if(!choice)return;const scope=choice.dataset.rentalScopeChoice;if(purpose!=='alle'&&scopeForPurpose(purpose)!==scope){purpose='alle';rememberPurpose();lastPricingPurpose='alle';}el('occasion').value=scope==='standard'?'Boligsalg':scopeForOccasion(el('occasion').value)==='messe'?el('occasion').value:'Annet';setRentalScope(scope);if(isCatalogPage)writePurpose(false);if(el('pricingChoice').open)el('pricingChoice').close();if(el('mobileUsageDialog').open){el('mobileUsageDialog').close();el('mobileChangeUsage').focus();}const action=pendingUsageAction;pendingUsageAction=null;action?.();});
 document.addEventListener('change',event=>{if(event.target.id==='occasion'){const scope=scopeForOccasion(event.target.value);if(purpose!=='alle'&&scopeForPurpose(purpose)!==scope){purpose='alle';rememberPurpose();lastPricingPurpose='alle';}setRentalScope(scope);if(isCatalogPage)writePurpose(false);}});
 
 function syncMobileCatalog(){
@@ -268,10 +268,10 @@ function syncMobileCatalog(){
  const categoryButtons=[...el('utvalg').querySelectorAll('.filters [data-filter]')].filter(b=>purpose!=='boligsalg'||b.dataset.filter!=='Pakker');
  const selectedCategory=categoryButtons.find(b=>b.dataset.filter===filter)?.textContent||'Alle';
  el('mobileCategoryButton').querySelector('span').textContent='Kategori: '+selectedCategory;
- el('mobileCatalogUsageLabel').textContent=!rentalScopeConfirmed?'Velg bruk for å se leiepriser':purpose==='alle'?pricingScopeLabel():purposes.find(p=>p.id===purpose)?.label||pricingScopeLabel();
+ el('mobileCatalogUsageLabel').textContent=!rentalScopeConfirmed?'Velg bruk for å se leiepriser':pricingScopeLabel();
  el('mobileChangeUsage').textContent=rentalScopeConfirmed?'Endre':'Velg bruk';
  el('mobileCategoryChoices').innerHTML=categoryButtons.map(b=>`<button type="button" data-mobile-filter="${html(b.dataset.filter)}" aria-pressed="${filter===b.dataset.filter||filter==='Enkeltprodukter'&&b.dataset.filter==='Alle'}">${html(b.textContent)}</button>`).join('');
- el('mobileUsageChoices').innerHTML=purposes.map(p=>`<button type="button" data-mobile-purpose="${p.id}" aria-pressed="${purpose===p.id}">${html(p.id==='alle'?'Alle bruksområder':p.label)}</button>`).join('');
+ el('mobileUsageChoices').innerHTML=usageButtons();
 }
 function rememberPurpose(){try{sessionStorage.setItem('konsept-purpose-v1',purpose);}catch{}}
 function syncPurpose(){for(const b of document.querySelectorAll('[data-filter=Pakker]'))b.hidden=purpose==='boligsalg';syncRentalPurpose();syncMobileCatalog();for(const button of document.querySelectorAll('[data-purpose]'))button.setAttribute('aria-pressed',String(button.dataset.purpose===purpose));for(const button of document.querySelectorAll('[data-filter]')){const active=button.dataset.filter===filter;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}el('purposeSummary').textContent='Du ser utvalg for: '+(purpose==='alle'?'Alle bruksområder':purposes.find(p=>p.id===purpose).label);}
@@ -284,7 +284,7 @@ window.addEventListener('popstate',restorePurpose);
 if(isCatalogPage){
  el('mobileCategoryButton').onclick=()=>{syncMobileCatalog();el('mobileCategoryDialog').showModal();};
  el('mobileChangeUsage').onclick=()=>{syncMobileCatalog();el('mobileUsageDialog').showModal();};
- document.addEventListener('click',event=>{const category=event.target.closest('[data-mobile-filter]');if(category){filter=category.dataset.mobileFilter;tableFilter='';writePurpose();el('mobileCategoryDialog').close();el('mobileCategoryButton').focus();return;}const usage=event.target.closest('[data-mobile-purpose]');if(usage){purpose=validPurpose(usage.dataset.mobilePurpose);writePurpose();el('mobileUsageDialog').close();el('mobileChangeUsage').focus();if(!rentalScopeConfirmed)ensureRentalUsage(()=>{});}});
+ document.addEventListener('click',event=>{const category=event.target.closest('[data-mobile-filter]');if(category){filter=category.dataset.mobileFilter;tableFilter='';writePurpose();el('mobileCategoryDialog').close();el('mobileCategoryButton').focus();return;}});
 }
 el('changePurpose').onclick=()=>{const open=el('purposeSwitcher').hidden;el('purposeSwitcher').hidden=!open;el('changePurpose').setAttribute('aria-expanded',String(open));if(open)el('purposeSwitcher').querySelector('[aria-pressed=true]').focus();};
 document.addEventListener('click',event=>{const button=event.target.closest('[data-purpose]');if(!button)return;purpose=validPurpose(button.dataset.purpose);if(!isCatalogPage){rememberPurpose();location.href=catalogLink('Alle',purpose);return;}writePurpose();if(button.closest('.purpose-grid'))el('utvalg').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});});
