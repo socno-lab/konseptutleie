@@ -1,3 +1,4 @@
+import {mountPricingScopeHint} from './pricing-scope-hint.js?v=20261024';
 import {receiptEntries} from './receipt-layout.js?v=packageitems20261023';
 import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js?v=inheritedaddons20261023';
 import {isServiceOffering,serviceVariants,groupedServiceCards} from './service-model.js?v=services20261023';
@@ -245,7 +246,7 @@ function renderPricingScope(){
  const explanation=`<p class="hint">${rentalUsageExplanation} Alle viste leiepriser inkluderer valgt bruk og mva. Transport og eventuelt oppsett avklares i tilbudet.</p>`;
  const catalog=el('catalogPricingScope');if(catalog)catalog.innerHTML=rentalScopeConfirmed?`<p class="rental-selected-usage">Leiepriser for: <strong>${pricingScopeLabel()}</strong></p><p class="hint">${rentalUsageExplanation} Prisene inkluderer valgt bruk og mva.</p><details><summary>Endre bruk</summary>${usageButtons()}</details>`:`<h3>Hva skal du bruke møblene til?</h3><p>Velg bruk for å se riktige leiepriser.</p>${usageButtons()}${explanation}`;
  const cartScope=el('cartPricingScope');if(cartScope)cartScope.innerHTML=`<p class="rental-selected-usage">Valgt bruk: <strong>${rentalScopeConfirmed?pricingScopeLabel():'Velg bruk'}</strong></p><p>${rentalUsageExplanation}</p><details><summary>Endre bruk</summary>${usageButtons()}<p class="hint">Prisene oppdateres for alle valgte produkter. Datoer og antall beholdes.</p></details>`;
- el('pricingChoiceOptions').innerHTML=usageButtons();syncMobileCatalog();
+ el('pricingChoiceOptions').innerHTML=usageButtons();syncMobileCatalog();mountPricingScopeHint(catalog,{confirmed:rentalScopeConfirmed,label:pricingScopeLabel(),enabled:isCatalogPage});
 }
 function ensureRentalUsage(action){if(rentalScopeConfirmed)return true;pendingUsageAction=action;renderPricingScope();if(!el('pricingChoice').open)el('pricingChoice').showModal();return false;}
 function setRentalScope(scope,confirmed=true){
