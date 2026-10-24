@@ -35,3 +35,9 @@
 #cart .cart-addon .cart-thumbnail,#cart .package-cart-addon .cart-thumbnail{height:32px;align-items:center}
 #cart .cart-addon .cart-thumbnail svg,#cart .cart-addon .cart-thumbnail img,#cart .package-cart-addon .cart-thumbnail svg,#cart .package-cart-addon .cart-thumbnail img{width:32px;height:32px}
 @media(max-width:640px){#cart .cart-addon>.thumb,#cart .package-cart-line.package-cart-addon>.cart-thumbnail{grid-column:1;grid-row:1 / span 2;align-self:center}}
+/* Date and discount controls follow the occasion field's type scale and height. */
+#cart .rental-date-trigger,#cart #couponInput,#cart #couponApply{font-size:13px;font-weight:400;height:48px;min-height:48px;box-sizing:border-box}
+#cart #couponInput,#cart #couponApply{margin:0;align-self:center}
+#cart #couponApply{padding:0 16px;display:flex;align-items:center;justify-content:center}
+#cart .coupon-entry{align-items:center}
+@media(max-width:640px){#cart .rental-date-trigger,#cart #couponInput,#cart #couponApply{font-size:16px}}
