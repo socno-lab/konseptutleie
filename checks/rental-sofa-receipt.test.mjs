@@ -21,8 +21,8 @@ test('two rental sofas preserve separate modules, exact prices and textile on it
  assert.equal(g.length,2);assert.equal(receiptGroupLabel(g[0]),'Eksempelsofa · Sofa 1');assert.equal(g[0].description,'3 moduler · ca. 250 cm bred');assert.equal(g[1].description,'2 moduler · ca. 180 cm bred');
  assert.equal(sum(s.lines),sum(legacy.lines));assert.equal(s.total,legacy.total);assert.deepEqual(s.lines.filter(l=>l.id==='end').map(l=>l.quantity),[2,2]);
  const textile=s.lines.find(l=>l.id==='textile');assert.equal(textile.quantity,1);assert.equal(textile.group.id,g[0].id);assert.equal(textile.addonFor[0].name,g[0].name);assert.ok(!s.lines.some(l=>l.id==='textile'&&l.group.id===g[1].id));
- const ordered=receiptEntries(s.lines);assert.equal(ordered.filter(e=>e.type==='subtotal').length,2);const first=ordered.filter(e=>e.type==='line'&&e.line.group.id===g[0].id);assert.deepEqual(first.map(e=>e.line.id),['end','middle','textile']);
- for(const audience of ['customer','internal']){const mail=enquiryEmail(s,audience);assert.match(mail.text,/Eksempelsofa · Sofa 1/);assert.match(mail.text,/Eksempelsofa · Sofa 2/);assert.match(mail.text,/Tilvalg til Eksempelsofa · Sofa 1: 1 × Tekstilpakke/);assert.doesNotMatch(mail.text,/Sofa 2: 1 × Tekstilpakke|Sofa 1 · 1 pakke/);assert.ok(mail.html.indexOf('Eksempelsofa · Sofa 1')<mail.html.indexOf('Eksempelsofa · Sofa 2'));}
+ const ordered=receiptEntries(s.lines);assert.equal(ordered.filter(e=>e.type==='subtotal').length,0);const first=ordered.filter(e=>e.type==='line'&&e.line.group.id===g[0].id);assert.deepEqual(first.map(e=>e.line.id),['end','middle','textile']);
+ for(const audience of ['customer','internal']){const mail=enquiryEmail(s,audience);assert.match(mail.text,/Eksempelsofa · Sofa 1/);assert.match(mail.text,/Eksempelsofa · Sofa 2/);assert.match(mail.text,/Tilvalg til Eksempelsofa · Sofa 1: 1 × Tekstilpakke/);assert.doesNotMatch(mail.text,/Sofa 2: 1 × Tekstilpakke|Sofa 1 · 1 pakke/);assert.doesNotMatch(mail.text,/Delsum Eksempelsofa/);assert.doesNotMatch(mail.html,/Delsum Eksempelsofa/);assert.match(mail.text,/Foreløpig total/);assert.ok(mail.html.indexOf('Eksempelsofa · Sofa 1')<mail.html.indexOf('Eksempelsofa · Sofa 2'));}
 });
 
 test('three setups, duplication, removal and textile edits keep only their current quantities and prices',()=>{
@@ -33,7 +33,7 @@ test('three setups, duplication, removal and textile edits keep only their curre
 });
 
 test('sofa and package claims cannot double allocate modules or textiles, and loose quantities remain separate',()=>{
- const input=sample([a],{end:3,middle:1,textile:2,pack:1}),s=snapshot(input),legacy=snapshot({...input,rentalSofas:undefined});assert.equal(sum(s.lines),sum(legacy.lines));assert.equal(groups(s).length,2);assert.equal(s.lines.find(l=>l.id==='end'&&!l.group).quantity,1);assert.equal(s.lines.find(l=>l.id==='textile'&&!l.group).quantity,1);assert.equal(s.lines.filter(l=>l.id==='textile'&&l.group?.type==='sofa').reduce((n,l)=>n+l.quantity,0),1);
+ const input=sample([a],{end:3,middle:1,textile:2,pack:1}),s=snapshot(input),legacy=snapshot({...input,rentalSofas:undefined});assert.equal(sum(s.lines),sum(legacy.lines));assert.equal(groups(s).length,2);const subtotals=receiptEntries(s.lines).filter(e=>e.type==='subtotal');assert.equal(subtotals.length,1);assert.equal(subtotals[0].group.name,'Fast sofapakke');for(const audience of ['customer','internal']){const mail=enquiryEmail(s,audience);assert.match(mail.text,/Delsum Fast sofapakke/);assert.doesNotMatch(mail.text,/Delsum Eksempelsofa/);}assert.equal(s.lines.find(l=>l.id==='end'&&!l.group).quantity,1);assert.equal(s.lines.find(l=>l.id==='textile'&&!l.group).quantity,1);assert.equal(s.lines.filter(l=>l.id==='textile'&&l.group?.type==='sofa').reduce((n,l)=>n+l.quantity,0),1);
  assert.throws(()=>snapshot(sample([a,b],{end:2,middle:1,textile:1,pack:1})),e=>e.status===400);
  assert.throws(()=>snapshot({...sample([a]),packageGroups:[{id:'custom:pack',packageId:'pack',quantity:1,selection:{end:2,middle:1,textile:1}}]}),e=>e.status===400);
 });
@@ -47,7 +47,7 @@ test('malformed, unknown, unavailable and overclaimed sofa metadata fails closed
 });
 
 test('unknown-price sofas stay unpriced and cent allocation conserves every original amount',()=>{
- const input=sample(),unpriced=snapshot(input,products.map(p=>p.id==='middle'?{...p,priceOnRequest:true}:p));assert.equal(unpriced.total,null);assert.equal(unpriced.lines.find(l=>l.id==='middle').total,null);assert.equal(receiptEntries(unpriced.lines).find(e=>e.type==='subtotal').total,null);
+ const input=sample(),unpriced=snapshot(input,products.map(p=>p.id==='middle'?{...p,priceOnRequest:true}:p));assert.equal(unpriced.total,null);assert.equal(unpriced.lines.find(l=>l.id==='middle').total,null);assert.ok(!receiptEntries(unpriced.lines).some(e=>e.type==='subtotal'));
  const exact=receiptSofaLines([{id:'end',name:'Endemodul',quantity:4,total:0.03}],[{...a,selection:{end:2},textileId:''},b],products);assert.equal(sum(exact),0.03);assert.deepEqual(exact.map(l=>l.total),[0.02,0.01]);
 });
 

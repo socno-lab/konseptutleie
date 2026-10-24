@@ -1,5 +1,5 @@
 import {enquiryAcquisition,enquiryCopy} from './enquiry-copy.js?v=launch20261024';
-import {receiptEntries,receiptFacts,deliveryReceiptLine,receiptGroupLabel} from './receipt-layout.js?v=launch20261024';
+import {receiptEntries,receiptFacts,deliveryReceiptLine,receiptGroupLabel} from './receipt-layout.js?v=sofareceipt20261024';
 import {acceptedEnquiryTerms} from './enquiry-terms.js?v=launch20261024';
 const submissions=new WeakMap();
 export async function submitEnquiry(form,{kind,basket,customRequest=false,lines,businessChoices={},packageGroups=[],cartLinks={},purchaseSofas=[],rentalSofas=[],deliveryToken='',discountCode=''}){

@@ -1,5 +1,5 @@
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
-import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=launch20261024';
+import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=sofareceipt20261024';
 import {configureSiteSettings,categoryLabel,getSiteSettings} from './site-settings.js';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=launch20261024';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
