@@ -14,12 +14,13 @@
   "fingerprints": {
     "shared-styles": "90f6fcbf544e32b30c47f9019ca673b1193a30fb4542f7ad25ba66755b047883",
     "commerce-styles": "86a2306765b53db23579e396aaafbe0e1632b038e7b175ca3a7b55a5bd8e1dd0",
-    "home-hero": "18edc3a545e6c0576434dd6fdb3776a5c104730c955213f4ca788490b8911044",
-    "rendered-home-hero": "18edc3a545e6c0576434dd6fdb3776a5c104730c955213f4ca788490b8911044",
+    "home-hero": "e1fdb30104d58ab80dabed9e457ce0e9bd4f6b5d5466c180826bc7ae87b54a59",
+    "rendered-home-hero": "e1fdb30104d58ab80dabed9e457ce0e9bd4f6b5d5466c180826bc7ae87b54a59",
     "home-card-renderer": "093ba3fcf4ba6582337f962f65c63cca604d78c616027af4672e43e2aa5da247",
     "rental-image-markup": "edf5df3af8320c63c4855cf864aec8aca32ab8aeff02f90abdac1c9cc0548eb9",
     "purchase-image-markup": "964cf50cd133b6e384e21d2f5619a608ffd42b31bca2649e7b237aaef500a415"
   },
   "catalogFramingReview": "2026-10-23: Brukerbestilt retting av Jakobsdals-fargevarianter. Syv eksisterende katalogregler er kopiert til de samme bildenes lokale /media-adresser. Ingen generelle stilregler, hero, bruksområdekort eller bildemarkup endres. Senzo/Senza kontrollert i desktop- og mobilforhåndsvisning uten horisontal scrolling.",
-  "addonLayoutReview": "2026-10-23: Brukerbestilt retting av tilvalg. Produktlinjens tre kolonner gjelder nå bare linjer uten cart-addon. Kontrollert tilvalg desktop og 390 px; forside 320/390/1280 med uendret 2/2/3 kolonner og uten horisontal scrolling."
+  "addonLayoutReview": "2026-10-23: Brukerbestilt retting av tilvalg. Produktlinjens tre kolonner gjelder nå bare linjer uten cart-addon. Kontrollert tilvalg desktop og 390 px; forside 320/390/1280 med uendret 2/2/3 kolonner og uten horisontal scrolling.",
+  "introReview": "2026-10-24: Eier godkjente ny innledning: Lei møbler, interiør og dekor til bolig, bedrift og arrangementer. Velg enkeltprodukter, ferdige pakker eller få et forslag tilpasset deg. Bare teksten er endret; overskrift, stilark og bildemarkup beholdes. Kontrollert desktop 1280 px og mobil 390/320 px uten overlapp eller horisontal scrolling."
 }
