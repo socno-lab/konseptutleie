@@ -6,9 +6,10 @@
     "public/service-detail.css": "3e1740045550914721641c9df29428f1609f8d56d23371fe3f3a5f613ff075bc",
     "public/cart-thumbnail.js": "deef4cb0e6d49f42b77313d8821ea8db0ea54a2707c3dbfba5ca4f6d91d3f162",
     "public/sofa-cart-row.js": "3df859a1edc9cf87a56796ae84a226a3f5d1a8f3e933ef991dd856afcc97a82c",
-    "public/receipt-layout.js": "fca72df94bac853db512d1c32f7b2058c67f4e977668d07b8b8df2115f7dbe34",
-    "server/enquiry-email.mjs": "d730eca7c5b3694e8ba73af7b8282bd12a1605ea297d85f22eb232ab34206ebc",
-    "confirmation-rendering": "f138c6698d2402419f8209f0e00ec09d93f3c7af1744bd303b5484a968bdaa41"
+    "public/receipt-layout.js": "7e05d9a27d9402b7c27169e50e7e37c5144e53cd5d395791dc5567401d8c987a",
+    "server/enquiry-email.mjs": "e4725756196f02018668540c9465526097583d4ee3a4889afec2ab5b178e99da",
+    "confirmation-rendering": "4a7a73aeb2c4d483fd0a3b24fc62c8ca8cd55b83a75752c7dd69cf0fad8f2747"
   },
-  "formFieldsReview": "2026-10-24: Uttrykkelig brukerbestilt samordning av Fra/Til dato og rabattkode med Anledning, samt 48 px felthøyde og Bruk kode-knapp. Målt desktop: 13 px / 400 og 48 px. Mobil 390 px: 16 px / 400 og 48 px for alle feltene. Kodefelt og knapp har identisk toppkant. Ingen andre beskyttede referanser endret."
+  "formFieldsReview": "2026-10-24: Uttrykkelig brukerbestilt samordning av Fra/Til dato og rabattkode med Anledning, samt 48 px felthøyde og Bruk kode-knapp. Målt desktop: 13 px / 400 og 48 px. Mobil 390 px: 16 px / 400 og 48 px for alle feltene. Kodefelt og knapp har identisk toppkant. Ingen andre beskyttede referanser endret.",
+  "transportReview": "2026-10-24: Eier ba om å fjerne gjentatt standardtekst for tekstiltilvalg og vise transport med lastebilikon, leveringsmåte og pris i e-post og nettbekreftelse. Kontrollert desktop og mobil 390 px uten overlapp eller horisontal scrolling; egne ønsker og beløp beholdes."
 }
