@@ -20,17 +20,17 @@ export function mountCatalogPagination(container,options){
 function createCatalogue(container,initialOptions){
  const doc=container.ownerDocument,storage=initialOptions.storage===undefined?sessionStorageFor(container):initialOptions.storage;
  const controls=doc.createElement('div');controls.className='catalog-pagination';
- const status=doc.createElement('p');status.className='hint';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
- const button=doc.createElement('button');button.type='button';button.className='button button-outline';
+ const status=doc.createElement('p');status.className='hint catalog-pagination-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+ const button=doc.createElement('button');button.type='button';button.className='button dark catalog-pagination-button';
  if(!container.id)container.id='catalog-page-list-'+(++nextCatalogueId);
  button.setAttribute('aria-controls',container.id);controls.append(status,button);container.after(controls);
- let items=[],renderItem,key,pageSize=24,visibleCount=0,tailNodes=[],noun='produkter',firstRender=true,destroyed=false;
+ let items=[],renderItem,key,pageSize=24,initialPageSize=24,visibleCount=0,tailNodes=[],noun='produkter',firstRender=true,destroyed=false;
 
  function updateControls(){
   status.textContent='Viser '+visibleCount+' av '+items.length+' '+noun;
   const remaining=items.length-visibleCount;
   button.hidden=remaining<=0;button.textContent='Vis '+Math.min(pageSize,remaining)+' flere';
-  controls.hidden=items.length<=pageSize;
+  controls.hidden=items.length<=initialPageSize;
  }
  function appendCards(from,to){
   const markup=items.slice(from,to).map((item,index)=>renderItem(item,from+index)).join('');
@@ -50,7 +50,14 @@ function createCatalogue(container,initialOptions){
  return {controller,update(options){
   const nextKey=String(options.key??''),requestedSize=Number(options.pageSize??24);
   pageSize=Number.isSafeInteger(requestedSize)&&requestedSize>0?requestedSize:24;
-  const desired=firstRender?Math.max(pageSize,storedCount(storage,nextKey)):nextKey===key?Math.max(pageSize,visibleCount):pageSize;
+  const requestedInitial=Number(options.initialPageSize??pageSize);
+  initialPageSize=Number.isSafeInteger(requestedInitial)&&requestedInitial>0?requestedInitial:pageSize;
+  const requestedAlignment=Number(options.countAlignment??pageSize);
+  const countAlignment=Number.isSafeInteger(requestedAlignment)&&requestedAlignment>0?requestedAlignment:pageSize;
+  const previousCount=firstRender?storedCount(storage,nextKey):nextKey===key?visibleCount:0;
+  // Keep seen products when responsive rows change. Align only to the current
+  // row width; resizing must not reveal another complete 24-product batch.
+  const desired=initialPageSize+Math.ceil(Math.max(0,previousCount-initialPageSize)/countAlignment)*countAlignment;
   items=options.items;renderItem=options.renderItem;noun=options.noun||'produkter';key=nextKey;
   visibleCount=Math.min(items.length,desired);firstRender=false;tailNodes=[];
   container.replaceChildren();appendCards(0,visibleCount);

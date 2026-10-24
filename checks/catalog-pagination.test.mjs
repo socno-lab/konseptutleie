@@ -29,6 +29,7 @@ test('only one batch is rendered initially, and further batches preserve cards, 
  assert.equal(rendered.length,24);assert.equal(controller.visibleCount,24);assert.equal(controller.total,59);
  assert.equal(view.grid.childNodes.length,25);assert.equal(status.textContent,'Viser 24 av 59 produkter');assert.equal(button.textContent,'Vis 24 flere');
  assert.equal(button.type,'button');assert.equal(button.attributes.get('aria-controls'),'products');
+ assert.equal(status.className,'hint catalog-pagination-status');assert.equal(button.className,'button dark catalog-pagination-button');
  assert.match(first.markup,/href="\/leieprodukt\.html\?produkt=product-0"/);
  button.click();
  assert.equal(rendered.length,48);assert.equal(controller.visibleCount,48);assert.equal(view.grid.childNodes[0],first);assert.equal(view.grid.childNodes.at(-1),tail);
@@ -66,4 +67,72 @@ test('small or empty lists need no button, and blocked storage does not prevent 
  mountCatalogPagination(view.grid,{items:products.slice(0,7),key:'filtered',renderItem});assert.equal(controller.visibleCount,7);assert.equal(view.controls.hidden,true);
  controller.destroy();assert.equal(view.section.childNodes.length,1);controller.showMore();assert.equal(controller.visibleCount,7);
  assert.throws(()=>mountCatalogPagination(view.grid,{items:products}),/items og renderItem/);assert.equal(view.section.childNodes.length,1);
+});
+
+test('23 rental products and a final request teaser fill the grid, followed by batches of 24',()=>{
+ const items=Array.from({length:83},(_,index)=>({id:'rental-'+index,name:'Produkt '+index})),view=fixture(),rendered=[];
+ const options={items,key:'rent',initialPageSize:23,renderItem:item=>{rendered.push(item.id);return renderItem(item);},tailHtml:'<aside>Tilpasset forespørsel</aside>'};
+ const controller=mountCatalogPagination(view.grid,options),[status,button]=view.controls.childNodes,first=view.grid.childNodes[0],tail=view.grid.childNodes.at(-1);
+ assert.equal(controller.visibleCount,23);assert.equal(controller.total,83);assert.equal(rendered.length,23);assert.equal(view.grid.childNodes.length,24);
+ assert.equal(status.textContent,'Viser 23 av 83 produkter');assert.equal(button.textContent,'Vis 24 flere');
+ button.click();
+ assert.equal(controller.visibleCount,47);assert.equal(rendered.length,47);assert.equal(view.grid.childNodes.length,48);assert.equal(view.grid.childNodes[0],first);assert.equal(view.grid.childNodes.at(-1),tail);
+ button.click();
+ assert.equal(controller.visibleCount,71);assert.equal(rendered.length,71);assert.equal(view.grid.childNodes.length,72);assert.equal(button.textContent,'Vis 12 flere');assert.equal(view.grid.childNodes.at(-1),tail);
+ button.click();
+ assert.equal(controller.visibleCount,83);assert.equal(rendered.length,83);assert.equal(view.grid.childNodes.at(-1),tail);assert.equal(button.hidden,true);assert.equal(status.textContent,'Viser 83 av 83 produkter');assert.equal(view.doc.activeElement,status);
+ controller.showMore();assert.equal(rendered.length,83);
+});
+
+test('the initial rental batch and loaded range survive refresh, filter reset and returning from a product',()=>{
+ const storage=memoryStorage(),view=fixture(storage),options={items:products,key:'rent-all',initialPageSize:23,renderItem,tailHtml:'<aside>Tilpasset forespørsel</aside>'};
+ const controller=mountCatalogPagination(view.grid,options);controller.showMore();assert.equal(controller.visibleCount,47);
+ mountCatalogPagination(view.grid,options);assert.equal(controller.visibleCount,47);
+ const returned=fixture(storage);assert.equal(mountCatalogPagination(returned.grid,options).visibleCount,47);assert.equal(returned.grid.childNodes.length,48);
+ mountCatalogPagination(view.grid,{...options,key:'rent-search'});assert.equal(controller.visibleCount,23);
+ mountCatalogPagination(view.grid,options);assert.equal(controller.visibleCount,23);
+});
+
+test('legacy batches align to desktop rows without losing seen products or loading a whole extra batch',()=>{
+ const items=Array.from({length:100},(_,index)=>({id:'product-'+index,name:'Produkt '+index}));
+ for(const [legacyCount,expected] of [[24,27],[48,51]]){
+  const storage=memoryStorage(),old=fixture(storage),options={items,key:'legacy',renderItem};
+  const oldController=mountCatalogPagination(old.grid,options);if(legacyCount===48)oldController.showMore();
+  const returned=fixture(storage),controller=mountCatalogPagination(returned.grid,{...options,initialPageSize:23,countAlignment:4,tailHtml:'<aside>Tilpasset forespørsel</aside>'});
+  assert.equal(controller.visibleCount,expected);assert.equal(returned.grid.childNodes.length,expected+1);
+  mountCatalogPagination(old.grid,{...options,initialPageSize:23,countAlignment:4});assert.equal(oldController.visibleCount,expected);
+ }
+});
+
+test('24 rental matches still offer the final product after an initial batch of 23',()=>{
+ const view=fixture(),controller=mountCatalogPagination(view.grid,{items:products.slice(0,24),key:'rent',initialPageSize:23,renderItem,tailHtml:'<aside>Tilpasset forespørsel</aside>'});
+ const [status,button]=view.controls.childNodes;
+ assert.equal(controller.visibleCount,23);assert.equal(view.controls.hidden,false);assert.equal(button.textContent,'Vis 1 flere');
+ button.click();assert.equal(controller.visibleCount,24);assert.equal(button.hidden,true);assert.equal(status.textContent,'Viser 24 av 24 produkter');assert.equal(view.grid.childNodes.length,25);
+});
+
+test('mobile rental batches reserve two grid slots for the full-width request teaser',()=>{
+ const items=Array.from({length:80},(_,index)=>({id:'mobile-'+index,name:'Produkt '+index})),view=fixture(),options={items,key:'mobile',initialPageSize:22,countAlignment:2,renderItem,tailHtml:'<aside>Tilpasset forespørsel</aside>'};
+ const controller=mountCatalogPagination(view.grid,options),[status,button]=view.controls.childNodes,first=view.grid.childNodes[0],tail=view.grid.childNodes.at(-1);
+ assert.equal(controller.visibleCount,22);assert.equal(controller.total,80);assert.equal(view.grid.childNodes.length,23);assert.equal(status.textContent,'Viser 22 av 80 produkter');assert.equal(button.textContent,'Vis 24 flere');
+ button.click();
+ assert.equal(controller.visibleCount,46);assert.equal(view.grid.childNodes.length,47);assert.equal(status.textContent,'Viser 46 av 80 produkter');assert.equal(view.grid.childNodes[0],first);assert.equal(view.grid.childNodes.at(-1),tail);
+ mountCatalogPagination(view.grid,options);assert.equal(controller.visibleCount,46);assert.equal(view.grid.childNodes.at(-1).markup,tail.markup);
+});
+
+test('responsive row changes retain seen products and reveal at most three extra products',()=>{
+ const items=Array.from({length:100},(_,index)=>({id:'resize-'+index,name:'Produkt '+index})),view=fixture(),options={items,key:'same-filter',storage:memoryStorage(),renderItem,tailHtml:'<aside>Tilpasset forespørsel</aside>'};
+ const controller=mountCatalogPagination(view.grid,{...options,initialPageSize:23,countAlignment:4});assert.equal(controller.visibleCount,23);
+ for(const [initialPageSize,countAlignment,expected] of [[22,2,24],[23,4,27],[22,2,28],[23,3,29],[23,4,31]]){
+  const previous=controller.visibleCount;
+  mountCatalogPagination(view.grid,{...options,initialPageSize,countAlignment});
+  assert.equal(controller.visibleCount,expected);assert(controller.visibleCount>=previous);assert(controller.visibleCount-previous<=3);
+  assert.equal((controller.visibleCount+(countAlignment===2?2:1))%countAlignment,0);
+  assert.match(view.grid.childNodes[previous-1].markup,new RegExp('resize-'+(previous-1)));
+ }
+ assert.equal(view.grid.childNodes.at(-1).markup,'<aside>Tilpasset forespørsel</aside>');assert.equal(view.controls.childNodes[0].textContent,'Viser 31 av 100 produkter');
+ controller.showMore();assert.equal(controller.visibleCount,55);
+ mountCatalogPagination(view.grid,{...options,initialPageSize:23,countAlignment:4});assert.equal(controller.visibleCount,55);
+ const returned=fixture();
+ assert.equal(mountCatalogPagination(returned.grid,{...options,initialPageSize:22,countAlignment:2}).visibleCount,56);
 });
