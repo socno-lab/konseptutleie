@@ -32,12 +32,12 @@ function mountMobileMenu(header){
   if(layer.hidden)return;layer.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Åpne meny');
   for(const [element,inert] of previousInert)element.inert=inert;previousInert=[];document.body.classList.remove('mobile-menu-open');document.body.style.removeProperty('--mobile-menu-scroll');window.scrollTo({top:scrollY,behavior:'instant'});if(restoreFocus&&mobile.matches)toggle.focus({preventScroll:true});
  }
- function open(){
+ function open(keyboard=false){
   if(!mobile.matches)return;render();scrollY=window.scrollY;document.documentElement.style.setProperty('--mobile-menu-top',header.getBoundingClientRect().bottom+'px');
   previousInert=[...document.body.children].filter(e=>e!==header&&e!==layer&&!['SCRIPT','STYLE','DIALOG'].includes(e.tagName)).map(e=>[e,e.inert]);for(const [element] of previousInert)element.inert=true;
-  document.body.style.setProperty('--mobile-menu-scroll',-scrollY+'px');document.body.classList.add('mobile-menu-open');layer.hidden=false;toggle.setAttribute('aria-expanded','true');toggle.setAttribute('aria-label','Lukk meny');panel.querySelector('a')?.focus({preventScroll:true});
+  document.body.style.setProperty('--mobile-menu-scroll',-scrollY+'px');document.body.classList.add('mobile-menu-open');layer.hidden=false;toggle.setAttribute('aria-expanded','true');toggle.setAttribute('aria-label','Lukk meny');if(keyboard)panel.querySelector('a')?.focus({preventScroll:true});
  }
- toggle.addEventListener('click',()=>layer.hidden?open():close());outside.addEventListener('click',()=>close());panel.addEventListener('click',e=>{if(e.target.closest('a'))close(false);});
+ toggle.addEventListener('click',event=>layer.hidden?open(event.detail===0):close());outside.addEventListener('click',()=>close());panel.addEventListener('click',e=>{if(e.target.closest('a'))close(false);});
  header.addEventListener('click',e=>{if(!layer.hidden&&e.target.closest('a,.bag'))close(false);},true);
  document.addEventListener('keydown',e=>{
   if(layer.hidden)return;if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();return;}
