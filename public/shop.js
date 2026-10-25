@@ -1,4 +1,4 @@
-import {mountEnquiryFlow} from './enquiry-flow.js?v=enquirypage20261025b';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=directcart20261025';
 import {mountCatalogPagination} from './catalog-pagination.js?v=catalogmore20261024a';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receipts20261025b';

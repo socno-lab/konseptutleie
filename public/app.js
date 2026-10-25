@@ -1,4 +1,4 @@
-import {mountEnquiryFlow} from './enquiry-flow.js?v=enquirypage20261025b';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=directcart20261025';
 import {packageLineRentalPrice} from './enquiry-price-model.js?v=enquirypage20261025b';
 import {detailSelectionPrices} from './detail-price-model.js?v=detailprices20261025';
 import {packageBuyoutOption,addonBuyoutPrice} from './buyout-model.js?v=buyout20261025b';
