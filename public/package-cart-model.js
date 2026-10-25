@@ -43,7 +43,9 @@ export function removePackageGroup(basket,products,saved,groupId,links={}){
 }
 export function packageGroupRates(group,products){
  const lines=group.custom?Object.entries(group.selection).map(([id,q])=>({p:products.find(p=>p.id===id),q})):[{p:group.product,q:group.quantity}];
- return {priceOnRequest:lines.some(x=>!x.p||x.p.priceOnRequest),...Object.fromEntries(['price','weekPrice','monthPrice'].map(key=>[key,lines.reduce((n,{p,q})=>n+(p?.[key]||0)*q,0)]))};
+ // A period charge belongs to the selected duration, never to a daily tariff.
+ const separate=group.custom?lines.filter(({p})=>['period','fixed'].includes(p?.rentalPricingMode)):[],tariffs=lines.filter(line=>!separate.includes(line));
+ return {priceOnRequest:lines.some(x=>!x.p||x.p.priceOnRequest),hasTariffs:tariffs.length>0,separateCharges:separate.map(({p,q})=>({product:p,quantity:q,total:p.priceOnRequest?null:ratePlan(p,1,products)?.total*q})),...Object.fromEntries(['price','weekPrice','monthPrice'].map(key=>[key,tariffs.reduce((n,{p,q})=>n+(p?.[key]||0)*q,0)]))};
 }
 export function packageGroupPeriodTotal(group,products,days){
  const lines=group.custom?Object.entries(group.selection):[[group.packageId,group.quantity]];

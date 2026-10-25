@@ -1,4 +1,4 @@
-import {addonBuyoutPrice} from '/buyout-model.js?v=buyout20261025b';
+import {addonBuyoutPrice} from '/buyout-model.js?v=auditfixes20261025';
 import {purposeOrderScopes,validatePurposeOrder} from '/purpose-order-model.js?v=catalogcontrols20261024a';
 import {inheritsPackageAddons,packageAddonChoices} from '/package-addon-model.js?v=launch20261024';
 import {isServiceOffering,serviceFields} from '/service-model.js?v=launch20261024';

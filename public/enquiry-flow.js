@@ -1,12 +1,13 @@
-const allowed=new Set(['start','end','occasion','name','email','phone','company','address','postalCode','postalCity','notes','delivery','shipping','stylingNotes','customRequest']);
+const allowed=new Set(['start','end','occasion','name','email','phone','company','address','postalCode','postalCity','notes','delivery','shipping','stylist','stylingNotes','customRequest']);
 export function mountEnquiryFlow({cartId,formId,mode}){
  const cart=document.getElementById(cartId),form=document.getElementById(formId),page=location.pathname==='/foresporsel.html',key='konsept-enquiry-draft-'+mode;
- if(!cart||!form)return {open(){},update(){},clearDraft(){}};
+ if(!cart||!form)return {open(){},update(){},clearDraft(){},restoredField:()=>false};
  const css=document.createElement('link');css.rel='stylesheet';css.href='/enquiry-page.css?v=enquirypage20261025b';if(!document.querySelector('link[href="'+css.href.replace(location.origin,'')+'"]'))document.head.append(css);
- let saved={};try{saved=JSON.parse(sessionStorage.getItem(key)||'{}');}catch{}
- for(const field of form.elements)if(allowed.has(field.name)&&typeof saved[field.name]==='string'){if(field.type==='radio')field.checked=field.value===saved[field.name];else field.value=saved[field.name];}
- for(const field of form.elements)if(allowed.has(field.name)&&typeof saved[field.name]==='string')field.dispatchEvent(new Event('change',{bubbles:true}));
- const store=()=>{const draft={};for(const field of form.elements)if(allowed.has(field.name)&&(field.type!=='radio'||field.checked))draft[field.name]=field.value;try{sessionStorage.setItem(key,JSON.stringify(draft));}catch{}};
+ let saved={};try{const value=JSON.parse(sessionStorage.getItem(key)||'{}');if(value&&typeof value==='object'&&!Array.isArray(value))saved=value;}catch{}
+ const restored=new Set();
+ for(const field of form.elements){if(!allowed.has(field.name))continue;const value=saved[field.name];if(field.type==='checkbox'){if(typeof value!=='boolean')continue;field.checked=value;}else{if(typeof value!=='string')continue;if(field.type==='radio')field.checked=field.value===value;else field.value=value;}restored.add(field.name);}
+ for(const field of form.elements)if(restored.has(field.name))field.dispatchEvent(new Event('change',{bubbles:true}));
+ const store=()=>{const draft={};for(const field of form.elements)if(allowed.has(field.name)&&(field.type!=='radio'||field.checked))draft[field.name]=field.type==='checkbox'?field.checked:field.value;try{sessionStorage.setItem(key,JSON.stringify(draft));}catch{}};
  form.addEventListener('input',store);form.addEventListener('change',store);window.addEventListener('pagehide',store);
  const checkoutUrl='/foresporsel.html'+(mode==='buy'?'?type=kjop':'');
  const preview=document.createElement('section');preview.className='enquiry-preview-content';preview.setAttribute('aria-label','Kort oversikt over forespørselen');
@@ -36,5 +37,5 @@ export function mountEnquiryFlow({cartId,formId,mode}){
  // Observe only source rows, never the preview we render ourselves.
  for(const id of mode==='buy'?['saleCartItems']:['cartItems','moduleCartSummary']){const node=document.getElementById(id);if(node)observer.observe(node,{childList:true,subtree:true,characterData:true});}
  update();
- return {update,ready(){if(page){cart.hidden=false;document.getElementById('enquiryLoading')?.remove();}},fail(){if(page){const loading=document.getElementById('enquiryLoading');if(loading){loading.textContent='Kunne ikke laste forespørselen. ';const retry=document.createElement('button');retry.type='button';retry.className='text-button';retry.textContent='Prøv igjen';retry.onclick=()=>location.reload();loading.append(retry);}}},open(){store();if(!page){location.assign(checkoutUrl);return;}update();if(!cart.open)cart.show();window.scrollTo({top:0,behavior:'smooth'});},clearDraft(){try{sessionStorage.removeItem(key);}catch{}window.removeEventListener('pagehide',store);form.removeEventListener('input',store);form.removeEventListener('change',store);}};
+ return {update,restoredField:name=>restored.has(name),ready(){if(page){cart.hidden=false;document.getElementById('enquiryLoading')?.remove();}},fail(){if(page){const loading=document.getElementById('enquiryLoading');if(loading){loading.textContent='Kunne ikke laste forespørselen. ';const retry=document.createElement('button');retry.type='button';retry.className='text-button';retry.textContent='Prøv igjen';retry.onclick=()=>location.reload();loading.append(retry);}}},open(){store();if(!page){location.assign(checkoutUrl);return;}update();if(!cart.open)cart.show();window.scrollTo({top:0,behavior:'smooth'});},clearDraft(){try{sessionStorage.removeItem(key);}catch{}restored.clear();window.removeEventListener('pagehide',store);form.removeEventListener('input',store);form.removeEventListener('change',store);}};
 }

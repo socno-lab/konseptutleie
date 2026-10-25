@@ -1,11 +1,9 @@
 import {businessPurchaseEnabled,packagePurchasePrice} from './business-purchase-model.js';
 import {addDateDays} from './rental-dates.js?v=launch20261024';
-const defaults={obj_textile_loungestol_30days:600,obj_1cd92777d68c44ddbc1fe0f9dc72b032:1200,obj_4768bc953cba43da88eb565feb753892:900,obj_eaa2e64c15ce45cd8b3177f58f75b3ea:900};
-const price=value=>typeof value==='number'&&Number.isFinite(value)&&value>0?value:null;
+import {addonBuyoutPrice,isBuyoutAddon} from './addon-purchase-model.js?v=auditfixes20261025';
+export {addonBuyoutPrice,isBuyoutAddon};
 const round=value=>Math.round(value*100)/100;
 const money=value=>new Intl.NumberFormat('nb-NO',{maximumFractionDigits:2}).format(value)+' kr';
-export function addonBuyoutPrice(p){return p?Object.hasOwn(p,'buyoutUnitPrice')?price(p.buyoutUnitPrice):defaults[p.id]??null:null;}
-export function isBuyoutAddon(p){return !!p&&(p.addonOnly||p.rentalPricingMode==='period')&&p.category!=='Styling'&&p.offeringType!=='service';}
 export function packageBuyoutOption(p,products,{quantity=1,extras={},custom=false}={}){
  if(!businessPurchaseEnabled(p)||!Number.isInteger(quantity)||quantity<1)return null;
  const lines=[{id:p.id,name:p.name,quantity,unitPrice:custom?null:packagePurchasePrice(p),total:custom?null:packagePurchasePrice(p,quantity)}];

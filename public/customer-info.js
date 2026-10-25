@@ -2,7 +2,7 @@ import {mountMobileRentalDates} from './mobile-rental-dates.js?v=launch20261024'
 import {mountStorageNotice} from './storage-notice.js?v=launch20261024';
 mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js';
-import {getTermsVersions} from './terms-versions.js?v=launch20261024';
+import {getTermsVersions} from './terms-versions.js?v=auditfixes20261025';
 try{const response=await fetch('/api/site-settings',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(response.ok)configureSiteSettings((await response.json()).settings);}catch{}
 import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=launch20261024';
 // Shared customer information for purchase, rental and information pages.

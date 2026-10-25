@@ -5,6 +5,15 @@ import {createServer} from '../app-server.mjs';
 import {createDeliveryEstimator} from '../server/delivery.mjs';
 import {storageNoticeDismissed,rememberStorageNotice} from '../public/storage-notice.js';
 const storage=()=>{const map=new Map();return {getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)};};
+test('HTTPS hosting sends host-only HSTS on pages, API responses and assets; HTTP preview stays unchanged',async()=>{
+ for(const origin of ['https://konseptuell.no','http://127.0.0.1:8932']){
+  const server=createServer({env:{},origin});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  try{for(const route of ['/','/style.css','/api/delivery-estimate']){
+   const response=await fetch('http://127.0.0.1:'+server.address().port+route);
+   assert.equal(response.headers.get('strict-transport-security'),origin.startsWith('https:')?'max-age=31536000':null);
+  }}finally{await new Promise(resolve=>server.close(resolve));}
+ }
+});
 test('Essential storage notice persists across sessions, migrates old sessions and expires',()=>{
  const saved=storage(),session=storage(),now=1000000;
  assert.equal(storageNoticeDismissed(saved,session,now),false);
