@@ -21,8 +21,10 @@ export async function readHtmlTemplate(name,base=root){
  // A count is unknown until the saved basket has been read and validated.
  html=html.replace(/(<span id="(?:count|saleCount)">)0(<\/span>)/g,'$1…$2');
  html=renderMobileNavigation(html);
+ // Occasion is an explicit form choice, never inferred from the catalogue category.
+ html=html.replace(/(<select\b[^>]*\bid="occasion"[^>]*>)([\s\S]*?)(<\/select>)/g,(_,open,options,close)=>open+'<option value="" selected disabled>Velg anledning</option>'+options.replace(/\sselected(?:="[^"]*")?/g,'').replace('<option>Boligsalg</option>','<option>Boligfoto og visning</option>')+close);
  // Bootstrap and shared customer-information scripts must use this release's module URLs.
- html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(file==='/app.js'?'pricingbasis20261025':['/shop.js','/customer-info.js'].includes(file)?'submitprice20261025c':file==='/icons.js'?'enquirypage20261025b':'launch20261024')+end);
+ html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(['/app.js','/shop.js'].includes(file)?'occasion20261025':file==='/customer-info.js'?'submitprice20261025c':file==='/icons.js'?'enquirypage20261025b':'launch20261024')+end);
  html=html.replace('</head>','<script type="module" src="/mobile-navigation.js?v=mobilemenu20261024c"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=productscope20261025"></head>');
  const version=await styleVersion(base);
