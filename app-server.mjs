@@ -38,6 +38,8 @@ async function json(req,max=1500000){if(!req.headers['content-type']?.startsWith
 export function createServer(options={}){
  const env=options.env||process.env,store=options.store||createMysqlStore(env,seed);
  const origin=options.origin||env.APP_ORIGIN||'https://blueviolet-ant-597153.hostingersite.com';
+ // Only the configured HTTPS origin opts in; do not impose HTTPS on local HTTP previews or unrelated subdomains.
+ const transportSecurity=new URL(origin).protocol==='https:'?{'Strict-Transport-Security':'max-age=31536000'}:{};
  const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session':'konsept_session';
  const submissions=createSubmissionSender(env,store,options.sendMail);
  const delivery=createDeliveryEstimator(env,options.deliveryFetch,{reserve:store.enabled?now=>store.reserveDeliveryCall(now):undefined});
@@ -48,7 +50,7 @@ export function createServer(options={}){
  const invalidatePublic=()=>publicCache.invalidate();
  let images;const enterRequest=createRequestGuard(options.requestGuard),enterAuth=createRequestGuard({maxActive:2,maxClientActive:2});
  const server=http.createServer(async(req,res)=>{
-  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...headers});res.end(req.method==='HEAD'?undefined:body);};
+  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...transportSecurity,...headers});res.end(req.method==='HEAD'?undefined:body);};
   const out=(status,data,headers)=>send(status,JSON.stringify(data),'application/json; charset=utf-8',headers);
   const redirect=location=>send(302,'','text/plain',{Location:location});
   const authenticated=async()=>{const token=sessionToken(req,cookieName);return token.length===43&&!!(await store.session(digest(token)));};
