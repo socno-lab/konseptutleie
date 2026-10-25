@@ -17,3 +17,12 @@ export function deliveryReceiptLine(delivery){
  if(!delivery)return null;
  return {id:'receipt-transport',name:'Transport',image:'/assets/transport-truck.png',quantity:1,basis:delivery.label||'Transport avklares i tilbudet',total:delivery.total??null,transport:true};
 }
+
+// Transport is included in the heading only when its amount is known.
+export function receiptTotalLabel(receipt){
+ const mode=['rental','purchase','mixed'].includes(receipt.acquisition)?receipt.acquisition:receipt.kind==='purchase'?'purchase':'rental';
+ const label=mode==='purchase'?'Beregnet kjøpesum':mode==='mixed'?'Beregnet sum for leie og kjøp':'Beregnet leiesum';
+ const delivery=receipt.delivery,known=Number.isFinite(delivery?.total)&&delivery.total>=0;
+ const transported=known&&(delivery.total>0||/inkludert|ønsker levering|kun levering|kun henting/i.test(delivery.label||''));
+ return label+(transported?' inkl. transport':'');
+}

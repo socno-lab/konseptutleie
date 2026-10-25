@@ -1,5 +1,5 @@
 import {enquiryAcquisition,enquiryCopy} from './enquiry-copy.js?v=launch20261024';
-import {receiptEntries,receiptFacts,deliveryReceiptLine,receiptGroupLabel} from './receipt-layout.js?v=receipts20261025';
+import {receiptEntries,receiptFacts,deliveryReceiptLine,receiptGroupLabel,receiptTotalLabel} from './receipt-layout.js?v=receipts20261025b';
 import {acceptedEnquiryTerms} from './enquiry-terms.js?v=launch20261024';
 const submissions=new WeakMap();
 export async function submitEnquiry(form,{kind,basket,customRequest=false,lines,businessChoices={},packageGroups=[],cartLinks={},purchaseSofas=[],rentalSofas=[],deliveryToken='',discountCode=''}){
@@ -70,7 +70,7 @@ export function enquiryReceipt(receipt){
  if(typeof line.image==='string'&&/^\/(assets|media)\//.test(line.image)&&!line.image.includes('..')){const img=document.createElement('img');img.src=line.image;img.alt=line.name;img.width=line.addonFor?.length?24:56;img.height=img.width;img.style.cssText='width:'+img.width+'px;height:'+img.height+'px;flex-shrink:0;object-fit:contain;background:transparent';const imageBox=document.createElement('span');imageBox.style.cssText='display:flex;justify-content:center;width:56px;min-width:56px';if(line.addonFor?.length)imageBox.style.alignSelf='center';imageBox.append(img);row.append(imageBox);}
  const copy=node('div','',row);copy.style.cssText='flex:1;min-width:0;overflow-wrap:anywhere';node('strong',(line.addonFor?.length?'+ ':'')+line.name,copy).style.cssText='display:block;'+(line.addonFor?.length?'font-size:13px;font-weight:500':'');node('div',(line.transport?'':line.quantity+' stk. · ')+line.basis,copy).style.cssText='font-size:13px;line-height:1.6';if(line.contents?.length)node('small',line.contents.join('; '),copy);node('div',line.total===null?'Pris på forespørsel':money(line.total),copy).style.marginTop='6px';}
  if(receipt.discount)node('p','Rabatt ('+receipt.discount.code+'): −'+money(receipt.discount.discount));
- node('strong',receipt.total===null?'Samlet pris avklares i tilbudet.':'Foreløpig total: '+money(receipt.total)).style.cssText='display:block;margin:20px 0 8px';
+ node('strong',receipt.total===null?'Samlet pris avklares i tilbudet.':receiptTotalLabel(receipt)+': '+money(receipt.total)).style.cssText='display:block;margin:20px 0 8px';
  node('small',receipt.vatIncluded?'Alle priser er inkludert mva.':'Alle priser er ekskludert mva.').style.cssText='display:block;margin-bottom:24px';
  for(const [label,value] of [...receiptFacts(receipt.facts).filter(([label])=>label!=='Ønsket leieperiode'),['Leveringsmåte',receipt.delivery?.label],['Adresse',receipt.address],['Din kommentar',receipt.comment]])if(value){const p=node('p','');node('strong',label,p);node('span',value,p).style.cssText='display:block;white-space:pre-line;line-height:1.7';}
  return section;
