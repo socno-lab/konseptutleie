@@ -1,6 +1,6 @@
 import {mountCatalogPagination} from './catalog-pagination.js?v=catalogmore20261024a';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
-import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=serviceinfo20261024';
+import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receipts20261025';
 import {configureSiteSettings,categoryLabel,getSiteSettings} from './site-settings.js';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=anchor20261024';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
