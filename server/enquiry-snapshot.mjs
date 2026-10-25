@@ -5,7 +5,7 @@ import {withPackageAddons} from '../public/package-addon-model.js';
 import {rentalEstimate,normalizeBasket,planText} from '../public/catalog-model.js';
 import {rentalRateSets,scopeForOccasion} from '../public/rental-pricing-model.js';
 import {saleEstimate,saleModuleError} from '../public/sales-model.js';
-import {businessPurchaseEnabled,resolvedPackagePurchasePrice} from '../public/business-purchase-model.js';
+import {businessPurchaseEnabled,resolvedPackagePurchasePrice,splitAcquisitionBasket,acquisitionPurchasePrice} from '../public/business-purchase-model.js';
 import {packageCartView} from '../public/package-cart-model.js';
 import {rentalDeliveryCapacity} from '../public/delivery-model.js';
 import {addonRequirementError} from '../public/addon-model.js';
@@ -28,11 +28,12 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  if(rental&&!d.occasion)fail('Velg anledning.');
  if(!choices||typeof choices!=='object'||Array.isArray(choices)||Object.keys(choices).length>150)fail('Kontroller kjøpsvalg.');
  for(const [id,mode] of Object.entries(choices))if(!Object.hasOwn(input.basket,id)||!['rent','buy','try'].includes(mode)||!businessPurchaseEnabled(products.find(p=>p.id===id)))fail('Kontroller kjøpsvalg.');
- const rent={},buy={};for(const [id,q] of Object.entries(input.basket)){
+ for(const [id] of Object.entries(input.basket)){
   const p=products.find(x=>x.id===id),mode=choices[id];
   if(mode&&!['rent','buy','try'].includes(mode)||mode&&!businessPurchaseEnabled(p))fail('Kontroller kjøpsvalg.');
-  (rental&&mode==='buy'?buy:rent)[id]=q;
  }
+ if(input.packageGroups&&(!Array.isArray(input.packageGroups)||input.packageGroups.length>100)||input.cartLinks&&(typeof input.cartLinks!=='object'||Array.isArray(input.cartLinks)||Object.keys(input.cartLinks).length>150))fail('Kontroller pakker og tilvalg.');
+ const {rental:rent,purchase:buy}=rental?splitAcquisitionBasket(input.basket,choices,products,input.cartLinks||{},input.packageGroups||[]):{rental:input.basket,purchase:{}};
  const hasRental=rental&&(Object.keys(rent).length>0||value.customRequest===true),acquisition=hasRental?(Object.keys(buy).length?'mixed':'rental'):'purchase';
  const scope=scopeForOccasion(d.occasion),priced=products.map(p=>({...p,...rentalRateSets(p,products)[scope]}));
  if(rental){
@@ -43,15 +44,25 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
   if((Object.keys(rent).length||value.customRequest)&&(!d.start||!d.end))fail('Velg ønsket leieperiode.');
   validateRentalPeriod(d.start,d.end,{now,required:hasRental});
  }
- if(input.packageGroups&&(!Array.isArray(input.packageGroups)||input.packageGroups.length>100)||input.cartLinks&&(typeof input.cartLinks!=='object'||Array.isArray(input.cartLinks)||Object.keys(input.cartLinks).length>150))fail('Kontroller pakker og tilvalg.');
- const groups=packageCartView(rent,priced,input.packageGroups||[],input.cartLinks||{}).groups;
+ const allGroups=packageCartView(input.basket,priced,input.packageGroups||[],input.cartLinks||{}).groups;
+ const purchasedGroups=allGroups.filter(g=>!g.custom&&buy[g.packageId]);
+ const groups=allGroups.filter(g=>!purchasedGroups.includes(g));
  const quoteOnly=groups.some(g=>g.custom&&g.product?.packageCustomPricing==='quote');
  const quote=rental?rentalEstimate(rent,priced,d.start,d.end):saleEstimate(input.basket,products);
  if(!rental){const err=saleModuleError(input.basket,products);if(err)fail(err);}
  let lines=(rental?quote.lines.map(l=>{const p=priced.find(x=>x.id===l.id);return {id:l.id,name:l.name,quantity:l.quantity,basis:l.plan?new Intl.NumberFormat('nb-NO').format(l.plan.total)+' kr per stk. · '+planText(l.plan):'Leie · pris avklares',total:l.plan?Math.round(l.plan.total*l.quantity*100)/100:null,contents:p.offeringType==='service'&&p.serviceContents?[p.serviceContents]:p.isPackage?(p.components||[]).map(c=>c.quantity+' × '+(products.find(x=>x.id===c.id)?.name||'Produkt')):[]};}):quote.lines.map(l=>({...l,basis:l.unitPrice===null?'Kjøp · pris avklares':new Intl.NumberFormat('nb-NO').format(l.unitPrice)+' kr per stk.'}))).map(l=>({...l,...(rental&&quoteOnly?{total:null,basis:'Tilpasset innhold · pris avklares'}:{})}));
- for(const [id,q] of Object.entries(buy)){const p=products.find(x=>x.id===id),unit=resolvedPackagePurchasePrice(p,products);lines.push({id,name:p.name,quantity:q,basis:'Kjøpsønske · fast pakkeinnhold',total:unit===null?null:Math.round(unit*q*100)/100,contents:(p.components||[]).map(c=>c.quantity+' × '+products.find(x=>x.id===c.id)?.name)});}
  if(value.customRequest){if(!d.customText)fail('Beskriv den tilpassede forespørselen.');lines.push({id:'custom',name:'Tilpasset forespørsel',quantity:1,basis:d.customText,total:null});}
  if(rental)lines=receiptSofaLines(receiptPackageLines(lines,priced,groups,d.start,d.end),input.rentalSofas,priced);
+ const purchaseAddonError=addonRequirementError(buy,products);if(purchaseAddonError)fail(purchaseAddonError);
+ for(const [id,q] of Object.entries(buy)){
+  const p=products.find(x=>x.id===id);if(!businessPurchaseEnabled(p))continue;
+  const unit=resolvedPackagePurchasePrice(p,products),g=purchasedGroups.find(g=>g.packageId===id),extras=Object.entries(g?.extras||{}),group=extras.length?{id:'purchase:'+id,name:p.name,quantity:q}:undefined;
+  lines.push({id,name:p.name,quantity:q,basis:'Kjøpsønske · fast pakkeinnhold',total:unit===null?null:Math.round(unit*q*100)/100,contents:(p.components||[]).map(c=>c.quantity+' × '+products.find(x=>x.id===c.id)?.name),...(group?{group}:{})});
+  for(const [extraId,quantity] of extras){
+   const extra=products.find(x=>x.id===extraId),price=acquisitionPurchasePrice(extra);
+   lines.push({id:extraId,name:extra.name,quantity,basis:price===null?'Kjøp · pris avklares':new Intl.NumberFormat('nb-NO').format(price)+' kr per stk. · kjøp',total:acquisitionPurchasePrice(extra,quantity),group,addonFor:[{id,name:p.name}]});
+  }
+ }
  // Store only catalog-verified relationships; prices and quantities stay unchanged.
  for(const line of lines){
   if(line.group?.type==='sofa')continue;
