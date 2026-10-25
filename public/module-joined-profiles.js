@@ -17,7 +17,21 @@ const scenes={
  isa:{source:'/assets/kid-isa-connected-v1.png',size:[2172,724],left:[81,145,736,570],middle:[736,145,1314,570],chaise:[1314,145,2089,620]},
  juno:{source:'/assets/kid-juno-connected-v1.png',size:[2172,724],left:[72,174,788,590],middle:[788,174,1380,590],right:[1380,174,2100,590]}
 };
+// Lagoon's legacy per-module crops have different camera angles. Use a single
+// frontal illustration only while those exact catalogue choices are unchanged.
+const lagoonSource='/assets/lagoon-connected-v1.webp';
+const lagoon={
+ obj_broste_lagoon_31000586:{original:'/media/2d89f4d3e04bee99eb0fb51ce70aa5a1',role:'left',legacyCrop:[34.1818,57.1818,67.2727,85.6364],mirror:true,crop:[100,150,791,606]},
+ obj_broste_lagoon_31000583:{original:'/media/109f838631f83ccdbb127d431059f178',role:'middle',legacyCrop:[34.4545,57.1818,66.0909,86.0909],mirror:false,crop:[791,150,1380,606]},
+ obj_broste_lagoon_31000585:{original:'/media/157718c9ee5369b6f6c52d42612e7337',role:'right',legacyCrop:[32.6364,57.1818,65.8182,85.6364],mirror:true,crop:[1380,150,2072,606]}
+};
+function lagoonMatch(p){const entry=lagoon[p?.id];return !!entry&&p.moduleSeries==='Broste Copenhagen Lagoon, lys blå'&&p.moduleRole===entry.role&&p.image===entry.original&&(!p.builderImage||p.builderImage===entry.original&&JSON.stringify(p.builderCrop)===JSON.stringify(entry.legacyCrop)&&!!p.builderMirror===entry.mirror);}
+export function joinedModuleCover(modules){return modules.length===3&&new Set(modules.map(p=>p.id)).size===3&&modules.every(lagoonMatch)?lagoonSource:'';}
 export function joinedPhotoParts(parts){
+ if(parts.length>1&&parts.every(p=>lagoonMatch(p.product))){
+  parts.forEach(p=>{p.photo={source:lagoonSource,size:[2172,724],crop:lagoon[p.product.id].crop,mirror:false,height:70,replaceBuilder:true};});return true;
+ }
+
  const first=parts[0]?.product,setting=outdoor[first?.id];
  if(setting&&parts.every(p=>p.product.id===first.id&&p.product.image===setting.original)){
   parts.forEach((p,i)=>{const slot=i===0?0:i===parts.length-1?2:1;p.photo={source:setting.source,size:setting.size,crop:[setting.cuts[slot],setting.top,setting.cuts[slot+1],setting.bottom],height:65};});return true;
