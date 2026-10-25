@@ -87,3 +87,7 @@ Prisplassering på vanlige produktsider med tilvalg, godkjent 25. oktober 2026: 
 Presisering 25. oktober 2026: Ingen egen «Leiepris uten tilvalg»-overskrift ved hovedproduktet. Valgfritt kjøpsbeløp og tilvalgenes kjøpsbeløp vises bare når leie med kjøpsmulighet er valgt. Samlet kjøpsbeløp vises i vanlig skriftvekt, separat fra leiesummen. Ved direkte kjøp vises kjøpspris som før.
 
 Prisoverskriften under valgene er «Samlet leiepris for dette produktet», eller «Samlet leiepris for dette produktet med tilvalg» når tilvalg er valgt.
+
+Pakkebekreftelser, presisert 25. oktober 2026: Ingen delsummer per pakke eller sofa i nettbekreftelse eller kunde-/intern e-post, verken for faste eller tilpassede pakker. Behold pakkenavn, alle produkt-/tilvalgsrader og priser, transport og samlet foreløpig total. Samme regel gjelder eldre lagrede forespørsler når de gjengis.
+
+Totalsum i bekreftelser, godkjent 25. oktober 2026: «Beregnet leiesum» for leie, «Beregnet kjøpesum» for kjøp og «Beregnet sum for leie og kjøp» ved blandet forespørsel. Legg til «inkl. transport» når kjent transport inngår i summen, også transport inkludert i fastpris. Egen henting til 0 kr og ukjent transport skal ikke merkes som inkludert transport. Samme tekst i nettbekreftelse og kunde-/intern e-post; ukjent samlet pris beholder avklaringsmelding.

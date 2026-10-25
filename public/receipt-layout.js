@@ -5,7 +5,6 @@ export function receiptEntries(lines){
  const entries=[];
  for(const bucket of buckets.values()){const group=bucket[0]?.group;if(group)entries.push({type:'group',group});const remaining=[...bucket];
   while(remaining.length){const ready=l=>!l.addonFor?.some(parent=>remaining.some(p=>p.id===parent.id));let index=remaining.findIndex(l=>l.addonFor?.length&&ready(l));if(index<0)index=remaining.findIndex(ready);entries.push({type:'line',line:remaining.splice(index<0?0:index,1)[0]});}
-  if(group&&group.type!=='sofa')entries.push({type:'subtotal',group,total:bucket.some(l=>l.total===null)?null:Math.round(bucket.reduce((n,l)=>n+l.total,0)*100)/100});
  }
  return entries;
 }
@@ -17,4 +16,13 @@ export function receiptFacts(facts=[]){
 export function deliveryReceiptLine(delivery){
  if(!delivery)return null;
  return {id:'receipt-transport',name:'Transport',image:'/assets/transport-truck.png',quantity:1,basis:delivery.label||'Transport avklares i tilbudet',total:delivery.total??null,transport:true};
+}
+
+// Transport is included in the heading only when its amount is known.
+export function receiptTotalLabel(receipt){
+ const mode=['rental','purchase','mixed'].includes(receipt.acquisition)?receipt.acquisition:receipt.kind==='purchase'?'purchase':'rental';
+ const label=mode==='purchase'?'Beregnet kjøpesum':mode==='mixed'?'Beregnet sum for leie og kjøp':'Beregnet leiesum';
+ const delivery=receipt.delivery,known=Number.isFinite(delivery?.total)&&delivery.total>=0;
+ const transported=known&&(delivery.total>0||/inkludert|ønsker levering|kun levering|kun henting/i.test(delivery.label||''));
+ return label+(transported?' inkl. transport':'');
 }
