@@ -147,10 +147,19 @@ function renderDetailPrices(base,quantity,extras,valid){
  if(!valid){target.innerHTML='<p class="hint">Velg gyldig antall for å se samlet pris.</p>';return;}
  const days=rentalDays(el('start')?.value||'',el('end')?.value||''),quote=detailSelectionPrices(base,quantity,extras,products,days),mode=el('businessAcquisition')?.value;
  let rental='';if(mode!=='buy'){
-  rental='<p class="selection-total-label">'+(quote.hasExtras?'Samlet leiepris for dette produktet med tilvalg':'Samlet leiepris for dette produktet')+'</p>';
+  rental='<p class="selection-total-label">'+(days?'Beregnet leiesum for dette produktet'+(quote.hasExtras?' med tilvalg':''):quote.hasExtras?'Valgte tilvalg':'Beregnet leiesum for dette produktet')+'</p>';
   if(!rentalScopeConfirmed)rental+='<p class="rental-price-pending">Velg bruk for å se leiepris</p>';
-  else if(quote.price===null||quote.weekPrice===null||quote.monthPrice===null)rental+='<p class="hint">Samlet pris avklares i tilbudet. Valgte tilvalg omfatter pris på forespørsel.</p>';
-  else rental+=(quote.selectedTotal!==null?'<div class="rental-period-price"><span>Valgt leieperiode · '+days+' døgn</span><strong>'+money(quote.selectedTotal)+'</strong></div>':'')+'<div class="rate-grid"><div><span>Døgn</span><strong>'+money(quote.price)+'</strong></div><div><span>Uke · 7 døgn</span><strong>'+money(quote.weekPrice)+'</strong></div><div><span>Måned · 30 døgn</span><strong>'+money(quote.monthPrice)+'</strong></div></div><p class="rate-caption">Inkl. mva.'+(quote.hasPeriodExtras?' Tilvalg prises per påbegynte 30 dager.':'')+' Transport kommer i tillegg der den ikke er inkludert. Tilgjengelighet bekreftes i tilbudet.</p>';
+  else {
+   for(const [id,count] of Object.entries(extras||{}).filter(([,q])=>q>0)){
+    const extra=products.find(p=>p.id===id);if(!extra)continue;
+    const plan=extra.priceOnRequest?null:ratePlan(extra,1,products);
+    const label=!plan?'Pris på forespørsel':extra.rentalPricingMode==='period'?money(plan.total*count)+' per påbegynte 30 dager':extra.rentalPricingMode==='fixed'?money(plan.total*count)+' · fastpris':addonPrice(extra);
+    rental+='<p class="hint">'+count+' × '+html(extra.name)+'<br>'+html(label)+'</p>';
+   }
+   if(days)rental+=quote.selectedTotal!==null?'<div class="rental-period-price"><span>Valgt leieperiode · '+days+' døgn</span><strong>'+money(quote.selectedTotal)+'</strong></div>':'<p class="hint">Samlet pris avklares i tilbudet. Valgte produkter eller tilvalg omfatter pris på forespørsel.</p>';
+   else rental+='<p class="hint">Velg leieperiode i handlekurven for å se beregnet leiesum. Produktets døgn-, uke- og månedspriser over er uten tilvalg.</p>';
+   rental+='<p class="rate-caption">Inkl. mva.'+(quote.hasPeriodExtras?' Tilvalg belastes én gang per påbegynte 30 dager, uansett antall leiedøgn i perioden.':'')+' Transport kommer i tillegg der den ikke er inkludert. Tilgjengelighet bekreftes i tilbudet.</p>';
+  }
  }
  target.innerHTML=rental+(['try','buy'].includes(mode)?businessPurchaseSummary(base,quantity,extras,false,mode,true):'');
 }
