@@ -10,6 +10,14 @@ globalThis.document={querySelectorAll:()=>[],createElement:tag=>new Element(tag)
 globalThis.window={scrollTo(){}};globalThis.requestAnimationFrame=callback=>callback();
 const {submitEnquiry,enquiryReceipt,showEnquiryConfirmation}=await import('../public/submission-ui.js');
 const text=node=>[node.textContent,...node.children.map(text)].join(' ');
+test('fixed and custom package web receipts keep line prices and final total without package subtotals',()=>{
+ for(const custom of [false,true]){
+  const group={id:'fixed:pack',name:'Loungepakken',quantity:1,custom};
+  const receipt={lines:[{id:'chair',name:'Lenestol',quantity:2,basis:'Pris per stk.',total:8920,group},{id:'textile',name:'Tekstilpakke',quantity:1,basis:'Per 30 dager',total:250,group,addonFor:[{id:'chair',name:'Lenestol'}]}],facts:[],delivery:{label:'Levering og henting',total:1000},total:10170,vatIncluded:true};
+  const rendered=text(enquiryReceipt(receipt));
+  assert.doesNotMatch(rendered,/Delsum/);assert.match(rendered,/Loungepakken/);assert.match(rendered,/8\s*920 kr/);assert.match(rendered,/250 kr/);assert.match(rendered,/Transport/);assert.match(rendered,/Foreløpig total: 10\s*170 kr/);
+ }
+});
 test('client sends each rental sofa and its textile allocation unchanged through a retry',async()=>{
  const nativeFormData=globalThis.FormData,oldFetch=globalThis.fetch,oldStorage=globalThis.sessionStorage,calls=[];
  const rentalSofas=[{id:'a',series:'Sofa',selection:{end:2},textileId:''},{id:'b',series:'Sofa',selection:{end:2,middle:1},textileId:'textile'}];

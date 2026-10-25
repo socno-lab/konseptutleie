@@ -40,11 +40,11 @@ test('pure business purchase and mixed rental/purchase submit their required ter
  }finally{globalThis.FormData=nativeFormData;globalThis.fetch=oldFetch;globalThis.sessionStorage=oldStorage;}
 });
 test('release URLs refresh rental and purchase terms once without loading a second stale customer-info module',async()=>{
- const token='launch20261024',receiptToken='serviceinfo20261024';
+ const token='launch20261024',receiptToken='receipts20261025';
  const customerInfo=await readFile(new URL('../public/customer-info.js',import.meta.url),'utf8');assert.match(customerInfo,/id="purchaseTermsLabel" hidden style="display:none!important"/,'inactive purchase terms must stay hidden before cart synchronisation despite important label display rules');
  for(const name of publicHtmlNames){
   const html=await readHtmlTemplate(name),scripts=[...html.matchAll(/src="\/(app|shop|customer-info)\.js\?([^\"]+)"/g)];
-  assert.ok(scripts.length,'bootstrap missing from '+name);for(const [,module,query] of scripts)assert.equal(new URLSearchParams(query).get('v'),module==='app'?'detailprices20261025c':module==='shop'?'anchor20261024':'pricingchoices20261024',name+' loads stale '+module);
+  assert.ok(scripts.length,'bootstrap missing from '+name);for(const [,module,query] of scripts)assert.equal(new URLSearchParams(query).get('v'),module==='app'?'receipts20261025':module==='shop'?'receipts20261025':'pricingchoices20261024',name+' loads stale '+module);
  }
  const files=await Promise.all(['app','shop','storefront-feedback','submission-ui'].map(async name=>[name,await readFile(new URL('../public/'+name+'.js',import.meta.url),'utf8')]));
  const moduleUrls=name=>files.flatMap(([file,source])=>[...source.matchAll(new RegExp("['\"](?:\\./)("+name+"\\.js[^'\"]*)['\"]",'g'))].map(([,url])=>({file,url})));
