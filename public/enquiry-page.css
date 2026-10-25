@@ -15,3 +15,13 @@ body.enquiry-page .enquiry-full>.close,body.enquiry-page .enquiry-full .drawer-h
 @media(max-width:640px){#enquiryPage{margin-top:24px;padding:0 16px}.enquiry-full .package-cart-head{grid-template-columns:minmax(0,1fr)}.enquiry-full .drawer-head h1,.enquiry-full>h1{font-size:30px}.enquiry-preview-content>.button{font-size:14px}}
 
 body.enquiry-page #cart.enquiry-full[hidden],body.enquiry-page #saleCart.enquiry-full[hidden]{display:none!important}
+
+/* A compact final check reuses the ordinary price scale, beside the action. */
+.enquiry-submit-summary{margin:24px 0 16px;padding:20px;background:#e8e9df;font-size:13px;line-height:1.5}
+.enquiry-submit-summary[hidden]{display:none}
+.enquiry-submit-summary-row,.enquiry-submit-summary-total{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0;padding:5px 0}
+.enquiry-submit-summary-row>span:first-child,.enquiry-submit-summary-total>span:first-child{min-width:0;overflow-wrap:anywhere}
+.enquiry-submit-summary-value{flex-shrink:0;font-size:13px;font-weight:500;white-space:nowrap}
+.enquiry-submit-summary-total{margin-top:10px;padding-top:14px;border-top:1px solid var(--line);font-weight:500}
+.enquiry-submit-summary .enquiry-submit-summary-note{margin:14px 0 0;font-size:11px;line-height:1.6;color:var(--muted,#737868)}
+@media(max-width:640px){.enquiry-submit-summary{padding:16px}.enquiry-submit-summary-row,.enquiry-submit-summary-total{gap:12px}}
