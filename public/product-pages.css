@@ -1,6 +1,6 @@
 /* Product pages reuse controls without dialog positioning or nested scroll areas. */
 .product-page main>:not(#productPageHost):not(#seoProduct){display:none!important}
-.product-page main>#productPageHost{display:block!important;max-width:1320px;margin:0 auto;padding:28px 5% 64px;min-height:65vh}
+.product-page main>#productPageHost{display:block!important;max-width:none;margin:0 auto;padding:28px 5% 64px;min-height:65vh}
 .product-page-back{display:inline-block;margin:0 0 28px;font-size:13px;text-decoration:underline;text-underline-offset:4px}
 .product-page #catalogPricingScope{margin:0 0 28px;padding:12px 16px;border:1px solid var(--line);font-size:12px}
 .product-page #catalogPricingScope>.rental-selected-usage{margin:0 0 5px}.product-page #catalogPricingScope>.hint{margin:0 0 5px}.product-page #catalogPricingScope summary{font-size:12px}
@@ -34,7 +34,12 @@
  .product-page .sale-detail-price{font-size:23px;margin:12px 0}.product-page .sale-actions{gap:10px}.product-page .sale-actions>.button{font-size:12px;padding:10px;min-height:46px}.product-page .sale-actions .sale-quantity-field{flex:none}.product-page .sale-module{margin-top:16px;padding:12px}
  .product-page #modules .module-preview{min-height:160px;margin:0}.product-page #modules .module-photo>svg,.product-page #modules .module-photo>img{max-height:280px}.product-page #modules .module-stage>.hint{display:none}.product-page .module-actions{margin-top:16px}.product-page .module-heading{margin-bottom:16px}.product-page .module-references{margin:10px 0}.product-page #wall .wall-layouts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-.product-page #catalogPricingScope{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px}.product-page #catalogPricingScope>.rental-selected-usage,.product-page #catalogPricingScope>.hint{margin:0}.product-page #catalogPricingScope>.hint{flex:1;font-size:10px;min-width:220px}.product-page #catalogPricingScope>details{margin-left:auto}.product-page #catalogPricingScope>details[open]{width:100%;margin-left:0}
+/* display:contents keeps the desktop wrapper in the DOM; style its children too. */
+.product-page #catalogPricingScope{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px}
+.product-page #catalogPricingScope>.rental-selected-usage,.product-page #catalogPricingScope>.hint,.product-page #catalogPricingScope>.product-pricing-desktop>.rental-selected-usage,.product-page #catalogPricingScope>.product-pricing-desktop>.hint{margin:0}
+.product-page #catalogPricingScope>.hint,.product-page #catalogPricingScope>.product-pricing-desktop>.hint{flex:1;font-size:10px;min-width:220px}
+.product-page #catalogPricingScope>details,.product-page #catalogPricingScope>.product-pricing-desktop>details{margin:0 0 0 auto}
+.product-page #catalogPricingScope>details[open],.product-page #catalogPricingScope>.product-pricing-desktop>details[open]{width:100%;margin-left:0}
 .product-page #catalogPricingScope{display:flex!important}
 /* Recommendations are normal page content, with no carousel or nested scrolling. */
 .product-recommendations{margin-top:64px;padding-top:30px;border-top:1px solid var(--line)}
