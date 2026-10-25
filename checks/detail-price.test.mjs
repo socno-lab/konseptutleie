@@ -7,7 +7,7 @@ const textile={id:'textile',price:250,rentalPricingMode:'period'};
 const decor={id:'decor',price:900,rentalPricingMode:'period'};
 const pack={id:'pack',components:[{id:'chair',quantity:2}],isPackage:true,rentalPricingMode:'components'};
 const products=[chair,textile,decor,pack];
-test('selection adds period addons once to each displayed duration, independently of furniture quantity',()=>{
+test('duration totals add period addons once, independently of furniture quantity',()=>{
  const q=detailSelectionPrices(chair,2,{textile:1},products);
  assert.deepEqual([q.price,q.weekPrice,q.monthPrice],[450,1050,2250]);
  assert.equal(q.hasExtras,true);assert.equal(q.hasPeriodExtras,true);
@@ -37,4 +37,10 @@ test('invalid quantities fail closed, including negative quantities for the base
   const q=detailSelectionPrices(chair,quantity,extras,products,7);
   assert.equal(q.valid,false);assert.equal(q.price,null);assert.equal(q.selectedTotal,null);
  }
+});
+
+test('400 kr per 30 days stays a single charge for two days and renews after day 30',()=>{
+ const product={id:'base400',price:200,weekPrice:1400,monthPrice:6000},addon={id:'addon400',price:400,rentalPricingMode:'period'},items=[product,addon];
+ assert.equal(detailSelectionPrices(product,1,{addon400:1},items,2).selectedTotal,800);
+ for(const days of [1,2,7,30,31,60,61])assert.equal(detailSelectionPrices(product,1,{addon400:2},items,days).selectedTotal,ratePlan(product,days,items).total+800*Math.ceil(days/30));
 });
