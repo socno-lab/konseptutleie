@@ -5,7 +5,7 @@ import {mountCatalogPagination} from './catalog-pagination.js?v=catalogmore20261
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receipts20261025b';
 import {configureSiteSettings,categoryLabel,getSiteSettings} from './site-settings.js';
-import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=anchor20261024';
+import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=sofacovers20261025';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=launch20261024';
