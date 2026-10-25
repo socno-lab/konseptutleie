@@ -2,7 +2,7 @@ const allowed=new Set(['start','end','occasion','name','email','phone','company'
 export function mountEnquiryFlow({cartId,formId,mode}){
  const cart=document.getElementById(cartId),form=document.getElementById(formId),page=location.pathname==='/foresporsel.html',key='konsept-enquiry-draft-'+mode;
  if(!cart||!form)return {open(){},update(){},clearDraft(){},restoredField:()=>false};
- const css=document.createElement('link');css.rel='stylesheet';css.href='/enquiry-page.css?v=enquirypage20261025b';if(!document.querySelector('link[href="'+css.href.replace(location.origin,'')+'"]'))document.head.append(css);
+ const css=document.createElement('link');css.rel='stylesheet';css.href='/enquiry-page.css?v=submitprice20261025c';if(!document.querySelector('link[href="'+css.href.replace(location.origin,'')+'"]'))document.head.append(css);
  let saved={};try{const value=JSON.parse(sessionStorage.getItem(key)||'{}');if(value&&typeof value==='object'&&!Array.isArray(value))saved=value;}catch{}
  const restored=new Set();
  for(const field of form.elements){if(!allowed.has(field.name))continue;const value=saved[field.name];if(field.type==='checkbox'){if(typeof value!=='boolean')continue;field.checked=value;}else{if(typeof value!=='string')continue;if(field.type==='radio')field.checked=field.value===value;else field.value=value;}restored.add(field.name);}

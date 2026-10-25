@@ -1,4 +1,5 @@
-import {mountEnquiryFlow} from './enquiry-flow.js?v=auditfixes20261025';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=submitprice20261025c';
+import {mountSubmitSummary} from './enquiry-submit-summary.js?v=submitprice20261025c';
 import {packageLineRentalPrice} from './enquiry-price-model.js?v=enquirypage20261025b';
 import {detailSelectionPrices} from './detail-price-model.js?v=detailprices20261025';
 import {packageBuyoutOption,addonBuyoutPrice} from './buyout-model.js?v=auditfixes20261025';
@@ -18,16 +19,16 @@ import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receip
 import {decorExamples} from './decor-examples.js?v=launch20261024';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=auditfixes20261025';
-import {rentalDeliveryExport,rentalDeliveryReceipt} from './customer-info.js?v=auditfixes20261025';
+import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=submitprice20261025c';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=anchor20261024';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=launch20261024';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=launch20261024';
 import {cartThumbnail,productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
 import {sofaCartRow} from './sofa-cart-row.js?v=launch20261024';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=enquirypage20261025b';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=submitprice20261025c';
 import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=pricingchoices20261024';
-import {mountDiscount} from './discount-ui.js?v=auditfixes20261025';
+import {mountDiscount} from './discount-ui.js?v=submitprice20261025c';
 let discount;
 import {applyRentalScope,scopeForPurpose,scopeForOccasion} from './rental-pricing-model.js?v=launch20261024';
 import {variantFields,productVariants,rentalVariants,groupedRentalCards,variantColour} from './product-variants.js?v=launch20261024';
@@ -35,6 +36,7 @@ import {businessPackageIds,configureBusinessPackages,packagePurchasePrice,acquis
 import {kiDisclosure,isKiPhoto} from './image-provenance.js?v=launch20261024';
 const isEnquiryPage=location.pathname==='/foresporsel.html';
 const enquiryFlow=mountEnquiryFlow({cartId:'cart',formId:'requestForm',mode:'rent'});
+const submitSummary=mountSubmitSummary(document.getElementById('requestForm'));
 const isCatalogPage=location.pathname==='/utvalg.html';
 const isOccasionPage=location.pathname==='/anledning.html';
 const compactCatalog=matchMedia('(max-width:640px)'),wideCatalog=matchMedia('(min-width:1050px)');
@@ -303,6 +305,24 @@ let toastTimer;function toast(text){
 }
 function add(id){const product=products.find(p=>p.id===id);if(!product||product.addonOnly)return;if(product.isPackage){const base=(product.components||[]).find(c=>cart[c.id]&&products.find(x=>x.id===c.id)?.type==='sofa');if(base){offerPackageId=id;offerBaseId=base.id;upgradeToPackage();return;}}if(remaining(id,cart,products)<=0){toast('Maks tilgjengelig beholdning er valgt. Pakker og enkeltobjekter deler lager.');return;}cart[id]=(cart[id]||0)+1;renderCart();renderProducts();addedNotice(product.name+' lagt til');if(product.type==='sofa'&&!product.isPackage){const pack=products.find(p=>p.isPackage&&(p.components||[]).some(c=>c.id===id));if(pack){livingPackage=pack;offerBaseId=id;offerPackageId=pack.id;showPackageOffer();}}}
 function hasQuotedPackage(){return packageGroups.some(g=>products.find(p=>p.id===g.packageId)?.packageCustomPricing==='quote');}
+function renderSubmitSummary(){
+ if(!catalogLoaded)return;
+ const rental=needsRentalDates(),purchases=purchaseBasket(),hasPurchases=Object.keys(purchases).length>0;
+ const quote=rentalEstimate(rentalBasket(),products,el('start').value,el('end').value);
+ const purchasePrices=products.filter(p=>purchases[p.id]).map(p=>acquisitionPurchasePrice(p,purchases[p.id]));
+ const purchaseSubtotal=purchasePrices.reduce((sum,value)=>sum+(value??0),0);
+ submitSummary.update({
+  mode:hasPurchases?(rental?'mixed':'purchase'):'rental',
+  hasItems:Object.keys(cart).length>0||sofaSetups.length>0||customRequest.active,
+  needsDates:rental,datesReady:quote.days!==null,
+  subtotal:hasQuotedPackage()||(rental&&quote.knownSubtotal===null&&!hasPurchases)?null:(quote.knownSubtotal||0)+purchaseSubtotal,
+  hasUnpriced:quote.hasUnpriced||hasQuotedPackage()||customRequest.active||purchasePrices.some(value=>value===null),
+  discount:rental&&!hasQuotedPackage()?discount?.state():null,
+  delivery:rentalDeliverySummary(),stylist:el('stylist').checked
+ });
+}
+document.addEventListener('rental-delivery-updated',renderSubmitSummary);
+document.getElementById('requestForm').addEventListener('change',event=>{if(event.target.name==='stylist')renderSubmitSummary();});
 function renderEstimate(){
  enquiryFlow.update();
  const empty=!Object.keys(cart).length&&!sofaSetups.length&&!customRequest.active;el('priceEstimate').hidden=empty;el('discountCode').hidden=empty;
@@ -314,6 +334,7 @@ function renderEstimate(){
  if(hasQuotedPackage()){quote.hasUnpriced=true;quote.total=null;}if(customRequest.active){quote.hasUnpriced=true;quote.lines.push({quantity:1,name:'Tilpasset forespørsel',plan:null});}
  const purchaseLines=products.filter(p=>purchases[p.id]).map(p=>`<div class="estimate-line"><span>${purchases[p.id]} × ${html(p.name)}<small>Kjøp · pris, tilstand og levering avklares</small></span><strong>${acquisitionPurchasePrice(p,purchases[p.id])===null?'Pris på forespørsel':money(acquisitionPurchasePrice(p,purchases[p.id]))}</strong></div>`).join('');
  el('priceEstimate').innerHTML=`${rental?`<div><span>Valgt leieperiode</span><strong>${quote.days===null?'Velg datoer':quote.days+' døgn'}</strong></div>`:''}${quote.lines.map(line=>`<div class="estimate-line"><span>${line.quantity} × ${html(line.name)}<small>${line.plan?html(planText(line.plan))+' per enhet':'Pris avklares i tilbudet'}</small></span><strong>${line.plan?money(line.plan.total*line.quantity):'Pris på forespørsel'}</strong></div>`).join('')}${purchaseLines}${quote.hasUnpriced&&quote.lines.some(l=>l.plan)?`<div><span>Delpris for prisede leieobjekter</span><strong>${money(quote.knownSubtotal)}</strong></div>`:''}<div class="estimate-total"><span>${hasPurchases?'Samlet pris for forespørselen':'Veiledende leiesum'}</span><strong>${hasPurchases?'Avklares i tilbud':quote.days===null?'–':quote.hasUnpriced?'Avklares i tilbud':money(quote.total)}</strong></div>${quote.saving>0?`<div class="rate-saving"><span>Du sparer mot døgnpris på leieobjektene</span><strong>${money(quote.saving)}</strong></div>`:''}<p>${rental?'Leie beregnes for begge valgte datoer. En uke = 7 døgn, en måned = 30 døgn. Tilvalg prises per påbegynte 30 dager. Vi bruker den rimeligste kombinasjonen for objekter med oppgitt leiepris. ':''}${hasPurchases?'Kjøpspris beregnes ikke ut fra leiepris. Hvilke varer som kan selges, tilstand og kjøpsvilkår avklares i tilbudet. ':''}Transport, oppsett og øvrige kostnader avklares i tilbudet. Forespørselen er uforpliktende.</p>`;
+ renderSubmitSummary();
 }
 
 
@@ -421,6 +442,6 @@ function productVariantOptions(p){return rentalColourChoices(p,true);}
 document.addEventListener('click',event=>{const button=event.target.closest('[data-rental-colour]');if(!button)return;const next=products.find(p=>p.id===button.dataset.rentalColour);if(!next||!rentalVariants(next,products).some(p=>p.id===next.id))return;const quantity=el('detail').open?Number(el('productQuantity')?.value)||1:1;openProduct(next);el('productQuantity').value=Math.max(1,Math.min(quantity,remaining(next.id,cart,products)));refreshSelection();});
 
 
-discount=mountDiscount(el('discountCode'),()=>({mode:'rent',basket:rentalBasket(),start:el('start').value,end:el('end').value,scope:rentalScope}));
+discount=mountDiscount(el('discountCode'),()=>({mode:'rent',basket:rentalBasket(),start:el('start').value,end:el('end').value,scope:rentalScope}),{onChange:renderSubmitSummary});
 
 const requestStylistHint=document.querySelector('.styling-choice>.hint');if(requestStylistHint)requestStylistHint.textContent=stylistProvider+' Vi hjelper med møblene og dekoren du leier. Tjenesten prises separat i tilbudet.';

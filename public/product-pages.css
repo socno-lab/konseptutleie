@@ -42,9 +42,9 @@
 .recommendation-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}.recommendation-card{display:flex;flex-direction:column;min-width:0}
 .recommendation-photo{display:block;background:white;aspect-ratio:1}.recommendation-photo img{display:block;width:100%;height:100%;object-fit:contain}
 .recommendation-card h3{font-size:15px;line-height:1.4;margin:12px 0 8px}.recommendation-card h3 a{text-decoration:none}.recommendation-material{font-size:11px;line-height:1.5;margin:0 0 14px;color:var(--muted);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-.recommendation-price{font-size:17px;font-weight:600;margin: auto 0 6px}.recommendation-card small{font-size:10px;line-height:1.4}.recommendation-card>.button{display:flex;justify-content:center;text-decoration:none;box-sizing:border-box;margin-top:16px;padding:12px 8px;font-size:11px;min-height:44px;text-align:center}
+.recommendation-price{font-size:13px;font-weight:500;margin: auto 0 6px}.recommendation-card small{font-size:10px;line-height:1.4}.recommendation-card>.button{display:flex;justify-content:center;text-decoration:none;box-sizing:border-box;margin-top:16px;padding:12px 8px;font-size:11px;min-height:44px;text-align:center}
 @media(max-width:800px){.recommendation-grid{gap:16px}.recommendation-card h3{font-size:13px}}
-@media(max-width:640px){.product-recommendations{margin-top:36px;padding-top:24px}.product-recommendations h2{font-size:23px;margin-bottom:20px}.recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}.recommendation-card h3{font-size:13px}.recommendation-price{font-size:15px}.recommendation-card>.button{font-size:10px;padding:10px 5px}}
+@media(max-width:640px){.product-recommendations{margin-top:36px;padding-top:24px}.product-recommendations h2{font-size:23px;margin-bottom:20px}.recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}.recommendation-card h3{font-size:13px}.recommendation-price{font-size:11px}.recommendation-card>.button{font-size:10px;padding:10px 5px}}
 
 .product-recommendations h2{letter-spacing:-.5px}
 .recommendation-photo{position:relative;overflow:hidden;flex:none}.recommendation-photo img{position:absolute;inset:0}
