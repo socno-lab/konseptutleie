@@ -1,4 +1,4 @@
-import './customer-info.js?v=enquirypage20261025b';
+import './customer-info.js?v=auditfixes20261025';
 import './dialog-scroll-lock.js?v=enquirypage20261025b';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');
