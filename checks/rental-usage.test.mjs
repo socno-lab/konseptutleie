@@ -15,7 +15,7 @@ test('Only housing photo and viewing use housing rates; concrete use overrides s
  assert.deepEqual(Object.keys(rentalUsageLabels),['standard','messe']);
  assert.equal(rentalUsageLabels.standard,'Boligfoto og visning');
  assert.equal(rentalUsageLabels.messe,'Arrangementer og annen bruk');
- assert.equal(rentalUsageDescriptions.messe,'Til selskap, messe, arbeidsplassen eller hjemmet.');
+ assert.equal(rentalUsageDescriptions.messe,'Til selskap, messe, arbeidsplassen eller daglig bruk.');
  assert.equal(rentalUsageExplanation,'Prisen tar hensyn til bruk og forventet slitasje.');
 });
 test('Changing use recalculates the same quantities and dates without adding a surcharge line',()=>{

@@ -27,7 +27,7 @@ import {productSubcategory,availableSubcategories,subcategoryButtons} from './ca
 import {cartThumbnail,productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
 import {sofaCartRow} from './sofa-cart-row.js?v=launch20261024';
 import {mountStorefrontFeedback} from './storefront-feedback.js?v=submitprice20261025c';
-import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=pricingchoices20261024';
+import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=pricingbasis20261025';
 import {mountDiscount} from './discount-ui.js?v=submitprice20261025c';
 let discount;
 import {applyRentalScope,scopeForPurpose,scopeForOccasion} from './rental-pricing-model.js?v=launch20261024';
