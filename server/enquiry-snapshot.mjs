@@ -1,3 +1,4 @@
+import {packageBuyoutOption,buyoutFacts,isBuyoutAddon} from '../public/buyout-model.js';
 import {receiptPackageLines} from './receipt-packages.mjs';
 import {receiptSofaLines} from './receipt-sofas.mjs';
 import {withPackageAddons} from '../public/package-addon-model.js';
@@ -65,7 +66,6 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  if(d.occasion)facts.push(['Bruksområde',d.occasion]);if(!rental||Object.keys(buy).length)facts.push(['Leveringstid','2–3 uker. Levering kan skje tidligere. Vi bekrefter leveringsdatoen i ordrebekreftelsen.']);
  if(d.stylist)facts.push(['Styling ønskes',d.stylingNotes||'Stylist – pris avklares i tilbudet']);
  for(const g of groups.filter(g=>g.custom))facts.push(['Tilpasset fra '+g.name,Object.entries(g.selection).map(([id,q])=>q+' × '+products.find(x=>x.id===id)?.name).join('; ')]);
- for(const [id,mode] of Object.entries(choices))if(mode==='try')facts.push(['Leie med kjøpsmulighet',products.find(x=>x.id===id)?.name+' – kjøpspris avtales separat']);
  // Preserve optional textile/colour wishes, never prices or arbitrary HTML.
  for(const [id,link] of Object.entries(input.cartLinks||{}))if(input.basket[id]&&Array.isArray(link?.choices)){
   // Decor is already a priced product line; its standard stylist text is not a customer wish.
@@ -84,11 +84,19 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const visits=deliveryChoice==='Ønsker levering og henting'?2:1;
  const receipt=hasRental&&!self&&!capacity.manual?verifyDelivery(d.deliveryToken,d.address,rent,value.customRequest,visits):null;
  const delivery={label:included?'Levering og henting inkludert i fastprisen':capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':deliveryChoice,total:included||self?0:receipt?.total??null};
+ const tryGroups=groups.filter(g=>businessPurchaseEnabled(g.product)&&(g.custom?g.acquisition==='try':choices[g.packageId]==='try'));
+ const purchaseOptions=tryGroups.map(g=>packageBuyoutOption({...g.product,purchasePrice:resolvedPackagePurchasePrice(g.product,products)},products,{quantity:g.quantity,custom:g.custom,extras:g.custom?Object.fromEntries(Object.entries(g.selection).filter(([id])=>isBuyoutAddon(products.find(p=>p.id===id)))):g.extras||{}}));
+ // Only a complete buyout can remove the entire pickup; other rental goods keep it.
+ const covered={};for(const g of tryGroups)for(const [id,q] of Object.entries(g.custom?g.selection:{[g.packageId]:g.quantity,...g.extras}))covered[id]=(covered[id]||0)+q;
+ const allRentalPurchased=!value.customRequest&&Object.entries(rent).every(([id,q])=>q<=(covered[id]||0)||products.find(p=>p.id===id)?.isService&&!isBuyoutAddon(products.find(p=>p.id===id)));
+ const pickup=['Ønsker levering og henting','Kun henting – jeg henter selv'].includes(deliveryChoice);
+ const returnCredit=self||included||!pickup&&deliveryChoice!=='Avklares senere'?0:allRentalPurchased&&Number.isFinite(receipt?.perVisit)?receipt.perVisit:null;
+ facts.push(...buyoutFacts(purchaseOptions,{end:d.end,returnCredit}));
  if(!self&&!capacity.manual&&deliveryChoice!=='Avklares senere'&&(!d.address||!/[0-9]{4}/.test(d.address)))fail('Oppgi komplett leveringsadresse med postnummer.');
  if(hasRental&&Object.keys(rent).some(id=>products.find(p=>p.id===id)?.deliveryIncluded))facts.push(['Inkludert transport','Levering og henting av juletreet er inkludert. Eventuell transportpris gjelder øvrige produkter.']);
  if(self&&!included)facts.push(['Henting',purchaseOnly?'Hentested og tidspunkt avtales.':'Segelckes vei 15, 2010 Strømmen. Tidspunkt avtales.']);
  const hasUnpriced=lines.some(l=>l.total===null),subtotal=Math.round(lines.reduce((sum,l)=>sum+(l.total||0),0)*100)/100;
  const total=hasUnpriced||delivery.total===null?null:Math.round((subtotal-(discount?.discount||0)+delivery.total)*100)/100;
  for(const line of lines){const product=products.find(p=>p.id===line.id);const icon=/tekstil|pute|pledd/i.test(line.name)?'pillow':/dekor|blomst|vase/i.test(line.name)?'decor':'service';const image=line.addonFor?.length?'/assets/addon-'+icon+'.png':product?.image;if(typeof image==='string'&&/^\/(?:assets\/|media\/)/.test(image)&&!image.includes('..'))line.image=image;}
- return {id:value.id,kind:value.kind,acquisition,name:value.name,email:value.email,terms:value.terms,receivedAt:now.toISOString(),phone:d.phone,company:d.company,address:d.address,comment:d.comment,facts,lines,delivery,discount,total,vatIncluded:true};
+ return {id:value.id,kind:value.kind,acquisition,name:value.name,email:value.email,terms:value.terms,receivedAt:now.toISOString(),phone:d.phone,company:d.company,address:d.address,comment:d.comment,facts,purchaseOptions,lines,delivery,discount,total,vatIncluded:true};
 }

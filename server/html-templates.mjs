@@ -22,7 +22,7 @@ export async function readHtmlTemplate(name,base=root){
  html=html.replace(/(<span id="(?:count|saleCount)">)0(<\/span>)/g,'$1…$2');
  html=renderMobileNavigation(html);
  // Bootstrap and shared customer-information scripts must use this release's module URLs.
- html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(['/app.js','/shop.js'].includes(file)?'anchor20261024':file==='/customer-info.js'?'pricingchoices20261024':'launch20261024')+end);
+ html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(file==='/app.js'?'buyout20261025b':file==='/shop.js'?'anchor20261024':file==='/customer-info.js'?'pricingchoices20261024':'launch20261024')+end);
  html=html.replace('</head>','<script type="module" src="/mobile-navigation.js?v=mobilemenu20261024c"></script><link rel="stylesheet" href="/cart-addons.css?v=pricinghint20261024"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;
