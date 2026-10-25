@@ -61,17 +61,29 @@ test('custom package separates multiple period addons while actual duration stil
  assert.equal(unknown.priceOnRequest,true);assert.equal(packageGroupPeriodTotal(group,[end,middle,{...textile,priceOnRequest:true}],2),null);
 });
 
-test('occasion restored from a draft survives initial same-tier catalogue synchronization',()=>{
- const run=({occasion='Bedrift',restored=true,purpose='alle',lastPricingPurpose=null,savedRentalScope='messe'}={})=>{
-  const field={value:occasion},calls=[],context={lastPricingPurpose,purpose,savedRentalScope,URL,location:{href:'https://example.invalid/foresporsel.html'},enquiryFlow:{restoredField:()=>restored},el:()=>field,rentalUsageState,scopeForOccasion,occasionForPurpose:{boligsalg:'Boligsalg',messe:'Messe og stand',fest:'Event og selskap',bedrift:'Bedrift',jul:'Annet'},setRentalScope:(...args)=>calls.push(args)};
+test('category navigation never invents or replaces a customer occasion, and preserves its pricing tier',()=>{
+ const run=({occasion='',purpose='alle',lastPricingPurpose=null,savedRentalScope='messe'}={})=>{
+  const field={value:occasion},calls=[],context={lastPricingPurpose,purpose,savedRentalScope,URL,location:{href:'https://example.invalid/foresporsel.html'},el:()=>field,rentalUsageState,scopeForOccasion,setRentalScope:(...args)=>calls.push(args)};
   vm.runInNewContext(functionSource('syncRentalPurpose')+'\nsyncRentalPurpose()',context);return {occasion:field.value,calls};
  };
- assert.equal(run().occasion,'Bedrift');
- assert.equal(run({occasion:'Messe og stand'}).occasion,'Messe og stand');
- assert.equal(run({occasion:'Event og selskap',purpose:'bedrift'}).occasion,'Event og selskap');
- assert.equal(run({restored:false}).occasion,'Annet');
- assert.equal(run({purpose:'boligsalg'}).occasion,'Boligsalg');
- assert.equal(run({purpose:'fest',lastPricingPurpose:'alle'}).occasion,'Event og selskap');
+ for(const purpose of ['alle','bedrift','messe','fest','jul','boligsalg']){
+  assert.equal(run({purpose}).occasion,'');
+  const chosen=run({occasion:'Bedrift',purpose});assert.equal(chosen.occasion,'Bedrift');assert.deepEqual(chosen.calls,[['messe',true]]);
+  assert.deepEqual(run({occasion:'Boligfoto og visning',purpose}).calls,[['standard',true]]);
+ }
+});
+test('active occasion choice switches all rental prices and announces both tier changes',()=>{
+ for(const [value,before,expected] of [['Boligfoto og visning','messe','standard'],['Bedrift','standard','messe'],['Annet','standard','messe']]){
+  const calls=[],notices=[],context={el:()=>({value}),rentalScope:before,purpose:'alle',scopeForOccasion,rentalUsageLabels:{standard:'Boligfoto og visning',messe:'Arrangementer og annen bruk'},isCatalogPage:false,setRentalScope:scope=>calls.push(scope),toast:message=>notices.push(message)};
+  vm.runInNewContext(functionSource('applyOccasionChoice')+'\napplyOccasionChoice()',context);assert.deepEqual(calls,[expected]);assert.equal(notices[0],'Prisgrunnlaget er endret til '+context.rentalUsageLabels[expected]+'.');
+ }
+});
+test('explicit incompatible pricing basis clears occasion instead of silently relabelling the choice',()=>{
+ for(const [value,scope,cleared] of [['Bedrift','standard',true],['Boligfoto og visning','messe',true],['Bedrift','messe',false],['','standard',false]]){
+  const events=[],notices=[],field={value,dispatchEvent:event=>events.push(event.type)};
+  vm.runInNewContext(functionSource('clearConflictingOccasion')+'\nclearConflictingOccasion(scope)',{scope,el:()=>field,scopeForOccasion,Event,toast:message=>notices.push(message)});
+  assert.equal(field.value,cleared?'':value);assert.equal(events.length,cleared?1:0);assert.equal(notices.length,cleared?1:0);
+ }
 });
 
 test('direct purchase detail summary includes addon purchase values and never hides an unknown extra',()=>{

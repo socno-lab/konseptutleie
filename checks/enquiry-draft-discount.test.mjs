@@ -10,7 +10,7 @@ class Element {
  setAttribute(){}
  addEventListener(type,listener){this.listeners.set(type,[...(this.listeners.get(type)||[]),listener]);}
  removeEventListener(type,listener){this.listeners.set(type,(this.listeners.get(type)||[]).filter(item=>item!==listener));}
- dispatchEvent(event){for(const listener of this.listeners.get(event.type)||[])listener(event);}
+ dispatchEvent(event){if(!event.target)Object.defineProperty(event,'target',{value:this});for(const listener of this.listeners.get(event.type)||[])listener(event);if(event.bubbles)this.parentElement?.dispatchEvent(event);}
  querySelectorAll(){return [];}
  querySelector(){return null;}
  focus(){}
@@ -24,17 +24,18 @@ function environment(t){
 }
 function makeForm(values={}){
  const form=new Element();form.elements=Object.entries({name:'',occasion:'Annet',start:'',end:'',stylist:'yes',stylingNotes:'',rentalTermsAccepted:'v1',termsAccepted:'v1',deliveryToken:'',website:'',...values}).map(([name,value])=>Object.assign(new Element(),{name,value,type:['stylist','rentalTermsAccepted','termsAccepted'].includes(name)?'checkbox':'text'}));
- form.elements.namedItem=name=>form.elements.find(field=>field.name===name);return form;
+ for(const field of form.elements)field.parentElement=form;form.elements.namedItem=name=>form.elements.find(field=>field.name===name);return form;
 }
 function coupon(){const elements=Object.fromEntries(['input','#couponApply','#couponRemove','#couponStatus','#couponTotals'].map(selector=>[selector,new Element()]));return {elements,querySelector:selector=>elements[selector],set innerHTML(value){}};}
 const flow=()=>mountEnquiryFlow({cartId:'cart',formId:'form',mode:'rent'});
 
 test('enquiry navigation preserves explicit stylist choice and notes without consent or transport credentials',t=>{
  const env=environment(t),first=makeForm({name:'Test',occasion:'Bedrift',stylingNotes:'Hjelp med oppsett',deliveryToken:'private-transport-token'});env.setForm(first);flow();
+ const occasion=first.elements.namedItem('occasion');assert.equal(occasion.value,'');occasion.value='Bedrift';occasion.dispatchEvent(new Event('change',{bubbles:true}));
  for(const name of ['stylist','rentalTermsAccepted','termsAccepted'])first.elements.namedItem(name).checked=true;
  first.dispatchEvent(new Event('change'));
  const draft=JSON.parse(env.storage.get('konsept-enquiry-draft-rent'));
- assert.equal(draft.stylist,true);assert.equal(draft.stylingNotes,'Hjelp med oppsett');assert.equal(draft.occasion,'Bedrift');
+ assert.equal(draft.stylist,true);assert.equal(draft.stylingNotes,'Hjelp med oppsett');assert.equal(draft.occasion,'Bedrift');assert.equal(draft.occasionConfirmed,true);
  for(const name of ['rentalTermsAccepted','termsAccepted','deliveryToken','website'])assert.equal(Object.hasOwn(draft,name),false);
  const second=makeForm();env.setForm(second);const restored=flow();
  assert.equal(second.elements.namedItem('stylist').checked,true);assert.equal(second.elements.namedItem('stylingNotes').value,'Hjelp med oppsett');assert.equal(restored.restoredField('occasion'),true);assert.equal(restored.restoredField('termsAccepted'),false);
@@ -48,6 +49,35 @@ test('draft restore ignores malformed values and never restores excluded fields 
  const env=environment(t);env.storage.set('konsept-enquiry-draft-rent',JSON.stringify({stylist:'yes',rentalTermsAccepted:true,deliveryToken:'unexpected'}));const form=makeForm();env.setForm(form);flow();
  assert.equal(form.elements.namedItem('stylist').checked,false);assert.equal(form.elements.namedItem('rentalTermsAccepted').checked,false);assert.equal(form.elements.namedItem('deliveryToken').value,'');
  for(const value of ['null','[]','{bad']){env.storage.set('konsept-enquiry-draft-rent',value);env.setForm(makeForm());assert.doesNotThrow(flow);}
+});
+
+test('legacy occasion drafts are ignored without losing contact, dates or styling details',t=>{
+ const env=environment(t),key='konsept-enquiry-draft-rent';env.storage.set(key,JSON.stringify({occasion:'Messe og stand',name:'Testkunde',email:'test@example.invalid',start:'2030-01-01',end:'2030-01-07',stylist:true,stylingNotes:'Behold stilønsket'}));
+ const form=makeForm({email:''});env.setForm(form);const mounted=flow();
+ assert.equal(form.elements.namedItem('occasion').value,'');assert.equal(mounted.restoredField('occasion'),false);
+ for(const [name,value]of Object.entries({name:'Testkunde',email:'test@example.invalid',start:'2030-01-01',end:'2030-01-07',stylingNotes:'Behold stilønsket'})){assert.equal(form.elements.namedItem(name).value,value);assert.equal(mounted.restoredField(name),true);}
+ assert.equal(form.elements.namedItem('stylist').checked,true);
+ env.window.dispatchEvent(new Event('pagehide'));const draft=JSON.parse(env.storage.get(key));assert.equal(draft.occasion,'');assert.equal(draft.occasionConfirmed,false);assert.equal(draft.name,'Testkunde');assert.equal(draft.stylingNotes,'Behold stilønsket');
+});
+
+test('only an occasion field change confirms a choice and navigation preserves that explicit choice',t=>{
+ const env=environment(t),key='konsept-enquiry-draft-rent',form=makeForm();env.setForm(form);flow();const occasion=form.elements.namedItem('occasion');
+ assert.equal(occasion.value,'');occasion.value='Bedrift';form.dispatchEvent(new Event('change'));assert.equal(JSON.parse(env.storage.get(key)).occasionConfirmed,false);
+ occasion.dispatchEvent(new Event('input',{bubbles:true}));env.window.dispatchEvent(new Event('pagehide'));assert.equal(JSON.parse(env.storage.get(key)).occasion,'');
+ occasion.dispatchEvent(new Event('change',{bubbles:true}));form.elements.namedItem('name').value='Ny kunde';form.elements.namedItem('name').dispatchEvent(new Event('input',{bubbles:true}));env.window.dispatchEvent(new Event('pagehide'));
+ assert.equal(JSON.parse(env.storage.get(key)).occasion,'Bedrift');assert.equal(JSON.parse(env.storage.get(key)).occasionConfirmed,true);
+ const next=makeForm();env.setForm(next);const mounted=flow();assert.equal(next.elements.namedItem('occasion').value,'Bedrift');assert.equal(mounted.restoredField('occasion'),true);assert.equal(next.elements.namedItem('name').value,'Ny kunde');
+ next.elements.namedItem('occasion').value='';next.elements.namedItem('occasion').dispatchEvent(new Event('change',{bubbles:true}));assert.equal(JSON.parse(env.storage.get(key)).occasionConfirmed,false);assert.equal(JSON.parse(env.storage.get(key)).occasion,'');
+ const last=makeForm();env.setForm(last);const lastFlow=flow();assert.equal(last.elements.namedItem('occasion').value,'');assert.equal(lastFlow.restoredField('occasion'),false);
+ lastFlow.clearDraft();last.dispatchEvent(new Event('change'));assert.equal(env.storage.has(key),false);
+});
+
+test('occasion confirmation requires an exact true marker and a nonempty saved value',t=>{
+ const env=environment(t),key='konsept-enquiry-draft-rent';
+ for(const saved of [{occasion:'Annet'},{occasion:'Annet',occasionConfirmed:'true'},{occasion:'Annet',occasionConfirmed:false},{occasion:'',occasionConfirmed:true},{occasion:'   ',occasionConfirmed:true}]){
+  env.storage.set(key,JSON.stringify({...saved,name:'Behold meg'}));const form=makeForm();env.setForm(form);const mounted=flow();assert.equal(form.elements.namedItem('occasion').value,'');assert.equal(form.elements.namedItem('name').value,'Behold meg');assert.equal(mounted.restoredField('occasion'),false);form.elements.namedItem('name').dispatchEvent(new Event('input',{bubbles:true}));assert.equal(JSON.parse(env.storage.get(key)).occasionConfirmed,false);
+ }
+ env.storage.set(key,JSON.stringify({occasion:'Annet',occasionConfirmed:true}));const form=makeForm();env.setForm(form);flow();assert.equal(form.elements.namedItem('occasion').value,'Annet');
 });
 
 test('rental and purchase codes survive remount separately and every mounted quote uses the current basket',async t=>{
