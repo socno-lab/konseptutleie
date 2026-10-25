@@ -1,3 +1,4 @@
+import {enquiryPageHtml} from './server/enquiry-page.mjs';
 import {addonBuyoutPrice} from './public/buyout-model.js';
 import {createCatalogThumbnailer} from './server/catalog-thumbnails.mjs';
 import {createPublicCatalogCache} from './server/public-catalog-cache.mjs';
@@ -191,6 +192,7 @@ export function createServer(options={}){
     const image=await store.media(media[1]);return image?send(200,image.body,image.mime,headers):send(404,'Fant ikke bildet.');
    }
    if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return await missing();
+   if(pathname==='/foresporsel.html'&&['GET','HEAD'].includes(req.method)){const mode=url.searchParams.get('type')==='kjop'?'buy':'rent';return send(200,enquiryPageHtml(await readHtmlTemplate(mode==='buy'?'kjop.html':'utvalg.html'),mode),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});}
    const seoPaths=['/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
    if(seoPaths.includes(pathname)&&['GET','HEAD'].includes(req.method)){
     const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));if(!release)return send(429,'For mange forespørsler. Prøv igjen senere.','text/plain',{'Retry-After':'60'});res.once('finish',release);res.once('close',release);

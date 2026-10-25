@@ -1,5 +1,5 @@
 // Use the same line icon on every platform, including iOS emoji fonts.
-function replaceArrows(root){
+function replaceArrows(root){if(!root)return;
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(node){
   return node.nodeValue.includes('↗')&&!node.parentElement?.closest('script,style,textarea,option,svg')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;
  }}),nodes=[];
