@@ -34,5 +34,5 @@ test('business choices cannot introduce facts for absent or ineligible products'
   assert.throws(()=>snapshot(input,products),e=>e.status===400&&/kjøpsvalg/.test(e.message));
  }
  const selected=snapshot(request({pack:1},{pack:'try'}),products);
- assert.deepEqual(selected.facts.find(([label])=>label==='Leie med kjøpsmulighet'),['Leie med kjøpsmulighet','Kjøpspakke – kjøpspris avtales separat']);
+ assert.equal(selected.facts.find(([label])=>label==='Samlet valgfri kjøpspris inkl. mva.')?.[1],'6 000 kr');assert.ok(!selected.facts.some(([,v])=>v.includes('kjøpspris avtales separat')));
 });
