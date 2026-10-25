@@ -293,10 +293,12 @@ const occasionForPurpose={boligsalg:'Boligsalg',messe:'Messe og stand',fest:'Eve
 function pricingScopeLabel(){return rentalUsageLabels[rentalScope];}
 function usageButtons(){return `<div class="rental-usage-options" role="group" aria-label="Velg bruk for leiepriser">${Object.entries(rentalUsageLabels).map(([scope,label])=>`<button type="button" data-rental-scope-choice="${scope}" aria-pressed="${rentalScopeConfirmed&&rentalScope===scope}"><strong>${label}</strong><span>${rentalUsageDescriptions[scope]}</span></button>`).join('')}</div>`;}
 function renderPricingScope(){
+ const productMobileControl=isProductPage?el('mobileChangeUsage')?.closest('.mobile-catalog-usage'):null;
  const explanation=`<p class="hint">${rentalUsageExplanation} Alle viste leiepriser inkluderer valgt bruk og mva. Transport og eventuelt oppsett avklares i tilbudet.</p>`;
  const catalog=el('catalogPricingScope');if(catalog)catalog.innerHTML=rentalScopeConfirmed?`<p class="rental-selected-usage">Leiepriser for: <strong>${pricingScopeLabel()}</strong></p><p class="hint">${rentalUsageExplanation} Prisene inkluderer valgt bruk og mva.</p><details><summary>Endre bruk</summary>${usageButtons()}</details>`:`<h3>Hva skal du bruke møblene til?</h3><p>Velg bruk for å se riktige leiepriser.</p>${usageButtons()}${explanation}`;
+ if(isProductPage&&catalog){const desktop=document.createElement('div');desktop.className='product-pricing-desktop';desktop.append(...catalog.childNodes);catalog.replaceChildren(desktop);if(productMobileControl)catalog.prepend(productMobileControl);catalog.classList.add('product-pricing-scope');}
  const cartScope=el('cartPricingScope');if(cartScope)cartScope.innerHTML=`<p class="rental-selected-usage">Valgt bruk: <strong>${rentalScopeConfirmed?pricingScopeLabel():'Velg bruk'}</strong></p><p>${rentalUsageExplanation}</p><details><summary>Endre bruk</summary>${usageButtons()}<p class="hint">Prisene oppdateres for alle valgte produkter. Datoer og antall beholdes.</p></details>`;
- el('pricingChoiceOptions').innerHTML=usageButtons();syncMobileCatalog();mountPricingScopeHint(catalog,{confirmed:rentalScopeConfirmed,label:pricingScopeLabel(),enabled:isCatalogPage});
+ el('pricingChoiceOptions').innerHTML=usageButtons();syncMobileCatalog();mountPricingScopeHint(catalog,{confirmed:rentalScopeConfirmed,label:pricingScopeLabel(),enabled:isCatalogPage||isProductPage});
 }
 function ensureRentalUsage(action){if(rentalScopeConfirmed)return true;pendingUsageAction=action;renderPricingScope();if(!el('pricingChoice').open)el('pricingChoice').showModal();return false;}
 function setRentalScope(scope,confirmed=true){
@@ -309,7 +311,7 @@ document.addEventListener('click',event=>{const choice=event.target.closest('[da
 document.addEventListener('change',event=>{if(event.target.id==='occasion'){const scope=scopeForOccasion(event.target.value);if(purpose!=='alle'&&scopeForPurpose(purpose)!==scope){purpose='alle';rememberPurpose();lastPricingPurpose='alle';}setRentalScope(scope);if(isCatalogPage)writePurpose(false);}});
 
 function syncMobileCatalog(){
- if(!isCatalogPage||!el('mobileCategoryButton'))return;
+ if((!isCatalogPage&&!isProductPage)||!el('mobileCategoryButton'))return;
  const categoryButtons=[...el('utvalg').querySelectorAll('.filters [data-filter]')].filter(b=>purpose!=='boligsalg'||b.dataset.filter!=='Pakker');
  const selectedCategory=categoryButtons.find(b=>b.dataset.filter===filter)?.textContent||'Alle';
  el('mobileCategoryButton').querySelector('span').textContent='Kategori: '+selectedCategory;
@@ -326,9 +328,9 @@ el('utvalg').querySelector('.catalog-tools').insertAdjacentHTML('afterend','<div
 el('rentalTableTypes').onclick=e=>{const button=e.target.closest('[data-table-type]');if(!button)return;tableFilter=button.dataset.tableType;writePurpose();};
 restorePurpose();if(purpose==='bedrift')el('occasion').value='Bedrift';if(isCatalogPage)writePurpose(false);
 window.addEventListener('popstate',restorePurpose);
+if(isCatalogPage||isProductPage)el('mobileChangeUsage').onclick=()=>{syncMobileCatalog();el('mobileUsageDialog').showModal();};
 if(isCatalogPage){
  el('mobileCategoryButton').onclick=()=>{syncMobileCatalog();el('mobileCategoryDialog').showModal();};
- el('mobileChangeUsage').onclick=()=>{syncMobileCatalog();el('mobileUsageDialog').showModal();};
  document.addEventListener('click',event=>{const category=event.target.closest('[data-mobile-filter]');if(category){filter=category.dataset.mobileFilter;tableFilter='';writePurpose();el('mobileCategoryDialog').close();el('mobileCategoryButton').focus();return;}});
 }
 el('changePurpose').onclick=()=>{const open=el('purposeSwitcher').hidden;el('purposeSwitcher').hidden=!open;el('changePurpose').setAttribute('aria-expanded',String(open));if(open)el('purposeSwitcher').querySelector('[aria-pressed=true]').focus();};

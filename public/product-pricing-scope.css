@@ -1,0 +1,7 @@
+/* The mobile product page reuses the catalog's usage bar and chooser. */
+.product-pricing-desktop{display:contents}
+@media(max-width:640px){
+ .product-page #catalogPricingScope.product-pricing-scope{display:block;padding:0;border:0;background:transparent}
+ .product-page .product-pricing-scope>.mobile-catalog-only{display:flex;width:100%}
+ .product-page .product-pricing-desktop{display:none}
+}
