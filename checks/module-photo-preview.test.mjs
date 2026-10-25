@@ -82,3 +82,32 @@ test('local supplier photos retain the Senzo assembly and match original aliases
  const replacement=modulePhotoPreview([{...base,image:'/media/new-admin-image'},middle],selection);
  assert.match(replacement,/href="\/media\/new-admin-image"/);
 });
+
+// Regression: the former mirrored supplier crops produced discontinuous joins.
+test('Lagoon uses aligned front crops for every two- and three-module selection',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const {joinedPhotoParts,joinedModuleCover}=await import('../public/module-joined-profiles.js');
+ const products=[{"id":"obj_broste_lagoon_31000585","name":"Broste Copenhagen Lagoon høyre endemodul, lys blå","moduleRole":"right","moduleWidth":90,"moduleSeries":"Broste Copenhagen Lagoon, lys blå","image":"/media/157718c9ee5369b6f6c52d42612e7337","builderImage":"/media/157718c9ee5369b6f6c52d42612e7337","builderCrop":[32.6364,57.1818,65.8182,85.6364],"builderMirror":true},{"id":"obj_broste_lagoon_31000586","name":"Broste Copenhagen Lagoon venstre endemodul, lys blå","moduleRole":"left","moduleWidth":90,"moduleSeries":"Broste Copenhagen Lagoon, lys blå","image":"/media/2d89f4d3e04bee99eb0fb51ce70aa5a1","builderImage":"/media/2d89f4d3e04bee99eb0fb51ce70aa5a1","builderCrop":[34.1818,57.1818,67.2727,85.6364],"builderMirror":true},{"id":"obj_broste_lagoon_31000583","name":"Broste Copenhagen Lagoon midtmodul, lys blå","moduleRole":"middle","moduleWidth":90,"moduleSeries":"Broste Copenhagen Lagoon, lys blå","image":"/media/109f838631f83ccdbb127d431059f178","builderImage":"/media/109f838631f83ccdbb127d431059f178","builderCrop":[34.4545,57.1818,66.0909,86.0909],"builderMirror":false}];
+ const byRole=Object.fromEntries(products.map(p=>[p.moduleRole,p]));
+ const cover=joinedModuleCover(products);assert.equal(cover,'/assets/lagoon-connected-v1.webp');
+ for(const roles of [['left','right'],['left','middle'],['middle','right'],['left','middle','right']]){
+  const selection=Object.fromEntries(roles.map(role=>[byRole[role].id,1]));
+  const parts=modulePhotoParts(products,selection);assert.equal(joinedPhotoParts(parts),true);
+  assert.deepEqual(parts.map(p=>p.role),roles);assert.equal(parts.reduce((n,p)=>n+p.width,0),roles.length*90);
+  assert.equal(new Set(parts.map(p=>p.photo.crop[1])).size,1);assert.equal(new Set(parts.map(p=>p.photo.crop[3])).size,1);
+  assert.ok(parts.every(p=>p.photo.source===cover&&!p.photo.mirror));
+  const markup=modulePhotoPreview(products,selection);
+  assert.equal((markup.match(/data-photo-module=/g)||[]).length,roles.length);
+  assert.equal(new Set([...markup.matchAll(/<image href="([^"]+)"/g)].map(m=>m[1])).size,1);
+  assert.match(markup,/data-generated="true"/);assert.doesNotMatch(markup,/scale\(-1 1\)/);
+ }
+ const parts=modulePhotoParts(products,Object.fromEntries(products.map(p=>[p.id,1])));joinedPhotoParts(parts);
+ assert.equal(parts[0].photo.crop[2],parts[1].photo.crop[0]);assert.equal(parts[1].photo.crop[2],parts[2].photo.crop[0]);
+ assert.equal(joinedModuleCover(products.slice(1)),'');
+ for(const change of [{image:'/media/new-photo'},{builderImage:'/media/new-builder'},{builderCrop:[0,0,100,100]},{builderMirror:false},{moduleRole:'middle'}]){
+  const altered=products.map(p=>p.moduleRole==='left'?{...p,...change}:p);
+  assert.equal(joinedModuleCover(altered),'');
+  assert.equal(joinedPhotoParts(modulePhotoParts(altered,Object.fromEntries(altered.map(p=>[p.id,1])))),false);
+ }
+ assert.doesNotMatch(modulePhotoPreview(products,{[byRole.left.id]:1}),/data-generated="true"/);
+});

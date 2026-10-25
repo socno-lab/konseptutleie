@@ -18,7 +18,7 @@ export function modulePhotoParts(modules,selection){
  return parts;
 }
 function photo(part,x,y,width,height){
- const p=part.product,custom=p.builderImage?{source:p.builderImage,size:[100,100],crop:p.builderCrop||[0,0,100,100],mirror:p.builderMirror}:null,profile=custom||part.photo||photoProfiles[p.id],source=custom?.source||part.photo?.source||p.image,known=profile&&(profile.source===source||profile.aliases?.includes(source));
+ const p=part.product,custom=!part.photo?.replaceBuilder&&p.builderImage?{source:p.builderImage,size:[100,100],crop:p.builderCrop||[0,0,100,100],mirror:p.builderMirror}:null,profile=custom||part.photo||photoProfiles[p.id],source=custom?.source||part.photo?.source||p.image,known=profile&&(profile.source===source||profile.aliases?.includes(source));
  const size=known?profile.size:[1,1],crop=known?[...profile.crop]:[0,0,1,1];
  if(part.half&&!part.photo){const mid=(crop[0]+crop[2])/2;if(part.half==='left')crop[2]=mid;else crop[0]=mid;}
  const mirror=custom?.mirror??part.photo?.mirror??(!part.photo&&p.moduleRole==='end'&&part.role==='left');
