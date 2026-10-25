@@ -55,3 +55,22 @@
 .recommendation-photo{position:relative;overflow:hidden;flex:none}.recommendation-photo img{position:absolute;inset:0}
 
 .rental-alternative-intro{max-width:760px;font-size:14px;line-height:1.6;color:var(--muted);margin:-8px 0 24px}
+
+/* Modular sofas use the same addon cards and price rhythm as ordinary products. */
+.product-page #modules #moduleBasePrices{margin:14px 0}
+.product-page #modules #moduleBasePrices .rate-grid{padding-top:9px;margin-top:10px}
+.product-page #modules #moduleSummary{background:transparent;padding:0;margin:14px 0}
+.product-page #modules #moduleBasePrices p,.product-page #modules #moduleSummary p,.product-page #modules #moduleTextileOptions .hint{font-size:13px;line-height:1.6}
+.product-page #modules #moduleBasePrices .selection-total-label{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 12px}
+.product-page #modules .module-width{font-weight:400}
+.product-page #modules #moduleSummary .hint,.product-page #modules #moduleTextileOptions .hint{margin:5px 0 10px}
+.product-page #modules #moduleSummary .selection-total-label{margin:10px 0 0}
+.product-page #modules #moduleBasePrices .rate-caption,.product-page #modules #moduleSummary .rate-caption{font-size:9px;line-height:1.6;margin:6px 0 8px}
+.product-page #modules #moduleBasePrices .rate-caption{margin-bottom:0}
+@media(max-width:640px){
+ .product-page #modules #moduleBasePrices .rate-grid{gap:8px}
+ .product-page #modules #moduleBasePrices .rate-grid strong,.product-page #modules #moduleSummary .rental-period-price strong{font-size:12px}
+ .product-page #modules #moduleBasePrices .rate-grid span{font-size:8px}
+ .product-page #modules #moduleBasePrices p,.product-page #modules #moduleSummary p,.product-page #modules #moduleTextileOptions .hint{font-size:12px;line-height:1.5}
+ .product-page #modules #moduleBasePrices .rate-caption,.product-page #modules #moduleSummary .rate-caption{font-size:9px;line-height:1.6}
+}

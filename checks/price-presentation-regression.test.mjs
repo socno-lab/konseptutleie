@@ -8,6 +8,7 @@ import {rentalUsageState} from '../public/rental-usage-model.js';
 import {scopeForOccasion} from '../public/rental-pricing-model.js';
 import {packageBuyoutOption} from '../public/buyout-model.js';
 import {packagePurchaseSelectionPrice} from '../public/business-purchase-model.js';
+import {saveSofa} from '../public/sofa-model.js';
 
 const source=fs.readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
 const functionSource=name=>{const start=source.indexOf('function '+name+'(');assert.ok(start>=0);const firstLine=source.slice(start,source.indexOf('\n',start));return firstLine.endsWith('}')?firstLine:source.slice(start,source.indexOf('\n}',start)+2);};
@@ -16,10 +17,12 @@ const end=item('end',{moduleSeries:'Sofa',moduleRole:'end',moduleWidth:100}),mid
 const products=[end,middle,textile],selection={end:2,middle:1},money=n=>n+' kr';
 const dateAfter=days=>new Date(Date.UTC(2026,10,days)).toISOString().slice(0,10);
 
-function renderModule(days=null,extra=textile){
- const context={products:products.map(p=>p.id===extra?.id?extra:p),moduleSelection:selection,config:moduleConfiguration('Sofa',selection,{},products),textile:extra,rentalScopeConfirmed:true,ratePlan,rentalDays,packageGroupPeriodTotal,money,html:String,addonPrice:()=>'',el:id=>({value:days?(id==='start'?'2026-11-01':dateAfter(days)):''})};
- return vm.runInNewContext(functionSource('rateGrid')+'\n'+functionSource('moduleSelectionPricing')+'\nmoduleSelectionPricing(config,textile)',context);
+function moduleMarkup(days=null,extra=textile,{chosen=selection,catalog=products}={}){
+ const items=catalog.map(p=>p.id===extra?.id?extra:p),context={products:items,moduleSelection:chosen,config:moduleConfiguration('Sofa',chosen,{},items),textile:extra,rentalScopeConfirmed:true,ratePlan,rentalDays,packageGroupPeriodTotal,money,html:String,addonPrice:()=>'',el:id=>({value:days?(id==='start'?'2026-11-01':dateAfter(days)):''})};
+ const functions=['rateGrid','rentalSelectionSummary','moduleBasePricing','moduleSelectionPricing'].map(functionSource).join('\n');
+ return vm.runInNewContext(functions+'\n({base:moduleBasePricing(config),summary:moduleSelectionPricing(config,textile)})',context);
 }
+function renderModule(...args){const {base,summary}=moduleMarkup(...args);return base+summary;}
 
 test('sofa builder keeps 400 kr period addon outside all three furniture tariffs',()=>{
  const html=renderModule();
@@ -33,17 +36,43 @@ test('sofa builder keeps 400 kr period addon outside all three furniture tariffs
 
 test('sofa builder shows one actual full-period total after dates, renewing addon every 30 days',()=>{
  for(const days of [1,2,7,30,31,60,61]){
-  const html=renderModule(days),expected=2*ratePlan(end,days).total+ratePlan(middle,days).total+400*Math.ceil(days/30);
+  const {base,summary}=moduleMarkup(days),html=base+summary,expected=2*ratePlan(end,days).total+ratePlan(middle,days).total+400*Math.ceil(days/30);
+  assert.doesNotMatch(base,/rental-period-price|400 kr per påbegynte/);
+  assert.match(summary,/Beregnet leiesum for dette produktet med tilvalg/);
   assert.equal((html.match(/class="rental-period-price"/g)||[]).length,1);
-  assert.ok(html.includes('Valgt leieperiode med tilvalg · '+days+' døgn</span><strong>'+money(expected)),html);
+  assert.ok(summary.includes('Valgt leieperiode · '+days+' døgn</span><strong>'+money(expected)),html);
  }
  assert.match(renderModule(2),/960 kr<\/strong>/);
 });
 
-test('sofa builder cannot claim a complete period total with unpriced textile',()=>{
- const html=renderModule(2,{...textile,priceOnRequest:true});
- assert.match(html,/Pris på forespørsel/);assert.match(html,/Samlet pris avklares/);
- assert.doesNotMatch(html,/Valgt leieperiode med tilvalg/);
+test('sofa builder cannot claim a complete period total with unpriced furniture or textile',()=>{
+ for(const options of [
+  {extra:{...textile,priceOnRequest:true}},
+  {catalog:[{...end,priceOnRequest:true},middle,textile]},
+  {extra:null,catalog:[end,{...middle,priceOnRequest:true},textile]}
+ ]){
+  const html=renderModule(2,Object.hasOwn(options,'extra')?options.extra:textile,options);
+  assert.match(html,/Pris på forespørsel/);assert.match(html,/Samlet pris avklares/);
+  assert.doesNotMatch(html,/class="rental-period-price"/);
+ }
+});
+
+test('two, three and five sofa modules use exactly one textile package in display and basket',()=>{
+ const catalog=[{...end,relatedAddOns:['textile']},{...middle,relatedAddOns:['textile']},{...textile,isService:true}];
+ for(const chosen of [{end:2},{end:2,middle:1},{end:2,middle:3}]){
+  const saved=saveSofa([],{},catalog,{id:'test-sofa',series:'Sofa',selection:chosen,textileId:'textile'});
+  assert.ok(saved);assert.equal(saved.cart.textile,1);
+  for(const days of [1,2,7,30,31,60,61]){
+   const {base,summary}=moduleMarkup(days,textile,{chosen,catalog}),furniture=Object.entries(chosen).reduce((sum,[id,quantity])=>sum+ratePlan(catalog.find(p=>p.id===id),days).total*quantity,0),expected=furniture+400*Math.ceil(days/30);
+   assert.equal((summary.match(/1 × textile/g)||[]).length,1);
+   assert.match(summary,/400 kr per påbegynte 30 dager/);
+   assert.ok(summary.includes('Valgt leieperiode · '+days+' døgn</span><strong>'+money(expected)),summary);
+   assert.doesNotMatch(base,/rental-period-price/);
+   const plain=moduleMarkup(days,null,{chosen,catalog});
+   assert.ok(plain.summary.includes('Valgt leieperiode · '+days+' døgn</span><strong>'+money(furniture)),plain.summary);
+   assert.doesNotMatch(plain.summary,/med tilvalg|1 × textile|400 kr per påbegynte/);
+  }
+ }
 });
 
 test('custom package separates multiple period addons while actual duration still includes them',()=>{
