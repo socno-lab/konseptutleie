@@ -1,5 +1,5 @@
 import {photoProfiles} from './module-photo-profiles.js?v=launch20261024';
-import {joinedPhotoParts} from './module-joined-profiles.js?v=launch20261024';
+import {joinedPhotoParts} from './module-joined-profiles.js?v=lagoon20261025';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const amount=(selection,id)=>Math.min(99,Math.max(0,Math.floor(Number(selection[id])||0)));
 // Physical ordering is shared by rental, purchase and saved rental setups.

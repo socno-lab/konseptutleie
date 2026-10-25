@@ -22,11 +22,11 @@ import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,p
 import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=submitprice20261025c';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=anchor20261024';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
-import {modulePhotoPreview} from './module-photo-preview.js?v=launch20261024';
-import {joinedModuleCover} from './module-joined-profiles.js?v=launch20261024';
+import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
+import {joinedModuleCover} from './module-joined-profiles.js?v=lagoon20261025';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=launch20261024';
 import {cartThumbnail,productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
-import {sofaCartRow} from './sofa-cart-row.js?v=launch20261024';
+import {sofaCartRow} from './sofa-cart-row.js?v=lagoon20261025';
 import {mountStorefrontFeedback} from './storefront-feedback.js?v=submitprice20261025c';
 import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=pricingbasis20261025';
 import {mountDiscount} from './discount-ui.js?v=submitprice20261025c';

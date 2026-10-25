@@ -7,10 +7,10 @@ import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receip
 import {configureSiteSettings,categoryLabel,getSiteSettings} from './site-settings.js';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=anchor20261024';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
-import {modulePhotoPreview} from './module-photo-preview.js?v=launch20261024';
+import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=launch20261024';
 import {cartThumbnail} from './cart-thumbnail.js?v=launch20261024';
-import {sofaCartRow} from './sofa-cart-row.js?v=launch20261024';
+import {sofaCartRow} from './sofa-cart-row.js?v=lagoon20261025';
 import {saveSaleSetup,restoreSaleSetups,saleWithoutSetups,saleSetupSummary} from './sale-sofa-model.js?v=launch20261024';
 import {mountStorefrontFeedback} from './storefront-feedback.js?v=submitprice20261025c';
 import {variantFields} from './product-variants.js?v=launch20261024';
