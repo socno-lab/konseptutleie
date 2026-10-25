@@ -1,4 +1,4 @@
-import {renderRecommendations} from './product-recommendations.js?v=sofacovers20261025';
+import {renderRecommendations} from './product-recommendations.js?v=sofaframes20261025';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
 import {mountPageAnchor} from './page-anchor.js?v=anchor20261024';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);
