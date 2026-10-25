@@ -43,7 +43,7 @@ export function createDeliveryEstimator(env,fetcher=fetch,options={}){
  return {enabled:!!key,verifyQuote(token,address,basket,customRequest,visits,productsForQuote=[]){
   try{if(typeof token!=='string'||token.length>6000)return null;const [body,signature]=token.split('.');const expected=sign(body);if(!signature||signature.length!==expected.length||!timingSafeEqual(Buffer.from(signature),Buffer.from(expected)))return null;
    const receipt=JSON.parse(Buffer.from(body,'base64url').toString());if(receipt.until<clock()||receipt.address!==addressHash(address)||receipt.settings!==JSON.stringify(getSiteSettings().delivery)||rentalDeliveryCapacity(basket,productsForQuote,customRequest).manual)return null;
-   const total=receipt.prices[requiresTwoPeople(basket,productsForQuote)?'twoPeople':'onePerson']*visits;return Number.isFinite(total)?{total}:null;
+   const perVisit=receipt.prices[requiresTwoPeople(basket,productsForQuote)?'twoPeople':'onePerson'],total=perVisit*visits;return Number.isFinite(total)?{total,perVisit,visits}:null;
   }catch{return null;}
  },async estimate(input,client='shared',products=[]){
   if(!input||typeof input.address!=='string'||input.address.length<8||input.address.length>300||!/[0-9]{4}/.test(input.address)||/[\r\n\x00-\x1f]/.test(input.address)||![1,2].includes(input.visits))fail('Oppgi gateadresse, postnummer og sted.');
