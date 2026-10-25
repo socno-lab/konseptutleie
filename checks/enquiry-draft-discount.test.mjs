@@ -79,11 +79,49 @@ test('restored discount rejection shows no cached total, and remove prevents lat
 test('clearing a code on submission or editing invalidates an in-flight quote and session memory',async t=>{
  const env=environment(t);let resolve;
  globalThis.fetch=()=>new Promise(done=>{resolve=done;});const target=coupon(),discount=mountDiscount(target,()=>({mode:'buy',basket:{chair:1}}));target.elements.input.value='BUY10';target.elements['#couponApply'].onclick();const pending=discount.refresh();
- discount.clear();resolve(Response.json({code:'BUY10',mode:'buy',percent:10,subtotal:1000,discount:100,total:900}));assert.equal(await pending,null);assert.equal(target.elements['#couponTotals'].innerHTML,'');assert.equal(discount.code(),'');assert.equal(env.storage.has('konsept-discount-code-buy'),false);
+ await Promise.resolve();discount.clear();resolve(Response.json({code:'BUY10',mode:'buy',percent:10,subtotal:1000,discount:100,total:900}));assert.equal(await pending,null);assert.equal(target.elements['#couponTotals'].innerHTML,'');assert.equal(discount.code(),'');assert.equal(env.storage.has('konsept-discount-code-buy'),false);
  globalThis.fetch=async()=>Response.json({code:'BUY10',mode:'buy',percent:10,subtotal:1000,discount:100,total:900});target.elements.input.value='BUY10';target.elements['#couponApply'].onclick();await discount.refresh();target.elements.input.value='OTHER';target.elements.input.dispatchEvent(new Event('input'));assert.equal(discount.code(),'');assert.equal(env.storage.has('konsept-discount-code-buy'),false);
 });
 
 test('blocked session storage does not prevent using a coupon or saving the current enquiry',async t=>{
  const env=environment(t);globalThis.sessionStorage={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');},removeItem(){throw Error('blocked');}};env.setForm(makeForm());assert.doesNotThrow(flow);
  globalThis.fetch=async()=>Response.json({code:'TEST10',mode:'buy',percent:10,subtotal:1000,discount:100,total:900});const target=coupon(),discount=mountDiscount(target,()=>({mode:'buy',basket:{chair:1}}));target.elements.input.value='TEST10';target.elements['#couponApply'].onclick();assert.equal((await discount.refresh()).total,900);assert.doesNotThrow(()=>discount.clear());
+});
+
+test('discount state and notifications expose pending and current quote without a mount callback',async t=>{
+ const env=environment(t),events=[];env.storage.set('konsept-discount-code-rent','TEST10');let basket={chair:1},end='2030-01-02',scope='messe';
+ globalThis.fetch=async(url,options)=>{const data=JSON.parse(options.body),subtotal=data.basket.chair*1000;return Response.json({code:data.code,mode:data.mode,percent:10,subtotal,discount:subtotal/10,total:subtotal*.9});};
+ const target=coupon(),discount=mountDiscount(target,()=>({mode:'rent',basket,start:'2030-01-01',end,scope}),{onChange(value){assert.deepEqual(value,discount.state());events.push(value);}});
+ assert.deepEqual(events,[],'mount must not call back before the caller initializes its controller');assert.deepEqual(discount.state(),{code:'TEST10',pending:false,result:null});
+ const pending=discount.refresh();assert.deepEqual(events,[{code:'TEST10',pending:true,result:null}]);assert.deepEqual(discount.state(),events[0]);
+ const quote=await pending;assert.equal(quote.total,900);assert.deepEqual(events.slice(1),[{code:'TEST10',pending:true,result:quote},{code:'TEST10',pending:false,result:quote}]);
+ assert.deepEqual(discount.state(),events.at(-1));assert.match(discount.lines().join('\n'),/RABATTKODE: TEST10/);
+ basket={chair:2};assert.equal(discount.state().result,null);assert.equal(discount.state().pending,false);assert.match(discount.lines().join('\n'),/ikke validert/);
+ assert.equal((await discount.refresh()).total,1800);assert.equal(discount.state().result.total,1800);
+ end='2030-01-03';assert.equal(discount.state().result,null);await discount.refresh();assert.ok(discount.state().result);
+ scope='standard';assert.equal(discount.state().result,null);await discount.refresh();assert.ok(discount.state().result);
+ discount.clear();assert.deepEqual(events.at(-1),{code:'',pending:false,result:null});assert.deepEqual(discount.state(),events.at(-1));
+});
+
+test('a response for a payload changed during validation never becomes a valid discount',async t=>{
+ const env=environment(t),events=[];env.storage.set('konsept-discount-code-buy','TEST10');let basket={chair:1},resolve;
+ globalThis.fetch=()=>new Promise(done=>{resolve=done;});const target=coupon(),discount=mountDiscount(target,()=>({mode:'buy',basket}),{onChange:value=>events.push(value)});
+ const pending=discount.refresh();await Promise.resolve();basket={chair:2};resolve(Response.json({code:'TEST10',mode:'buy',percent:10,subtotal:1000,discount:100,total:900}));
+ assert.equal(await pending,null);assert.deepEqual(discount.state(),{code:'TEST10',pending:false,result:null});assert.equal(target.elements['#couponTotals'].innerHTML,'');assert.match(target.elements['#couponStatus'].textContent,/Utvalget er endret/);
+ assert.deepEqual(events.map(({pending,result})=>({pending,result})),[{pending:true,result:null},{pending:true,result:null},{pending:false,result:null}]);
+});
+
+test('out-of-order responses cannot overwrite a newer basket quote or emit stale notifications',async t=>{
+ const env=environment(t),events=[],requests=[];env.storage.set('konsept-discount-code-buy','TEST10');let basket={chair:1};
+ globalThis.fetch=(url,options)=>new Promise(resolve=>requests.push({resolve,data:JSON.parse(options.body)}));const discount=mountDiscount(coupon(),()=>({mode:'buy',basket}),{onChange:value=>events.push(value)});
+ const old=discount.refresh();await Promise.resolve();basket={chair:2};const current=discount.refresh();await Promise.resolve();
+ requests[1].resolve(Response.json({code:'TEST10',mode:'buy',percent:10,subtotal:2000,discount:200,total:1800}));await current;const count=events.length;
+ requests[0].resolve(Response.json({code:'TEST10',mode:'buy',percent:10,subtotal:1000,discount:100,total:900}));assert.equal(await old,null);assert.equal(events.length,count);assert.equal(discount.state().result.total,1800);assert.equal(discount.state().pending,false);
+});
+
+test('synchronous quote failures notify failure and completion, and absent targets remain safe',async t=>{
+ const env=environment(t),events=[];env.storage.set('konsept-discount-code-buy','TEST10');globalThis.fetch=()=>{throw Error('Simulert nettverksfeil');};
+ const target=coupon(),discount=mountDiscount(target,()=>({mode:'buy',basket:{chair:1}}),{onChange:value=>events.push(value)});
+ assert.equal(await discount.refresh(),null);assert.deepEqual(events,[{code:'TEST10',pending:true,result:null},{code:'TEST10',pending:true,result:null},{code:'TEST10',pending:false,result:null}]);assert.match(target.elements['#couponStatus'].textContent,/Simulert nettverksfeil/);
+ let callbacks=0;const absent=mountDiscount(null,()=>{assert.fail('absent target does not read payload');},{onChange(){callbacks++;}});assert.equal(callbacks,0);assert.deepEqual(absent.state(),{code:'',pending:false,result:null});assert.equal(await absent.refresh(),null);absent.clear();assert.deepEqual(absent.lines(),[]);assert.equal(absent.code(),'');
 });
