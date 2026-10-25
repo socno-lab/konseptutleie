@@ -1,0 +1,17 @@
+/* Existing cart rows and fields are reused; the drawer is only a brief preview. */
+#cart.enquiry-preview>:not(.drawer-head):not(.enquiry-preview-content),#saleCart.enquiry-preview>:not(.close):not(.eyebrow):not(h2):not(.enquiry-preview-content){display:none!important}
+.enquiry-preview-content{padding:20px 0}.enquiry-preview-row{padding:12px 0;margin:0;border-bottom:1px solid var(--line)}.enquiry-preview-content>.button{width:100%;margin-top:16px;justify-content:center}
+body[data-enquiry-page]>main[hidden]{display:none!important}
+body[data-enquiry-page]>.commerce-mode-switch,body[data-enquiry-page]>.mobile-commerce-mode-switch{display:none}
+#enquiryPage{max-width:1000px;margin:32px auto 64px;padding:0 24px;min-width:0}
+.enquiry-back{display:inline-block;margin-bottom:24px}
+body.enquiry-page #cart.enquiry-full,body.enquiry-page #saleCart.enquiry-full{position:static;inset:auto;display:block;width:100%;max-width:none;height:auto;max-height:none;margin:0;padding:0;border:0;overflow:visible;background:transparent;color:inherit;box-shadow:none}
+body.enquiry-page .enquiry-full>.close,body.enquiry-page .enquiry-full .drawer-head>.close{display:none}
+.enquiry-full .drawer-head h1,.enquiry-full>h1{font-size:clamp(30px,4vw,45px);line-height:1.15;margin:0 0 24px;letter-spacing:-1px}
+.enquiry-full .drawer-head{display:block}.enquiry-full .package-cart-head{grid-template-columns:minmax(0,1fr) auto}
+.enquiry-period-link{display:block;margin:0 0 24px;text-align:left;scroll-margin-top:130px}
+#enquiryPage #rentalDates{scroll-margin-top:130px}
+#enquiryPage .package-cart-copy p{overflow-wrap:anywhere}
+@media(max-width:640px){#enquiryPage{margin-top:24px;padding:0 16px}.enquiry-full .package-cart-head{grid-template-columns:minmax(0,1fr)}.enquiry-full .drawer-head h1,.enquiry-full>h1{font-size:30px}.enquiry-preview-content>.button{font-size:14px}}
+
+body.enquiry-page #cart.enquiry-full[hidden],body.enquiry-page #saleCart.enquiry-full[hidden]{display:none!important}

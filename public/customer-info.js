@@ -51,6 +51,7 @@ const cookies=`<p>Butikken bruker lagring for handlekurv, forespørsel og funksj
 <tr><td>konsept-cart-v1, konsept-sofas-v1, konsept-cart-links-v1, konsept-business-choices-v1, konsept-package-groups-v1</td><td>Leieutvalg, sofaoppsett, tilvalg og kjøpsønsker</td><td>Til valgene fjernes eller nettleserdata slettes</td></tr>
 <tr><td>konsept-rental-scope-v1</td><td>Bruksområde for leiepriser</td><td>Til nettleserdata slettes</td></tr>
 <tr><td>konsept-purpose-v1, konsept-scroll:…</td><td>Valgt anledning og tilbake til plasseringen i utvalget</td><td>Nettleserøkten</td></tr>
+<tr><td>konsept-enquiry-draft-rent, konsept-enquiry-draft-buy</td><td>Datoer og utfylte kontakt-/leveringsopplysninger ved navigering mellom utvalg og forespørselsside. Samtykke og frakttoken lagres ikke.</td><td>Fanens økt, eller til forespørselen er sendt</td></tr>
 <tr><td>konsept-custom-request-v1</td><td>Tilpasset leieforespørsel, inkludert din fritekst</td><td>Fanens økt, eller til forespørselen fjernes</td></tr>
 <tr><td>konsept-stuepakke-offered</td><td>Husker at pakkeforslag er vist</td><td>Nettleserøkten</td></tr>
 <tr><td>konsept-enquiry-rental, konsept-enquiry-purchase</td><td>Sendereferanse og kontrollsum for å hindre dobbeltregistrering ved nytt forsøk</td><td>Fanens økt</td></tr>

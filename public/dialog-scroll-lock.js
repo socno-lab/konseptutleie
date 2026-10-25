@@ -6,7 +6,7 @@ let saved=null;
 const capture=(node,properties)=>properties.map(name=>[name,node.style.getPropertyValue(name),node.style.getPropertyPriority(name)]);
 const restore=(node,properties)=>{for(const [name,value,priority] of properties){if(value)node.style.setProperty(name,value,priority);else node.style.removeProperty(name);}};
 function syncDialogScrollLock(){
- const open=!!document.querySelector('dialog[open]');
+ const open=!!document.querySelector('dialog[open]:not(.enquiry-full)');
  if(open&&!saved){
   const x=window.scrollX,y=window.scrollY,gutter=window.innerWidth-root.clientWidth,padding=parseFloat(getComputedStyle(body).paddingRight)||0;
   saved={x,y,body:capture(body,bodyProperties),root:capture(root,rootProperties)};
