@@ -4,10 +4,11 @@ export function mountEnquiryFlow({cartId,formId,mode}){
  if(!cart||!form)return {open(){},update(){},clearDraft(){},restoredField:()=>false};
  const css=document.createElement('link');css.rel='stylesheet';css.href='/enquiry-page.css?v=submitprice20261025c';if(!document.querySelector('link[href="'+css.href.replace(location.origin,'')+'"]'))document.head.append(css);
  let saved={};try{const value=JSON.parse(sessionStorage.getItem(key)||'{}');if(value&&typeof value==='object'&&!Array.isArray(value))saved=value;}catch{}
+ let confirmedOccasion=mode==='rent'&&saved.occasionConfirmed===true&&typeof saved.occasion==='string'&&saved.occasion.trim()?saved.occasion:'';
  const restored=new Set();
- for(const field of form.elements){if(!allowed.has(field.name))continue;const value=saved[field.name];if(field.type==='checkbox'){if(typeof value!=='boolean')continue;field.checked=value;}else{if(typeof value!=='string')continue;if(field.type==='radio')field.checked=field.value===value;else field.value=value;}restored.add(field.name);}
+ for(const field of form.elements){if(!allowed.has(field.name))continue;if(mode==='rent'&&field.name==='occasion'&&!confirmedOccasion){field.value='';continue;}const value=saved[field.name];if(field.type==='checkbox'){if(typeof value!=='boolean')continue;field.checked=value;}else{if(typeof value!=='string')continue;if(field.type==='radio')field.checked=field.value===value;else field.value=value;}restored.add(field.name);}
  for(const field of form.elements)if(restored.has(field.name))field.dispatchEvent(new Event('change',{bubbles:true}));
- const store=()=>{const draft={};for(const field of form.elements)if(allowed.has(field.name)&&(field.type!=='radio'||field.checked))draft[field.name]=field.type==='checkbox'?field.checked:field.value;try{sessionStorage.setItem(key,JSON.stringify(draft));}catch{}};
+ const store=event=>{if(mode==='rent'&&event?.type==='change'&&event.target?.name==='occasion')confirmedOccasion=event.target.value.trim()?event.target.value:'';const draft={};for(const field of form.elements)if(allowed.has(field.name)&&(field.type!=='radio'||field.checked))draft[field.name]=field.type==='checkbox'?field.checked:field.value;if(mode==='rent'){draft.occasionConfirmed=!!confirmedOccasion&&draft.occasion===confirmedOccasion;if(!draft.occasionConfirmed)draft.occasion='';}try{sessionStorage.setItem(key,JSON.stringify(draft));}catch{}};
  form.addEventListener('input',store);form.addEventListener('change',store);window.addEventListener('pagehide',store);
  const checkoutUrl='/foresporsel.html'+(mode==='buy'?'?type=kjop':'');
  const preview=document.createElement('section');preview.className='enquiry-preview-content';preview.setAttribute('aria-label','Kort oversikt over forespørselen');
