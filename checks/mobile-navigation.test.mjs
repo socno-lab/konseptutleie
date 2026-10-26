@@ -59,7 +59,7 @@ test('every public HTML response includes its closed shell while preserving bask
   if(name!=='kundeinfo.html'){
    const sale=['kjop.html','kjopsprodukt.html'].includes(name),id=sale?'openSaleCart':'openCart',countId=sale?'saleCount':'count';
    assert.ok(header.includes('id="'+id+'"'),name+' keeps the basket button hook');
-   assert.ok(header.includes('<span id="'+countId+'">…</span>'),name+' reserves the unknown basket count');
+   assert.ok(header.includes('<span id="'+countId+'">0</span>'),name+' keeps an empty-basket fallback for the synchronous saved-count bootstrap');
    assert.equal(countClass(header,'mobile-bag-icon'),1,name+' has its basket icon before hydration');
    assert.equal(countClass(header,'mobile-bag-label'),1,name+' has a responsive basket label before hydration');
    assert.equal(countClass(header,'icon-arrow-up-right'),1,name+' has its desktop arrow before hydration');
