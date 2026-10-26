@@ -1,4 +1,4 @@
-import './customer-info.js?v=longrent20261026';
+import './customer-info.js?v=header20261026';
 import './dialog-scroll-lock.js?v=enquirypage20261025b';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');

@@ -20,7 +20,7 @@ import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receip
 import {decorExamples} from './decor-examples.js?v=launch20261024';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=longrent20261026';
-import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=longrent20261026';
+import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=header20261026';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=longrent20261026';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
@@ -29,7 +29,7 @@ import {joinedModuleCover} from './module-joined-profiles.js?v=lagoon20261025';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=launch20261024';
 import {cartThumbnail,productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
 import {sofaCartRow} from './sofa-cart-row.js?v=lagoon20261025';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=longrent20261026';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=header20261026';
 import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=longrent20261026';
 import {mountDiscount} from './discount-ui.js?v=submitprice20261025c';
 let discount;

@@ -39,12 +39,13 @@ function mountMobileMenu(header){
   document.body.style.setProperty('--mobile-menu-scroll',-scrollY+'px');document.body.classList.add('mobile-menu-open');layer.hidden=false;toggle.setAttribute('aria-expanded','true');toggle.setAttribute('aria-label','Lukk meny');if(keyboard)panel.querySelector('a')?.focus({preventScroll:true});
  }
  toggle.addEventListener('click',event=>layer.hidden?open(event.detail===0):close());outside.addEventListener('click',()=>close());panel.addEventListener('click',e=>{if(e.target.closest('a'))close(false);});
- header.addEventListener('click',e=>{if(!layer.hidden&&e.target.closest('a,.bag'))close(false);},true);
+ header.addEventListener('click',e=>{if(!layer.hidden&&e.target.closest('a,.bag,[data-header-tool]'))close(false);},true);
  document.addEventListener('keydown',e=>{
   if(layer.hidden)return;if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();return;}
-  if(e.key==='Tab'){const targets=[toggle,brand,bag,...panel.querySelectorAll('a')].filter(e=>e&&!e.inert&&e.getClientRects().length),index=targets.indexOf(document.activeElement);if(e.shiftKey&&index<=0){e.preventDefault();targets.at(-1).focus();}else if(!e.shiftKey&&(index<0||index===targets.length-1)){e.preventDefault();targets[0].focus();}}
+  if(e.key==='Tab'){const targets=[toggle,brand,...header.querySelectorAll('[data-header-tool]'),bag,...panel.querySelectorAll('a')].filter(e=>e&&!e.inert&&e.getClientRects().length),index=targets.indexOf(document.activeElement);if(e.shiftKey&&index<=0){e.preventDefault();targets.at(-1).focus();}else if(!e.shiftKey&&(index<0||index===targets.length-1)){e.preventDefault();targets[0].focus();}}
  });
  mobile.addEventListener('change',()=>{if(!mobile.matches)close(false);});
  window.addEventListener('resize',()=>{if(!layer.hidden)document.documentElement.style.setProperty('--mobile-menu-top',header.getBoundingClientRect().bottom+'px');});
+ document.addEventListener('header-tools-opening',()=>close(false));
  window.addEventListener('pagehide',()=>close(false));
 }
