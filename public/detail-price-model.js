@@ -1,4 +1,4 @@
-import {ratePlan} from './catalog-model.js?v=launch20261024';
+import {ratePlan} from './catalog-model.js?v=longrent20261026';
 
 // Sum the actual lines for each duration. A 30-day addon is not a daily rate,
 // and cannot be blended into furniture rates before finding the cheapest plan.

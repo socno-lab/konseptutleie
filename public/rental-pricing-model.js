@@ -11,7 +11,7 @@ export function rentalPricingMode(p) {
 export function retailRentalRates(reference, scope = 'standard') {
   if (!Number.isFinite(reference) || reference <= 0) return {price: 0, weekPrice: 0, monthPrice: 0, priceOnRequest: true};
   const multiplier = scope === 'messe' ? getSiteSettings().pricing.eventFactor : 1;
-  return {...Object.fromEntries(keys.map(key => [key, roundRental(reference * getSiteSettings().pricing[key] * multiplier)])), priceOnRequest: false};
+  return {...Object.fromEntries(keys.map(key => [key, roundRental(reference * (key==='monthPrice'&&scope==='messe'&&getSiteSettings().pricing.eventMonthPrice!=null?getSiteSettings().pricing.eventMonthPrice:getSiteSettings().pricing[key]*multiplier))])), priceOnRequest: false};
 }
 export function resolvedRentalRates(p, products = [], scope = 'standard') {
   const mode = rentalPricingMode(p);
@@ -28,7 +28,11 @@ export function resolvedRentalRates(p, products = [], scope = 'standard') {
   return {price: factor === 1 ? p.price : roundRental(p.price * factor), weekPrice: factor === 1 ? p.weekPrice : roundRental(p.weekPrice * factor), monthPrice: factor === 1 ? p.monthPrice : roundRental(p.monthPrice * factor), priceOnRequest: !!p.priceOnRequest};
 }
 export function rentalRateSets(p, products = []) {
-  return {standard: resolvedRentalRates(p, products), messe: resolvedRentalRates(p, products, 'messe')};
+  const standard=resolvedRentalRates(p,products),messe=resolvedRentalRates(p,products,'messe');
+  // Apply only to resolved customer rates, never persisted admin/base prices.
+  const eligible=!p.addonOnly&&!products.some(base=>base.relatedAddOns?.includes(p.id))&&!p.isService&&!p.isProposal&&!['period','fixed'].includes(rentalPricingMode(p));
+  if(eligible)standard.stylingContinuation=true;
+  return {standard,messe:{...messe,stylingContinuation:false}};
 }
 export function applyRentalScope(products, scope) {
   return products.map(p => ({...p, ...(p.rentalRates?.[scope === 'messe' ? 'messe' : 'standard'] || {})}));
