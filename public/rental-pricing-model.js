@@ -30,7 +30,7 @@ export function resolvedRentalRates(p, products = [], scope = 'standard') {
 export function rentalRateSets(p, products = []) {
   const standard=resolvedRentalRates(p,products),messe=resolvedRentalRates(p,products,'messe');
   // Apply only to resolved customer rates, never persisted admin/base prices.
-  const eligible=!p.addonOnly&&!products.some(base=>base.relatedAddOns?.includes(p.id))&&!p.isService&&!p.isProposal&&!['period','fixed'].includes(rentalPricingMode(p));
+  const eligible=!p.addonOnly&&!products.some(base=>base.relatedAddOns?.includes(p.id))&&(!p.isService||!!p.wallGroup)&&!p.isProposal&&!['period','fixed'].includes(rentalPricingMode(p));
   if(eligible)standard.stylingContinuation=true;
   return {standard,messe:{...messe,stylingContinuation:false}};
 }
