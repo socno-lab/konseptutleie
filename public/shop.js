@@ -1,5 +1,5 @@
 import {mountEnquiryFlow} from './enquiry-flow.js?v=occasion20261025';
-import './customer-info.js?v=longrent20261026';
+import './customer-info.js?v=header20261026';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=submitprice20261025c';
 import {mountCatalogPagination} from './catalog-pagination.js?v=catalogmore20261024a';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
@@ -12,7 +12,7 @@ import {productSubcategory,availableSubcategories,subcategoryButtons} from './ca
 import {cartThumbnail} from './cart-thumbnail.js?v=launch20261024';
 import {sofaCartRow} from './sofa-cart-row.js?v=lagoon20261025';
 import {saveSaleSetup,restoreSaleSetups,saleWithoutSetups,saleSetupSummary} from './sale-sofa-model.js?v=launch20261024';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=longrent20261026';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=header20261026';
 import {variantFields} from './product-variants.js?v=launch20261024';
 import {salesEnabled,saleUnitPrice,saleEstimate,cleanSaleBasket,saleModuleError,saleTerms,deliveryText,saleTermsForProduct,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=launch20261024';
 import {mountDiscount} from './discount-ui.js?v=submitprice20261025c';
