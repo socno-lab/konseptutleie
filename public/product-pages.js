@@ -1,4 +1,4 @@
-import {renderRecommendations} from './product-recommendations.js?v=sofacardprice20261026';
+import {renderRecommendations} from './product-recommendations.js?v=longrent20261026';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
 import {mountPageAnchor} from './page-anchor.js?v=anchor20261024';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);

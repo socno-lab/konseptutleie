@@ -1,9 +1,9 @@
-import {sofaCardConfiguration} from './sofa-card-model.js?v=sofacardprice20261026';
+import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
 import {mountEnquiryFlow} from './enquiry-flow.js?v=occasion20261025';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=submitprice20261025c';
-import {packageLineRentalPrice} from './enquiry-price-model.js?v=enquirypage20261025b';
-import {detailSelectionPrices} from './detail-price-model.js?v=detailprices20261025';
-import {packageBuyoutOption,addonBuyoutPrice} from './buyout-model.js?v=auditfixes20261025';
+import {packageLineRentalPrice} from './enquiry-price-model.js?v=longrent20261026';
+import {detailSelectionPrices} from './detail-price-model.js?v=longrent20261026';
+import {packageBuyoutOption,addonBuyoutPrice} from './buyout-model.js?v=longrent20261026';
 import {mountCatalogPagination} from './catalog-pagination.js?v=catalogmore20261024a';
 import {orderRentalCards} from './catalog-order-model.js?v=cataloglast20261024';
 import {osloToday,addDateDays,MAX_RENTAL_DAYS,validateRentalPeriod} from './rental-dates.js?v=launch20261024';
@@ -19,9 +19,9 @@ import {rentalModuleRequirementError} from './sofa-layout.js?v=launch20261024';
 import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=receipts20261025b';
 import {decorExamples} from './decor-examples.js?v=launch20261024';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
-import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=auditfixes20261025';
-import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=submitprice20261025c';
-import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=sofacardprice20261026';
+import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=longrent20261026';
+import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=longrent20261026';
+import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=longrent20261026';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
 import {moduleCardImage,sofaCardArt} from './module-card-image.js?v=sofaframes20261025';
@@ -29,11 +29,11 @@ import {joinedModuleCover} from './module-joined-profiles.js?v=lagoon20261025';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=launch20261024';
 import {cartThumbnail,productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
 import {sofaCartRow} from './sofa-cart-row.js?v=lagoon20261025';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=submitprice20261025c';
-import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=pricingbasis20261025';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=longrent20261026';
+import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=longrent20261026';
 import {mountDiscount} from './discount-ui.js?v=submitprice20261025c';
 let discount;
-import {applyRentalScope,scopeForPurpose,scopeForOccasion} from './rental-pricing-model.js?v=launch20261024';
+import {applyRentalScope,scopeForPurpose,scopeForOccasion} from './rental-pricing-model.js?v=longrent20261026';
 import {variantFields,productVariants,rentalVariants,groupedRentalCards,variantColour} from './product-variants.js?v=launch20261024';
 import {businessPackageIds,configureBusinessPackages,packagePurchasePrice,acquisitionPurchasePrice,packagePurchaseSelectionPrice,acquisitionLabels,acquisitionMode,cleanBusinessChoices,splitAcquisitionBasket} from './business-purchase-model.js';
 import {kiDisclosure,isKiPhoto} from './image-provenance.js?v=launch20261024';
@@ -50,8 +50,8 @@ if(!isEnquiryPage&&!isProductPage&&!isCatalogPage&&!isOccasionPage&&(['bruk','ka
 import {addonRequirementError,cartChange} from './addon-model.js?v=launch20261024';
 import {purposes,validPurpose,matchesPurpose,readPurposeState,purposeUrl} from './rental-purpose-model.js?v=launch20261024';
 import {isWall,wallLabel,frameSketch,presetFrames} from './wall-model.js?v=launch20261024';
-import {sofaBasket,withoutSofas,sofaConfiguration,saveSofa,restoreSofas,migrateSofas} from './sofa-model.js?v=launch20261024';
-import {remaining,normalizeBasket,rentalEstimate,rentalDays,ratePlan,planText,moduleConfiguration,modulePreset,selectionDraft as baseSelectionDraft,packageSelectionDraft as basePackageSelectionDraft,changeProposalCart,isStylingService,isTablewareRental,groupedCart} from './catalog-model.js?v=launch20261024';
+import {sofaBasket,withoutSofas,sofaConfiguration,saveSofa,restoreSofas,migrateSofas} from './sofa-model.js?v=longrent20261026';
+import {remaining,normalizeBasket,rentalEstimate,rentalDays,ratePlan,planText,moduleConfiguration,modulePreset,selectionDraft as baseSelectionDraft,packageSelectionDraft as basePackageSelectionDraft,changeProposalCart,isStylingService,isTablewareRental,groupedCart} from './catalog-model.js?v=longrent20261026';
 let savedRentalScope=null;try{savedRentalScope=localStorage.getItem('konsept-rental-scope-v1');}catch{}
 let catalogLoaded=false;
 let catalogProducts=[],rentalScope='messe',rentalScopeConfirmed=false,lastPricingPurpose=null,pendingUsageAction=null;
@@ -68,7 +68,7 @@ function cardRateGrid(p){
  const variants=serviceVariants(p,products),options=variants.length?variants:[p];
  return `<div class="rate-grid">${options.map(x=>`<div><span>${html(x.serviceVariant||'Fastpris')}</span><strong>${x.priceOnRequest?'Avklares':money(x.price)}</strong></div>`).join('')}</div><p class="rate-caption">Fastpris inkl. mva.${options.every(x=>x.deliveryIncluded)?' · levering, oppsett og henting inkludert.':''}</p>`;
 }
-function rateGrid(p,{showPeriod=true}={}){if(['period','fixed'].includes(p.rentalPricingMode))return periodPrice(p);if(!rentalScopeConfirmed)return '<p class="rental-price-pending">Velg bruk for å se leiepris</p>';if(p.priceOnRequest)return '<p class="quote-only"><strong>Pris på forespørsel</strong><small>Du får et samlet, uforpliktende tilbud.</small></p>';const days=rentalDays(el('start')?.value||'',el('end')?.value||''),plan=days===null||!showPeriod?null:ratePlan(p,days,products);return `${plan?`<div class="rental-period-price"><span>Valgt leieperiode · ${days} døgn</span><strong>${money(plan.total)}</strong></div>`:''}<div class="rate-grid"><div><span>Døgn</span><strong>${money(p.price)}</strong></div><div><span>Uke · 7 døgn</span><strong>${money(p.weekPrice??p.price*5)}</strong></div><div><span>Måned · 30 døgn</span><strong>${money(p.monthPrice??p.price*15)}</strong></div></div><p class="rate-caption">Leiepriser inkl. mva. Tilgjengelighet bekreftes i tilbudet.</p>`;}
+function rateGrid(p,{showPeriod=true}={}){if(['period','fixed'].includes(p.rentalPricingMode))return periodPrice(p);if(!rentalScopeConfirmed)return '<p class="rental-price-pending">Velg bruk for å se leiepris</p>';if(p.priceOnRequest)return '<p class="quote-only"><strong>Pris på forespørsel</strong><small>Du får et samlet, uforpliktende tilbud.</small></p>';const days=rentalDays(el('start')?.value||'',el('end')?.value||''),plan=days===null||!showPeriod?null:ratePlan(p,days,products);return `${plan?`<div class="rental-period-price"><span>Valgt leieperiode · ${days} døgn</span><strong>${money(plan.total)}</strong></div>`:''}<div class="rate-grid"><div><span>Døgn</span><strong>${money(p.price)}</strong></div><div><span>Uke · 7 døgn</span><strong>${money(p.weekPrice??p.price*5)}</strong></div><div><span>${p.stylingContinuation?'Første 30 dager':'Måned · 30 døgn'}</span><strong>${money(p.monthPrice??p.price*15)}</strong></div></div>${p.stylingContinuation?'<p class="rate-caption">Etter 30 dager: halv pris på videre leie.</p>':''}<p class="rate-caption">Leiepriser inkl. mva. Tilgjengelighet bekreftes i tilbudet.</p>`;}
 function packageContents(p,quantity=1){const lines=(p.components||[]).map(c=>`${c.quantity*quantity} × ${products.find(x=>x.id===c.id)?.name||'Ukjent produkt'}`);return lines.length?`<ul class="package-contents">${lines.map(item=>`<li>${html(item)}</li>`).join('')}</ul>`:'';}
 function packageIncluded(p,quantity=1){return p.isPackage&&!p.isProposal&&!isCustomPackage(p)&&!isChristmasTreePackage(p)?`<section class="package-included"><h3>Produktene i pakken${quantity>1?' · '+quantity+' pakker':''}</h3><div class="package-product-grid">${(p.components||[]).map(c=>{const item=products.find(x=>x.id===c.id);if(!item)return '';const content=`${item.image?`<img src="${html(item.image)}" alt="" loading="lazy" decoding="async">`:`<span class="package-product-placeholder">${productPlaceholder(item)}</span>`}<span><strong>${c.quantity*quantity} × ${html(item.name)}</strong><small>${html(item.material)}</small></span>`;return item.addonOnly||item.isService?`<div class="package-product-card">${content}</div>`:`<a class="package-product-card" href="${html(productLink(item.id,'rent',{bruk:purpose,prisbruk:rentalScopeConfirmed?rentalScope:''}))}">${content}<span aria-hidden="true">↗</span></a>`;}).join('')}</div><p class="hint">Alle produktene over legges til automatisk med pakken og merkes med pakkenavnet i kurven. Der kan du endre antall, fjerne enkeltprodukter eller fjerne hele pakken. ${p.rentalPricingMode==='components'?'Prisen er summen av innholdet. ':''}Valgfrie tilvalg kommer i tillegg.</p></section>`:'';}
 function upgradeToPackage(){const pack=products.find(p=>p.id===offerPackageId);if(!pack)return;const base=pack.components.find(c=>c.id===offerBaseId);const baseCount=loosePackageBasket()[offerBaseId]||0;const draft={...cart};draft[offerBaseId]=(draft[offerBaseId]||0)-baseCount;if(!draft[offerBaseId])delete draft[offerBaseId];const capacity=remaining(pack.id,draft,products);const requested=baseCount?Math.ceil(baseCount/(base?.quantity||1)):1;const count=Math.min(requested,capacity);if(!count){toast('Pakken kan ikke tilbys med valgt beholdning. Andre valgte objekter kan bruke samme lager.');return;}const consumed=count*(base?.quantity||1);if(baseCount>consumed)draft[offerBaseId]=(draft[offerBaseId]||0)+baseCount-consumed;draft[pack.id]=(draft[pack.id]||0)+count;cart=normalizeBasket(draft,products);renderCart();renderProducts();if(el('detail').open)closeSurface(el('detail'));addedNotice('Forespørselen er oppdatert med '+pack.name);}

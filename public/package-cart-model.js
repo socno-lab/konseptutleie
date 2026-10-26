@@ -1,5 +1,5 @@
 import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js?v=launch20261024';
-import {remaining,ratePlan} from './catalog-model.js?v=launch20261024';
+import {remaining,ratePlan} from './catalog-model.js?v=longrent20261026';
 import {addonRequirementError} from './addon-model.js?v=launch20261024';
 const count=q=>Number.isInteger(q)&&q>0&&q<=9999;
 export const editablePackage=p=>!!p?.isPackage&&!p.isProposal&&!!p.components?.length;

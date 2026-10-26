@@ -1,5 +1,5 @@
 import {moduleCardImage} from './module-card-image.js?v=sofaframes20261025';
-import {ratePlan} from './catalog-model.js?v=launch20261024';
+import {ratePlan} from './catalog-model.js?v=longrent20261026';
 
 // A cover is an exact, known arrangement, not a price for its first module.
 // New admin photos must have their pictured contents checked before being priced.
@@ -32,7 +32,7 @@ export function sofaCardConfiguration(modules,days=null){
  const amounts=[at(1),at(7),at(30)],priceOnRequest=amounts.some(value=>value===null);
  const widthKnown=lines.every(({product:p})=>Number.isFinite(p.moduleWidth)&&p.moduleWidth>0);
  return {
-  selection,components,isPackage:true,rentalPricingMode:'components',
+  selection,components,stylingContinuation:lines.every(({product:p})=>p.stylingContinuation),isPackage:true,rentalPricingMode:'components',
   count:lines.reduce((total,{product:p,quantity})=>total+quantity*(p.moduleRole==='base'?2:1),0),
   widthKnown,width:widthKnown?Math.round(lines.reduce((total,{product:p,quantity})=>total+p.moduleWidth*quantity,0)*10)/10:0,
   price:priceOnRequest?null:amounts[0],weekPrice:priceOnRequest?null:amounts[1],monthPrice:priceOnRequest?null:amounts[2],

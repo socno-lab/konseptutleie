@@ -1,3 +1,4 @@
+import {migrateStylingPricing} from './pricing-migration.mjs';
 import {defaultSettings} from '../public/site-settings.js';
 import {deliveryCallLimits} from './delivery.mjs';
 import mysql from 'mysql2/promise';
@@ -35,6 +36,9 @@ export function createMysqlStore(env,seed){
    const connection=await pool.getConnection();
    try{
     await connection.beginTransaction();
+    const [[settingsRow]]=await connection.execute('SELECT body FROM ku_site_settings WHERE id=1 FOR UPDATE');
+    const currentSettings=JSON.parse(settingsRow.body),nextSettings=migrateStylingPricing(currentSettings);
+    if(nextSettings!==currentSettings)await connection.execute('UPDATE ku_site_settings SET revision=revision+1,body=? WHERE id=1',[JSON.stringify(nextSettings)]);
     const [[row]]=await connection.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
     const products=JSON.parse(row.body),cleaned=removeRetiredCosts(products);
     if(products.some(product=>Object.hasOwn(product,'acquisitionCost')))

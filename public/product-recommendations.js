@@ -1,5 +1,5 @@
-import {sofaCardConfiguration} from './sofa-card-model.js?v=sofacardprice20261026';
-import {recommendProducts} from './recommendation-model.js?v=launch20261024';
+import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
+import {recommendProducts} from './recommendation-model.js?v=longrent20261026';
 import {saleUnitPrice} from './sales-model.js?v=launch20261024';
 import {moduleCardImage,sofaCardArt} from './module-card-image.js?v=sofaframes20261025';
 const html=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

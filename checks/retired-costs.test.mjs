@@ -20,6 +20,7 @@ test('Database startup physically removes retired fields under a row lock and ad
  const original=mysql.createPool;let rows=[{id:'chair',acquisitionCost:649,purchaseUnitPrice:1749},{id:'trash',deletedAt:'2026-10-19T00:00:00Z',acquisitionCost:null}];
  let revision=7,updates=0,commits=0,releases=0;const calls=[];
  const connection={async beginTransaction(){calls.push('begin');},async execute(sql,args){calls.push(sql);
+  if(sql.includes('ku_site_settings')&&sql.startsWith('SELECT'))return [[{body:JSON.stringify({pricing:{monthPrice:.27,eventFactor:1.5,eventMonthPrice:.45}})}]];
   if(sql.startsWith('SELECT body'))return [[{body:JSON.stringify(rows)}]];
   if(sql.startsWith('UPDATE ku_catalog')){rows=JSON.parse(args[0]);revision++;updates++;return [{}];}
   throw Error('Unexpected query');},async commit(){commits++;},async rollback(){throw Error('Unexpected rollback');},release(){releases++;}};

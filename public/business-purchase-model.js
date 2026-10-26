@@ -1,4 +1,4 @@
-import {packageCartView} from './package-cart-model.js?v=auditfixes20261025';
+import {packageCartView} from './package-cart-model.js?v=longrent20261026';
 import {withPackageAddons} from './package-addon-model.js?v=launch20261024';
 import {addonBuyoutPrice,isBuyoutAddon} from './addon-purchase-model.js?v=auditfixes20261025';
 // Only explicitly designated business packages offer purchase or purchase after rental.
