@@ -1,4 +1,5 @@
 import {renderHeaderTools} from './header-tools.mjs';
+import {renderArrowIcons} from './arrow-icons.mjs';
 import {renderMobileNavigation} from './mobile-navigation.mjs';
 import {storefrontFontHref} from './storefront-font.mjs';
 import {mkdir,rename,readFile} from 'node:fs/promises';
@@ -20,7 +21,7 @@ async function styleVersion(base){
 export async function readHtmlTemplate(name,base=root){
  if(!publicHtmlNames.includes(name))throw Error('Ukjent HTML-mal.');
  let html;try{html=await readFile(path.join(base,'server','templates',name),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;html=await readFile(path.join(base,'public',name),'utf8');}
- html=renderHeaderTools(renderMobileNavigation(html));
+ html=renderArrowIcons(renderHeaderTools(renderMobileNavigation(html)));
  // Occasion is an explicit form choice, never inferred from the catalogue category.
  html=html.replace(/(<select\b[^>]*\bid="occasion"[^>]*>)([\s\S]*?)(<\/select>)/g,(_,open,options,close)=>open+'<option value="" selected disabled>Velg anledning</option>'+options.replace(/\sselected(?:="[^"]*")?/g,'').replace('<option>Boligsalg</option>','<option>Boligfoto og visning</option>')+close);
  // Bootstrap and shared customer-information scripts must use this release's module URLs.
@@ -30,7 +31,7 @@ export async function readHtmlTemplate(name,base=root){
  // Read the existing saved basket during parsing, before the header paints.
  // Catalogue validation remains the responsibility of the application modules.
  if(/<span id="(?:count|saleCount)">/.test(html))html=html.replace('</head>','<script src="/cart-badge-bootstrap.js?v=cartfirstpaint20261026"></script></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=headerstable20261026"><script type="module" src="/header-tools.js?v=headersearch20261026c"></script><script type="module" src="/mobile-navigation.js?v=header20261026"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=cardfavorites20261026"><script type="module" src="/header-tools.js?v=cardfavorites20261026"></script><script type="module" src="/mobile-navigation.js?v=header20261026"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=productscope20261025"></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;
