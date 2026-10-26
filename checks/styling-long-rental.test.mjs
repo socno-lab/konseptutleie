@@ -23,3 +23,12 @@ test('day 31 starts half-price continuation; periods and event prices stay uncha
  const pack={id:'pack',isPackage:true,rentalPricingMode:'components',components:[{id:'sofa',quantity:2}]};
  const products=[p];assert.equal(ratePlan({...pack,...rentalRateSets(pack,[product]).standard},31,products).total,9760);
 }finally{configureSiteSettings();}});
+test('wall arrangements and outdoor modules receive continuation while real services and addons do not',()=>{
+ const wall={id:'wall',wallGroup:'Bildevegg',isService:true,rentalPricingMode:'manual',price:60,weekPrice:160,monthPrice:280};
+ const outdoor={id:'outdoor',moduleSeries:'Copacabana',category:'Utemøbler',price:170,weekPrice:330,monthPrice:570};
+ for(const p of [wall,outdoor]){
+  const rates=rentalRateSets(p);assert.equal(rates.standard.stylingContinuation,true);assert.equal(rates.messe.stylingContinuation,false);
+  assert.equal(ratePlan({...p,...rates.standard},31).total,p.monthPrice+p.price/2);
+ }
+ for(const p of [{...wall,wallGroup:'',offeringType:'service'},{...wall,addonOnly:true},{...wall,rentalPricingMode:'period'}])assert.ok(!rentalRateSets(p).standard.stylingContinuation);
+});
