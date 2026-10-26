@@ -57,7 +57,7 @@ test('every public template has one initial tool shell and keeps its existing na
   if(name!=='kundeinfo.html'){
    const buy=['kjop.html','kjopsprodukt.html'].includes(name);
    assert.equal((header.match(new RegExp('id="'+(buy?'openSaleCart':'openCart')+'"','g'))||[]).length,1);
-   assert.ok(header.includes('<span id="'+(buy?'saleCount':'count')+'">…</span>'),name+' preserves unknown basket count until it is validated');
+   assert.ok(header.includes('<span id="'+(buy?'saleCount':'count')+'">0</span>'),name+' keeps an empty-basket fallback for the synchronous saved-count bootstrap');
   }
  }
 });
