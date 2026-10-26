@@ -29,6 +29,8 @@ body>header.has-header-tools>.bag>span:not(.mobile-bag-label){margin:0}
 .header-result-title{font-size:13px;font-weight:500;margin:0;line-height:1.5;overflow-wrap:anywhere}
 .header-result-links{display:flex;flex-wrap:wrap;gap:16px}
 .header-result-links a{display:inline-flex;align-items:center;min-height:36px;text-decoration:underline;text-underline-offset:4px;font-size:12px}
+.header-category-result{padding:10px 0}
+.header-category-result .header-result-links a{min-height:44px}
 .header-result-kind{font-size:11px;color:var(--muted);margin:1px 0}
 .header-favorite-toggle{width:44px;min-height:44px;padding:10px;display:grid;place-items:center;border:0;background:transparent;color:var(--olive)}
 .header-favorite-toggle[aria-pressed=true] svg{fill:var(--olive)}
@@ -40,3 +42,5 @@ body.header-tools-open{overflow:hidden}
 @media(min-width:641px) and (max-width:1200px){body>header.has-header-tools{gap:10px}body>header.has-header-tools>.brand img{width:210px}body>header.has-header-tools>nav{gap:18px}body>header.has-header-tools>.bag{padding:10px}body>header.has-header-tools>.bag>.mobile-bag-label{display:none}}
 @media(min-width:641px) and (max-width:820px){body>header.has-header-tools>.brand img{width:clamp(135px,calc(100vw - 506px),180px)}body>header.has-header-tools>nav{gap:10px;font-size:11px}}
 @media(max-width:640px){body>header.has-mobile-menu.has-header-tools{grid-template-columns:44px minmax(0,1fr) 88px 44px;gap:4px}.header-tools{gap:0;margin:0}body>header.has-mobile-menu.has-header-tools>.bag{position:relative;width:44px;padding:7px;gap:0}body>header.has-header-tools>.bag>span:not(.mobile-bag-label){position:absolute;right:-3px;top:-3px;width:18px;height:18px;font-size:10px}body>header.has-header-tools>.bag .mobile-bag-icon{width:22px;height:22px}.header-tools-panel{right:0;width:100%;max-width:100%;padding:18px 5%}.header-result{grid-template-columns:56px minmax(0,1fr) 44px;gap:8px}.header-result-image{width:56px;height:56px}body>header.has-header-tools:not(:has(>.bag)){grid-template-columns:44px minmax(0,1fr) 88px}}
+/* The visible icon bottoms align with the menu's bottom stroke; tap targets stay 44 px. */
+@media(max-width:640px){body>header.has-mobile-menu.has-header-tools>.bag{border:0;background:transparent}body>header.has-header-tools .header-tool-button>svg,body>header.has-header-tools>.bag>.mobile-bag-icon{transform:translateY(-3px)}}
