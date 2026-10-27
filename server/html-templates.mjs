@@ -31,7 +31,7 @@ export async function readHtmlTemplate(name,base=root){
  // Read the existing saved basket during parsing, before the header paints.
  // Catalogue validation remains the responsibility of the application modules.
  if(/<span id="(?:count|saleCount)">/.test(html))html=html.replace('</head>','<script src="/cart-badge-bootstrap.js?v=cartfirstpaint20261026"></script></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=transparenthearts20261027"><script type="module" src="/header-tools.js?v=cardfavorites20261026"></script><script type="module" src="/mobile-navigation.js?v=header20261026"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=iconunderline20261027"><script type="module" src="/header-tools.js?v=cardfavorites20261026"></script><script type="module" src="/mobile-navigation.js?v=header20261026"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=productscope20261025"></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;

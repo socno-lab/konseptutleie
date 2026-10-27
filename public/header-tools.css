@@ -3,7 +3,11 @@ body>header.has-header-tools{gap:16px}
 .header-tools{display:flex;align-items:center;gap:2px;flex-shrink:0;margin-left:auto}
 .header-tool-button{position:relative;width:44px;height:44px;display:grid;place-items:center;padding:10px;border:0;background:transparent;color:var(--ink)}
 .header-tool-button svg,.header-search-field svg,.header-favorite-toggle svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.header-tool-button:hover,.header-tool-button[aria-expanded=true]{background:#e8e9df}
+.header-tool-button::after,body>header.has-header-tools>.bag::after,.mobile-menu-toggle::after{content:"";position:absolute;bottom:2px;left:50%;width:22px;height:2px;background:var(--olive);transform:translateX(-50%);opacity:0;pointer-events:none}
+body>header.has-header-tools>.bag,.mobile-menu-toggle{position:relative}
+.header-tool-button[aria-expanded=true]::after,.header-tool-button:active::after,body>header.has-header-tools>.bag:active::after,.mobile-menu-toggle[aria-expanded=true]::after{opacity:1}
+@media(hover:hover){.header-tool-button:hover::after,body>header.has-header-tools>.bag:hover::after,.mobile-menu-toggle:hover::after{opacity:1}}
+.header-tool-button:hover,.header-tool-button[aria-expanded=true],body>header.has-header-tools>.bag:hover{background:transparent}
 .header-favorites-count{position:absolute;right:1px;top:0;min-width:17px;height:17px;padding:0 3px;border-radius:50%;background:var(--olive);color:white;font-size:10px;line-height:17px;text-align:center}
 body>header.has-header-tools>.bag{display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0}
 body>header.has-header-tools>.bag .mobile-bag-icon{display:block;width:22px;height:22px}
@@ -51,3 +55,6 @@ body.header-tools-open{overflow:hidden}
 .has-card-favorite>.card-favorite-toggle[aria-pressed=true] svg{fill:#000;stroke:#000}
 .card-favorite-toggle:focus-visible{outline:2px solid var(--olive);outline-offset:0}
 .has-card-favorite>.product-art>span:first-child:not(.illustration-badge),.has-card-favorite>.sale-photo>.sale-kind{max-width:calc(100% - 58px)}
+
+/* Compact mobile icon spacing: keep basket and logo fixed, preserve 44px touch targets. */
+@media(max-width:640px){body>header.has-header-tools>.header-tools{gap:0;transform:translateX(8px)}.header-tool-button{flex-shrink:0}}
