@@ -61,3 +61,6 @@ body.header-tools-open{overflow:hidden}
 
 /* Small corner hearts retain a generous invisible touch target. */
 .has-card-favorite>.card-favorite-toggle svg{width:19px;height:19px}
+
+/* Keep the basket marked throughout rental and purchase checkout. */
+body[data-enquiry-page]>header.has-header-tools>.bag::after{opacity:1}
