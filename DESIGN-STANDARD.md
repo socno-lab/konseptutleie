@@ -137,3 +137,5 @@ Felles toppplassering og produktfavoritter, bestilt av eier 26. oktober 2026: P�
 Produktfavoritter, presisert av eier 27. oktober 2026: Hjertet på produktbildene har transparent bakgrunn, også ved hover, og svarte konturlinjer. Lagret favoritt vises som helt svart hjerte. Behold 44 × 44 px trykkflate, plassering og synlig tastaturfokus.
 
 Toppikoner, bestilt av eier 27. oktober 2026: På mobil reduseres senteravstanden mellom søk, favoritter og kurv fra 48 til 44 px. Kurv og logo beholder plasseringen; søk flyttes 8 px og hjertet 4 px mot kurven. Trykkflatene er fortsatt 44 px. Hover og aktivt ikon markeres med en kort mørkegrønn understrek i stedet for grå bakgrunn, på desktop og mobil, også menyknappen og handleposen. Tastaturfokus beholdes.
+
+Produktfavoritter, hjørneplassering bestilt 27. oktober 2026: Konturhjertet er 19 px (tidligere 22 px), med 7 px innrykk fra øvre og høyre bildekant. Den transparente trykkflaten er fortsatt 44 × 44 px. Inspirert av Blivakkers omtrent 19 px hjerte. Produktbildenes størrelse og utsnitt endres ikke.

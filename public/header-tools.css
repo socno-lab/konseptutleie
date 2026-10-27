@@ -50,7 +50,7 @@ body.header-tools-open{overflow:hidden}
 @media(max-width:640px){body>header.has-mobile-menu.has-header-tools>.bag{border:0;background:transparent}body>header.has-header-tools .header-tool-button>svg,body>header.has-header-tools>.bag>.mobile-bag-icon{transform:translateY(-3px)}}
 
 .has-card-favorite{position:relative}
-.has-card-favorite>.card-favorite-toggle{position:absolute;z-index:3;top:4px;right:4px;width:44px;height:44px;min-height:44px;padding:11px;border:0;border-radius:0;background:transparent;color:#000;cursor:pointer}
+.has-card-favorite>.card-favorite-toggle{position:absolute;z-index:3;top:0;right:0;width:44px;height:44px;min-height:44px;padding:7px;align-items:start;justify-items:end;border:0;border-radius:0;background:transparent;color:#000;cursor:pointer}
 .has-card-favorite>.card-favorite-toggle:hover{background:transparent}
 .has-card-favorite>.card-favorite-toggle[aria-pressed=true] svg{fill:#000;stroke:#000}
 .card-favorite-toggle:focus-visible{outline:2px solid var(--olive);outline-offset:0}
@@ -58,3 +58,6 @@ body.header-tools-open{overflow:hidden}
 
 /* Compact mobile icon spacing: keep basket and logo fixed, preserve 44px touch targets. */
 @media(max-width:640px){body>header.has-header-tools>.header-tools{gap:0;transform:translateX(8px)}.header-tool-button{flex-shrink:0}}
+
+/* Small corner hearts retain a generous invisible touch target. */
+.has-card-favorite>.card-favorite-toggle svg{width:19px;height:19px}
