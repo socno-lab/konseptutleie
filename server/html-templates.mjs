@@ -25,7 +25,7 @@ export async function readHtmlTemplate(name,base=root){
  // Occasion is an explicit form choice, never inferred from the catalogue category.
  html=html.replace(/(<select\b[^>]*\bid="occasion"[^>]*>)([\s\S]*?)(<\/select>)/g,(_,open,options,close)=>open+'<option value="" selected disabled>Velg anledning</option>'+options.replace(/\sselected(?:="[^"]*")?/g,'').replace('<option>Boligsalg</option>','<option>Boligfoto og visning</option>')+close);
  // Bootstrap and shared customer-information scripts must use this release's module URLs.
- html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(file==='/app.js'?'usage20261028a':file==='/shop.js'?'copy20261028c':file==='/customer-info.js'?'period20261028e':file==='/icons.js'?'enquirypage20261025b':'launch20261024')+end);
+ html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(file==='/app.js'?'hint20261028a':file==='/shop.js'?'copy20261028c':file==='/customer-info.js'?'period20261028e':file==='/icons.js'?'enquirypage20261025b':'launch20261024')+end);
  // The approved Latin font arrives with a blocking stylesheet, before first paint.
  html=html.replace('</head>','<link rel="stylesheet" href="'+storefrontFontHref+'"></head>');
  // Read the existing saved basket during parsing, before the header paints.
