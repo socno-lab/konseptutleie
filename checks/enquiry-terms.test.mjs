@@ -40,15 +40,15 @@ test('pure business purchase and mixed rental/purchase submit their required ter
  }finally{globalThis.FormData=nativeFormData;globalThis.fetch=oldFetch;globalThis.sessionStorage=oldStorage;}
 });
 test('release URLs refresh rental and purchase terms once without loading a second stale customer-info module',async()=>{
- const token='launch20261024',receiptToken='receipts20261025b';
+ const token='launch20261024',receiptToken='copy20261028';
  const customerInfo=await readFile(new URL('../public/customer-info.js',import.meta.url),'utf8');assert.match(customerInfo,/id="purchaseTermsLabel" hidden style="display:none!important"/,'inactive purchase terms must stay hidden before cart synchronisation despite important label display rules');
  for(const name of publicHtmlNames){
   const html=await readHtmlTemplate(name),scripts=[...html.matchAll(/src="\/(app|shop|customer-info)\.js\?([^\"]+)"/g)];
-  assert.ok(scripts.length,'bootstrap missing from '+name);for(const [,module,query] of scripts)assert.equal(new URLSearchParams(query).get('v'),module==='shop'?'cartfirstpaint20261026':'header20261026',name+' loads stale '+module);
+  assert.ok(scripts.length,'bootstrap missing from '+name);for(const [,module,query] of scripts)assert.equal(new URLSearchParams(query).get('v'),module==='shop'?'copy20261028c':'period20261028e',name+' loads stale '+module);
  }
  const files=await Promise.all(['app','shop','storefront-feedback','submission-ui'].map(async name=>[name,await readFile(new URL('../public/'+name+'.js',import.meta.url),'utf8')]));
  const moduleUrls=name=>files.flatMap(([file,source])=>[...source.matchAll(new RegExp("['\"](?:\\./)("+name+"\\.js[^'\"]*)['\"]",'g'))].map(([,url])=>({file,url})));
  for(const name of ['customer-info','storefront-feedback','submission-ui','enquiry-terms']){
-  const imports=moduleUrls(name);assert.ok(imports.length,name+' import missing');assert.deepEqual([...new Set(imports.map(x=>x.url))],[name+'.js?v='+(name==='customer-info'?'header20261026':name==='submission-ui'?receiptToken:name==='storefront-feedback'?'header20261026':token)],name+' must have one release URL to avoid duplicate mounting');
+  const imports=moduleUrls(name);assert.ok(imports.length,name+' import missing');assert.deepEqual([...new Set(imports.map(x=>x.url))],[name+'.js?v='+(name==='customer-info'?'period20261028e':name==='submission-ui'?receiptToken:name==='storefront-feedback'?'period20261028e':token)],name+' must have one release URL to avoid duplicate mounting');
  }
 });

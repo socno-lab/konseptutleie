@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {ratePlan,rentalDays,moduleConfiguration} from '../public/catalog-model.js';
+import {productPeriodState} from '../public/product-rental-period.js';
 import {packageGroupRates,packageGroupPeriodTotal} from '../public/package-cart-model.js';
 import {rentalUsageState} from '../public/rental-usage-model.js';
 import {scopeForOccasion} from '../public/rental-pricing-model.js';
@@ -18,8 +19,8 @@ const products=[end,middle,textile],selection={end:2,middle:1},money=n=>n+' kr';
 const dateAfter=days=>new Date(Date.UTC(2026,10,days)).toISOString().slice(0,10);
 
 function moduleMarkup(days=null,extra=textile,{chosen=selection,catalog=products}={}){
- const items=catalog.map(p=>p.id===extra?.id?extra:p),context={products:items,moduleSelection:chosen,config:moduleConfiguration('Sofa',chosen,{},items),textile:extra,rentalScopeConfirmed:true,ratePlan,rentalDays,packageGroupPeriodTotal,money,html:String,addonPrice:()=>'',el:id=>({value:days?(id==='start'?'2026-11-01':dateAfter(days)):''})};
- const functions=['rateGrid','rentalSelectionSummary','moduleBasePricing','moduleSelectionPricing'].map(functionSource).join('\n');
+ const items=catalog.map(p=>p.id===extra?.id?extra:p),context={products:items,moduleSelection:chosen,config:moduleConfiguration('Sofa',chosen,{},items),textile:extra,rentalScopeConfirmed:true,ratePlan,rentalDays,productPeriodState:(start,end)=>productPeriodState(start,end,{today:'2026-10-28'}),packageGroupPeriodTotal,money,html:String,addonPrice:()=>'',el:id=>({value:days?(id==='start'?'2026-11-01':dateAfter(days)):''})};
+ const functions=['selectedRentalDays','rateGrid','rentalSelectionSummary','moduleBasePricing','moduleSelectionPricing'].map(functionSource).join('\n');
  return vm.runInNewContext(functions+'\n({base:moduleBasePricing(config),summary:moduleSelectionPricing(config,textile)})',context);
 }
 function renderModule(...args){const {base,summary}=moduleMarkup(...args);return base+summary;}
