@@ -31,7 +31,7 @@ for(const form of document.querySelectorAll('#requestForm, #saleRequestForm')){
  const trap=document.createElement('input');trap.type='text';trap.name='website';trap.tabIndex=-1;trap.autocomplete='off';trap.hidden=true;trap.setAttribute('aria-hidden','true');form.append(trap);
  const notice=form.querySelector('.demo-info')||[...form.querySelectorAll('p')].find(p=>p.textContent.includes('Prototypen laster ned'));
  if(notice)notice.textContent='Du får en mottaksbekreftelse på e-post når forespørselen er registrert. Vi svarer normalt innen én virkedag. Vi følger opp med en avklaring før endelig bekreftelse og betalingslenke. Innsendingen er uforpliktende.';
- const button=form.querySelector('[type="submit"], #saleExport');if(button)button.textContent=form.id==='requestForm'?'Send leieforespørsel ↗':'Send bestillingsforespørsel ↗';
+ const button=form.querySelector('[type="submit"], #saleExport');if(button)button.textContent=form.id==='requestForm'?'Send leieforespørsel ↗':'Send kjøpsforespørsel ↗';
 }
 
 // The server has persisted the enquiry before this screen replaces the form.

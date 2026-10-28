@@ -1,3 +1,4 @@
+import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {renderRecommendations} from './product-recommendations.js?v=longrent20261026';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
 import {mountPageAnchor} from './page-anchor.js?v=anchor20261024';
@@ -37,7 +38,7 @@ export function selectPageProduct(p,mode,context={}){
  selectedRecommendation=p;
  const url=new URL(location.href);url.searchParams.set('produkt',p.id);for(const key of ['bruk','prisbruk','oppsett'])if(Object.hasOwn(context,key)){if(context[key])url.searchParams.set(key,context[key]);else url.searchParams.delete(key);}history.replaceState(null,'',url.pathname+url.search);
  document.title=(mode==='buy'?'Kjøp ':'Lei ')+p.name+' | Konseptuell';
- const description=document.querySelector('meta[name="description"]')||document.head.appendChild(document.createElement('meta'));description.name='description';description.content=[p.moduleSeries||p.name,p.material,mode==='buy'?'Bestill nytt produkt. Send en uforpliktende kjøpsforespørsel.':'Velg antall og send en uforpliktende leieforespørsel.'].filter(Boolean).join(' · ');
+ const description=document.querySelector('meta[name="description"]')||document.head.appendChild(document.createElement('meta'));description.name='description';description.content=[p.moduleSeries||p.name,mode==='buy'?purchaseProductText(p.material):p.material,mode==='buy'?'Send en uforpliktende kjøpsforespørsel. Ingen betaling eller bindende kjøp ved innsending.':'Velg antall og send en uforpliktende leieforespørsel.'].filter(Boolean).join(' · ');
  const canonical=new URL((mode==='buy'?'/kjopsprodukt.html':'/leieprodukt.html')+'?produkt='+encodeURIComponent(p.id),document.querySelector('link[rel=canonical]')?.href||location.origin).href;
  const link=document.querySelector('link[rel=canonical]');if(link)link.href=canonical;
  for(const [property,value] of [['og:title',document.title],['og:description',description.content],['og:url',canonical],['og:image',p.image?new URL(p.image,location.origin).href:'']]){const meta=document.querySelector('meta[property="'+property+'"]');if(meta)meta.content=value;}
