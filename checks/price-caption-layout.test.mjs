@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import {productPeriodState} from '../public/product-rental-period.js';
 test('styling explanation and VAT share the single caption track, avoiding an implicit second card column',async()=>{
  const source=await readFile(new URL('../public/app.js',import.meta.url),'utf8');
- const render=source.split('\n').find(line=>line.startsWith('function rateGrid('));
- const context=vm.createContext({rentalScopeConfirmed:true,el:()=>null,rentalDays:()=>null,money:n=>n+' kr',products:[]});
+ const render=['selectedRentalDays','rateGrid'].map(name=>source.split('\n').find(line=>line.startsWith('function '+name+'('))).join('\n');
+ const context=vm.createContext({rentalScopeConfirmed:true,el:()=>null,productPeriodState,money:n=>n+' kr',products:[]});
  vm.runInContext(render,context);
  for(const stylingContinuation of [true,false]){
   const html=context.rateGrid({price:100,weekPrice:300,monthPrice:500,stylingContinuation});

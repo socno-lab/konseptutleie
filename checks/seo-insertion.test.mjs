@@ -16,6 +16,7 @@ test('computed SEO titles, descriptions, JSON-LD and product markup treat replac
    assert.equal((html.match(/<head>/g)||[]).length,1,pathname+' must not duplicate the head');assert.equal((html.match(/<main>/g)||[]).length,1,pathname+' must not duplicate the main content');
    assert.ok(html.includes(model.product?productContent(model,[product]):productCards(model.items,model.buy)),pathname+' must retain escaped product markup');
    if(model.product)assert.ok(graph['@graph'].some(item=>item.name===tokens||item.name==='Leie av '+tokens));
+   else if(model.buy){assert.ok(html.includes('Hvordan sender jeg en kjøpsforespørsel?'),pathname+' must include purchase FAQ');assert.ok(!html.includes(escapeHtml(categoryLabel)+' til leie'),pathname+' must not include rental discovery labels');assert.ok(!html.includes('Hvordan leier jeg møbler?'),pathname+' must not include rental FAQ');}
    else assert.ok(html.includes(escapeHtml(categoryLabel)+' til leie'),pathname+' discovery labels must remain literal');
   }
  }finally{configureSiteSettings(defaultSettings);}
