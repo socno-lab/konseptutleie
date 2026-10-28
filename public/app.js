@@ -14,7 +14,7 @@ import {osloToday,addDateDays,MAX_RENTAL_DAYS,validateRentalPeriod} from './rent
 import {enquiryCopy} from './enquiry-copy.js?v=launch20261024';
 import {homeOccasionCards} from './home-occasions.js?v=launch20261024';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
-import {mountPricingScopeHint} from './pricing-scope-hint.js?v=usage20261028a';
+import {mountPricingScopeHint} from './pricing-scope-hint.js?v=hint20261028a';
 import {syncEnquiryTerms} from './enquiry-terms.js?v=launch20261024';
 import {receiptEntries} from './receipt-layout.js?v=receipts20261025b';
 import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js?v=launch20261024';
