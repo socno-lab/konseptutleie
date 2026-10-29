@@ -21,8 +21,12 @@ export function submitSummaryModel({mode='rental',hasItems=false,needsDates=fals
  if(validDiscount)rows.push({label:'Rabatt · '+discount.code,value:-reduction});
  rows.push({label:'Transport',value:delivery.included===true?'Inkludert':transport===null?'Avklares i tilbudet':transport});
  const total=gross===null||missingDates||unknownPrices||transport===null||pending?null:round(gross-(validDiscount?reduction:0)+transport);
- const label=receiptTotalLabel({acquisition,delivery:{total:transport,label:delivery.included===true?'Transport inkludert':delivery.label||''}});
+ const label=acquisition==='rental'?'Totalpris':receiptTotalLabel({acquisition,delivery:{total:transport,label:delivery.included===true?'Transport inkludert':delivery.label||''}});
  const notes=['Alle priser er inkl. mva. Forespørselen er uforpliktende.'];
+ if(acquisition==='rental'){
+  if(gross!==null&&!partial&&!pending)notes.push('Beregnet leie er '+money(round(gross-(validDiscount?reduction:0)))+(validDiscount?' etter rabatt':'')+'.');
+  notes.push('Endelig totalpris inkludert eventuell transport bekreftes i tilbudet.');
+ }
  if(missingDates)notes.push('Velg leieperiode for å beregne samlet pris.');
  if(unknownPrices)notes.push('Varer med pris på forespørsel avklares i tilbudet.');
  if(pending)notes.push('Rabattkoden kontrolleres.');

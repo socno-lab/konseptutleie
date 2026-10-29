@@ -8,7 +8,7 @@ const discount=(extra={})=>({code:'TEST10',pending:false,result:{subtotal:1000,d
 test('summary preserves the calculated period price and adds transport once',()=>{
  // The date-aware calculator has already billed a 400-kr addon twice for 31 days.
  const result=submitSummaryModel(state({subtotal:800,delivery:{total:500,label:'Ønsker levering og henting'}}));
- assert.equal(result.hidden,false);assert.equal(result.total,1300);assert.equal(result.label,'Beregnet leiesum inkl. transport');
+ assert.equal(result.hidden,false);assert.equal(result.total,1300);assert.equal(result.label,'Totalpris');
  assert.deepEqual(result.rows,[{label:'Leie',value:800},{label:'Transport',value:500}]);
  assert.match(result.note,/inkl\. mva/);assert.match(result.note,/uforpliktende/);
 });
@@ -41,8 +41,8 @@ test('purchase and included transport use receipt wording without a rental perio
  const purchase=submitSummaryModel(state({mode:'purchase',needsDates:false,datesReady:false,subtotal:31362,optionalBuyout:33762}));
  assert.equal(purchase.total,31362);assert.equal(purchase.label,'Beregnet kjøpesum');assert.ok(!purchase.rows.some(row=>row.label==='Leieperiode'));
  const included=submitSummaryModel(state({delivery:{total:0,included:true,label:'Levering og henting inkludert'}}));
- assert.equal(included.total,1000);assert.equal(included.label,'Beregnet leiesum inkl. transport');assert.deepEqual(included.rows.at(-1),{label:'Transport',value:'Inkludert'});
- const pickup=submitSummaryModel(state());assert.equal(pickup.label,'Beregnet leiesum');assert.deepEqual(pickup.rows.at(-1),{label:'Transport',value:0});
+ assert.equal(included.total,1000);assert.equal(included.label,'Totalpris');assert.deepEqual(included.rows.at(-1),{label:'Transport',value:'Inkludert'});
+ const pickup=submitSummaryModel(state());assert.equal(pickup.label,'Totalpris');assert.deepEqual(pickup.rows.at(-1),{label:'Transport',value:0});
  const rentOnly=submitSummaryModel(state({purchaseTotal:30462,optionalBuyout:33762}));assert.equal(rentOnly.total,1000);assert.ok(!JSON.stringify(rentOnly).includes('33762'));
 });
 
