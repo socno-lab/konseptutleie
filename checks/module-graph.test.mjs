@@ -11,6 +11,7 @@ const legacyVersionFor=file=>['/header-tools.js','/card-favorites.js'].includes(
 const releaseVersions=new Map([...['/app.js','/pricing-scope-hint.js'].map(file=>[file,'hint20261028a']),...['/catalog-usage.js','/catalog-usage-model.js','/catalog-intro.js'].map(file=>[file,'usage20261028a']),['/shop.js','copy20261028c'],...['/customer-info.js','/storefront-feedback.js','/mobile-rental-dates.js','/product-rental-period.js'].map(file=>[file,'period20261028e']),...['/submission-ui.js','/product-pages.js','/purchase-copy.js'].map(file=>[file,'copy20261028'])]);
 for(const file of ['/app.js','/shop.js','/product-pages.js','/product-recommendations.js','/rental-status.js','/admin/admin.js'])releaseVersions.set(file,'rented20261029b');
 for(const file of ['/app.js','/shop.js','/enquiry-submit-summary.js'])releaseVersions.set(file,'carttotal20261029');
+releaseVersions.set('/admin/admin.js','adminsave20261029');
 const versionFor=file=>releaseVersions.has(file)?'?v='+releaseVersions.get(file):legacyVersionFor(file);
 const imports=source=>[...source.matchAll(/\b(?:from|import)\s*['"]((?:\.{1,2}\/|\/)[^'"\s]+\.js(?:\?[^'"]*)?)['"]/g)].map(m=>m[1]);
 async function walk(directory){const files=[];for(const entry of await readdir(directory,{withFileTypes:true})){const name=path.join(directory,entry.name);if(entry.isDirectory())files.push(...await walk(name));else files.push(name);}return files;}
