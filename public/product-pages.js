@@ -1,5 +1,5 @@
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
-import {renderRecommendations} from './product-recommendations.js?v=longrent20261026';
+import {renderRecommendations} from './product-recommendations.js?v=rented20261029b';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
 import {mountPageAnchor} from './page-anchor.js?v=anchor20261024';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);
