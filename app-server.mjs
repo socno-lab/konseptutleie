@@ -147,7 +147,7 @@ export function createServer(options={}){
     }
     if(pathname==='/api/admin/catalog'){
      if(req.method==='GET')return out(200,await readCatalog());
-     if(req.method==='PUT'){const data=await json(req);if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');await readCatalog();const products=validateCatalog(data.products);const result=await store.saveCatalog(data.revision,products);if(result)invalidatePublic();return result?out(200,result):out(409,{error:'Katalogen er endret av en annen administrator. Last inn på nytt før du lagrer.'});}
+     if(req.method==='PUT'){const data=await json(req);if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');const current=await readCatalog();const products=validateCatalog(data.products,current.products);const result=await store.saveCatalog(data.revision,products);if(result)invalidatePublic();return result?out(200,result):out(409,{error:'Katalogen er endret av en annen administrator. Last inn på nytt før du lagrer.'});}
     }
     if(['/api/admin/media/trash','/api/admin/media/restore'].includes(pathname)&&req.method==='POST'){
      const input=await json(req,5000);if(typeof input.url!=='string'||input.url.length>500)return out(400,{error:'Ugyldig bildelenke.'});images??=staticImages(publicRoot);const purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)),image=all.find(m=>m.url===input.url);if(!image)return out(404,{error:'Bildet finnes ikke.'});
