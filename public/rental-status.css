@@ -1,0 +1,9 @@
+/* Rental image overlays only; image dimensions and the purchase view are unchanged. */
+:is(.product-art,.recommendation-photo,.module-preview,.wall-layout):has(> .rental-status-badge){position:relative}
+.rental-status-badge{position:absolute;z-index:2;top:12px;left:12px;display:block;width:auto;max-width:calc(100% - 64px);padding:6px 10px;background:var(--olive);color:white;font-family:inherit;font-size:11px;font-weight:600;line-height:1.3;letter-spacing:1px;text-align:center;pointer-events:none}
+#products .product-art>.rental-status-badge{top:42px}
+.rental-status-notice{font-size:13px;line-height:1.6;color:var(--ink);margin:12px 0}
+.rental-status-badge[hidden]{display:none}
+.wall-layout>.rental-status-badge{margin:0;font-size:11px}
+.module-choice .rental-status-inline{display:block;margin:4px 0;font-size:11px;letter-spacing:.7px;color:var(--olive)}
+@media(max-width:640px){.rental-status-badge{top:8px;left:8px;padding:5px 8px;font-size:10px}.wall-layout>.rental-status-badge{font-size:10px}#products .product-art>.rental-status-badge{top:32px}}
