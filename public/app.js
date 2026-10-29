@@ -5,7 +5,7 @@ import {mountProductRentalPeriod,productPeriodState,periodChangeNotice} from './
 import {setRentalPeriodImpact} from './mobile-rental-dates.js?v=period20261028e';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
 import {mountEnquiryFlow} from './enquiry-flow.js?v=occasion20261025';
-import {mountSubmitSummary} from './enquiry-submit-summary.js?v=submitprice20261025c';
+import {mountSubmitSummary} from './enquiry-submit-summary.js?v=carttotal20261029';
 import {packageLineRentalPrice} from './enquiry-price-model.js?v=longrent20261026';
 import {detailSelectionPrices} from './detail-price-model.js?v=longrent20261026';
 import {packageBuyoutOption,addonBuyoutPrice} from './buyout-model.js?v=longrent20261026';
