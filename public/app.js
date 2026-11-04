@@ -124,7 +124,7 @@ function illustrationBadge(p){return isKiPhoto(p.image)?'<span class="illustrati
 function setProductPhoto(src,p){
  const main=el('detailContent').querySelector('.product-intro .product-art'),img=main?.querySelector('img');if(!src||!img)return;
  const example=decorAddons(p).find(x=>[x.image,...(x.gallery||[])].includes(src));
- img.src=src;img.alt=p.name+(example?' · illustrasjon med dekorpakke':'');main.dataset.zoom=src;main.setAttribute('aria-label','Se '+img.alt+' i stor størrelse');
+ img.removeAttribute('srcset');img.removeAttribute('sizes');img.src=src;img.alt=p.name+(example?' · illustrasjon med dekorpakke':'');main.dataset.zoom=src;main.setAttribute('aria-label','Se '+img.alt+' i stor størrelse');
  for(const button of el('detailContent').querySelectorAll('[data-product-photo]'))button.setAttribute('aria-pressed',String(button.dataset.productPhoto===src));
  const caption=el('productPhotoCaption'),ki=isKiPhoto(src),text=illustrationText(p,!!example);if(caption){caption.hidden=!text&&!ki;caption.innerHTML=text||ki?'<strong>'+html(ki?kiDisclosure:'Bildet viser et eksempel')+'</strong>'+(text?'<span>'+html(text)+'</span>':''):'';}
 }
