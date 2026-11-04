@@ -211,3 +211,17 @@ function renderPurposeOrder(p){const order=validatePurposeOrder(p.purposeOrder);
 function syncPurposeOrder(){const enabled=new Set([...document.querySelectorAll('[name=productPurpose]:checked')].map(x=>x.value));for(const input of document.querySelectorAll('[data-purpose-order]'))input.disabled=input.dataset.purposeOrder!=='alle'&&!enabled.has(input.dataset.purposeOrder);}
 function readPurposeOrder(){const order=validatePurposeOrder(selected.purposeOrder);for(const input of document.querySelectorAll('[data-purpose-order]')){if(input.disabled)continue;const key=input.dataset.purposeOrder;if(input.value.trim()==='')delete order[key];else order[key]=Number(input.value);}return validatePurposeOrder(order);}
 document.addEventListener('change',event=>{if(event.target.name==='productPurpose')syncPurposeOrder();});
+
+// Show delivery problems on the admin landing page without reading customer records.
+const mailAlert=document.createElement('p');mailAlert.hidden=true;mailAlert.setAttribute('role','status');mailAlert.className='admin-notice';mailAlert.style.cssText='padding:16px;border-left:3px solid #414b38;background:#ecefe5';
+document.querySelector('.admin-main .section-head')?.after(mailAlert);
+let mailHealthBusy=false;
+async function refreshMailHealth(){
+ if(mailHealthBusy||document.hidden)return;mailHealthBusy=true;
+ try{
+  const response=await fetch('/api/admin/enquiry-mail-health',{cache:'no-store'});if(response.status===401)return;
+  if(!response.ok)throw Error('status');const health=await response.json();mailAlert.replaceChildren();mailAlert.hidden=!health.needsAttention;
+  if(health.needsAttention){const text=document.createElement('span');text.textContent=!health.enabled?'E-postsending er ikke aktivert. Registrerte forespørsler må følges opp. ':'E-postsending trenger oppfølging: '+health.failed+' mislyktes, '+health.uncertain+' har usikker status og '+health.delayed+' er forsinket. ';const link=document.createElement('a');link.href='/admin/enquiry-mail.html';link.textContent='Åpne e-poststatus ↗';mailAlert.append(text,link);}
+ }catch{mailAlert.hidden=false;mailAlert.textContent='Kunne ikke kontrollere e-poststatus. Åpne E-poststatus og kontroller sendingene.';}finally{mailHealthBusy=false;}
+}
+void refreshMailHealth();setInterval(()=>void refreshMailHealth(),60000);window.addEventListener('focus',()=>void refreshMailHealth());document.addEventListener('visibilitychange',()=>void refreshMailHealth());
