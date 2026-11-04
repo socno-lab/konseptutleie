@@ -13,6 +13,7 @@ for(const file of ['/app.js','/shop.js','/product-pages.js','/product-recommenda
 for(const file of ['/app.js','/shop.js','/enquiry-submit-summary.js'])releaseVersions.set(file,'carttotal20261029');
 for(const file of ['/app.js','/shop.js'])releaseVersions.set(file,'gallerycart20261104');
 releaseVersions.set('/admin/admin.js','adminsave20261029');
+releaseVersions.set('/admin/admin.js','adminmail20261104');
 const versionFor=file=>releaseVersions.has(file)?'?v='+releaseVersions.get(file):legacyVersionFor(file);
 const imports=source=>[...source.matchAll(/\b(?:from|import)\s*['"]((?:\.{1,2}\/|\/)[^'"\s]+\.js(?:\?[^'"]*)?)['"]/g)].map(m=>m[1]);
 async function walk(directory){const files=[];for(const entry of await readdir(directory,{withFileTypes:true})){const name=path.join(directory,entry.name);if(entry.isDirectory())files.push(...await walk(name));else files.push(name);}return files;}
