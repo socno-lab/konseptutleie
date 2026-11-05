@@ -18,3 +18,6 @@
 .catalog-usage-actions .button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;font-size:13px;text-align:center}
 .catalog-usage-dialog button:focus-visible,.catalog-usage>button:focus-visible{outline:2px solid #414b38;outline-offset:3px}
 @media(max-width:640px){.catalog-usage{padding:16px;margin-bottom:18px}.catalog-usage>button{font-size:14px;gap:12px}.catalog-usage-dialog{padding:20px;max-height:calc(100dvh - 24px)}.catalog-usage-heading h2{font-size:22px}.catalog-usage-purposes{grid-template-columns:1fr;gap:6px;margin:16px 0}.catalog-usage-purposes button{min-height:44px;padding:10px 12px}.catalog-usage-actions{position:sticky;bottom:-20px;background:#f7f7f2;margin:16px -20px -20px;padding:14px 20px;border-top:1px solid #c7cebf}.catalog-usage-actions .button{flex:1;padding:10px 8px}}
+
+/* Keep result counts from pushing filters when the catalogue response arrives. */
+.catalog-page #purposeResults,.catalog-page #mobileCatalogResults{min-height:1.6em}

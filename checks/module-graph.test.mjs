@@ -14,6 +14,7 @@ for(const file of ['/app.js','/shop.js','/enquiry-submit-summary.js'])releaseVer
 for(const file of ['/app.js','/shop.js','/submission-ui.js'])releaseVersions.set(file,'proposal20261105b');
 for(const file of ['/app.js','/home-occasions.js'])releaseVersions.set(file,'homecards20261105b');
 for(const file of ['/app.js','/catalog-usage.js','/catalog-usage-markup.js'])releaseVersions.set(file,'usage20261105');
+for(const file of ['/app.js','/catalog-filters.js'])releaseVersions.set(file,'filters20261105');
 releaseVersions.set('/admin/admin.js','adminsave20261029');
 releaseVersions.set('/admin/admin.js','adminmail20261104');
 for(const file of ['/admin/admin.js','/admin/settings.js','/admin/enquiry-mail.js','/admin/mail-model.js','/admin/workflow.js'])releaseVersions.set(file,'admin20261105');
