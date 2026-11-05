@@ -4,7 +4,7 @@ import './customer-info.js?v=period20261028e';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=carttotal20261029';
 import {mountCatalogPagination} from './catalog-pagination.js?v=catalogmore20261024a';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
-import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=copy20261028';
+import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=proposal20261105b';
 import {configureSiteSettings,categoryLabel,getSiteSettings} from './site-settings.js';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=rented20261029b';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';

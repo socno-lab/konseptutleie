@@ -1,3 +1,4 @@
+import {createProposalSnapshot,proposalEmail} from './proposal.mjs';
 const customerReceipt=s=>({acquisition:s.acquisition,lines:s.lines,facts:s.facts,delivery:s.delivery,discount:s.discount,total:s.total,vatIncluded:s.vatIncluded,address:s.address,comment:s.comment});
 import {salesEnabled} from '../public/sales-model.js';
 import {validateEnquiryTerms} from '../public/terms-versions.js';
@@ -15,12 +16,15 @@ const mailbox='post@konseptuell.no';
 export function validateSubmission(input,products){
  if(!input||!['rental','purchase'].includes(input.kind)||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(input.id||''))throw fail('Last inn skjemaet på nytt.');
  const clean=(key,max,required=false)=>{const v=input[key]??'';if(typeof v!=='string'||v.length>max||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(v)||(required&&!v.trim()))throw fail('Kontroller '+key+' i skjemaet.');return v.trim();};
- const name=clean('name',100,true),email=clean('email',200,true),terms=clean('terms',100,true);clean('text',60000);
+ const proposal=input.requestType==='proposal';
+ if(input.requestType!==undefined&&!proposal)throw fail('Kontroller forespørselstypen.');
+ const name=clean('name',100,true),email=clean('email',200,true),terms=clean('terms',100,!proposal);clean('text',60000);
  if(/[\r\n]/.test(name+email+terms)||! /^[^\s<>@,;:]+@[^\s<>@,;:]+\.[^\s<>@,;:]+$/.test(email))throw fail('Oppgi en gyldig e-postadresse.');
  if(input.website)throw fail('Kunne ikke sende skjemaet.');
  if(!input.basket||typeof input.basket!=='object'||Array.isArray(input.basket)||Object.keys(input.basket).length>150)throw fail('Kontroller produktutvalget.');
  for(const [id,q] of Object.entries(input.basket)){const p=products.find(p=>p.id===id&&p.active&&!p.deletedAt);if(!p||input.kind==='purchase'&&!salesEnabled(p)||input.kind==='rental'&&p.rentalEnabled===false||!Number.isInteger(q)||q<1||q>99)throw fail('Et produkt er endret. Last inn siden på nytt og kontroller utvalget.');}
  if(!Object.keys(input.basket).length&&(input.kind!=='rental'||input.customRequest!==true))throw fail('Velg produkter eller en tilpasset forespørsel.');
+ if(proposal){if(input.kind!=='rental'||input.customRequest!==true||Object.keys(input.basket).length)throw fail('Bruk produktforespørselen for valgte produkter.');return {id:input.id,kind:input.kind,name,email,terms:'',customRequest:true,requestType:'proposal'};}
  const acceptedTerms=validateEnquiryTerms({...input,terms},products);
  return {id:input.id,kind:input.kind,name,email,terms:acceptedTerms,customRequest:input.customRequest===true};
 }
@@ -68,7 +72,7 @@ export function createSubmissionSender(env,store,sendOverride){
     const internal=job.channel==='internal',to=internal?mailbox:job.snapshot.email;
     let status='uncertain';
     try{
-     const pictures=await illustrated(job.snapshot),message=enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments],disableFileAccess:true,disableUrlAccess:true});
+     const pictures=await illustrated(job.snapshot),message=job.snapshot.acquisition==='proposal'?proposalEmail(pictures.snapshot,job.channel):enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments],disableFileAccess:true,disableUrlAccess:true});
      status=result.accepted?.some(address=>String(address).toLowerCase()===to.toLowerCase())?'sent':'pending';
     }catch(error){status=retryableMailError(error)?'pending':'uncertain';console.error('E-post '+job.channel+' '+job.id+': '+String(error.code||'SMTP').replace(/[^A-Z0-9_]/gi,''));}
     await store.finishEnquiryMail(job.id,job.channel,status,Date.now());
@@ -87,9 +91,9 @@ export function createSubmissionSender(env,store,sendOverride){
     if(existing.legacy||existing.fingerprint!==fingerprint)throw fail('Referansen er allerede brukt. Kontakt post@konseptuell.no før du sender på nytt.',409);
     void flush();return {ok:true,reference:input.id,receipt:customerReceipt(existing.snapshot)};
    }
-   const value=validateSubmission(input,products);requestDetails(input);
+   const value=validateSubmission(input,products);if(value.requestType!=='proposal')requestDetails(input);
    const codes=store.readDiscountCodes?(await store.readDiscountCodes()).codes:[];
-   const snapshot=createEnquirySnapshot(value,input,products,{codes,verifyDelivery:context.verifyDelivery});
+   const snapshot=value.requestType==='proposal'?createProposalSnapshot(value,input):createEnquirySnapshot(value,input,products,{codes,verifyDelivery:context.verifyDelivery});
    const claim=await store.reserveEnquiry(value.id,fingerprint,snapshot,client,Date.now());
    if(claim.limited)throw fail('For mange innsendinger. Vent 15 minutter eller kontakt post@konseptuell.no.',429);
    if(claim.conflict)throw fail('Denne referansen er allerede brukt av en annen forespørsel.',409);

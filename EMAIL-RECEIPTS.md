@@ -30,3 +30,7 @@ Eksisterende `SMTP_USER=post@konseptuell.no`, `SMTP_PASS`, databaseinnstillinger
 Adminforsiden kontrollerer e-poststatus ved åpning, ved tilbakekomst til fanen og hvert minutt mens siden er synlig. Et beskyttet endepunkt returnerer bare antall mislykkede/usikre sendinger og køjobber mer enn 15 minutter etter planlagt forsøk. Deaktivert sending og utilgjengelig status gir også beskjed. Ingen kundeopplysninger eller referanser returneres i varselet. Dette er et varsel i admin, ikke ekstern e-post/SMS-overvåking; ansvarlig må følge med i admin. Ved stengt admin varsles ingen utenfor systemet.
 
 Innsendingsgrensen bruker fortsatt serverforbindelsens IP. Ikke stol på klientleverte X-Forwarded-For-verdier uten verifisert proxyoppsett. Hostingers klient-IP-håndtering må kontrolleres i driftsmiljøet før en endring av denne begrensningen.
+
+## Kort, åpen forespørsel
+
+`/tilpasset-foresporsel.html` bruker samme `/api/submissions`, lagring, referanse, fingeravtrykk, grenser, retention og to mottakerkanaler. `requestType=proposal` er bare gyldig for en tom produktkurv; den kan ikke omgå produktvilkår. Behov, sted, navn og e-post er påkrevd. Budsjett, dato/periode, telefon og firma er valgfrie. Serveren validerer tekstlengder og bygger en egen bekreftelse uten beregnede priser, fakturaadresse eller påstått vilkårsaksept. Produktforespørsler beholder eksisterende validering og bekreftelser.

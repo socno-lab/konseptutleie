@@ -8,8 +8,9 @@ test('global package links override a previously selected housing purpose while 
  const products=[{id:'pack',name:'Loungepakken',active:true,isPackage:true,category:'Pakker'}];
  for(const [pathname,query] of [['/',''],['/anledning.html','bruk=messe&anledning=messe']]){
   const html=renderSeo(source,pageModel(pathname,new URLSearchParams(query),products),products,true);
-  const links=[...html.matchAll(/href="([^"]+)"[^>]*>(?:Se ferdige pakker|Loungepakker og ferdige møbelpakker)</g)];assert.equal(links.length,pathname==='/'?1:2);
-  for(const [,href] of links){const state=readPurposeState(new URL(href.replaceAll('&amp;','&'),'https://example.invalid'),'boligsalg');assert.equal(state.purpose,'alle');assert.equal(state.category,'Pakker');}
+  const links=[...html.matchAll(/href="([^"]+)"[^>]*>(Se ferdige pakker|Se pakker|Loungepakker og ferdige møbelpakker)\s*</g)];assert.equal(links.length,pathname==='/'?1:2);
+  // The approved messe landing scopes its package CTA; the global footer remains unscoped.
+  for(const [,href,label] of links){const state=readPurposeState(new URL(href.replaceAll('&amp;','&'),'https://example.invalid'),'boligsalg');assert.equal(state.purpose,label==='Se pakker'?'messe':'alle');assert.equal(state.category,'Pakker');}
  }
  assert.deepEqual(readPurposeState('https://example.invalid/utvalg.html?bruk=boligsalg&kategori=Enkeltprodukter','alle'),{purpose:'boligsalg',category:'Enkeltprodukter',query:''});
 });

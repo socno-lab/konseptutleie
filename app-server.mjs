@@ -1,3 +1,4 @@
+import {proposalPageHtml} from './server/proposal-page.mjs';
 import {enquiryHealth} from './server/enquiry-health.mjs';
 import {enquiryPageHtml} from './server/enquiry-page.mjs';
 import {addonBuyoutPrice} from './public/buyout-model.js';
@@ -196,6 +197,7 @@ export function createServer(options={}){
     const image=await store.media(media[1]);return image?send(200,image.body,image.mime,headers):send(404,'Fant ikke bildet.');
    }
    if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return await missing();
+   if(pathname==='/tilpasset-foresporsel.html'&&['GET','HEAD'].includes(req.method))return send(200,proposalPageHtml(await readHtmlTemplate('index.html')),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});
    if(pathname==='/foresporsel.html'&&['GET','HEAD'].includes(req.method)){const mode=url.searchParams.get('type')==='kjop'?'buy':'rent';return send(200,enquiryPageHtml(await readHtmlTemplate(mode==='buy'?'kjop.html':'utvalg.html'),mode),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});}
    const seoPaths=['/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
    if(seoPaths.includes(pathname)&&['GET','HEAD'].includes(req.method)){
