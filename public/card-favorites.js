@@ -6,20 +6,20 @@ export function favoriteCardEntry(entries,{productId,series,wall}){
 export function mountCardFavorites({getEntries,heart,setState,toggle}){
  const main=document.querySelector('main');if(!main)return;
  const cardSelector='#products>article,#saleProducts>article,.recommendation-card';
- let queued=false;
+ let queued=false;const bound=new WeakSet(),unavailable=new WeakSet();
  async function enhance(){
-  const candidates=[...main.querySelectorAll(cardSelector)].filter(card=>!card.querySelector(':scope>.card-favorite-toggle'));
+  const candidates=[...main.querySelectorAll(cardSelector)].filter(card=>!unavailable.has(card)&&!bound.has(card.querySelector(':scope>.card-favorite-toggle')));
   const cards=candidates.map(card=>({card,photo:card.querySelector(':scope>.product-art,:scope>.sale-photo,:scope>.recommendation-photo')})).filter(({photo})=>photo);
   if(!cards.length)return;
   let entries;try{entries=await getEntries();}catch{return;}
   for(const {card,photo} of cards){
-   if(!card.isConnected||card.querySelector(':scope>.card-favorite-toggle'))continue;
+   if(!card.isConnected||bound.has(card.querySelector(':scope>.card-favorite-toggle')))continue;
    const productId=photo.dataset.detail||photo.dataset.product||(photo.href?new URL(photo.href,location.href).searchParams.get('produkt'):'');
    const entry=favoriteCardEntry(entries,{productId,series:photo.dataset.build,wall:photo.dataset.wall});
-   if(!entry)continue;
-   const button=document.createElement('button');button.type='button';button.className='header-favorite-toggle card-favorite-toggle';button.dataset.favorite=entry.id;button.innerHTML=heart;setState(button,entry.id);
+   if(!entry){unavailable.add(card);card.querySelector(':scope>.card-favorite-toggle')?.remove();continue;}
+   const button=card.querySelector(':scope>.card-favorite-toggle')||document.createElement('button');button.type='button';button.className='header-favorite-toggle card-favorite-toggle';button.dataset.favorite=entry.id;if(!button.firstChild)button.innerHTML=heart;setState(button,entry.id);bound.add(button);
    button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggle(entry.id);});
-   card.classList.add('has-card-favorite');card.append(button);
+   card.classList.add('has-card-favorite');if(button.parentElement!==card)card.append(button);
   }
  }
  // Filters, pagination and price changes rebuild cards. A sibling button keeps

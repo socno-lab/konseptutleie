@@ -16,6 +16,7 @@ for(const file of ['/app.js','/home-occasions.js'])releaseVersions.set(file,'hom
 for(const file of ['/app.js','/catalog-usage.js','/catalog-usage-markup.js'])releaseVersions.set(file,'usage20261105');
 for(const file of ['/app.js','/catalog-filters.js'])releaseVersions.set(file,'filters20261105');
 for(const file of ['/app.js','/shop.js','/rental-catalog-view.js','/catalog-card-markup.js','/catalog-pagination.js'])releaseVersions.set(file,'firstcatalog20261105');
+for(const file of ['/app.js','/catalog-card-markup.js','/card-favorite-markup.js','/card-favorites.js','/header-tools.js'])releaseVersions.set(file,'hearts20261105');
 releaseVersions.set('/admin/admin.js','adminsave20261029');
 releaseVersions.set('/admin/admin.js','adminmail20261104');
 for(const file of ['/admin/admin.js','/admin/settings.js','/admin/enquiry-mail.js','/admin/mail-model.js','/admin/workflow.js'])releaseVersions.set(file,'admin20261105');

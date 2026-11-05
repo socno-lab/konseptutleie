@@ -22,6 +22,7 @@ test('HTML contains the exact initial card batch and counts, with remaining card
   assert.ok(html.includes('>'+view.desktopCount+'</p>'));
   assert.ok(html.includes('>'+view.mobileCount+'</p>'));
   assert.equal((html.match(/data-catalog-render=/g)||[]).length,count);
+  assert.equal((html.match(/class="header-favorite-toggle card-favorite-toggle"/g)||[]).length,count);
   assert.ok(html.includes(renderArrowIcons(view.orderedCards.slice(0,count).map(renderCatalogCard).join(''))));
   assert.equal((html.match(/id="rentalTableTypes"/g)||[]).length,1);
   assert.match(html,/<noscript><style>#products\{display:none!important\}<\/style>/);

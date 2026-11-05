@@ -26,3 +26,10 @@ test('wall, grouped colour and service variants use canonical favorites instead 
  assert.equal(favoriteCardEntry(entries,{productId:'red'}),favoriteCardEntry(entries,{productId:'green'}));
  assert.equal(favoriteCardEntry(entries,{productId:'tree180'}),favoriteCardEntry(entries,{productId:'tree210'}));
 });
+
+test('first-paint favorite button escapes product names and uses the existing heart',async()=>{
+ const {favoriteCardButton,favoriteHeart}=await import('../public/card-favorite-markup.js');
+ const html=favoriteCardButton('A "quoted" <name> &');
+ assert.match(html,/aria-pressed="false"/);assert.match(html,/&quot;quoted&quot; &lt;name&gt; &amp;/);
+ assert.ok(html.includes(favoriteHeart));assert.equal((html.match(/<button/g)||[]).length,1);
+});

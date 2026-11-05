@@ -1,4 +1,5 @@
-import {mountCardFavorites} from './card-favorites.js?v=cardfavorites20261026';
+import {readInitialCatalog} from './catalog-card-markup.js?v=hearts20261105';
+import {mountCardFavorites} from './card-favorites.js?v=hearts20261105';
 import {buildHeaderCatalog,searchHeaderCatalog,searchHeaderCategories,cleanFavoriteIds} from './header-catalog-model.js?v=headersearch20261026c';
 import {configureSiteSettings,imageUrl} from './site-settings.js';
 
@@ -28,6 +29,7 @@ function mount(){
  }
  async function loadEntries(){
   if(entries)return entries;
+  const initial=readInitialCatalog(document);if(initial){configureSiteSettings(initial.settings);entries=buildHeaderCatalog(initial.products);return entries;}
   if(!loading)loading=fetch('/api/catalog',{signal:AbortSignal.timeout(12000)}).then(async response=>{if(!response.ok)throw Error('catalog');const data=await response.json();if(!Array.isArray(data.products))throw Error('catalog');configureSiteSettings(data.settings);entries=buildHeaderCatalog(data.products);}).finally(()=>{loading=null;});await loading;return entries;
  }
  function rentalHref(href){const url=new URL(href,location.origin);let scope=new URL(location.href).searchParams.get('prisbruk');try{scope=localStorage.getItem('konsept-rental-scope-v1')||scope;}catch{}if(['standard','messe'].includes(scope))url.searchParams.set('prisbruk',scope);return url.pathname+url.search+url.hash;}
