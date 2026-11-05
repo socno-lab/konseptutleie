@@ -98,6 +98,10 @@ export function createMysqlStore(env,seed){
    await query("UPDATE ku_enquiry_mail SET status=?,next_at=?,lease_until=0 WHERE submission_id=? AND channel=? AND status='sending'",[status,now+300000,id,channel]);
    if(status==='pending')await query("UPDATE ku_enquiry_mail SET status='failed' WHERE submission_id=? AND channel=? AND status='pending' AND attempts>=5",[id,channel]);
   },
+  async enquiryMailHealth(now){
+   const [[counts]]=await query("SELECT SUM(status='failed') AS failed,SUM(status='uncertain' OR (status='sending' AND lease_until<?)) AS uncertain,SUM(status='pending' AND next_at<?) AS delayed FROM ku_enquiry_mail",[now,now-15*60000]);
+   return counts;
+  },
   async enquiryMailStatus(){const [rows]=await query('SELECT m.submission_id AS reference,m.channel,m.status,m.attempts,e.created_at AS receivedAt FROM ku_enquiry_mail m JOIN ku_enquiries e ON e.id=m.submission_id ORDER BY e.created_at DESC LIMIT 200');return rows;},
   async retryEnquiryMail(id,channel,acknowledgeUncertain){const [result]=await query("UPDATE ku_enquiry_mail SET status='pending',attempts=0,next_at=0 WHERE submission_id=? AND channel=? AND (status='failed' OR (status='uncertain' AND ?=1))",[id,channel,acknowledgeUncertain?1:0]);return result.affectedRows===1;},
   async pruneEnquiries(now){

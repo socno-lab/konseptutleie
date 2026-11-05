@@ -24,3 +24,9 @@ Eksisterende `SMTP_USER=post@konseptuell.no`, `SMTP_PASS`, databaseinnstillinger
 ## Kontroll og forhåndsvisning
 
 `node --test checks/*.test.mjs` kjører uten reelle e-postmottakere. `node previews/enquiry-emails.mjs [utmappe]` genererer fire HTML-, tekst- og .eml-filer med fiktive data, med Nodemailers lokale stream-transport. Ingen SMTP-forbindelse opprettes. Produktbilder hentes bare fra egne katalogressurser og konverteres til små JPEG-miniatyrer med sharp (begrenset pikselantall og behandlingstid); WebP sendes ikke som inline-bilde til eldre Outlook. Malen bruker tabelloppsett, inline CSS, innebygd CID-logo og Outlooks MSO-ramme. Visuelt kontrollert i nettleser på desktop og 320/375 px. Faktisk rendering i Gmail, Apple Mail og Outlook må kontrolleres i de respektive klientene; nettleserprøven er ikke en slik klienttest.
+
+## Adminvarsel (4. november 2026)
+
+Adminforsiden kontrollerer e-poststatus ved åpning, ved tilbakekomst til fanen og hvert minutt mens siden er synlig. Et beskyttet endepunkt returnerer bare antall mislykkede/usikre sendinger og køjobber mer enn 15 minutter etter planlagt forsøk. Deaktivert sending og utilgjengelig status gir også beskjed. Ingen kundeopplysninger eller referanser returneres i varselet. Dette er et varsel i admin, ikke ekstern e-post/SMS-overvåking; ansvarlig må følge med i admin. Ved stengt admin varsles ingen utenfor systemet.
+
+Innsendingsgrensen bruker fortsatt serverforbindelsens IP. Ikke stol på klientleverte X-Forwarded-For-verdier uten verifisert proxyoppsett. Hostingers klient-IP-håndtering må kontrolleres i driftsmiljøet før en endring av denne begrensningen.

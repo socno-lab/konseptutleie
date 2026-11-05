@@ -1,3 +1,4 @@
+import {enquiryHealth} from './server/enquiry-health.mjs';
 import {enquiryPageHtml} from './server/enquiry-page.mjs';
 import {addonBuyoutPrice} from './public/buyout-model.js';
 import {createCatalogThumbnailer} from './server/catalog-thumbnails.mjs';
@@ -121,6 +122,7 @@ export function createServer(options={}){
     if(['/admin/login.js','/admin/admin.css'].includes(pathname)&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,pathname)),types[path.extname(pathname)]);
     if(!await authenticated())return pathname.startsWith('/api/')?out(401,{error:'Logg inn for å fortsette.'}):redirect('/admin/login');
     if(['/admin','/admin/','/admin/index.html'].includes(pathname)&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'admin/index.html')),'text/html; charset=utf-8');
+    if(pathname==='/api/admin/enquiry-mail-health'&&req.method==='GET')return out(200,enquiryHealth(await store.enquiryMailHealth(Date.now()),submissions.enabled));
     if(pathname==='/api/admin/enquiry-mail'&&req.method==='GET')return out(200,{messages:await store.enquiryMailStatus()});
     if(pathname==='/api/admin/enquiry-mail/retry'&&req.method==='POST'){
      const data=await json(req,1000);if(!/^[a-f0-9-]{36}$/.test(data.reference||'')||!['internal','customer'].includes(data.channel))throw error('Ugyldig sendereferanse.');
