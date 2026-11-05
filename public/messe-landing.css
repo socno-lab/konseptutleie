@@ -78,3 +78,5 @@
 @media(max-width:640px){#konsept-messe-preview .km-hero{grid-template-columns:1fr}#konsept-messe-preview .km-case{grid-template-columns:1fr}#konsept-messe-preview .km-intro{font-size:15px}#konsept-messe-preview .km-section{margin-top:38px}#konsept-messe-preview .km-hero-photo{aspect-ratio:1.35}#konsept-messe-preview .km-strip{font-size:12px}#konsept-messe-preview .km-gallery button{min-height:44px}#konsept-messe-preview .km-back{margin-bottom:20px;min-height:24px}#konsept-messe-preview h1{font-size:38px}#konsept-messe-preview .km-cta h2{font-size:28px}}
 
 #konsept-messe-preview .km-hero-photo{aspect-ratio:1.5}#konsept-messe-preview .km-gallery{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:640px){#konsept-messe-preview .km-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}#konsept-messe-preview .km-gallery img{aspect-ratio:1.5}#konsept-messe-preview .km-hero-photo{aspect-ratio:1.5}}
+
+#konsept-messe-preview .km-case-photo[src$="/konsept-hub-2.jpg"],#konsept-messe-preview .km-gallery img[src$="/konsept-hub-2.jpg"]{object-position:center 48%}
