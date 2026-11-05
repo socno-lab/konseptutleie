@@ -80,3 +80,5 @@
 #konsept-messe-preview .km-hero-photo{aspect-ratio:1.5}#konsept-messe-preview .km-gallery{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:640px){#konsept-messe-preview .km-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}#konsept-messe-preview .km-gallery img{aspect-ratio:1.5}#konsept-messe-preview .km-hero-photo{aspect-ratio:1.5}}
 
 #konsept-messe-preview .km-case-photo[src$="/konsept-hub-2.jpg"],#konsept-messe-preview .km-gallery img[src$="/konsept-hub-2.jpg"]{object-position:center 48%}
+
+#konsept-messe-preview button.km-link{background:transparent;border:0;border-bottom:1px solid;border-radius:0;cursor:pointer;text-align:left}
