@@ -1,3 +1,4 @@
+import {catalogUsageMarkup} from './catalog-usage-markup.js?v=usage20261105';
 import {purposes} from './rental-purpose-model.js?v=launch20261024';
 import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from './rental-usage-model.js?v=longrent20261026';
 import {proposedCatalogUsage,catalogUsageLabel} from './catalog-usage-model.js?v=usage20261028a';
@@ -8,7 +9,7 @@ const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 export function mountCatalogUsage(host,{state,apply,impact=()=>''}){
  if(!host)return null;
  host.className='catalog-usage';
- host.innerHTML='<h3 id="catalogUsageHeading">Hva skal du bruke møblene til?</h3><button type="button" id="catalogUsageButton" aria-haspopup="dialog" aria-controls="catalogUsageDialog" aria-describedby="catalogUsageHelp"><span data-usage-label></span><span aria-hidden="true">⌄</span></button><p id="catalogUsageHelp">Utvalg og leiepriser tilpasses bruksområdet. Alle priser inkluderer mva.</p>';
+ if(!host.querySelector('#catalogUsageButton'))host.innerHTML=catalogUsageMarkup();
  const button=host.querySelector('button'),dialog=document.createElement('dialog');
  dialog.id='catalogUsageDialog';dialog.className='catalog-usage-dialog';dialog.setAttribute('aria-labelledby','catalogUsageTitle');
  dialog.innerHTML='<div class="catalog-usage-heading"><h2 id="catalogUsageTitle">Hva skal du bruke møblene til?</h2><button type="button" class="close" data-usage-close aria-label="Lukk valg av bruksområde">✕</button></div><p class="hint">'+rentalUsageExplanation+' Boligfoto og visning har egne leiepriser. Arrangementer og annen bruk har samme prismodell.</p><div class="catalog-usage-purposes" role="group" aria-label="Velg bruksområde">'+purposes.map(p=>'<button type="button" data-catalog-purpose="'+p.id+'" aria-pressed="false">'+escape(p.label)+'</button>').join('')+'</div><div data-usage-basis></div><div class="catalog-usage-impact" data-usage-impact role="status" hidden></div><p class="hint">Alle leiepriser inkluderer mva. Transport, tilgjengelighet og endelig tilbud bekreftes separat.</p><div class="catalog-usage-actions"><button type="button" class="button button-outline" data-usage-close>Avbryt</button><button type="button" class="button dark" data-usage-apply>Bruk valget</button></div>';

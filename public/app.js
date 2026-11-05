@@ -1,6 +1,6 @@
 import {renderMesseLanding} from './messe-landing.js?v=launch20261024';
 import {isRentedOut,rentalGroupRentedOut,rentalSeriesRentedOut,rentalStatusBadge,rentalStatusNotice} from './rental-status.js?v=rented20261029b';
-import {mountCatalogUsage} from './catalog-usage.js?v=usage20261028a';
+import {mountCatalogUsage} from './catalog-usage.js?v=usage20261105';
 import {catalogIntroHtml} from './catalog-intro.js?v=usage20261028a';
 import {mountProductRentalPeriod,productPeriodState,periodChangeNotice} from './product-rental-period.js?v=period20261028e';
 import {setRentalPeriodImpact} from './mobile-rental-dates.js?v=period20261028e';

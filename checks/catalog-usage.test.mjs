@@ -87,3 +87,22 @@ test('A proposal does not alter existing rates, synthetic basket quantities or d
  assert.deepEqual(basket,{'test-chair':2});
  assert.deepEqual(dates,['2026-11-01','2026-11-03']);
 });
+
+
+test('all rental purposes and categories receive their complete usage field before client scripts',async()=>{
+ const {readHtmlTemplate}=await import('../server/html-templates.mjs');
+ const {pageModel,renderSeo}=await import('../server/seo.mjs');
+ const {catalogUsageMarkup}=await import('../public/catalog-usage-markup.js');
+ const source=await readHtmlTemplate('utvalg.html');
+ const products=[{id:'chair',name:'Stol',category:'Stoler',active:true},{id:'package',name:'Pakke',category:'Pakker',isPackage:true,active:true}];
+ for(const purpose of purposes)for(const category of ['Alle','Stoler','Pakker'])for(const scope of [null,'standard','messe']){
+  const params=new URLSearchParams({bruk:purpose.id,kategori:category});if(scope)params.set('prisbruk',scope);
+  const model=pageModel('/utvalg.html',params,products),html=renderSeo(source,model,products,true);
+  assert.ok(html.includes('<section id="catalogUsage" class="catalog-usage" aria-labelledby="catalogUsageHeading">'+catalogUsageMarkup(model.catalogUsage)+'</section>'));
+  const expected=purpose.id==='alle'?scope==='standard'?'Boligfoto og visning':scope==='messe'?'Arrangementer og annen bruk':'Velg prisgrunnlag':purpose.label;
+  assert.ok(catalogUsageLabel(model.catalogUsage).includes(expected));
+  assert.ok(html.indexOf('id="catalogUsageButton"')<html.indexOf('class="catalog-tools"'));
+ }
+ const unknown=pageModel('/utvalg.html',new URLSearchParams({bruk:'<script>',prisbruk:'invalid'}),products);
+ assert.equal(unknown.catalogUsage.purpose,'alle');assert.equal(unknown.catalogUsage.confirmed,false);
+});
