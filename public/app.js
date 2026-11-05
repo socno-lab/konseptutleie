@@ -1,4 +1,4 @@
-import {renderCatalogCard,readInitialCatalog} from './catalog-card-markup.js?v=hearts20261105';
+import {renderCatalogCard,readInitialCatalog} from './catalog-card-markup.js?v=frames20261105';
 import {rentalCatalogView} from './rental-catalog-view.js?v=firstcatalog20261105';
 import {catalogFilters} from './catalog-filters.js?v=filters20261105';
 import {renderMesseLanding} from './messe-landing.js?v=launch20261024';

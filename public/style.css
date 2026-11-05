@@ -847,3 +847,14 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 
 /* Selected-period amounts use the same type scale as the adjacent rental rates. */
 @media(max-width:640px){.product-scroll .rental-period-price strong{font-size:12px}.products .rental-period-price strong,.rental-product-copy .rental-period-price strong{font-size:11px}}
+
+/* Per-type framing is resolved before first paint. Originals and detail views stay intact.
+   Size containment applies only to fixed-aspect catalogue image buttons. */
+@supports (width:1cqw){
+ #products .product-art,#saleProducts .sale-photo{container-type:size}
+ #products .product-art img[data-image-frame],#saleProducts .sale-photo img[data-image-frame]{
+  position:absolute;inset:auto;left:50%;top:auto;bottom:var(--frame-bottom);
+  width:min(var(--frame-width),var(--frame-height));height:auto;max-width:none;max-height:none;
+  object-fit:contain;transform:translate(var(--frame-x),var(--frame-y));
+ }
+}

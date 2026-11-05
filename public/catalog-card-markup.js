@@ -1,7 +1,8 @@
+import {frameCatalogMarkup} from './catalog-image-framing.js?v=frames20261105';
 import {favoriteCardButton} from './card-favorite-markup.js?v=hearts20261105';
 // Stable key survives arrow icons, favorite controls and product-link hydration.
 export function renderCatalogCard(card,index){
- let markup=card.render();
+ let markup=frameCatalogMarkup(card.render(),card.product);
  markup=markup.replace(/<article([^>]*)>/,(_,attrs)=>'<article'+(/class="/.test(attrs)?attrs.replace('class="','class="has-card-favorite '):attrs+' class="has-card-favorite"')+'>');
  markup=markup.replace(/<\/article>$/,()=>favoriteCardButton(card.product?.name||'')+'</article>');
  if(index<4)markup=markup.replace(/loading="lazy"/g,'loading="eager"');
