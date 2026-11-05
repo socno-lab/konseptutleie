@@ -12,7 +12,7 @@ const releaseVersions=new Map([...['/app.js','/pricing-scope-hint.js'].map(file=
 for(const file of ['/app.js','/shop.js','/product-pages.js','/product-recommendations.js','/rental-status.js','/admin/admin.js'])releaseVersions.set(file,'rented20261029b');
 for(const file of ['/app.js','/shop.js','/enquiry-submit-summary.js'])releaseVersions.set(file,'carttotal20261029');
 for(const file of ['/app.js','/shop.js','/submission-ui.js'])releaseVersions.set(file,'proposal20261105b');
-for(const file of ['/app.js','/home-occasions.js'])releaseVersions.set(file,'homecards20261105');
+for(const file of ['/app.js','/home-occasions.js'])releaseVersions.set(file,'homecards20261105b');
 releaseVersions.set('/admin/admin.js','adminsave20261029');
 releaseVersions.set('/admin/admin.js','adminmail20261104');
 for(const file of ['/admin/admin.js','/admin/settings.js','/admin/enquiry-mail.js','/admin/mail-model.js','/admin/workflow.js'])releaseVersions.set(file,'admin20261105');

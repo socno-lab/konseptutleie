@@ -57,3 +57,10 @@ test('icon hydration leaves occasion card markup unchanged so loaded images are 
  assert.equal(renderArrowIcons(cards),cards);
  assert.equal((cards.match(/class="icon-arrow-up-right"/g)||[]).length,6);
 });
+
+test('first desktop row starts loading immediately while lower cards remain lazy',()=>{
+ const images=[...homeOccasionCards(products,site()).matchAll(/<img\b[^>]*>/g)].map(m=>m[0]);
+ assert.deepEqual(images.map(tag=>tag.match(/loading="([^"]+)"/)[1]),['eager','eager','eager','lazy','lazy','lazy']);
+ assert.match(images[0],/fetchpriority="high"/);
+ assert.ok(images.slice(1).every(tag=>!tag.includes('fetchpriority="high"')));
+});
