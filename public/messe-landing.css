@@ -1,0 +1,81 @@
+
+500&display=swap');
+#konsept-messe-preview{--paper:#f6f4ee;--ink:#2d332a;--olive:#414b38;--quiet:#707567;--line:#d9dbcf;color:var(--ink);font:400 15px/1.65 'DM Sans',sans-serif;background:var(--paper);color-scheme:light}
+#konsept-messe-preview *{box-sizing:border-box}
+#konsept-messe-preview h1,#konsept-messe-preview h2,#konsept-messe-preview h3,#konsept-messe-preview p{margin:0;font-weight:400}
+#konsept-messe-preview button,#konsept-messe-preview a{font:inherit;color:inherit}
+#konsept-messe-preview a{text-decoration:none}
+#konsept-messe-preview .km-head{display:flex;align-items:center;justify-content:space-between;gap:25px;padding:24px 4.5%;border-bottom:1px solid var(--line)}
+#konsept-messe-preview .km-logo{font:32px/.95 Georgia,serif;letter-spacing:-1.5px;white-space:nowrap}
+#konsept-messe-preview .km-logo small{display:block;font:8px/1.7 Georgia,serif;letter-spacing:4px;text-align:center;margin-top:7px}
+#konsept-messe-preview .km-nav{display:flex;gap:22px;font-size:12px}
+#konsept-messe-preview .km-tools{display:flex;align-items:center;gap:18px}
+#konsept-messe-preview .km-tools svg{width:20px;height:20px}
+#konsept-messe-preview .km-menu{display:none}
+#konsept-messe-preview .km-wrap{padding:25px 4.5% 40px}
+#konsept-messe-preview .km-back{font-size:12px;display:inline-block;border-bottom:1px solid;margin-bottom:28px}
+#konsept-messe-preview .km-hero{display:grid;grid-template-columns:1fr 1.16fr;gap:38px;align-items:center}
+#konsept-messe-preview .km-eyebrow{font-size:10px;letter-spacing:2px;margin-bottom:14px}
+#konsept-messe-preview h1{font-size:43px;line-height:1.12;letter-spacing:-1.5px;margin-bottom:22px}
+#konsept-messe-preview .km-intro{max-width:420px;color:var(--quiet)}
+#konsept-messe-preview .km-actions{display:flex;flex-wrap:wrap;gap:14px 22px;margin-top:24px;align-items:center}
+#konsept-messe-preview .km-main{display:inline-flex;align-items:center;gap:12px;background:var(--olive);color:var(--paper);padding:12px 17px;border:0}
+#konsept-messe-preview .km-link{display:inline-flex;align-items:center;gap:8px;border-bottom:1px solid;padding:5px 0}
+#konsept-messe-preview .km-link svg,#konsept-messe-preview .km-main svg{width:16px;height:16px}
+#konsept-messe-preview .km-image{display:block;width:100%;height:100%;object-fit:cover}
+#konsept-messe-preview .km-hero-photo{aspect-ratio:1.18;overflow:hidden}
+#konsept-messe-preview .km-note{font-size:11px;color:var(--quiet);margin-top:17px}
+#konsept-messe-preview .km-strip{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:17px 0;margin-top:34px;font-size:12px}
+#konsept-messe-preview .km-section{margin-top:46px}
+#konsept-messe-preview .km-section-title{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:21px}
+#konsept-messe-preview h2{font-size:29px;line-height:1.22;letter-spacing:-.7px}
+#konsept-messe-preview .km-section-title p{font-size:13px;color:var(--quiet);max-width:350px}
+#konsept-messe-preview .km-case{display:grid;grid-template-columns:1.5fr 1fr;gap:26px}
+#konsept-messe-preview .km-case-photo{width:100%;aspect-ratio:1.5;object-fit:cover}
+#konsept-messe-preview .km-case-copy{padding:14px 0}
+#konsept-messe-preview h3{font-size:22px;line-height:1.3;margin:9px 0 13px}
+#konsept-messe-preview .km-case-copy p{font-size:13px;color:var(--quiet)}
+#konsept-messe-preview .km-video{display:flex;align-items:center;gap:12px;border:1px solid var(--line);padding:13px;margin-top:23px;font-size:12px}
+#konsept-messe-preview .km-video svg{width:27px;height:27px;flex-shrink:0}
+#konsept-messe-preview .km-video small{display:block;color:var(--quiet);font-size:11px}
+#konsept-messe-preview .km-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+#konsept-messe-preview .km-gallery button{display:block;background:transparent;border:0;padding:0;text-align:left;min-width:0}
+#konsept-messe-preview .km-gallery button[aria-pressed=true] img{outline:2px solid var(--olive);outline-offset:3px}
+#konsept-messe-preview .km-gallery img{width:100%;aspect-ratio:1.6;object-fit:cover;display:block}
+#konsept-messe-preview .km-gallery span{display:block;font-size:12px;margin-top:9px}
+#konsept-messe-preview .km-gallery small{display:block;font-size:11px;color:var(--quiet)}
+#konsept-messe-preview .km-choices{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:22px}
+#konsept-messe-preview .km-choice{border-top:1px solid var(--line);padding-top:16px}
+#konsept-messe-preview .km-choice h3{font-size:19px;margin:0 0 10px}
+#konsept-messe-preview .km-choice p{font-size:13px;color:var(--quiet)}
+#konsept-messe-preview .km-choice a{font-size:12px;margin-top:15px}
+#konsept-messe-preview .km-cta{display:flex;justify-content:space-between;align-items:center;gap:28px;background:var(--olive);color:var(--paper);padding:30px;margin-top:43px}
+#konsept-messe-preview .km-cta h2{font-size:27px;margin-bottom:10px}
+#konsept-messe-preview .km-cta p{font-size:13px;max-width:480px}
+#konsept-messe-preview .km-cta a{white-space:nowrap;font-size:13px}
+#konsept-messe-preview .km-faq{margin-top:35px}
+#konsept-messe-preview details{border-bottom:1px solid var(--line);padding:15px 0;font-size:13px}
+#konsept-messe-preview details p{color:var(--quiet);margin-top:10px;max-width:650px}
+#konsept-messe-preview .km-footer{margin-top:30px;font-size:11px;color:var(--quiet)}
+@media(max-width:760px){#konsept-messe-preview .km-nav{display:none}#konsept-messe-preview .km-head{gap:14px}#konsept-messe-preview .km-logo{font-size:27px}#konsept-messe-preview .km-tools{gap:12px}#konsept-messe-preview .km-hero{gap:23px}#konsept-messe-preview h1{font-size:34px}}
+@media(max-width:560px){#konsept-messe-preview .km-head{padding:22px 5%;gap:10px}#konsept-messe-preview .km-menu{display:block;width:20px}#konsept-messe-preview .km-logo{font-size:22px;letter-spacing:-1px}#konsept-messe-preview .km-logo small{font-size:6px;letter-spacing:3px}#konsept-messe-preview .km-tools{gap:9px;margin-left:auto}#konsept-messe-preview .km-tools svg{width:18px}#konsept-messe-preview .km-wrap{padding:20px 5% 30px}#konsept-messe-preview .km-hero,#konsept-messe-preview .km-case{grid-template-columns:1fr}#konsept-messe-preview .km-hero-photo{aspect-ratio:1.4}#konsept-messe-preview h1{font-size:36px}#konsept-messe-preview .km-section-title{display:block}#konsept-messe-preview .km-section-title p{margin-top:12px}#konsept-messe-preview .km-strip{display:grid;gap:9px}#konsept-messe-preview .km-choices{grid-template-columns:1fr;gap:25px}#konsept-messe-preview .km-case{gap:5px}#konsept-messe-preview .km-gallery{gap:10px}#konsept-messe-preview .km-gallery img{aspect-ratio:1}#konsept-messe-preview .km-gallery small{display:none}#konsept-messe-preview .km-cta{display:block;padding:24px}#konsept-messe-preview .km-cta a{margin-top:19px;white-space:normal}}
+
+#occasionLanding.messe-page-landing{padding:0;max-width:none;margin:0;min-height:0}
+#konsept-messe-preview .km-wrap{max-width:1600px;margin:0 auto;padding:22px 5% 60px}
+#konsept-messe-preview .km-hero{grid-template-columns:1fr 1.12fr;gap:clamp(28px,4vw,70px)}
+#konsept-messe-preview h1{font-size:clamp(38px,4.3vw,64px)}
+#konsept-messe-preview .km-intro{max-width:560px;font-size:17px}
+#konsept-messe-preview .km-section{margin-top:65px}
+#konsept-messe-preview h2{font-size:clamp(29px,3vw,42px)}
+#konsept-messe-preview .km-case-copy p,#konsept-messe-preview .km-choice p,#konsept-messe-preview .km-cta p{font-size:15px}
+#konsept-messe-preview .km-case-copy .km-eyebrow{font-size:10px}
+#konsept-messe-preview .km-back{min-height:48px;display:inline-flex;align-items:center;margin-bottom:24px}
+#konsept-messe-preview .messe-play{font-size:28px}
+#konsept-messe-preview .km-gallery button{cursor:pointer}
+#konsept-messe-preview .km-gallery button:focus-visible{outline:3px solid #b87e49;outline-offset:5px}
+#konsept-messe-preview .km-case-photo{object-position:center 60%}
+#konsept-messe-preview .km-gallery img{object-position:center 65%}
+#konsept-messe-preview section[id]{scroll-margin-top:140px}
+@media(max-width:640px){#konsept-messe-preview .km-hero{grid-template-columns:1fr}#konsept-messe-preview .km-case{grid-template-columns:1fr}#konsept-messe-preview .km-intro{font-size:15px}#konsept-messe-preview .km-section{margin-top:38px}#konsept-messe-preview .km-hero-photo{aspect-ratio:1.35}#konsept-messe-preview .km-strip{font-size:12px}#konsept-messe-preview .km-gallery button{min-height:44px}#konsept-messe-preview .km-back{margin-bottom:20px;min-height:24px}#konsept-messe-preview h1{font-size:38px}#konsept-messe-preview .km-cta h2{font-size:28px}}
+
+#konsept-messe-preview .km-hero-photo{aspect-ratio:1.5}#konsept-messe-preview .km-gallery{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:640px){#konsept-messe-preview .km-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}#konsept-messe-preview .km-gallery img{aspect-ratio:1.5}#konsept-messe-preview .km-hero-photo{aspect-ratio:1.5}}
