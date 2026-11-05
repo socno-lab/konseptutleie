@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {renderArrowIcons} from '../server/arrow-icons.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {homeOccasionCards} from '../public/home-occasions.js';
@@ -49,4 +50,10 @@ test('local font files have valid WOFF2 headers, recorded lengths, licences and 
  }
  for(const family of ['dm-sans','manrope'])assert.match(await readFile(new URL(family+'-OFL.txt',root),'utf8'),/SIL OPEN FONT LICENSE/i);
  const faces=[...css.matchAll(/@font-face\s*\{([\s\S]*?)\}/g)].map(m=>m[1]);assert.equal(faces.length,8);for(const face of faces){assert.match(face,/font-weight:\s*400 700/);assert.match(face,/font-display:\s*swap/);assert.match(face,/font-style:\s*normal/);assert.match(face,/unicode-range:/);}
+});
+
+test('icon hydration leaves occasion card markup unchanged so loaded images are retained',()=>{
+ const cards=homeOccasionCards(products,site());
+ assert.equal(renderArrowIcons(cards),cards);
+ assert.equal((cards.match(/class="icon-arrow-up-right"/g)||[]).length,6);
 });
