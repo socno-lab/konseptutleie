@@ -2,7 +2,7 @@ import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {mountEnquiryFlow} from './enquiry-flow.js?v=occasion20261025';
 import './customer-info.js?v=period20261028e';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=carttotal20261029';
-import {mountCatalogPagination} from './catalog-pagination.js?v=catalogmore20261024a';
+import {mountCatalogPagination} from './catalog-pagination.js?v=firstcatalog20261105';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=proposal20261105b';
 import {configureSiteSettings,categoryLabel,getSiteSettings} from './site-settings.js';

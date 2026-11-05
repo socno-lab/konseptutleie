@@ -5,7 +5,7 @@ import {defaultSettings} from '../public/site-settings.js';
 import {pageModel,renderSeo} from '../server/seo.mjs';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 const settings=structuredClone(defaultSettings);
-settings.categories.push({id:'custom',label:'Speil & rammer'},{id:'unused',label:'Unused'});
+settings.categories.push({id:'custom',label:'Speil & rammer',subcategories:[]},{id:'unused',label:'Unused',subcategories:[]});
 const products=[{id:'chair',category:'Stoler',active:true},{id:'mirror',category:'custom',active:true},{id:'pack',category:'Pakker',active:true,isPackage:true}];
 test('server and client have identical category labels, order and selection for all catalogue routes',async()=>{
  const source=await readHtmlTemplate('utvalg.html');

@@ -24,7 +24,7 @@ function createCatalogue(container,initialOptions){
  const button=doc.createElement('button');button.type='button';button.className='button dark catalog-pagination-button';
  if(!container.id)container.id='catalog-page-list-'+(++nextCatalogueId);
  button.setAttribute('aria-controls',container.id);controls.append(status,button);container.after(controls);
- let items=[],renderItem,key,pageSize=24,initialPageSize=24,visibleCount=0,tailNodes=[],noun='produkter',firstRender=true,destroyed=false;
+ let items=[],renderItem,key,preserveKey,pageSize=24,initialPageSize=24,visibleCount=0,tailNodes=[],noun='produkter',firstRender=true,destroyed=false;
 
  function updateControls(){
   status.textContent='Viser '+visibleCount+' av '+items.length+' '+noun;
@@ -58,9 +58,24 @@ function createCatalogue(container,initialOptions){
   // Keep seen products when responsive rows change. Align only to the current
   // row width; resizing must not reveal another complete 24-product batch.
   const desired=initialPageSize+Math.ceil(Math.max(0,previousCount-initialPageSize)/countAlignment)*countAlignment;
+  const canReuseCards=firstRender||(nextKey===key&&options.preserveKey===preserveKey);preserveKey=options.preserveKey;
   items=options.items;renderItem=options.renderItem;noun=options.noun||'produkter';key=nextKey;
   visibleCount=Math.min(items.length,desired);firstRender=false;tailNodes=[];
-  container.replaceChildren();appendCards(0,visibleCount);
+  if(options.preserveInitialCards){
+   const existing=new Map((canReuseCards?[...container.children]:[]).filter(node=>node.dataset.catalogRender).map(node=>[node.dataset.catalogRender,node]));
+   const template=doc.createElement('template');template.innerHTML=items.slice(0,visibleCount).map((item,index)=>renderItem(item,index)).join('');
+   // Reuse loaded cards. When prices or stock change, keep matching image nodes.
+   const desiredKeys=new Set((canReuseCards?[...template.content.children]:[]).map(node=>node.dataset.catalogRender));
+   const photos=new Map([...container.querySelectorAll('img')].filter(img=>!desiredKeys.has(img.closest('[data-catalog-render]')?.dataset.catalogRender)).map(img=>[img.getAttribute('src')+'|'+img.getAttribute('class'),img]));
+   const nodes=[...template.content.children].map(node=>{
+    const old=existing.get(node.dataset.catalogRender);if(old){existing.delete(node.dataset.catalogRender);return old;}
+    for(const img of node.querySelectorAll('img')){const key=img.getAttribute('src')+'|'+img.getAttribute('class'),photo=photos.get(key);if(photo&&photo.getAttribute('srcset')===img.getAttribute('srcset')&&photo.getAttribute('style')===img.getAttribute('style')){for(const attr of [...photo.attributes])if(!img.hasAttribute(attr.name))photo.removeAttribute(attr.name);for(const attr of img.attributes)if(photo.getAttribute(attr.name)!==attr.value)photo.setAttribute(attr.name,attr.value);img.replaceWith(photo);photos.delete(key);}}
+    return node;
+   });
+   // Moving identical nodes with insertBefore avoids removing the whole grid.
+   nodes.forEach((node,index)=>{if(container.children[index]!==node)container.insertBefore(node,container.children[index]||null);});
+   while(container.children.length>nodes.length)container.lastElementChild.remove();
+  }else{container.replaceChildren();appendCards(0,visibleCount);}
   if(options.tailHtml){const existing=new Set(container.childNodes);container.insertAdjacentHTML('beforeend',options.tailHtml);tailNodes=[...container.childNodes].filter(node=>!existing.has(node));}
   rememberCount(storage,key,visibleCount);updateControls();
  }};
