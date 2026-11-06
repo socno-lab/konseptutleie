@@ -858,3 +858,13 @@ dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   object-fit:contain;transform:translate(var(--frame-x),var(--frame-y));
  }
 }
+
+/* Shared, compact transition from the final content block to the site footer. */
+body>footer{padding-top:25px}
+body>main>.section:last-child{padding-bottom:45px}
+body.product-page main>#productPageHost{padding-bottom:32px}
+body>main.customer-info-page{margin-bottom:24px;padding-bottom:32px}
+body>main#enquiryPage{margin-bottom:32px}
+body>main.proposal-main{padding-bottom:32px;margin-bottom:0}
+@media(max-width:900px){body>main>.section:last-child{padding-bottom:32px}}
+@media(max-width:640px){body>footer{padding-top:18px}body>main>.section:last-child{padding-bottom:28px}body>main.customer-info-page{padding-bottom:18px;margin-bottom:20px}}
