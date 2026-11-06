@@ -11,6 +11,6 @@ export function renderCatalogCard(card,index){
  return markup.replace('<article','<article data-catalog-render="'+(hash>>>0).toString(16)+'"');
 }
 export function readInitialCatalog(doc){
- const node=doc.getElementById('initialRentalCatalog')||doc.getElementById('initialSaleCatalog')||doc.getElementById('initialProductCatalog');if(!node)return null;
+ const node=doc.getElementById('initialRentalCatalog')||doc.getElementById('initialSaleCatalog')||doc.getElementById('initialProductCatalog')||doc.getElementById('initialSiteCatalog');if(!node)return null;
  try{const data=JSON.parse(node.textContent);return Array.isArray(data.products)&&data.settings?data:null;}catch{return null;}
 }

@@ -25,3 +25,6 @@ body.enquiry-page #cart.enquiry-full[hidden],body.enquiry-page #saleCart.enquiry
 .enquiry-submit-summary-total{margin-top:10px;padding-top:14px;border-top:1px solid var(--line);font-weight:500}
 .enquiry-submit-summary .enquiry-submit-summary-note{margin:14px 0 0;font-size:11px;line-height:1.6;color:var(--muted,#737868)}
 @media(max-width:640px){.enquiry-submit-summary{padding:16px}.enquiry-submit-summary-row,.enquiry-submit-summary-total{gap:12px}}
+
+/* Stable heading and page height while a browser-local basket is validated. */
+#enquiryLoading{min-height:65vh}#enquiryLoading h1{font-size:clamp(30px,4vw,45px);line-height:1.15;margin:0 0 24px;letter-spacing:-1px}@media(max-width:640px){#enquiryLoading h1{font-size:30px}}

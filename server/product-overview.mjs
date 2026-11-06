@@ -1,3 +1,5 @@
+import {productPeriodMarkup} from '../public/product-period-markup.js';
+import {responsiveImageAttributes} from '../public/media-image.js';
 import {modulePhotoPreview} from '../public/module-photo-preview.js';
 import {modulePreset,moduleConfiguration} from '../public/catalog-model.js';
 import {sofaCardConfiguration} from '../public/sofa-card-model.js';
@@ -26,9 +28,11 @@ export function productOverview(model,products,settings){
   const media=source?'<div class="initial-product-image'+(photos.length>1?' has-gallery':'')+'"><img data-initial-product-photo src="'+esc(source)+'" '+detailImageAttributes(source)+' alt="'+esc(p.name)+'">'+(!buy?rentalStatusBadge(isRentedOut(p)):'')+(photos.length>1?'<div class="initial-gallery-count" aria-hidden="true">1 / '+photos.length+'</div>':'')+'</div>':special?'<div class="initial-product-image initial-product-configuration">'+configuration+'</div>':'<div class="initial-product-image"></div>';
   const text=buy?'':productIllustrationText(p,products),ki=!buy&&isKiPhoto(p.image);
   const caption=text||ki?'<p class="illustration-note"><strong>'+esc(ki?kiDisclosure:'Bildet viser et eksempel')+'</strong>'+(text?'<span>'+esc(text)+'</span>':'')+'</p>':'';
+  const gallery=!special&&(buy?photos.length>0:photos.length>1)?'<div class="'+(buy?'sale-gallery':'product-gallery')+'" data-initial-gallery'+(buy?'':' role="group" aria-label="Produktbilder"')+'>'+photos.map((src,i)=>(buy?'':'<div class="gallery-item">')+'<button type="button" '+(buy?'data-photo="'+esc(src)+'" aria-label="Vis produktbilde"':'data-product-photo="'+esc(src)+'" aria-label="Vis bilde '+(i+1)+' av '+esc(p.name)+'" aria-pressed="'+(i===0)+'"')+'><img src="'+esc(src)+'" '+responsiveImageAttributes(src,'68px')+' alt="" loading="'+(i<8?'eager':'lazy')+'" decoding="async"></button>'+(buy?'':'</div>')).join('')+'</div>':'';
+  const period=buy||special?'':'<section class="rental-options" data-product-rental-period aria-label="Leieperiode for produktet">'+productPeriodMarkup()+'</section>';
   const options={buy,confirmed:usage.confirmed,purpose:model.productPurpose,category:model.productCategory};
   const summary=productSummary(buy?p:scoped(usage.scope),products,options);
   const prices=buy?'':['standard','messe'].map(scope=>'<template id="initialProductPrice-'+scope+'">'+productUnitPrice(scoped(scope),{confirmed:true})+'</template>').join('');
-  return '<section id="initialProductOverview" data-product-id="'+esc(p.id)+'" aria-label="Produktinformasjon"><div class="product-page-media">'+media+caption+'</div><div class="product-page-information">'+summary+'<p class="hint" role="status">Gjør valg klare …</p></div></section>'+prices;
+  return '<section id="initialProductOverview" data-product-id="'+esc(p.id)+'" aria-label="Produktinformasjon"><div class="product-page-media">'+media+gallery+caption+'</div><div class="product-page-information">'+summary+period+'<p class="hint" role="status">Gjør valg klare …</p></div></section>'+prices;
  }finally{configureSiteSettings(previous);}
 }

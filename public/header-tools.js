@@ -1,4 +1,4 @@
-import {readInitialCatalog} from './catalog-card-markup.js?v=detailfirst20261106';
+import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
 import {mountCardFavorites} from './card-favorites.js?v=hearts20261105';
 import {buildHeaderCatalog,searchHeaderCatalog,searchHeaderCategories,cleanFavoriteIds} from './header-catalog-model.js?v=headersearch20261026c';
 import {configureSiteSettings,imageUrl} from './site-settings.js';

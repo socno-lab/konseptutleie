@@ -1,3 +1,4 @@
+import {productPeriodMarkup} from './product-period-markup.js?v=sitefirst20261106';
 import {validateRentalPeriod} from './rental-dates.js?v=launch20261024';
 
 export function productPeriodState(start,end,options={}) {
@@ -14,8 +15,8 @@ export function mountProductRentalPeriod(host,{before=null,isPurchase=()=>false}
  if(!host)return;
  let section=host.querySelector('[data-product-rental-period]');
  if(!section){
-  section=document.createElement('section');section.dataset.productRentalPeriod='';section.className='rental-options';section.setAttribute('aria-label','Leieperiode for produktet');
-  section.innerHTML='<h3>Leieperiode</h3><div class="two"><label>Fra dato<button type="button" class="rental-date-trigger" data-period-field="start" aria-haspopup="dialog"></button></label><label>Til dato<button type="button" class="rental-date-trigger" data-period-field="end" aria-haspopup="dialog"></button></label></div><p class="hint" data-period-message role="status"></p><p class="hint">Samme periode brukes for alle leievarer i forespørselen. Tilgjengelighet og endelig tilbud må bekreftes; datovalget er ikke en reservasjon.</p>';
+  section=document.querySelector('#initialProductOverview [data-product-rental-period]')||document.createElement('section');section.dataset.productRentalPeriod='';section.className='rental-options';section.setAttribute('aria-label','Leieperiode for produktet');
+  if(!section.childNodes.length)section.innerHTML=productPeriodMarkup();
   if(before)before.before(section);else host.append(section);
   section.addEventListener('click',event=>{const button=event.target.closest('[data-period-field]');if(!button)return;const field=document.getElementById(button.dataset.periodField);if(field){field.disabled=false;field.click();}});
  }

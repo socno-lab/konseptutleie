@@ -52,7 +52,7 @@ function arrangeProduct(root,sale){
  const media=document.createElement('div');media.className='product-page-media';const info=document.createElement('div');info.className='product-page-information';
  const copy=[...intro.children].find(x=>!x.matches('.sale-image-stage,.product-art,.product-image-stage'));if(copy)info.append(copy);
  media.append(intro);for(const selector of ['.sale-gallery','.product-gallery','#productPhotoCaption']){const gallery=flow.querySelector(selector);if(gallery)media.append(gallery);}
- for(const child of [...flow.children])info.append(child);if(!sale){const switcher=info.querySelector(':scope>.mode-switch');if(switcher)info.append(switcher);}flow.append(media,info);
+ for(const child of [...flow.children])info.append(child);if(!sale){const switcher=info.querySelector(':scope>.mode-switch');if(switcher)info.append(switcher);}if(!sale){const period=info.querySelector('[data-product-rental-period]');if(period)info.insertBefore(period,info.children[1]||null);}flow.append(media,info);
 }
 export function showSurface(node,label=''){
  if(!isProductPage||!primaryIds.has(node.id)){if(!node.open)node.showModal();return node;}
@@ -74,6 +74,7 @@ export function showSurface(node,label=''){
  if(initial){
   const oldImage=initial.querySelector('[data-initial-product-photo]'),nextImage=section.querySelector('#saleDetailPhoto,.product-art img');
   if(oldImage&&nextImage&&oldImage.getAttribute('src')===nextImage.getAttribute('src')){for(const attr of [...oldImage.attributes])if(!nextImage.hasAttribute(attr.name))oldImage.removeAttribute(attr.name);for(const attr of nextImage.attributes)if(oldImage.getAttribute(attr.name)!==attr.value)oldImage.setAttribute(attr.name,attr.value);nextImage.replaceWith(oldImage);}
+  const thumbnails=[...initial.querySelectorAll('[data-initial-gallery] img')];for(const next of section.querySelectorAll('.product-gallery img,.sale-gallery img')){const old=thumbnails.find(img=>img.getAttribute('src')===next.getAttribute('src'));if(old)next.replaceWith(old);}
   const oldSummary=initial.querySelector('[data-product-summary]'),nextSummary=section.querySelector('[data-product-summary]');
   if(oldSummary&&nextSummary&&oldSummary.outerHTML===nextSummary.outerHTML)nextSummary.replaceWith(oldSummary);
   initial.remove();

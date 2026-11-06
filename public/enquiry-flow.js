@@ -2,7 +2,7 @@ const allowed=new Set(['start','end','occasion','name','email','phone','company'
 export function mountEnquiryFlow({cartId,formId,mode}){
  const cart=document.getElementById(cartId),form=document.getElementById(formId),page=location.pathname==='/foresporsel.html',key='konsept-enquiry-draft-'+mode;
  if(!cart||!form)return {open(){},update(){},clearDraft(){},restoredField:()=>false};
- const css=document.createElement('link');css.rel='stylesheet';css.href='/enquiry-page.css?v=submitprice20261025c';if(!document.querySelector('link[href="'+css.href.replace(location.origin,'')+'"]'))document.head.append(css);
+ const css=document.createElement('link');css.rel='stylesheet';css.href='/enquiry-page.css?v=sitefirst20261106';if(!document.querySelector('link[href="'+css.href.replace(location.origin,'')+'"]'))document.head.append(css);
  let saved={};try{const value=JSON.parse(sessionStorage.getItem(key)||'{}');if(value&&typeof value==='object'&&!Array.isArray(value))saved=value;}catch{}
  let confirmedOccasion=mode==='rent'&&saved.occasionConfirmed===true&&typeof saved.occasion==='string'&&saved.occasion.trim()?saved.occasion:'';
  const restored=new Set();

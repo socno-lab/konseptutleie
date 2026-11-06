@@ -98,3 +98,14 @@
 /* Preserve the two existing source-specific detail image crops during first paint. */
 #initialProductOverview .initial-product-image img[src="/media/0f6a6cb7eb59879e472aa49bc20333e6"]{position:absolute;inset:auto;left:50%;top:50%;width:102.6%!important;height:auto!important;max-width:none;max-height:none;transform:translate(-50.2%,-75.95%)}
 #initialProductOverview .initial-product-image img[src="/media/a3c39fca0300a1cb692cdf8dd9e4e1f8"]{position:absolute;inset:auto;left:50%;top:50%;width:105.1%!important;height:auto!important;max-width:none;max-height:none;transform:translate(-51.55%,-73.1%)}
+
+#initialProductOverview .product-gallery,#initialProductOverview .sale-gallery{display:flex;flex-wrap:wrap;overflow:visible;height:auto;margin:12px 0 0;padding:0;gap:8px;min-height:0}
+#initialProductOverview .gallery-item,#initialProductOverview .sale-gallery button{width:68px;flex:0 0 68px;height:64px}
+#initialProductOverview .sale-gallery button{padding:0;background:white;border:1px solid #bbb;line-height:0;overflow:hidden}
+#initialProductOverview .sale-gallery img{display:block;width:100%;height:100%;object-fit:contain}
+@media(max-width:640px){#initialProductOverview .product-gallery,#initialProductOverview .sale-gallery{display:none}}
+/* The first-render date fields match the activated picker before its JS loads. */
+#initialProductOverview [data-product-rental-period] h3{font-size:14px;line-height:1.5;margin:0 0 10px}
+#initialProductOverview .rental-date-trigger{font:inherit;cursor:pointer;border:1px solid var(--line);color:inherit;display:block;box-sizing:border-box;width:100%;min-width:0;padding:12px;text-align:left;font-size:13px;font-weight:400;height:48px;min-height:48px;background:#faf9f5}
+#initialProductOverview .rental-date-trigger[data-selected=true]{border-color:var(--olive);background:#ecefe5}
+@media(max-width:640px){#initialProductOverview .rental-date-trigger{font-size:16px}}

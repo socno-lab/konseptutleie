@@ -5,7 +5,7 @@ import {categoryLabel,getSiteSettings} from './site-settings.js';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=launch20261024';
 import {variantFields} from './product-variants.js?v=launch20261024';
 import {salesEnabled,saleUnitPrice,deliveryText,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=launch20261024';
-import {renderCatalogCard} from './catalog-card-markup.js?v=detailfirst20261106';
+import {renderCatalogCard} from './catalog-card-markup.js?v=sitefirst20261106';
 const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:2}).format(n),price=p=>saleUnitPrice(p)===null?'Pris på forespørsel':money(saleUnitPrice(p));
 export function saleCatalogView({products,category='',tableFilter='',query=''}={}){

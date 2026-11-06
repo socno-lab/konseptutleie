@@ -32,7 +32,7 @@ test('product shell is present before modules, moves rental controls once and sa
   assert.equal((html.match(/id="catalogPricingScope"/g)||[]).length,buy?0:1);
   assert.ok(html.indexOf('productPageHost')<html.indexOf('<section>'));
   assert.ok(!html.includes('evil.test'));
-  assert.match(html,/product-shell-bootstrap.js\?v=productcontent20261106/);
+  assert.match(html,/product-shell-bootstrap.js\?v=sitefirst20261106/);
  }
 });
 
