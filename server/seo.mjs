@@ -1,3 +1,4 @@
+import {productFirstPaint} from './product-first-paint.mjs';
 import {saleCatalogFirstPaint} from './sale-catalog-first-paint.mjs';
 import {catalogFirstPaint} from './catalog-first-paint.mjs';
 import {catalogFilters} from '../public/catalog-filters.js';
@@ -70,6 +71,7 @@ export function renderSeo(source,m,products,indexable,settings=getSiteSettings()
  if(!m.product&&m.status===200&&!m.canonical.startsWith('/kundeinfo'))html=html.replace('</main>',()=>discovery(products,m.buy)+'</main>');
  if(m.catalogUsage)html=catalogFirstPaint(html,m,products,settings);
  if(m.buy&&m.canonical.startsWith('/kjop.html'))html=saleCatalogFirstPaint(html,m,products,settings);
+ if(m.product)html=productFirstPaint(html,m,products,settings);
  return html;
 }
 export function sitemap(products,indexable){const paths=indexable?['/','/utvalg.html','/kjop.html','/midlertidig-moblering.html','/kundeinfo.html','/utvalg.html?bruk=boligsalg',...(products.some(p=>rental(p)&&p.isPackage)?['/utvalg.html?kategori=Pakker']:[]),...Object.entries(occasions).filter(([key])=>key!=='boligfoto').map(([key,v])=>'/anledning.html?bruk='+v[1]+'&anledning='+key),...[...new Set(products.filter(rental).map(p=>p.category))].map(c=>'/utvalg.html?kategori='+encodeURIComponent(c)),...[...new Set(products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>p.category))].map(c=>'/kjop.html?kategori='+encodeURIComponent(c)),...products.filter(rental).map(p=>url(p)),...products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>url(p,true))]:[];return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+[...new Set(paths)].map(p=>'<url><loc>'+e(siteOrigin+p)+'</loc></url>').join('')+'</urlset>';}

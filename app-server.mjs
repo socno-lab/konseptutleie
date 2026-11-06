@@ -206,6 +206,7 @@ export function createServer(options={}){
     if(pathname==='/sitemap.xml')return send(200,sitemap(catalog.products,indexing),'application/xml; charset=utf-8');
     const model=pageModel(pathname,url.searchParams,catalog.products);
     if(pathname==='/kjop.html')model.saleCanAdmin=store.enabled&&await authenticated();
+    if(model.product)model.productCanAdmin=store.enabled&&await authenticated();
     const sourcePath=pathname==='/midlertidig-moblering.html'?'/index.html':pathname==='/'?'/index.html':pathname;
     let source=await readHtmlTemplate(sourcePath.slice(1));
     if(model.status===404)return await missing();
