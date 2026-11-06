@@ -82,3 +82,10 @@
 #konsept-messe-preview .km-case-photo[src$="/konsept-hub-2.jpg"],#konsept-messe-preview .km-gallery img[src$="/konsept-hub-2.jpg"]{object-position:center 48%}
 
 #konsept-messe-preview button.km-link{background:transparent;border:0;border-bottom:1px solid;border-radius:0;cursor:pointer;text-align:left}
+
+/* Compact transition from practical information to related browsing links. */
+#konsept-messe-preview .km-wrap{padding-bottom:30px}
+#occasionLanding.messe-page-landing~.seo-discovery{padding-top:45px}
+#occasionLanding.messe-page-landing~.seo-discovery>h2:first-child{margin-top:15px}
+@media(max-width:900px){#occasionLanding.messe-page-landing~.seo-discovery{padding-top:32px}}
+@media(max-width:640px){#occasionLanding.messe-page-landing~.seo-discovery{padding-top:28px}}
