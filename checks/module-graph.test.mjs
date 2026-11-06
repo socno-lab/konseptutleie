@@ -21,6 +21,7 @@ releaseVersions.set('/admin/admin.js','adminsave20261029');
 releaseVersions.set('/admin/admin.js','adminmail20261104');
 for(const file of ['/admin/admin.js','/admin/settings.js','/admin/enquiry-mail.js','/admin/mail-model.js','/admin/workflow.js'])releaseVersions.set(file,'admin20261105');
 for(const file of ['/app.js','/shop.js','/header-tools.js','/catalog-card-markup.js','/catalog-image-framing.js','/catalog-image-bounds.js'])releaseVersions.set(file,'frames20261105');
+for(const file of ['/app.js','/shop.js','/header-tools.js','/catalog-card-markup.js','/sale-catalog-view.js'])releaseVersions.set(file,'buyfirst20261106');
 const versionFor=file=>releaseVersions.has(file)?'?v='+releaseVersions.get(file):legacyVersionFor(file);
 const imports=source=>[...source.matchAll(/\b(?:from|import)\s*['"]((?:\.{1,2}\/|\/)[^'"\s]+\.js(?:\?[^'"]*)?)['"]/g)].map(m=>m[1]);
 async function walk(directory){const files=[];for(const entry of await readdir(directory,{withFileTypes:true})){const name=path.join(directory,entry.name);if(entry.isDirectory())files.push(...await walk(name));else files.push(name);}return files;}

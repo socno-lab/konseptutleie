@@ -26,14 +26,14 @@ export async function readHtmlTemplate(name,base=root){
  // Occasion is an explicit form choice, never inferred from the catalogue category.
  html=html.replace(/(<select\b[^>]*\bid="occasion"[^>]*>)([\s\S]*?)(<\/select>)/g,(_,open,options,close)=>open+'<option value="" selected disabled>Velg anledning</option>'+options.replace(/\sselected(?:="[^"]*")?/g,'').replace('<option>Boligsalg</option>','<option>Boligfoto og visning</option>')+close);
  // Bootstrap and shared customer-information scripts must use this release's module URLs.
- html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(file==='/app.js'?'frames20261105':file==='/shop.js'?'frames20261105':file==='/customer-info.js'?'period20261028e':file==='/icons.js'?'enquirypage20261025b':'launch20261024')+end);
+ html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(file==='/app.js'?'buyfirst20261106':file==='/shop.js'?'buyfirst20261106':file==='/customer-info.js'?'period20261028e':file==='/icons.js'?'enquirypage20261025b':'launch20261024')+end);
  html=html.replace('/catalog-usage.css?v=usage20261028c','/catalog-usage.css?v=filters20261105');
  // The approved Latin font arrives with a blocking stylesheet, before first paint.
  html=html.replace('</head>','<link rel="stylesheet" href="'+storefrontFontHref+'"></head>');
  // Read the existing saved basket during parsing, before the header paints.
  // Catalogue validation remains the responsibility of the application modules.
  if(/<span id="(?:count|saleCount)">/.test(html))html=html.replace('</head>','<script src="/cart-badge-bootstrap.js?v=cartfirstpaint20261026"></script></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=cartcurrent20261027"><script type="module" src="/header-tools.js?v=frames20261105"></script><script type="module" src="/mobile-navigation.js?v=header20261026"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=cartcurrent20261027"><script type="module" src="/header-tools.js?v=buyfirst20261106"></script><script type="module" src="/mobile-navigation.js?v=header20261026"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=productscope20261025"></head>');
  if(['index.html','utvalg.html','anledning.html','leieprodukt.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/rental-status.css?v=rented20261029b"></head>');
  const version=await styleVersion(base);
