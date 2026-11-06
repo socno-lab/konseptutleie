@@ -24,7 +24,7 @@ export function pageModel(path,params,products){
  const buy=path==='/kjop.html'||path==='/kjopsprodukt.html',pool=products.filter(p=>buy?visible(p)&&salesEnabled(p):rental(p));
  if(['/leieprodukt.html','/kjopsprodukt.html'].includes(path)){
   const p=pool.find(p=>p.id===params.get('produkt'));if(!p)return {status:404,title:'Produktet er ikke tilgjengelig | Konseptuell',h1:'Produktet er ikke tilgjengelig',description:'Se det oppdaterte utvalget av møbler og dekor.',canonical:path,items:[],buy};
-  return {status:200,title:(buy?'Kjøp ':'Lei ')+p.name+' | Konseptuell',h1:p.name,description:[(buy?'Kjøp ':'Lei ')+p.name,p.material,buy?'Send en kjøpsforespørsel. Pris og levering bekreftes.':'Velg leieperiode og send en forespørsel om tilgjengelighet.'].filter(Boolean).join('. '),canonical:url(p,buy),items:[p],product:p,buy};
+  return {status:200,title:(buy?'Kjøp ':'Lei ')+p.name+' | Konseptuell',h1:p.name,description:[(buy?'Kjøp ':'Lei ')+p.name,p.material,buy?'Send en kjøpsforespørsel. Pris og levering bekreftes.':'Velg leieperiode og send en forespørsel om tilgjengelighet.'].filter(Boolean).join('. '),canonical:url(p,buy),items:[p],product:p,productReturn:params.get('retur'),productUsage:rentalUsageState({purpose:validPurpose(params.get('bruk')),explicit:params.get('prisbruk')}),buy};
  }
  if(path==='/anledning.html'){
   let key=params.get('anledning')||Object.keys(occasions).find(k=>occasions[k][1]===params.get('bruk'))||'alle';if(key==='event')key='messe';const [h1,area,description]=occasions[key]||occasions.alle;

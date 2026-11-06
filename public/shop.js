@@ -9,7 +9,7 @@ import {mountCatalogPagination} from './catalog-pagination.js?v=firstcatalog2026
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=proposal20261105b';
 import {configureSiteSettings} from './site-settings.js';
-import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=rented20261029b';
+import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=productshell20261106';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
 import {cartThumbnail} from './cart-thumbnail.js?v=launch20261024';

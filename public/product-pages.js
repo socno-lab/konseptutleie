@@ -20,6 +20,7 @@ if(refreshing&&!pageAnchor?.hasTarget()){
 
 function pageHost(){
  if(host)return host;
+ host=document.getElementById('productPageHost');if(host){host.querySelector('.product-page-back').href=catalogReturn();return host;}
  document.body.classList.add('product-page');document.body.classList.remove('catalog-page','occasion-page','home-page');host=document.createElement('div');host.id='productPageHost';
  const back=document.createElement('a');back.className='product-page-back';back.textContent='← Tilbake til utvalget';back.href=catalogReturn();const crumbs=document.createElement('nav');crumbs.className='product-breadcrumbs';crumbs.setAttribute('aria-label','Brødsmuler');const home=document.createElement('a');home.href='/';home.textContent='Hjem';crumbs.append(home,document.createTextNode(' / '),back);host.append(crumbs);
  const scope=document.getElementById('catalogPricingScope');if(scope)host.append(scope);

@@ -1,3 +1,4 @@
+import {rentalScopeMarkup} from './rental-scope-markup.js?v=productshell20261106';
 import {detailImageMarkup,setDetailPhotoSource} from './product-image-loading.js?v=detailfirst20261106';
 import {renderCatalogCard,readInitialCatalog} from './catalog-card-markup.js?v=detailfirst20261106';
 import {rentalCatalogView} from './rental-catalog-view.js?v=firstcatalog20261105';
@@ -31,7 +32,7 @@ import {decorExamples} from './decor-examples.js?v=launch20261024';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=longrent20261026';
 import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=period20261028e';
-import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=rented20261029b';
+import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=productshell20261106';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
 import {moduleCardImage,sofaCardArt} from './module-card-image.js?v=sofaframes20261025';
@@ -385,8 +386,8 @@ function pricingScopeLabel(){return rentalUsageLabels[rentalScope];}
 function usageButtons(){return `<div class="rental-usage-options" role="group" aria-label="Velg bruk for leiepriser">${Object.entries(rentalUsageLabels).map(([scope,label])=>`<button type="button" data-rental-scope-choice="${scope}" aria-pressed="${rentalScopeConfirmed&&rentalScope===scope}"><strong>${label}</strong><span>${rentalUsageDescriptions[scope]}</span></button>`).join('')}</div>`;}
 function renderPricingScope(){
  const productMobileControl=isProductPage?el('mobileChangeUsage')?.closest('.mobile-catalog-usage'):null;
- const explanation=`<p class="hint">${rentalUsageExplanation} Alle viste leiepriser inkluderer valgt bruk og mva. Transport og eventuelt oppsett avklares i tilbudet.</p>`;
- const catalog=el('catalogPricingScope');if(catalog)catalog.innerHTML=rentalScopeConfirmed?`<p class="rental-selected-usage">Leiepriser for: <strong>${pricingScopeLabel()}</strong></p><p class="hint">${rentalUsageExplanation} Prisene inkluderer valgt bruk og mva.</p><details><summary>Endre bruk</summary>${usageButtons()}</details>`:`<h3>Hva skal du bruke møblene til?</h3><p>Velg bruk for å se riktige leiepriser.</p>${usageButtons()}${explanation}`;
+
+ const catalog=el('catalogPricingScope');if(catalog)catalog.innerHTML=rentalScopeMarkup(rentalScope,rentalScopeConfirmed);
  if(isProductPage&&catalog){const desktop=document.createElement('div');desktop.className='product-pricing-desktop';desktop.append(...catalog.childNodes);catalog.replaceChildren(desktop);if(productMobileControl)catalog.prepend(productMobileControl);catalog.classList.add('product-pricing-scope');}
  const cartScope=el('cartPricingScope');if(cartScope)cartScope.innerHTML=`<p class="rental-selected-usage">Valgt bruk: <strong>${rentalScopeConfirmed?pricingScopeLabel():'Velg bruk'}</strong></p><p>${rentalUsageExplanation}</p><details><summary>Endre bruk</summary>${usageButtons()}<p class="hint">Prisene oppdateres for alle valgte produkter. Datoer og antall beholdes.</p></details>`;
  el('pricingChoiceOptions').innerHTML=usageButtons();syncMobileCatalog();catalogUsage?.render();mountPricingScopeHint(catalogUsage?.host||catalog,{confirmed:rentalScopeConfirmed,label:pricingScopeLabel(),enabled:isCatalogPage||isProductPage,control:catalogUsage?.button});

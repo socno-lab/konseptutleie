@@ -74,3 +74,6 @@
  .product-page #modules #moduleBasePrices p,.product-page #modules #moduleSummary p,.product-page #modules #moduleTextileOptions .hint{font-size:12px;line-height:1.5}
  .product-page #modules #moduleBasePrices .rate-caption,.product-page #modules #moduleSummary .rate-caption{font-size:9px;line-height:1.6}
 }
+
+/* Keep the footer/logo below the viewport while product controls initialize. */
+.product-page #productPageStatus:not([hidden]){min-height:65vh}
