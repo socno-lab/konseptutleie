@@ -24,6 +24,7 @@ for(const file of ['/app.js','/shop.js','/header-tools.js','/catalog-card-markup
 for(const file of ['/app.js','/shop.js','/header-tools.js','/catalog-card-markup.js','/sale-catalog-view.js'])releaseVersions.set(file,'buyfirst20261106');
 for(const file of ['/app.js','/shop.js','/header-tools.js','/catalog-card-markup.js','/sale-catalog-view.js','/product-image-loading.js'])releaseVersions.set(file,'detailfirst20261106');
 for(const file of ['/app.js','/shop.js','/product-pages.js','/rental-scope-markup.js','/product-shell-bootstrap.js'])releaseVersions.set(file,'productshell20261106');
+for(const file of ['/app.js','/shop.js','/product-pages.js','/product-shell-bootstrap.js','/product-summary.js','/product-illustration.js'])releaseVersions.set(file,'productcontent20261106');
 const versionFor=file=>releaseVersions.has(file)?'?v='+releaseVersions.get(file):legacyVersionFor(file);
 const imports=source=>[...source.matchAll(/\b(?:from|import)\s*['"]((?:\.{1,2}\/|\/)[^'"\s]+\.js(?:\?[^'"]*)?)['"]/g)].map(m=>m[1]);
 async function walk(directory){const files=[];for(const entry of await readdir(directory,{withFileTypes:true})){const name=path.join(directory,entry.name);if(entry.isDirectory())files.push(...await walk(name));else files.push(name);}return files;}

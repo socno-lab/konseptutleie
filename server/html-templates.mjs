@@ -26,8 +26,8 @@ export async function readHtmlTemplate(name,base=root){
  // Occasion is an explicit form choice, never inferred from the catalogue category.
  html=html.replace(/(<select\b[^>]*\bid="occasion"[^>]*>)([\s\S]*?)(<\/select>)/g,(_,open,options,close)=>open+'<option value="" selected disabled>Velg anledning</option>'+options.replace(/\sselected(?:="[^"]*")?/g,'').replace('<option>Boligsalg</option>','<option>Boligfoto og visning</option>')+close);
  // Bootstrap and shared customer-information scripts must use this release's module URLs.
- html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(file==='/app.js'?'productshell20261106':file==='/shop.js'?'productshell20261106':file==='/customer-info.js'?'period20261028e':file==='/icons.js'?'enquirypage20261025b':'launch20261024')+end);
- html=html.replace('/product-pages.css?v=sofastandard20261025b','/product-pages.css?v=productshell20261106');
+ html=html.replace(/(<script\b[^>]*\bsrc=["'])(\/[^"'?]+\.js)(?:\?[^"']*)?(["'])/g,(_,start,file,end)=>start+file+'?v='+(file==='/app.js'?'productcontent20261106':file==='/shop.js'?'productcontent20261106':file==='/customer-info.js'?'period20261028e':file==='/icons.js'?'enquirypage20261025b':'launch20261024')+end);
+ html=html.replace('/product-pages.css?v=sofastandard20261025b','/product-pages.css?v=productcontent20261106');
  html=html.replace('/catalog-usage.css?v=usage20261028c','/catalog-usage.css?v=filters20261105');
  // The approved Latin font arrives with a blocking stylesheet, before first paint.
  html=html.replace('</head>','<link rel="stylesheet" href="'+storefrontFontHref+'"></head>');

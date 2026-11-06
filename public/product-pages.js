@@ -70,6 +70,14 @@ export function showSurface(node,label=''){
  if(section.id==='modules'){const actions=section.querySelector('.module-actions'),controls=section.querySelector('.module-controls');if(actions&&controls){controls.append(actions);const heading=section.querySelector('.module-heading');if(heading)controls.prepend(heading);}}
  let heading=section.querySelector('h1,h2');if(heading?.tagName==='H2'){const h1=document.createElement('h1');for(const attr of heading.attributes)h1.setAttribute(attr.name,attr.value);h1.append(...heading.childNodes);heading.replaceWith(h1);heading=h1;}
  if(label&&heading&&['modules','wall'].includes(section.id))heading.textContent=label;
+ const initial=document.getElementById('initialProductOverview');
+ if(initial){
+  const oldImage=initial.querySelector('[data-initial-product-photo]'),nextImage=section.querySelector('#saleDetailPhoto,.product-art img');
+  if(oldImage&&nextImage&&oldImage.getAttribute('src')===nextImage.getAttribute('src')){for(const attr of [...oldImage.attributes])if(!nextImage.hasAttribute(attr.name))oldImage.removeAttribute(attr.name);for(const attr of nextImage.attributes)if(oldImage.getAttribute(attr.name)!==attr.value)oldImage.setAttribute(attr.name,attr.value);nextImage.replaceWith(oldImage);}
+  const oldSummary=initial.querySelector('[data-product-summary]'),nextSummary=section.querySelector('[data-product-summary]');
+  if(oldSummary&&nextSummary&&oldSummary.outerHTML===nextSummary.outerHTML)nextSummary.replaceWith(oldSummary);
+  initial.remove();
+ }
  document.getElementById('productPageStatus').hidden=true;
  refreshPageRecommendations();
  return section;

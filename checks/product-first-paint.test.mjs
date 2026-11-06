@@ -32,7 +32,7 @@ test('product shell is present before modules, moves rental controls once and sa
   assert.equal((html.match(/id="catalogPricingScope"/g)||[]).length,buy?0:1);
   assert.ok(html.indexOf('productPageHost')<html.indexOf('<section>'));
   assert.ok(!html.includes('evil.test'));
-  assert.match(html,/product-shell-bootstrap.js\?v=productshell20261106/);
+  assert.match(html,/product-shell-bootstrap.js\?v=productcontent20261106/);
  }
 });
 
@@ -43,10 +43,10 @@ test('parsing-time rental menu agrees with application usage rules including sav
  const source=await readFile(new URL('../public/product-shell-bootstrap.js',import.meta.url),'utf8');
  for(const purpose of [undefined,'alle','fest','boligsalg','event','invalid'])for(const explicit of [undefined,'messe','standard','invalid'])for(const saved of [null,'standard','messe']){
   const url=new URL('https://konseptuell.no/leieprodukt.html');if(purpose!==undefined)url.searchParams.set('bruk',purpose);if(explicit!==undefined)url.searchParams.set('prisbruk',explicit);
-  let actual=null;const elements={catalogPricingScope:{replaceChildren:value=>actual=value}};
-  for(const scope of ['standard','messe'])elements['initialScope-'+scope]={content:{cloneNode:()=>scope},remove(){}};
-  runInNewContext(source,{URL,location:{href:url.href},document:{getElementById:id=>elements[id]},sessionStorage:{getItem:()=> 'boligsalg'},localStorage:{getItem:()=>saved}});
+  let actual=null,price=null;const elements={catalogPricingScope:{replaceChildren:value=>actual=value}};
+  for(const scope of ['standard','messe']){elements['initialScope-'+scope]={content:{cloneNode:()=>scope},remove(){}};elements['initialProductPrice-'+scope]={content:{cloneNode:()=>scope},remove(){}};}
+  runInNewContext(source,{URL,location:{href:url.href},document:{getElementById:id=>elements[id],querySelector:()=>({replaceChildren:value=>price=value})},sessionStorage:{getItem:()=> 'boligsalg'},localStorage:{getItem:()=>saved}});
   const expected=rentalUsageState({purpose:readPurposeState(url.href,'boligsalg').purpose,explicit,saved});
-  assert.equal(actual,expected.confirmed?expected.scope:null,url.href+' saved='+saved);
+  assert.equal(actual,expected.confirmed?expected.scope:null,url.href+' saved='+saved);assert.equal(price,actual,'first price follows the same usage as the menu');
  }
 });

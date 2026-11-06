@@ -77,3 +77,24 @@
 
 /* Keep the footer/logo below the viewport while product controls initialize. */
 .product-page #productPageStatus:not([hidden]){min-height:65vh}
+
+/* Server-rendered product content occupies the same first-view columns. */
+#initialProductOverview{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start;gap:44px}
+#initialProductOverview .initial-product-image{height:430px;position:relative;background:white;margin:0 0 12px;overflow:hidden}
+#initialProductOverview .initial-product-image>img{display:block;width:100%;height:100%;object-fit:contain}
+.initial-gallery-count{display:none}
+.product-page [data-product-summary] .rate-grid{margin-top:12px}
+.product-page [data-product-summary] .rate-caption{font-size:9px;line-height:1.6}
+@media(max-width:800px){#initialProductOverview{gap:24px}}
+@media(max-width:640px){
+ #initialProductOverview{grid-template-columns:minmax(0,1fr);gap:18px}
+ #initialProductOverview .initial-product-image{height:clamp(260px,83vw,350px)}
+ #initialProductOverview .initial-product-image.has-gallery>img{height:calc(100% - 38px)}
+ .initial-gallery-count{display:flex;height:38px;align-items:center;justify-content:center;font-size:11px}
+}
+
+.initial-product-configuration>svg,.initial-product-configuration .module-photo{width:100%;height:100%;margin:0}.initial-product-configuration .module-photo>img,.initial-product-configuration .module-photo>svg{width:100%;max-height:100%;object-fit:contain}
+
+/* Preserve the two existing source-specific detail image crops during first paint. */
+#initialProductOverview .initial-product-image img[src="/media/0f6a6cb7eb59879e472aa49bc20333e6"]{position:absolute;inset:auto;left:50%;top:50%;width:102.6%!important;height:auto!important;max-width:none;max-height:none;transform:translate(-50.2%,-75.95%)}
+#initialProductOverview .initial-product-image img[src="/media/a3c39fca0300a1cb692cdf8dd9e4e1f8"]{position:absolute;inset:auto;left:50%;top:50%;width:105.1%!important;height:auto!important;max-width:none;max-height:none;transform:translate(-51.55%,-73.1%)}
