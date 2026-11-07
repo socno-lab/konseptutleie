@@ -3,7 +3,7 @@ export function proposalPageHtml(source){
  const head=source.slice(0,source.indexOf('</head>')).replace(/<title>[\s\S]*?<\/title>/,'<title>Fortell oss hva du trenger | Konseptuell</title>');
  const shell=source.slice(source.indexOf('</head>')+7,source.indexOf('<main')).replace(/<body\b[^>]*>/,'<body class="proposal-page">').replace(/<nav class="mobile-commerce-mode-switch"[\s\S]*?<\/nav>/g,'');
  const footer=source.match(/<footer\b[\s\S]*?<\/footer>/)?.[0]||'';
- return head+'<script src="/request-route-bootstrap.js?v=sitefirst20261106"></script><meta name="robots" content="noindex,nofollow,noarchive"><link rel="stylesheet" href="/proposal-form.css?v=proposal20261105"><script type="module" src="/proposal-form.js?v=production20261107"></script></head>'+shell+`<main class="proposal-main" id="proposalMain">
+ return head+'<script src="/request-route-bootstrap.js?v=sitefirst20261106"></script><meta name="robots" content="noindex,nofollow,noarchive"><link rel="stylesheet" href="/proposal-form.css?v=proposal20261105"><script type="module" src="/proposal-form.js?v=requestfix20261107"></script></head>'+shell+`<main class="proposal-main" id="proposalMain">
 <a class="text-button" href="/">← Til forsiden</a>
 <p class="eyebrow">ET FORSLAG SOM PASSER DEG</p><h1>Fortell oss hva du trenger</h1>
 <p class="proposal-intro">Beskriv behovet ditt, så hjelper vi deg å finne møbler og dekor som passer. Du trenger ikke velge produkter først.</p>

@@ -6,6 +6,7 @@ const basket=read(localStorage,'konsept-cart-v1',{}),count=basket&&typeof basket
 if(count){location.replace('/foresporsel.html');}else{
  const custom=read(sessionStorage,'konsept-custom-request-v1',{}),rent=read(sessionStorage,'konsept-enquiry-draft-rent',{}),draft=read(sessionStorage,draftKey,null);
  const initial=draft||{...Object.fromEntries(['name','email','phone','company'].map(key=>[key,rent[key]||''])),customRequest:custom.text||'',period:rent.start&&rent.end?rent.start+' – '+rent.end:''};
+ if(initial.customRequest?.trim()==='Jeg ønsker et forslag til julepynt tilpasset våre lokaler.')initial.customRequest='';
  for(const key of fields)if(typeof initial[key]==='string')form.elements.namedItem(key).value=initial[key];
  // A free-form enquiry is separate from the product basket, including old drafts.
  try{sessionStorage.setItem('konsept-custom-request-v1',JSON.stringify({active:false,text:typeof custom.text==='string'?custom.text:''}));}catch{}
