@@ -1,3 +1,4 @@
+import {getSiteSettings} from './site-settings.js?v=content20261107';
 // Explicit admin assignments override legacy category-based navigation.
 import {matchesPurpose as matchesCatalogPurpose,prioritizePackages} from './purpose-model.js?v=launch20261024';
 export {prioritizePackages};
@@ -17,12 +18,13 @@ const occasionPackages=new Set(['obj_b3af6675a38744e0bc567acc3c547849','obj_3aaf
 export function matchesPurpose(product,value){
  const purpose=validPurpose(value);
  if(purpose==='alle')return true;
- const christmas=product.serviceGroup==='Klart til jul'||['obj_3aaf7f39d05041b5a68f0f51bb66f705','obj_f3e152bb768e4178a82fd39136efc0ae','obj_8278a918ddb64adf9f521db17a55fe88'].includes(product.id);
+ const collections=getSiteSettings().collections;
+ const christmas=collections.christmasProducts.includes(product.id);
  // Christmas is a curated service collection; older broad assignments are retained in storage.
  if(purpose==='jul')return christmas;
  if(christmas)return false;
  // Production is a cross-catalog collection of furniture and props, without duplicated stock.
- if(purpose==='produksjon')return !product.isPackage&&product.offeringType!=='service'&&['Sofaer','Modulsofaer','Stoler','Bord','Hyller','Belysning','Tepper','Kunstige planter','Kunstige blomster','Dekor','Bilder','Speil','Servise','Utemøbler','Senger'].includes(product.category);
+ if(purpose==='produksjon')return collections.productionMode==='products'?collections.productionProducts.includes(product.id):!product.isPackage&&product.offeringType!=='service'&&collections.productionCategories.includes(product.category);
  if(product.purposesExplicit===true)return (product.purposes||[]).includes(purpose);
  if(product.id==='obj_a6ca0b4ab5d94e0b811e2fddf13b13b9')return purpose==='bedrift';
  if(purpose==='bedrift'&&product.isPackage&&product.businessPurchase===true)return true;

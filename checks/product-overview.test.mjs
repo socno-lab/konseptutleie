@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {productOverview} from '../server/product-overview.mjs';
-import {productSummary,productUnitPrice} from '../public/product-summary.js?v=jul20261107';
+import {productSummary,productUnitPrice} from '../public/product-summary.js?v=content20261107';
 const product={id:'chair',active:true,isExample:false,name:'Stol <ett>',category:'Stoler',material:'Eik',image:'/media/12345678901234567890123456789012',rentalRates:{standard:{price:100,weekPrice:300,monthPrice:500,stylingContinuation:true},messe:{price:150,weekPrice:450,monthPrice:800}},saleEnabled:true,salePrice:3949};
 test('first HTML has visible product image, name and the selected rental rates without a catalogue fetch',()=>{
  const html=productOverview({product,buy:false,productUsage:{scope:'messe',confirmed:true}},[product],{});

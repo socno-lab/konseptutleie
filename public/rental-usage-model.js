@@ -1,4 +1,4 @@
-import {scopeForPurpose} from './rental-pricing-model.js?v=jul20261107';
+import {scopeForPurpose} from './rental-pricing-model.js?v=content20261107';
 export const rentalUsageLabels={standard:'Boligfoto og visning',messe:'Arrangementer og annen bruk'};
 export const rentalUsageDescriptions={standard:'Til styling av bolig før fotografering og visning.',messe:'Til selskap, messe, arbeidsplassen eller daglig bruk.'};
 export const rentalUsageExplanation='Prisen tar hensyn til bruk og forventet slitasje.';

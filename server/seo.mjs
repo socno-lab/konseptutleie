@@ -1,21 +1,21 @@
 import {homeFirstPaint} from './home-first-paint.mjs';
-import {occasionLandingView} from '../public/occasion-landing-view.js?v=jul20261107';
+import {occasionLandingView} from '../public/occasion-landing-view.js?v=content20261107';
 import {initialSiteData} from './initial-site-data.mjs';
 import {customerInformationFirstPaint} from './customer-information-first-paint.mjs';
 import {productFirstPaint} from './product-first-paint.mjs';
 import {saleCatalogFirstPaint} from './sale-catalog-first-paint.mjs';
 import {catalogFirstPaint} from './catalog-first-paint.mjs';
 import {catalogFilters} from '../public/catalog-filters.js';
-import {catalogUsageMarkup} from '../public/catalog-usage-markup.js?v=jul20261107';
-import {validPurpose} from '../public/rental-purpose-model.js?v=jul20261107';
-import {rentalUsageState} from '../public/rental-usage-model.js?v=jul20261107';
-import {renderMesseLanding} from '../public/messe-landing.js';
+import {catalogUsageMarkup} from '../public/catalog-usage-markup.js?v=content20261107';
+import {validPurpose} from '../public/rental-purpose-model.js?v=content20261107';
+import {rentalUsageState} from '../public/rental-usage-model.js?v=content20261107';
+import {renderMesseLanding} from '../public/messe-landing.js?v=content20261107';
 import {catalogIntroHtml} from '../public/catalog-intro.js';
 import {purchaseProductText} from '../public/purchase-copy.js';
-import {categoryLabel,getSiteSettings} from '../public/site-settings.js?v=jul20261107';
-import {homeOccasionCards} from '../public/home-occasions.js?v=jul20261107';
-import {matchesPurpose} from '../public/rental-purpose-model.js?v=jul20261107';
-import {salesEnabled,saleUnitPrice} from '../public/sales-model.js?v=jul20261107';
+import {categoryLabel,getSiteSettings} from '../public/site-settings.js?v=content20261107';
+import {homeOccasionCards} from '../public/home-occasions.js?v=content20261107';
+import {matchesPurpose} from '../public/rental-purpose-model.js?v=content20261107';
+import {salesEnabled,saleUnitPrice} from '../public/sales-model.js?v=content20261107';
 export const siteOrigin='https://konseptuell.no';
 export const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const e=escapeHtml,money=n=>new Intl.NumberFormat('nb-NO',{maximumFractionDigits:0}).format(n)+' kr';
@@ -31,7 +31,7 @@ export function pageModel(path,params,products){
   return {status:200,title:(buy?'Kjøp ':'Lei ')+p.name+' | Konseptuell',h1:p.name,description:[(buy?'Kjøp ':'Lei ')+p.name,p.material,buy?'Send en kjøpsforespørsel. Pris og levering bekreftes.':'Velg leieperiode og send en forespørsel om tilgjengelighet.'].filter(Boolean).join('. '),canonical:url(p,buy),items:[p],product:p,productReturn:params.get('retur'),productPurpose:validPurpose(params.get('bruk')),productCategory:params.get('kategori')||'Alle',productUsage:rentalUsageState({purpose:validPurpose(params.get('bruk')),explicit:params.get('prisbruk')}),buy};
  }
  if(path==='/anledning.html'){
-  let key=params.get('anledning')||Object.keys(occasions).find(k=>occasions[k][1]===params.get('bruk'))||'alle';if(key==='event')key='messe';const [h1,area,description]=occasions[key]||occasions.alle;
+  let key=params.get('anledning')||Object.keys(occasions).find(k=>occasions[k][1]===params.get('bruk'))||'alle';if(key==='event')key='messe';const [defaultTitle,area,defaultDescription]=occasions[key]||occasions.alle;const content=getSiteSettings().landingContent?.[key],h1=content?.heading||defaultTitle,description=content?.intro||defaultDescription;
   const selected=pool.filter(p=>matchesPurpose(p,area));
   return {status:200,h1,title:h1+' | Konseptuell',description,canonical:'/anledning.html?bruk='+area+'&anledning='+(occasions[key]?key:'alle'),items:selected,buy:false};
  }
@@ -69,7 +69,7 @@ export function renderSeo(source,m,products,indexable,settings=getSiteSettings()
  if(['/leieprodukt.html','/kjopsprodukt.html'].includes(m.canonical.split('?')[0]))html=html.replace('<main>',()=>'<main><noscript>'+productContent(m,products)+'</noscript>');
  else if(m.canonical.startsWith('/utvalg.html'))html=html.replace(/<h2>Et utvalg å bygge på\.<\/h2>/,()=>'<h1>'+e(m.h1)+'</h1>').replace(/<p id="catalogIntro">[\s\S]*?<\/p>/,()=>'<p id="catalogIntro">'+(m.catalogIntro||catalogIntroHtml())+'</p>').replace('<div id="products" class="products"></div>',()=>'<noscript><style>#products{display:none!important}</style><div class="products">'+productCards(m.items,m.buy)+'</div></noscript><div id="products" class="products"></div>');
  else if(m.canonical.startsWith('/kjop.html'))html=html.replace('<h1>Møbler og belysning.</h1>',()=>'<h1>'+e(m.h1)+'</h1>').replace('<div class="sale-grid" id="saleProducts"></div>',()=>'<noscript><style>#saleProducts{display:none!important}</style><div class="sale-grid">'+productCards(m.items,true)+'</div></noscript><div class="sale-grid" id="saleProducts"></div>');
- if(m.canonical.startsWith('/anledning.html')){const view=occasionLandingView(m.canonical);if(view.title!==m.h1)html=html.replace(/(<section[^>]+id="occasionLanding"[^>]*>)[\s\S]*?<\/section>/,(_,opening)=>opening+'<h1>'+e(m.h1)+'</h1><p>'+e(m.description)+'</p></section>');else html=html.replace(/(<section[^>]+id="occasionLanding"[^>]*>)[\s\S]*?<\/section>/,()=>'<section class="occasion-landing section'+(view.messe?' messe-page-landing':'')+'" id="occasionLanding" data-first-paint="true" aria-label="Velg enkeltprodukter eller ferdige pakker">'+view.html+'</section>');if(view.messe)html=html.replace('</head>','<link rel="stylesheet" href="/messe-landing.css?v=spacing20261106b"></head>');}
+ if(m.canonical.startsWith('/anledning.html')){const view=occasionLandingView(m.canonical,settings);if(view.title!==m.h1)html=html.replace(/(<section[^>]+id="occasionLanding"[^>]*>)[\s\S]*?<\/section>/,(_,opening)=>opening+'<h1>'+e(m.h1)+'</h1><p>'+e(m.description)+'</p></section>');else html=html.replace(/(<section[^>]+id="occasionLanding"[^>]*>)[\s\S]*?<\/section>/,()=>'<section class="occasion-landing section'+(view.messe?' messe-page-landing':'')+'" id="occasionLanding" data-first-paint="true" aria-label="Velg enkeltprodukter eller ferdige pakker">'+view.html+'</section>');if(view.messe)html=html.replace('</head>','<link rel="stylesheet" href="/messe-landing.css?v=spacing20261106b"></head>');}
  if(m.canonical==='/midlertidig-moblering.html')html=html.replace(/<main>[\s\S]*?<\/main>/,()=>'<main><section class="section"><p class="eyebrow">LEIE OVER TID</p><h1>'+e(m.h1)+'</h1><p>'+e(m.description)+'</p><p>Velg start- og sluttdato i leieforespørselen. Vi avklarer møbler, varighet og pris i tilbudet.</p><a class="button dark" href="/utvalg.html">Se møbler til leie</a></section><section class="section"><h2>Velg møbler for perioden du trenger</h2><div class="products">'+productCards(m.items,false)+'</div></section></main>');
  if(!m.product&&m.status===200&&!m.canonical.startsWith('/kundeinfo'))html=html.replace('</main>',()=>discovery(products,m.buy)+'</main>');
  if(m.catalogUsage)html=catalogFirstPaint(html,m,products,settings);

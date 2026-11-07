@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isRentedOut,rentalGroupRentedOut,rentalSeriesRentedOut,rentalStatusBadge,rentalStatusNotice} from '../public/rental-status.js';
 import {remaining,normalizeBasket,moduleConfiguration,rentalEstimate} from '../public/catalog-model.js';
-import {applyRentalScope} from '../public/rental-pricing-model.js?v=jul20261107';
-import {saleEstimate} from '../public/sales-model.js?v=jul20261107';
-import {recommendProducts} from '../public/recommendation-model.js?v=jul20261107';
-import {renderRecommendations} from '../public/product-recommendations.js?v=jul20261107';
+import {applyRentalScope} from '../public/rental-pricing-model.js?v=content20261107';
+import {saleEstimate} from '../public/sales-model.js?v=content20261107';
+import {recommendProducts} from '../public/recommendation-model.js?v=content20261107';
+import {renderRecommendations} from '../public/product-recommendations.js?v=content20261107';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 
 const product=(id,extra={})=>({id,name:'Syntetisk loungestol '+id,category:'Stoler',active:true,rentalEnabled:true,saleEnabled:true,salePrice:2500,stock:4,unavailable:1,price:100,weekPrice:400,monthPrice:1200,image:'/assets/synthetic.webp',purposesExplicit:true,purposes:['boligsalg','messe'],...extra});

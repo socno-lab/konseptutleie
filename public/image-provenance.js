@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=jul20261107';
+import {getSiteSettings} from './site-settings.js?v=content20261107';
 // Known generated illustrations and edited assets; supplier photos remain unmarked.
 export const kiDisclosure='Bildet kan være retusjert eller generert med KI';
 const illustratedImages=new Set([

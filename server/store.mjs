@@ -1,5 +1,5 @@
 import {migrateStylingPricing} from './pricing-migration.mjs';
-import {defaultSettings} from '../public/site-settings.js?v=jul20261107';
+import {defaultSettings} from '../public/site-settings.js?v=content20261107';
 import {deliveryCallLimits} from './delivery.mjs';
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';

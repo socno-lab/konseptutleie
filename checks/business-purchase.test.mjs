@@ -16,7 +16,7 @@ test('Purchase lines never enter rental calculations; try-first remains rental',
 import {businessPurchaseEnabled,configureBusinessPackages,packagePurchasePrice} from '../public/business-purchase-model.js';
 import {validateCatalog} from '../server/catalog.mjs';
 import {readFileSync} from 'node:fs';
-import {matchesPurpose} from '../public/rental-purpose-model.js?v=jul20261107';
+import {matchesPurpose} from '../public/rental-purpose-model.js?v=content20261107';
 test('Admin defines purchase eligibility per package, never implicitly for its component products',()=>{
  const pack={id:'new_business',isPackage:true,businessPurchase:true,purchasePrice:12000};
  assert.equal(businessPurchaseEnabled(pack),true);

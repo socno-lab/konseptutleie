@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {sofaCardConfiguration} from '../public/sofa-card-model.js';
 import {moduleCardImage} from '../public/module-card-image.js';
 import {ratePlan} from '../public/catalog-model.js';
-import {applyRentalScope} from '../public/rental-pricing-model.js?v=jul20261107';
+import {applyRentalScope} from '../public/rental-pricing-model.js?v=content20261107';
 
 const cover='/media/9ed8bbde97fa7549978a7df6bdbbae45';
 const base={id:'obj_jysk_skibby_base_sand',name:'Begge ender',moduleSeries:'JYSK SKIBBY, sand',moduleRole:'base',moduleWidth:186,category:'Sofaer',active:true,rentalEnabled:true,stock:1,unavailable:0,image:'/base.webp',gallery:[cover],price:100,weekPrice:100,monthPrice:1000};

@@ -31,5 +31,5 @@ test('purchase and occasion pages do not adopt the rental housing introduction',
  assert.equal(buy.catalogIntro,undefined);
  const occasion=pageModel('/anledning.html',new URLSearchParams('anledning=messe'),products);
  assert.equal(occasion.catalogIntro,undefined);
- assert.match(occasion.description,/messestand, event og loungeområder/);
+ assert.match(occasion.description,/Skap en innbydende stand/);
 });

@@ -10,11 +10,11 @@ import {readHtmlTemplate} from './server/html-templates.mjs';
 import {indexableEnvironment,pageModel,renderSeo,sitemap,robots} from './server/seo.mjs';
 import {createSubmissionSender} from './server/submissions.mjs';
 import {createRequestGuard,contentPolicy} from './server/request-guard.mjs';
-import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js?v=jul20261107';
+import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js?v=content20261107';
 import {createDeliveryEstimator,deliveryRates,warehouse} from './server/delivery.mjs';
-import {salesEnabled,saleUnitPrice} from './public/sales-model.js?v=jul20261107';
+import {salesEnabled,saleUnitPrice} from './public/sales-model.js?v=content20261107';
 import {discountQuote,validateDiscountCodes} from './server/discounts.mjs';
-import {rentalRateSets} from './public/rental-pricing-model.js?v=jul20261107';
+import {rentalRateSets} from './public/rental-pricing-model.js?v=content20261107';
 import {resolvedPackagePurchasePrice} from './public/business-purchase-model.js';
 import {planTrashPurge} from './server/trash-purge.mjs';
 import {changeProductLifecycle} from './server/product-lifecycle.mjs';
@@ -46,7 +46,7 @@ export function createServer(options={}){
  const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session':'konsept_session';
  const submissions=createSubmissionSender(env,store,options.sendMail);
  const delivery=createDeliveryEstimator(env,options.deliveryFetch,{reserve:store.enabled?now=>store.reserveDeliveryCall(now):undefined});
- async function readCatalog(){const data=await store.readCatalog(),site=store.readSiteSettings?await store.readSiteSettings():{settings:defaultSettings};configureSiteSettings(site.settings);return {...data,settings:site.settings};}
+ async function readCatalog(){const data=await store.readCatalog(),site=store.readSiteSettings?await store.readSiteSettings():{settings:defaultSettings};const settings=configureSiteSettings(site.settings);return {...data,settings};}
  const publicCache=createPublicCatalogCache(async()=>store.enabled?readCatalog():{...seed,settings:defaultSettings},publicCatalog,options.publicCatalogCache);
  async function readPublicCatalog(){const data=await publicCache.get();configureSiteSettings(data.settings);return data;}
  const thumbnails=createCatalogThumbnailer(options.thumbnailOptions);let mediaActive=0;
