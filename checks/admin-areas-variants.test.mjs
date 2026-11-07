@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {matchesPurpose,resolvedProductPurposes} from '../public/rental-purpose-model.js?v=production20261107';
+import {matchesPurpose,resolvedProductPurposes} from '../public/rental-purpose-model.js?v=jul20261107';
 import {validateCatalog} from '../server/catalog.mjs';
-import {linkVariantProducts,productVariants} from '../public/product-variants.js?v=production20261107';
+import {linkVariantProducts,productVariants} from '../public/product-variants.js?v=jul20261107';
 import {readFileSync} from 'node:fs';
 test('Explicit admin use areas override legacy mappings, including empty selection',()=>{
  const p={id:'obj_a6ca0b4ab5d94e0b811e2fddf13b13b9',isPackage:true,businessPurchase:true,purposes:['fest','jul'],purposesExplicit:true};
- assert(matchesPurpose(p,'fest'));assert(matchesPurpose(p,'jul'));assert(!matchesPurpose(p,'bedrift'));assert(!matchesPurpose(p,'messe'));assert(!matchesPurpose({...p,purposes:[]},'jul'));assert(matchesPurpose({...p,purposes:[]},'alle'));
+ assert(matchesPurpose(p,'fest'));assert(!matchesPurpose(p,'jul'));assert(!matchesPurpose(p,'bedrift'));assert(!matchesPurpose(p,'messe'));assert(!matchesPurpose({...p,purposes:[]},'jul'));assert(matchesPurpose({...p,purposes:[]},'alle'));
  const legacy={id:'old',category:'Stoler',purposes:['messe','event']};assert.deepEqual(resolvedProductPurposes(legacy),['messe','bedrift','fest']);
 });
 test('New assignments and legacy event assignments survive catalog validation',()=>{

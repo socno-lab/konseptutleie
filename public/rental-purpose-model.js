@@ -17,6 +17,10 @@ const occasionPackages=new Set(['obj_b3af6675a38744e0bc567acc3c547849','obj_3aaf
 export function matchesPurpose(product,value){
  const purpose=validPurpose(value);
  if(purpose==='alle')return true;
+ const christmas=product.serviceGroup==='Klart til jul'||['obj_3aaf7f39d05041b5a68f0f51bb66f705','obj_f3e152bb768e4178a82fd39136efc0ae','obj_8278a918ddb64adf9f521db17a55fe88'].includes(product.id);
+ // Christmas is a curated service collection; older broad assignments are retained in storage.
+ if(purpose==='jul')return christmas;
+ if(christmas)return false;
  // Production is a cross-catalog collection of furniture and props, without duplicated stock.
  if(purpose==='produksjon')return !product.isPackage&&product.offeringType!=='service'&&['Sofaer','Modulsofaer','Stoler','Bord','Hyller','Belysning','Tepper','Kunstige planter','Kunstige blomster','Dekor','Bilder','Speil','Servise','Utemøbler','Senger'].includes(product.category);
  if(product.purposesExplicit===true)return (product.purposes||[]).includes(purpose);
@@ -24,7 +28,6 @@ export function matchesPurpose(product,value){
  if(purpose==='bedrift'&&product.isPackage&&product.businessPurchase===true)return true;
  if(purpose==='boligsalg')return matchesCatalogPurpose(product,purpose);
  if(purpose==='fest')return matchesCatalogPurpose(product,'event')&&!['obj_e5808483ea4f4c5cbad08a5a6bb33f53','obj_b71d8247647e4575965649ddfa802485','obj_8f62b216c40348b29d42b4c7b9c0c6a0'].includes(product.id);
- if(purpose==='jul')return product.isPackage?occasionPackages.has(product.id):matchesCatalogPurpose(product,'event')&&['Dekor','Kunstige planter','Kunstige blomster'].includes(product.category);
  const shared=matchesCatalogPurpose(product,'messe')||matchesCatalogPurpose(product,'event');
  if(purpose==='messe')return shared&&!occasionPackages.has(product.id);
  return shared&&(product.isPackage?businessPackages.has(product.id):businessCategories.has(product.category));

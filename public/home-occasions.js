@@ -1,4 +1,4 @@
-import {isKiPhoto,kiDisclosure} from './image-provenance.js?v=production20261107';
+import {isKiPhoto,kiDisclosure} from './image-provenance.js?v=jul20261107';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Render the final icon on both server and client so icons.js cannot invalidate

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {moduleCardImage} from '../public/module-card-image.js';
-import {renderRecommendations} from '../public/product-recommendations.js?v=production20261107';
+import {renderRecommendations} from '../public/product-recommendations.js?v=jul20261107';
 
 test('rental alternatives show the catalogue sofa cover even when the recommended module has no gallery',()=>{
  const current={id:'current',name:'Sofa',category:'Sofaer',rentalAlternatives:['left']};

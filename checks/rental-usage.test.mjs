@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {rentalUsageState,rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from '../public/rental-usage-model.js?v=production20261107';
-import {applyRentalScope,rentalRateSets} from '../public/rental-pricing-model.js?v=production20261107';
+import {rentalUsageState,rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from '../public/rental-usage-model.js?v=jul20261107';
+import {applyRentalScope,rentalRateSets} from '../public/rental-pricing-model.js?v=jul20261107';
 import {rentalEstimate} from '../public/catalog-model.js';
 test('A new visitor in all uses must choose before seeing prices',()=>{
  assert.deepEqual(rentalUsageState(),{scope:'messe',confirmed:false});

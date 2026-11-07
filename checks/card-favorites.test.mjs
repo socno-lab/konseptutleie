@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {favoriteCardEntry} from '../public/card-favorites.js';
-import {buildHeaderCatalog,cleanFavoriteIds} from '../public/header-catalog-model.js?v=production20261107';
+import {buildHeaderCatalog,cleanFavoriteIds} from '../public/header-catalog-model.js?v=jul20261107';
 const item=(id,extra={})=>({id,name:id,category:'Stoler',active:true,rentalEnabled:true,saleEnabled:true,...extra});
 test('catalogue card and linked recommendations save the same favorite across rental and purchase',()=>{
  const entries=buildHeaderCatalog([item('chair'),item('package',{isPackage:true})]);
