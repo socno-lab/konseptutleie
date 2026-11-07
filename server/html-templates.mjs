@@ -22,6 +22,7 @@ export async function readHtmlTemplate(name,base=root){
  if(!publicHtmlNames.includes(name))throw Error('Ukjent HTML-mal.');
  let html;try{html=await readFile(path.join(base,'server','templates',name),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;html=await readFile(path.join(base,'public',name),'utf8');}
  html=html.replace(/(<footer\b[^>]*>[\s\S]*?)(<a\b[^>]*href="https:\/\/www\.konseptboligstyling\.no")/,'$1<a href="/om-oss" class="about-footer-link">Om oss</a>$2');
+ html=html.replace(/(<nav\b[^>]*aria-label="Hovedmeny"[^>]*>)([\s\S]*?)(<\/nav>)/,(_,open,links,close)=>open+links+(links.includes('href="/om-oss"')?'':'<a href="/om-oss">Om oss</a>')+close);
  html=renderArrowIcons(renderHeaderTools(renderMobileNavigation(html)));
  html=html.replace('</head>','<link rel="icon" href="/favicon.ico?v=brand20261105" sizes="any"><link rel="icon" type="image/png" href="/favicon.png?v=brand20261105" sizes="96x96"><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=brand20261105"><link rel="apple-touch-icon" href="/apple-touch-icon.png?v=brand20261105" sizes="180x180"></head>');
  // Occasion is an explicit form choice, never inferred from the catalogue category.
