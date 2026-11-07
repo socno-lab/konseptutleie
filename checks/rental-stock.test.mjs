@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {rentalStockText} from '../public/rental-stock.js?v=stockall20261107';
-import {productSummary} from '../public/product-summary.js?v=stockall20261107';
+import {rentalStockText} from '../public/rental-stock.js?v=stockmobile20261107';
+import {productSummary} from '../public/product-summary.js?v=stockmobile20261107';
 test('owned quantity remains separate from unavailable stock and basket limits',()=>{
  assert.equal(rentalStockText({stock:12,unavailable:8,maxQuantity:4}),'12 stk. til utleie');
  assert.equal(rentalStockText({stock:1}),'1 stk. til utleie');

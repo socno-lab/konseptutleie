@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {splitAcquisitionBasket,acquisitionPurchasePrice,packagePurchaseSelectionPrice} from '../public/business-purchase-model.js';
 import {withPackageAddons} from '../public/package-addon-model.js';
 import {packageCartView} from '../public/package-cart-model.js';
-import {getTermsVersions,requiredEnquiryTerms} from '../public/terms-versions.js?v=stockall20261107';
+import {getTermsVersions,requiredEnquiryTerms} from '../public/terms-versions.js?v=stockmobile20261107';
 import {validateSubmission} from '../server/submissions.mjs';
 import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';
 import {enquiryEmail} from '../server/enquiry-email.mjs';

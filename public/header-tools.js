@@ -1,7 +1,7 @@
 import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
 import {mountCardFavorites} from './card-favorites.js?v=hearts20261105';
-import {buildHeaderCatalog,searchHeaderCatalog,searchHeaderCategories,cleanFavoriteIds} from './header-catalog-model.js?v=stockall20261107';
-import {configureSiteSettings,imageUrl} from './site-settings.js?v=stockall20261107';
+import {buildHeaderCatalog,searchHeaderCatalog,searchHeaderCategories,cleanFavoriteIds} from './header-catalog-model.js?v=stockmobile20261107';
+import {configureSiteSettings,imageUrl} from './site-settings.js?v=stockmobile20261107';
 
 const header=document.querySelector('body>header.has-header-tools'),layer=document.querySelector('.header-tools-layer');
 if(header&&layer)mount();

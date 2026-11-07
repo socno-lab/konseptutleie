@@ -1,6 +1,6 @@
-import {purposes,validPurpose} from './rental-purpose-model.js?v=stockall20261107';
-import {scopeForPurpose,scopeForOccasion} from './rental-pricing-model.js?v=stockall20261107';
-import {rentalUsageLabels} from './rental-usage-model.js?v=stockall20261107';
+import {purposes,validPurpose} from './rental-purpose-model.js?v=stockmobile20261107';
+import {scopeForPurpose,scopeForOccasion} from './rental-pricing-model.js?v=stockmobile20261107';
+import {rentalUsageLabels} from './rental-usage-model.js?v=stockmobile20261107';
 
 const validScope=value=>value==='standard'||value==='messe'?value:null;
 

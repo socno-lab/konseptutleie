@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultSettings,validateSiteSettings} from '../public/site-settings.js?v=stockall20261107';
-import {matchesPurpose,validPurpose} from '../public/rental-purpose-model.js?v=stockall20261107';
-import {occasionLandingView} from '../public/occasion-landing-view.js?v=stockall20261107';
+import {defaultSettings,validateSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
+import {matchesPurpose,validPurpose} from '../public/rental-purpose-model.js?v=stockmobile20261107';
+import {occasionLandingView} from '../public/occasion-landing-view.js?v=stockmobile20261107';
 import {pageModel,renderSeo} from '../server/seo.mjs';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 test('legacy home settings migrate once without changing seasonal highlight or other cards',()=>{const old=structuredClone(defaultSettings);old.home.occasions[2].title='Bryllup og fest';old.home.occasions[3]={id:'jul',title:'Jul og sesong',image:'/media/christmas',productId:'christmas'};old.home.seasonProductId='christmas';const before=structuredClone(old),next=validateSiteSettings(old);assert.deepEqual(old,before);assert.equal(next.home.occasions.length,6);assert.equal(next.home.occasions[2].title,'Fest og sesong');assert.equal(next.home.occasions[3].id,'produksjon');assert.equal(next.home.seasonProductId,'christmas');assert.deepEqual(validateSiteSettings(next),next);});

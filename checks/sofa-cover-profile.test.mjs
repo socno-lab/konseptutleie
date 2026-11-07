@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {sofaCoverProfile,sofaCardArt,moduleCardImage} from '../public/module-card-image.js';
-import {renderRecommendations} from '../public/product-recommendations.js?v=stockall20261107';
+import {renderRecommendations} from '../public/product-recommendations.js?v=stockmobile20261107';
 
 const covers=[
  '/assets/beige-sofa-tre-moduler.webp',
@@ -89,7 +89,7 @@ test('rental recommendations reuse the same three-seater cover framing as the ca
 });
 
 test('catalogue fallback cannot replace a selected sofa cover with its builder crop',async()=>{
- const source=await readFile(new URL('../public/app.js?v=stockall20261107',import.meta.url),'utf8');
+ const source=await readFile(new URL('../public/app.js?v=stockmobile20261107',import.meta.url),'utf8');
  const declaration=source.match(/function catalogueArt\(p\)\{[^\n]+\}/)?.[0];
  assert.ok(declaration,'Catalogue image entrypoint is missing');
  const catalogueArt=new Function('sofaCardArt','art',`${declaration};return catalogueArt;`)(sofaCardArt,p=>p);

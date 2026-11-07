@@ -1,4 +1,4 @@
-import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from './rental-usage-model.js?v=stockall20261107';
+import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from './rental-usage-model.js?v=stockmobile20261107';
 export function rentalScopeMarkup(scope,confirmed){
  const buttons='<div class="rental-usage-options" role="group" aria-label="Velg bruk for leiepriser">'+Object.entries(rentalUsageLabels).map(([key,label])=>`<button type="button" data-rental-scope-choice="${key}" aria-pressed="${confirmed&&scope===key}"><strong>${label}</strong><span>${rentalUsageDescriptions[key]}</span></button>`).join('')+'</div>';
  return confirmed?`<p class="rental-selected-usage">Leiepriser for: <strong>${rentalUsageLabels[scope]}</strong></p><p class="hint">${rentalUsageExplanation} Prisene inkluderer valgt bruk og mva.</p><details><summary>Endre bruk</summary>${buttons}</details>`:`<h3>Hva skal du bruke møblene til?</h3><p>Velg bruk for å se riktige leiepriser.</p>${buttons}<p class="hint">${rentalUsageExplanation} Alle viste leiepriser inkluderer valgt bruk og mva. Transport og eventuelt oppsett avklares i tilbudet.</p>`;

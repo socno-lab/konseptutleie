@@ -879,3 +879,23 @@ body>main.proposal-main{padding-bottom:32px;margin-bottom:0}
 .rental-product-photo{position:relative}
 .product-art>.rental-stock-strip,.rental-product-photo>.rental-stock-strip{position:absolute;inset:auto 0 0;z-index:2;display:block;padding:6px 9px;background:#e7ecdf;color:#414b38;font-size:11px;font-weight:500;line-height:1.4;letter-spacing:0;text-transform:none;text-align:center;pointer-events:none}
 .product-art:has(>.rental-stock-strip)>.illustration-badge{bottom:35px}
+
+/* Mobile stock labels add their own row; image dimensions and framing stay intact. */
+.rental-stock-mobile{display:none}
+@media(max-width:640px){
+ .product-art>.rental-stock-strip,.rental-product-photo>.rental-stock-strip{display:none}
+ .rental-stock-mobile{display:block;box-sizing:border-box;width:100%;padding:6px 9px;background:#e7ecdf;color:#414b38;font-size:11px;font-weight:500;line-height:1.4;letter-spacing:0;text-transform:none;text-align:center}
+ .product-art:has(>.rental-stock-strip)>.illustration-badge{bottom:8px}
+}
+@media(max-width:640px){
+ @supports(grid-template-rows:subgrid){
+  #products>article:not(.ready-package-card){grid-row:span 8}
+  #products>article>.rental-stock-mobile{grid-row:2;align-self:start}
+  #products>article>.product-meta{grid-row:3}
+  #products>article>.stock-note{grid-row:4}
+  #products>article>.illustration-note{grid-row:5}
+  #products>article>.rate-grid,#products>article>.quote-only{grid-row:6}
+  #products>article>.rate-caption{grid-row:7}
+  #products>article>.module-build-button,#products>article>.business-purchase-summary{grid-row:8}
+ }
+}

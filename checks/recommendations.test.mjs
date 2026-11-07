@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {recommendProducts,validRecommendationIds} from '../public/recommendation-model.js?v=stockall20261107';
+import {recommendProducts,validRecommendationIds} from '../public/recommendation-model.js?v=stockmobile20261107';
 import {validateCatalog} from '../server/catalog.mjs';
 import {changeProductLifecycle} from '../server/product-lifecycle.mjs';
 import fs from 'node:fs';

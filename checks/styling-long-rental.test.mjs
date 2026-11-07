@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultSettings,configureSiteSettings,validateSiteSettings} from '../public/site-settings.js?v=stockall20261107';
+import {defaultSettings,configureSiteSettings,validateSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
 import {migrateStylingPricing} from '../server/pricing-migration.mjs';
-import {rentalRateSets,retailRentalRates} from '../public/rental-pricing-model.js?v=stockall20261107';
+import {rentalRateSets,retailRentalRates} from '../public/rental-pricing-model.js?v=stockmobile20261107';
 import {ratePlan} from '../public/catalog-model.js';
 const old={...defaultSettings,pricing:{price:.07,weekPrice:.18,monthPrice:.3,eventFactor:1.5,rounding:10}};
 test('percentage migration is idempotent and preserves event rates',()=>{try{

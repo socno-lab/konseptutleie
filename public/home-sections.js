@@ -1,11 +1,11 @@
-import {rentalStockMarkup} from './rental-stock.js?v=stockall20261107';
+import {rentalStockMarkup} from './rental-stock.js?v=stockmobile20261107';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {isTablewareRental,ratePlan} from './catalog-model.js?v=longrent20261026';
-import {kiDisclosure} from './image-provenance.js?v=stockall20261107';
+import {kiDisclosure} from './image-provenance.js?v=stockmobile20261107';
 const html=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function homeProductCards(products,settings,rateGrid){
  const selected=settings.home.products.map(id=>products.find(p=>p.id===id&&p.active)).filter(Boolean),productTitle=p=>isTablewareRental(p,products)?'Servisepakke – sett sammen per person':p.name;
- return selected.map(p=>`<article><button class="rental-product-photo" type="button" data-detail="${html(p.id)}" aria-label="Se detaljer om ${html(productTitle(p))}"><img src="${html(p.image)}" ${responsiveImageAttributes(p.image,'(max-width:640px) 50vw, (max-width:1000px) 33vw, 25vw')} alt="${html(productTitle(p))}" loading="lazy" decoding="async">${rentalStockMarkup(p,{products})}</button><div class="rental-product-copy"><h3>${html(productTitle(p))}</h3><p>${html(p.material)}</p>${rateGrid(p)}<p class="hint">Tilgjengelighet for dine datoer bekreftes i tilbudet.</p><button type="button" class="text-button" data-detail="${html(p.id)}">Se produkt og velg antall ↗</button></div></article>`).join('');
+ return selected.map(p=>`<article><button class="rental-product-photo" type="button" data-detail="${html(p.id)}" aria-label="Se detaljer om ${html(productTitle(p))}"><img src="${html(p.image)}" ${responsiveImageAttributes(p.image,'(max-width:640px) 50vw, (max-width:1000px) 33vw, 25vw')} alt="${html(productTitle(p))}" loading="lazy" decoding="async">${rentalStockMarkup(p,{products})}</button>${rentalStockMarkup(p,{products,belowImage:true})}<div class="rental-product-copy"><h3>${html(productTitle(p))}</h3><p>${html(p.material)}</p>${rateGrid(p)}<p class="hint">Tilgjengelighet for dine datoer bekreftes i tilbudet.</p><button type="button" class="text-button" data-detail="${html(p.id)}">Se produkt og velg antall ↗</button></div></article>`).join('');
 }
 export function homeSeasonContent(products,home,month=new Date().getMonth()+1){
  const tree=products.find(p=>p.active&&p.id===home.seasonProductId)||(!home.seasonProductId?products.find(p=>p.active&&p.isPackage&&/^Klart til jul – (150|180|210|240) cm$/.test(p.name)):null);

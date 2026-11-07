@@ -1,4 +1,4 @@
-import {legacyContentPages,newContentPage,pageAreas,pageCategories,legacyAreas,cardDestination} from './page-model.js?v=stockall20261107';
+import {legacyContentPages,newContentPage,pageAreas,pageCategories,legacyAreas,cardDestination} from './page-model.js?v=stockmobile20261107';
 export function validatePages(raw,content,imageUrl){
  if(raw===undefined)return legacyContentPages(content);
  if(!Array.isArray(raw)||raw.length>40)throw Error('Velg maksimalt 40 sider.');

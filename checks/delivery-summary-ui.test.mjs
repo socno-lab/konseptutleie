@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
-import {requiresTwoPeople,rentalDeliveryCapacity} from '../public/delivery-model.js?v=stockall20261107';
+import {requiresTwoPeople,rentalDeliveryCapacity} from '../public/delivery-model.js?v=stockmobile20261107';
 
 // Exercise the real mount/getter and capacity rules with fake route responses.
 // No Google requests, real customer details or browser side effects are used.
 async function mountedDelivery(){
- const source=await readFile(new URL('../public/customer-info.js?v=stockall20261107',import.meta.url),'utf8'),first=source.indexOf('function mountRentalDelivery(form){'),last=source.indexOf('\n// Scoped to enquiry drawers',first);
+ const source=await readFile(new URL('../public/customer-info.js?v=stockmobile20261107',import.meta.url),'utf8'),first=source.indexOf('function mountRentalDelivery(form){'),last=source.indexOf('\n// Scoped to enquiry drawers',first);
  const getter=source.match(/export function rentalDeliverySummary\(\)\{[^\n]+/)[0].replace('export ','');
  const values=['Henter og returnerer selv','Ønsker levering og henting','Kun levering – jeg returnerer selv','Kun henting – jeg henter selv','Avklares senere'];
  const listeners={},formListeners={},requests=[],events=[],timers=new Map();let now=1_000_000,timerId=0,mobile=false,quote={manual:false,prices:{onePerson:690,twoPeople:1190},receipt:'isolated-test-receipt'};
