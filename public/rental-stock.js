@@ -16,6 +16,6 @@ export function rentalStockText(p,{detail=false,variantLabel="",products=[],seri
  const n=series&&p.moduleSeries?products.filter(x=>x.moduleSeries===p.moduleSeries&&x.active!==false&&!x.deletedAt).reduce((sum,x)=>sum+rentalOwnedCount(x,products),0):rentalOwnedCount(p,products);
  if(!n)return "Tilgjengelighet avklares";
  const unit=series&&p.moduleSeries?(n===1?'modul':'moduler'):p.isPackage?(n===1?'pakke':'pakker'):'stk.';
- return detail?`Vi har ${n} ${unit}. Antall tilgjengelig for ønsket periode avklares i tilbudet.`:`${n} ${unit} til utleie${variantLabel?' · '+variantLabel:''}`;
+ return detail?`Vi har ${n} ${unit} totalt. Tilgjengelighet for datoene dine bekreftes i tilbudet.`:`${n} ${unit} til utleie${variantLabel?' · '+variantLabel:''}`;
 }
 export function rentalStockMarkup(p,options={}){const text=rentalStockText(p,options),escaped=text.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));return !text?'':options.detail?'<p class="hint rental-stock">'+escaped+'</p>':'<span class="'+(options.belowImage?'rental-stock-mobile':'rental-stock-strip')+'">'+escaped+'</span>';}
