@@ -5,7 +5,7 @@ export const defaultLandingContent={
   "intro": "Vi hjelper med reklamestyling, produktstyling og innredning av lokasjoner til foto, film og TV.",
   "text": "Med møbler, tekstiler, planter og dekor fra eget lager setter vi sammen et uttrykk som passer konseptet deres. Lei det dere trenger, eller få hjelp med utvalg, levering og oppsett.",
   "action": "Fortell oss om produksjonen ↗",
-  "caption": "KI-generert illustrasjon av et mulig opptaksmiljø. Ikke et gjennomført kundeoppdrag.",
+  "caption": "Foto, film og reklame.",
   "sectionTitle": "Reklame og kampanje",
   "text2": "Møbler og dekor som støtter merkevaren, stemningen og historien dere vil formidle.",
   "sectionTitle2": "Produkt og foto",
@@ -14,8 +14,8 @@ export const defaultLandingContent={
   "text4": "Innredning til lokasjoner, intervjusoner og scener. Fra enkeltmøbler til et samlet miljø.",
   "helpTitle": "Har dere et moodboard eller en idé?",
   "text5": "Fortell oss om dato, sted og ønsket uttrykk i forespørselen. Vi har mange tusen artikler utover nettutvalget og avklarer omfang, tilgjengelighet og pris i et uforpliktende tilbud.",
-  "image": "/assets/foto-film-reklame-illustrasjon.jpg",
-  "imageAlt": "Illustrert opptaksmiljø med spisebord i eik, styling og kamera"
+  "image": "/assets/foto-film-reklame-forside.jpg",
+  "imageAlt": "To personer foran et kamera under en innspilling"
  },
  "bryllup": {
   "eyebrow": "FEST OG SESONG",
