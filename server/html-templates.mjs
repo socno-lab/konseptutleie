@@ -21,6 +21,7 @@ async function styleVersion(base){
 export async function readHtmlTemplate(name,base=root){
  if(!publicHtmlNames.includes(name))throw Error('Ukjent HTML-mal.');
  let html;try{html=await readFile(path.join(base,'server','templates',name),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;html=await readFile(path.join(base,'public',name),'utf8');}
+ html=html.replace(/(<footer\b[^>]*>[\s\S]*?)(<a\b[^>]*href="https:\/\/www\.konseptboligstyling\.no")/,'$1<a href="/om-oss" class="about-footer-link">Om oss</a>$2');
  html=renderArrowIcons(renderHeaderTools(renderMobileNavigation(html)));
  html=html.replace('</head>','<link rel="icon" href="/favicon.ico?v=brand20261105" sizes="any"><link rel="icon" type="image/png" href="/favicon.png?v=brand20261105" sizes="96x96"><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=brand20261105"><link rel="apple-touch-icon" href="/apple-touch-icon.png?v=brand20261105" sizes="180x180"></head>');
  // Occasion is an explicit form choice, never inferred from the catalogue category.
@@ -35,7 +36,7 @@ export async function readHtmlTemplate(name,base=root){
  // Read the existing saved basket during parsing, before the header paints.
  // Catalogue validation remains the responsibility of the application modules.
  if(/<span id="(?:count|saleCount)">/.test(html))html=html.replace('</head>','<script src="/cart-badge-bootstrap.js?v=cartfirstpaint20261026"></script></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=cartcurrent20261027"><script type="module" src="/header-tools.js?v=stockmobile20261107"></script><script type="module" src="/mobile-navigation.js?v=stockmobile20261107"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=cartcurrent20261027"><script type="module" src="/header-tools.js?v=stockmobile20261107"></script><script type="module" src="/mobile-navigation.js?v=about20261107"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=productscope20261025"></head>');
  if(['index.html','utvalg.html','anledning.html','leieprodukt.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/rental-status.css?v=rented20261029b"></head>');
  const version=await styleVersion(base);

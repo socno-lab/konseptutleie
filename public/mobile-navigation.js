@@ -18,7 +18,7 @@ function mountMobileMenu(header){
   const count=bag.querySelector('#count,#saleCount'),updateLabel=()=>bag.setAttribute('aria-label',(bag.id==='openSaleCart'?'Handlekurv for kjøp':'Din leieforespørsel')+(count?' – '+count.textContent.trim()+(count.textContent.trim()==='1'?' vare':' varer'):''));
   if(count)new MutationObserver(updateLabel).observe(count,{childList:true,subtree:true,characterData:true});updateLabel();
  }
- const defaults=[['Leie','/'],['Kjøpe','/kjop.html'],['Pakker & tjenester','/utvalg.html?bruk=alle&kategori=Pakker#utvalg'],['Skreddersydd','/#skreddersydd'],['Slik fungerer det','/#slik']];
+ const defaults=[['Leie','/'],['Kjøpe','/kjop.html'],['Pakker & tjenester','/utvalg.html?bruk=alle&kategori=Pakker#utvalg'],['Skreddersydd','/#skreddersydd'],['Slik fungerer det','/#slik'],['Om oss','/om-oss']];
  const areaUrls={boligfoto:'/utvalg.html?bruk=boligsalg&kategori=Enkeltprodukter#utvalg',messe:'/anledning.html?bruk=messe&anledning=messe',bryllup:'/anledning.html?bruk=fest&anledning=bryllup',jul:'/anledning.html?bruk=jul&anledning=jul',produksjon:'/anledning.html?bruk=produksjon&anledning=produksjon',bedrift:'/anledning.html?bruk=bedrift&anledning=bedrift',alle:'/utvalg.html?bruk=alle#utvalg'};
  function link(label,href){const a=document.createElement('a');a.textContent=label;a.href=href;const arrow=document.createElement('span');arrow.setAttribute('aria-hidden','true');arrow.textContent='›';a.append(arrow);return a;}
  function render(){

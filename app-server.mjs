@@ -200,7 +200,8 @@ export function createServer(options={}){
    if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return await missing();
    if(pathname==='/tilpasset-foresporsel.html'&&['GET','HEAD'].includes(req.method))return send(200,initialSiteData(proposalPageHtml(await readHtmlTemplate('index.html')),await readPublicCatalog()),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});
    if(pathname==='/foresporsel.html'&&['GET','HEAD'].includes(req.method)){const mode=url.searchParams.get('type')==='kjop'?'buy':'rent';return send(200,initialSiteData(enquiryPageHtml(await readHtmlTemplate(mode==='buy'?'kjop.html':'utvalg.html'),mode),await readPublicCatalog()),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});}
-   const seoPaths=['/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
+   if(pathname==='/om-oss.html'&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/om-oss'});
+   const seoPaths=['/om-oss','/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
    if(seoPaths.includes(pathname)&&['GET','HEAD'].includes(req.method)){
     const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));if(!release)return send(429,'For mange forespørsler. Prøv igjen senere.','text/plain',{'Retry-After':'60'});res.once('finish',release);res.once('close',release);
     const catalog=await readPublicCatalog();
@@ -208,7 +209,7 @@ export function createServer(options={}){
     const model=pageModel(pathname,url.searchParams,catalog.products);
     if(pathname==='/kjop.html')model.saleCanAdmin=store.enabled&&await authenticated();
     if(model.product)model.productCanAdmin=store.enabled&&await authenticated();
-    const sourcePath=pathname==='/midlertidig-moblering.html'?'/index.html':pathname==='/'?'/index.html':pathname;
+    const sourcePath=['/midlertidig-moblering.html','/om-oss'].includes(pathname)?'/index.html':pathname==='/'?'/index.html':pathname;
     let source=await readHtmlTemplate(sourcePath.slice(1));
     if(model.status===404)return await missing();
     return send(model.status,renderSeo(source,model,catalog.products,indexing,catalog.settings),'text/html; charset=utf-8',{'X-Robots-Tag':indexing&&model.status===200?'index, follow, max-image-preview:large':'noindex, nofollow, noarchive'});

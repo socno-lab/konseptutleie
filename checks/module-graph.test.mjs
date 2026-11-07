@@ -34,6 +34,7 @@ for(const file of ["/admin/admin.js", "/admin/landing-settings.js", "/admin/page
 releaseVersions.set('/rental-stock.js','stockmobile20261107');
 releaseVersions.set('/app.js','stockmobile20261107');releaseVersions.set('/proposal-form.js','stockmobile20261107');
 releaseVersions.set('/product-gallery-sticky.js','stickygallery20261107');
+releaseVersions.set('/mobile-navigation.js','about20261107');
 const versionFor=file=>releaseVersions.has(file)?'?v='+releaseVersions.get(file):legacyVersionFor(file);
 const imports=source=>[...source.matchAll(/\b(?:from|import)\s*['"]((?:\.{1,2}\/|\/)[^'"\s]+\.js(?:\?[^'"]*)?)['"]/g)].map(m=>m[1]);
 async function walk(directory){const files=[];for(const entry of await readdir(directory,{withFileTypes:true})){const name=path.join(directory,entry.name);if(entry.isDirectory())files.push(...await walk(name));else files.push(name);}return files;}
