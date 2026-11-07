@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';
 import {enquiryEmail} from '../server/enquiry-email.mjs';
 import {addDateDays} from '../public/rental-dates.js';
-import {rentalUsageLabels,rentalUsageDescriptions} from '../public/rental-usage-model.js?v=content20261107';
+import {rentalUsageLabels,rentalUsageDescriptions} from '../public/rental-usage-model.js?v=pages20261107';
 
 const chair={id:'chair',name:'Stol',category:'Stoler',active:true,stock:20,unavailable:0,rentalPricingMode:'manual',price:100,weekPrice:300,monthPrice:500,saleEnabled:true,salePrice:2000,relatedAddOns:['textile']};
 const textile={id:'textile',name:'Tekstilpakke til lenestol',category:'Tilvalg',active:true,isService:true,rentalPricingMode:'period',price:400};

@@ -6,7 +6,7 @@ import vm from 'node:vm';
 // Exercise the real mount against a narrow DOM adapter. No copied render logic,
 // browser APIs, paid route lookups or real addresses are involved.
 async function mountedDelivery(){
- const source=await readFile(new URL('../public/customer-info.js?v=content20261107',import.meta.url),'utf8'),first=source.indexOf('function mountRentalDelivery(form){'),last=source.indexOf('\n// Scoped to enquiry drawers',first);
+ const source=await readFile(new URL('../public/customer-info.js?v=pages20261107',import.meta.url),'utf8'),first=source.indexOf('function mountRentalDelivery(form){'),last=source.indexOf('\n// Scoped to enquiry drawers',first);
  assert.ok(first>=0&&last>first);
  const values=['Henter og returnerer selv','Ønsker levering og henting','Kun levering – jeg returnerer selv','Kun henting – jeg henter selv','Avklares senere'],listeners={},requests=[];
  const element=()=>({hidden:false,disabled:false,textContent:'',innerHTML:'',style:{},setAttribute(){},after(){}});

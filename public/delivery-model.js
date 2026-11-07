@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=content20261107';
+import {getSiteSettings} from './site-settings.js?v=pages20261107';
 export const deliveryRates=new Proxy({normalSingle:690,extendedSingle:890,normalTwo:1190,extendedTwo:1390,normalMinutes:30,maxMinutes:40,vatIncluded:true},{get:(target,key)=>key==='vatIncluded'?true:getSiteSettings().delivery[key]??target[key]});
 export function requiresTwoPeople(basket,products){
  const byId=new Map(products.map(p=>[p.id,p])),seen=new Set();

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {orderRentalCards} from '../public/catalog-order-model.js?v=content20261107';
+import {orderRentalCards} from '../public/catalog-order-model.js?v=pages20261107';
 
 const ids=cards=>cards.map(card=>card.id);
 

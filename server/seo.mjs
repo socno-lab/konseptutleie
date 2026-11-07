@@ -1,21 +1,22 @@
+import {contentPages} from '../public/page-model.js?v=pages20261107';
 import {homeFirstPaint} from './home-first-paint.mjs';
-import {occasionLandingView} from '../public/occasion-landing-view.js?v=content20261107';
+import {occasionLandingView} from '../public/occasion-landing-view.js?v=pages20261107';
 import {initialSiteData} from './initial-site-data.mjs';
 import {customerInformationFirstPaint} from './customer-information-first-paint.mjs';
 import {productFirstPaint} from './product-first-paint.mjs';
 import {saleCatalogFirstPaint} from './sale-catalog-first-paint.mjs';
 import {catalogFirstPaint} from './catalog-first-paint.mjs';
 import {catalogFilters} from '../public/catalog-filters.js';
-import {catalogUsageMarkup} from '../public/catalog-usage-markup.js?v=content20261107';
-import {validPurpose} from '../public/rental-purpose-model.js?v=content20261107';
-import {rentalUsageState} from '../public/rental-usage-model.js?v=content20261107';
-import {renderMesseLanding} from '../public/messe-landing.js?v=content20261107';
+import {catalogUsageMarkup} from '../public/catalog-usage-markup.js?v=pages20261107';
+import {validPurpose} from '../public/rental-purpose-model.js?v=pages20261107';
+import {rentalUsageState} from '../public/rental-usage-model.js?v=pages20261107';
+import {renderMesseLanding} from '../public/messe-landing.js?v=pages20261107';
 import {catalogIntroHtml} from '../public/catalog-intro.js';
 import {purchaseProductText} from '../public/purchase-copy.js';
-import {categoryLabel,getSiteSettings} from '../public/site-settings.js?v=content20261107';
-import {homeOccasionCards} from '../public/home-occasions.js?v=content20261107';
-import {matchesPurpose} from '../public/rental-purpose-model.js?v=content20261107';
-import {salesEnabled,saleUnitPrice} from '../public/sales-model.js?v=content20261107';
+import {categoryLabel,getSiteSettings} from '../public/site-settings.js?v=pages20261107';
+import {homeOccasionCards} from '../public/home-occasions.js?v=pages20261107';
+import {matchesPurpose} from '../public/rental-purpose-model.js?v=pages20261107';
+import {salesEnabled,saleUnitPrice} from '../public/sales-model.js?v=pages20261107';
 export const siteOrigin='https://konseptuell.no';
 export const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const e=escapeHtml,money=n=>new Intl.NumberFormat('nb-NO',{maximumFractionDigits:0}).format(n)+' kr';
@@ -31,9 +32,9 @@ export function pageModel(path,params,products){
   return {status:200,title:(buy?'Kjøp ':'Lei ')+p.name+' | Konseptuell',h1:p.name,description:[(buy?'Kjøp ':'Lei ')+p.name,p.material,buy?'Send en kjøpsforespørsel. Pris og levering bekreftes.':'Velg leieperiode og send en forespørsel om tilgjengelighet.'].filter(Boolean).join('. '),canonical:url(p,buy),items:[p],product:p,productReturn:params.get('retur'),productPurpose:validPurpose(params.get('bruk')),productCategory:params.get('kategori')||'Alle',productUsage:rentalUsageState({purpose:validPurpose(params.get('bruk')),explicit:params.get('prisbruk')}),buy};
  }
  if(path==='/anledning.html'){
-  let key=params.get('anledning')||Object.keys(occasions).find(k=>occasions[k][1]===params.get('bruk'))||'alle';if(key==='event')key='messe';const [defaultTitle,area,defaultDescription]=occasions[key]||occasions.alle;const content=getSiteSettings().landingContent?.[key],h1=content?.heading||defaultTitle,description=content?.intro||defaultDescription;
+  let key=params.get('anledning')||Object.keys(occasions).find(k=>occasions[k][1]===params.get('bruk'))||'alle';if(key==='event')key='messe';const managed=contentPages(getSiteSettings()).find(p=>p.id===key);const [defaultTitle,legacyArea,defaultDescription]=occasions[key]||occasions.alle;const area=managed?.area||legacyArea,content=managed||getSiteSettings().landingContent?.[key],h1=content?.heading||defaultTitle,description=content?.intro||defaultDescription;
   const selected=pool.filter(p=>matchesPurpose(p,area));
-  return {status:200,h1,title:h1+' | Konseptuell',description,canonical:'/anledning.html?bruk='+area+'&anledning='+(occasions[key]?key:'alle'),items:selected,buy:false};
+  return {status:200,h1,title:h1+' | Konseptuell',description,canonical:'/anledning.html?bruk='+area+'&anledning='+(managed||occasions[key]?key:'alle'),items:selected,buy:false};
  }
  if(path==='/midlertidig-moblering.html')return {status:200,h1:'Midlertidig møblering med møbler til leie',title:'Midlertidig møblering – leie møbler | Konseptuell',description:'Trenger du møbler i noen uker eller måneder? Velg sofaer, bord og stoler, og send en forespørsel med ønsket leieperiode.',canonical:path,items:pool.filter(p=>['Sofaer','Stoler','Bord','Hyller'].includes(p.category)),buy:false};
  if(path==='/utvalg.html'||path==='/kjop.html'){
@@ -79,7 +80,7 @@ export function renderSeo(source,m,products,indexable,settings=getSiteSettings()
  if(m.canonical.startsWith('/kundeinfo'))html=customerInformationFirstPaint(html,settings);
  return initialSiteData(html,{products,settings});
 }
-export function sitemap(products,indexable){const paths=indexable?['/','/utvalg.html','/kjop.html','/midlertidig-moblering.html','/kundeinfo.html','/utvalg.html?bruk=boligsalg',...(products.some(p=>rental(p)&&p.isPackage)?['/utvalg.html?kategori=Pakker']:[]),...Object.entries(occasions).filter(([key])=>key!=='boligfoto').map(([key,v])=>'/anledning.html?bruk='+v[1]+'&anledning='+key),...[...new Set(products.filter(rental).map(p=>p.category))].map(c=>'/utvalg.html?kategori='+encodeURIComponent(c)),...[...new Set(products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>p.category))].map(c=>'/kjop.html?kategori='+encodeURIComponent(c)),...products.filter(rental).map(p=>url(p)),...products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>url(p,true))]:[];return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+[...new Set(paths)].map(p=>'<url><loc>'+e(siteOrigin+p)+'</loc></url>').join('')+'</urlset>';}
+export function sitemap(products,indexable){const paths=indexable?['/','/utvalg.html','/kjop.html','/midlertidig-moblering.html','/kundeinfo.html','/utvalg.html?bruk=boligsalg',...(products.some(p=>rental(p)&&p.isPackage)?['/utvalg.html?kategori=Pakker']:[]),...contentPages(getSiteSettings()).map(p=>'/anledning.html?bruk='+p.area+'&anledning='+p.id),...Object.entries(occasions).filter(([key])=>key!=='boligfoto').map(([key,v])=>'/anledning.html?bruk='+v[1]+'&anledning='+key),...[...new Set(products.filter(rental).map(p=>p.category))].map(c=>'/utvalg.html?kategori='+encodeURIComponent(c)),...[...new Set(products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>p.category))].map(c=>'/kjop.html?kategori='+encodeURIComponent(c)),...products.filter(rental).map(p=>url(p)),...products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>url(p,true))]:[];return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+[...new Set(paths)].map(p=>'<url><loc>'+e(siteOrigin+p)+'</loc></url>').join('')+'</urlset>';}
 export function robots(indexable){return indexable?'User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /previews/\nDisallow: /*?*oppsett=\nDisallow: /*?*sok=\nSitemap: '+siteOrigin+'/sitemap.xml\n':'User-agent: *\nDisallow: /\n';}
 
 function purchaseDiscovery(products){return `<section class="section seo-discovery"><h2>Spørsmål om kjøp</h2><h2>Hvordan sender jeg en kjøpsforespørsel?</h2><p>Velg produkter og antall, og send kjøpsforespørselen med kontakt- og leveringsinformasjon. Vi bekrefter tilgjengelighet, pris og levering før du godkjenner en ordrebekreftelse. Innsendingen er uforpliktende og innebærer ingen betaling eller bindende kjøp.</p><h2>Hvordan avtales levering?</h2><p>Frakt og eventuell montering oppgis før du godkjenner bestillingen. Vi bekrefter leveringsdatoen i ordrebekreftelsen.</p><h2>Kan jeg hente produktene selv?</h2><p>Levering eller henting avtales med oss. Oppgi hva du ønsker i kjøpsforespørselen, så avklarer vi dette i tilbudet.</p><p><a href="/kjop.html">Se kjøpsutvalget</a> · <a href="/kundeinfo.html">Kundeinformasjon</a> · <a href="/utvalg.html">Se leieutvalget</a></p></section>`;}

@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {buildHeaderCatalog,searchHeaderCatalog,searchHeaderCategories,cleanFavoriteIds} from '../public/header-catalog-model.js?v=content20261107';
-import {configureSiteSettings} from '../public/site-settings.js?v=content20261107';
+import {buildHeaderCatalog,searchHeaderCatalog,searchHeaderCategories,cleanFavoriteIds} from '../public/header-catalog-model.js?v=pages20261107';
+import {configureSiteSettings} from '../public/site-settings.js?v=pages20261107';
 
 const item=(id,extra={})=>({id,name:id,category:'Stoler',active:true,rentalEnabled:true,saleEnabled:false,image:'/assets/test.webp',stock:1,...extra});
 

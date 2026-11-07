@@ -1,12 +1,15 @@
-import {getSiteSettings} from './site-settings.js?v=content20261107';
-import {renderProductionLanding,renderSeasonLanding,renderChristmasLanding} from './production-landing.js?v=content20261107';
-import {renderMesseLanding} from './messe-landing.js?v=content20261107';
-import {validPurpose} from './rental-purpose-model.js?v=content20261107';
+import {contentPages} from './page-model.js?v=pages20261107';
+import {renderContentPage} from './content-page.js?v=pages20261107';
+import {getSiteSettings} from './site-settings.js?v=pages20261107';
+import {renderProductionLanding,renderSeasonLanding,renderChristmasLanding} from './production-landing.js?v=pages20261107';
+import {renderMesseLanding} from './messe-landing.js?v=pages20261107';
+import {validPurpose} from './rental-purpose-model.js?v=pages20261107';
 const html=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function occasionLandingView(href,settings=getSiteSettings()){
  const url=new URL(href,'https://konseptuell.no');
 const entries={boligfoto:['Boligfoto og visning','boligsalg','Til boligfoto og visning tilbyr vi enkeltprodukter som du setter sammen selv. Ønsker du en komplett løsning, kan du be om tilbud på fullstyling eller delstyling.'],messe:['Møbler til messe og event','messe','Møbler og innredning til messestands, arrangementer, mingleområder og besøkssoner. Velg enkeltprodukter eller ta utgangspunkt i en ferdig pakke.'],produksjon:['Møbler og styling til din produksjon','produksjon','Reklamestyling, produktstyling og innredning av lokasjoner til foto, film og TV. Møbler og rekvisitter fra eget lager.'],bryllup:['Møbler til fest og sesong','fest','Møbler, servise og dekor til feiringen. Velg selv eller ta utgangspunkt i en ferdig pakke.'],jul:['Julepynt og møbler til jul og sesong','jul','Gjør klart til sesongen med møbler, dekor og ferdige juleoppsett.'],bedrift:['Møbler til arbeidsplassen','bedrift','Skap innbydende pauserom, venterom, lobbyer, resepsjoner og fellesområder. Velg enkeltmøbler eller en samlet løsning tilpasset arbeidsplassen.'],alle:['Møbler til alle bruksområder','alle','Utforsk hele utvalget, eller ta utgangspunkt i en ferdig pakke.']};
  const requestedKey=url.searchParams.get('anledning')||Object.keys(entries).find(k=>entries[k][1]===url.searchParams.get('bruk'))||'alle',key=requestedKey==='event'?'messe':requestedKey;
+ const managed=contentPages(settings).find(p=>p.id===key);if(managed)return {title:managed.heading,messe:false,html:renderContentPage(managed)};
  const [defaultTitle,area,intro]=entries[key]||entries.alle;const title=settings.landingContent?.[key]?.heading||defaultTitle;
  const catalogLink=(category,area)=>'/utvalg.html?'+new URLSearchParams({bruk:validPurpose(area),kategori:category})+'#utvalg';
  const individual=catalogLink('Enkeltprodukter',area),packages=new URL(catalogLink('Pakker',area),url.origin);

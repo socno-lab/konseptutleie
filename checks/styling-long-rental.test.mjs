@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultSettings,configureSiteSettings,validateSiteSettings} from '../public/site-settings.js?v=content20261107';
+import {defaultSettings,configureSiteSettings,validateSiteSettings} from '../public/site-settings.js?v=pages20261107';
 import {migrateStylingPricing} from '../server/pricing-migration.mjs';
-import {rentalRateSets,retailRentalRates} from '../public/rental-pricing-model.js?v=content20261107';
+import {rentalRateSets,retailRentalRates} from '../public/rental-pricing-model.js?v=pages20261107';
 import {ratePlan} from '../public/catalog-model.js';
 const old={...defaultSettings,pricing:{price:.07,weekPrice:.18,monthPrice:.3,eventFactor:1.5,rounding:10}};
 test('percentage migration is idempotent and preserves event rates',()=>{try{
  configureSiteSettings(old);const event=retailRentalRates(16000,'messe');
  const next=migrateStylingPricing(old);assert.equal(next.pricing.monthPrice,.27);assert.equal(next.pricing.eventMonthPrice,.45);
- assert.equal(migrateStylingPricing(next),next);assert.deepEqual(validateSiteSettings(next),next);
+ assert.equal(migrateStylingPricing(next),next);const normalized=validateSiteSettings(next);assert.deepEqual(normalized.pricing,next.pricing);assert.deepEqual(validateSiteSettings(normalized),normalized);
  configureSiteSettings(next);assert.deepEqual(retailRentalRates(16000,'messe'),event);assert.equal(retailRentalRates(16000).monthPrice,4320);
  assert.deepEqual(old.pricing,{price:.07,weekPrice:.18,monthPrice:.3,eventFactor:1.5,rounding:10});
 }finally{configureSiteSettings();}});

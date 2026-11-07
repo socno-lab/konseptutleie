@@ -10,11 +10,11 @@ import {readHtmlTemplate} from './server/html-templates.mjs';
 import {indexableEnvironment,pageModel,renderSeo,sitemap,robots} from './server/seo.mjs';
 import {createSubmissionSender} from './server/submissions.mjs';
 import {createRequestGuard,contentPolicy} from './server/request-guard.mjs';
-import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js?v=content20261107';
+import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js?v=pages20261107';
 import {createDeliveryEstimator,deliveryRates,warehouse} from './server/delivery.mjs';
-import {salesEnabled,saleUnitPrice} from './public/sales-model.js?v=content20261107';
+import {salesEnabled,saleUnitPrice} from './public/sales-model.js?v=pages20261107';
 import {discountQuote,validateDiscountCodes} from './server/discounts.mjs';
-import {rentalRateSets} from './public/rental-pricing-model.js?v=content20261107';
+import {rentalRateSets} from './public/rental-pricing-model.js?v=pages20261107';
 import {resolvedPackagePurchasePrice} from './public/business-purchase-model.js';
 import {planTrashPurge} from './server/trash-purge.mjs';
 import {changeProductLifecycle} from './server/product-lifecycle.mjs';
@@ -66,7 +66,7 @@ export function createServer(options={}){
    const url=new URL(req.url,'http://localhost');try{pathname=decodeURIComponent(url.pathname);}catch{return send(400,'Ugyldig URL.');}
    if(['GET','HEAD'].includes(req.method)&&new URL(origin).hostname==='konseptuell.no'&&hosts.includes('www.konseptuell.no'))return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
    const indexing=store.enabled&&indexableEnvironment(origin,env,hosts);
-   if(pathname==='/anledning.html'&&(url.searchParams.get('anledning')==='boligfoto'||url.searchParams.get('bruk')==='boligsalg')&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/utvalg.html?bruk=boligsalg'});
+   if(pathname==='/anledning.html'&&(url.searchParams.get('anledning')==='boligfoto'||(!url.searchParams.has('anledning')&&url.searchParams.get('bruk')==='boligsalg'))&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/utvalg.html?bruk=boligsalg'});
    if(pathname==='/index.html'&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/'+url.search});
    if(['GET','HEAD'].includes(req.method)&&hosts.includes('konseptuell.no')&&req.headers['x-forwarded-proto']==='http')return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
    if(pathname==='/robots.txt'&&['GET','HEAD'].includes(req.method))return send(200,robots(indexing));

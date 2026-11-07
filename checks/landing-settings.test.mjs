@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=content20261107';
-import {occasionLandingView} from '../public/occasion-landing-view.js?v=content20261107';
-import {matchesPurpose} from '../public/rental-purpose-model.js?v=content20261107';
+import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=pages20261107';
+import {occasionLandingView} from '../public/occasion-landing-view.js?v=pages20261107';
+import {matchesPurpose} from '../public/rental-purpose-model.js?v=pages20261107';
 import {mediaUsage} from '../server/images.mjs';
 import {pageModel} from '../server/seo.mjs';
 
