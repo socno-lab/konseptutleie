@@ -5,7 +5,7 @@ import {pageModel,renderSeo} from '../server/seo.mjs';
 import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
 import {publicCatalog} from '../app-server.mjs';
 import {memoryStore} from './helpers/memory-store.mjs';
-import {rentalCatalogView} from '../public/rental-catalog-view.js?v=stockmobile20261107';
+import {rentalCatalogView} from '../public/rental-catalog-view.js?v=empty20261107';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=stockmobile20261107';
 import {renderCatalogCard,readInitialCatalog} from '../public/catalog-card-markup.js';
 import {renderArrowIcons} from '../server/arrow-icons.mjs';
@@ -44,3 +44,12 @@ test('only the first four card images are eager; load-more cards stay lazy',()=>
  assert.equal(readInitialCatalog({getElementById:()=>null}),null);
  assert.equal(readInitialCatalog({getElementById:()=>({textContent:'broken'})}),null);
 });
+
+ test('empty results expose recovery actions before JavaScript without duplicate custom cards',()=>{
+  const model=pageModel('/utvalg.html',new URLSearchParams({bruk:'messe',kategori:'Stoler',sok:'no-match-xyz'}),data.products);
+  const html=renderSeo(source,model,data.products,true,data.settings);
+  assert.match(html,/<div id="empty" class="catalog-empty">/);
+  assert.match(html,/id="showAllFurniture">Nullstill filtre/);
+  assert.match(html,/data-catalog-custom>Fortell oss hva du trenger/);
+  assert.doesNotMatch(html,/class="custom-package-card custom-product-card"/);
+ });

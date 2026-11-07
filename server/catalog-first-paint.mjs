@@ -1,4 +1,4 @@
-import {rentalCatalogView} from '../public/rental-catalog-view.js?v=stockmobile20261107';
+import {rentalCatalogView} from '../public/rental-catalog-view.js?v=empty20261107';
 import {renderCatalogCard} from '../public/catalog-card-markup.js';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=stockmobile20261107';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
@@ -18,6 +18,7 @@ export function catalogFirstPaint(html,model,catalogProducts,settings){
   const subcategories='<div id="rentalTableTypes" class="catalog-subcategories" role="group" aria-label="Underkategorier"'+(view.types.length?'':' hidden')+'>'+subcategoryButtons(view.types,view.tableFilter,filter)+'</div>';
   html=html.replace('<p id="mobileCatalogResults"',()=>subcategories+'<p id="mobileCatalogResults"');
   html=html.replace('<aside class="catalog-request"','<aside hidden class="catalog-request"');
+  if(!view.count)html=html.replace('id="empty" class="catalog-empty" hidden','id="empty" class="catalog-empty"');
   const first=view.orderedCards.slice(0,view.tailHtml?23:24).map(renderCatalogCard).join('')+view.tailHtml;
   html=html.replace('<div id="products" class="products"></div>',()=>'<div id="products" class="products">'+renderArrowIcons(first)+'</div>');
   html=html.replace(/(<p id="catalogStatus"[^>]*>)[\s\S]*?<\/p>/,'$1</p>');

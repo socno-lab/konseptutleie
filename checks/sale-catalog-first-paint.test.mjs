@@ -3,7 +3,7 @@ import {readHtmlTemplate} from '../server/html-templates.mjs';
 import {pageModel,renderSeo} from '../server/seo.mjs';
 import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
 import {publicCatalog} from '../app-server.mjs';import {memoryStore} from './helpers/memory-store.mjs';
-import {saleCatalogView} from '../public/sale-catalog-view.js?v=stockmobile20261107';
+import {saleCatalogView} from '../public/sale-catalog-view.js?v=empty20261107';
 import {readInitialCatalog} from '../public/catalog-card-markup.js';
 import {renderArrowIcons} from '../server/arrow-icons.mjs';
 const store=await memoryStore(),data=publicCatalog({...await store.readCatalog(),settings:defaultSettings}),source=await readHtmlTemplate('kjop.html');

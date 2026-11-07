@@ -1,0 +1,1 @@
+.catalog-empty{grid-column:1/-1}.catalog-empty-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:24px}.catalog-empty-actions .button{box-sizing:border-box;min-height:48px;white-space:normal;text-align:left}.catalog-empty-actions .button-outline{border:1px solid var(--olive);background:transparent;color:var(--olive)}

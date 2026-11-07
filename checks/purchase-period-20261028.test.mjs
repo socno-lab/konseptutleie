@@ -10,7 +10,7 @@ import {pageModel,renderSeo,productContent} from '../server/seo.mjs';
 const options={today:'2026-10-28'};
 
 test('shared storefront scripts use one customer-information instance and purchase submit copy',()=>{
- const app=readFileSync(new URL('../public/app.js?v=stockmobile20261107',import.meta.url),'utf8'),shop=readFileSync(new URL('../public/shop.js?v=stockmobile20261107',import.meta.url),'utf8'),feedback=readFileSync(new URL('../public/storefront-feedback.js?v=stockmobile20261107',import.meta.url),'utf8');
+ const app=readFileSync(new URL('../public/app.js?v=empty20261107',import.meta.url),'utf8'),shop=readFileSync(new URL('../public/shop.js?v=empty20261107',import.meta.url),'utf8'),feedback=readFileSync(new URL('../public/storefront-feedback.js?v=stockmobile20261107',import.meta.url),'utf8');
  for(const source of [app,shop,feedback])assert.match(source,/customer-info\.js\?v=stockmobile20261107/);
  for(const source of [app,shop])assert.match(source,/submission-ui\.js\?v=proposal20261105b/);
  assert.match(readFileSync(new URL('../public/submission-ui.js',import.meta.url),'utf8'),/Send kjøpsforespørsel/);

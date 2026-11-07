@@ -1,4 +1,4 @@
-import {saleCatalogView} from '../public/sale-catalog-view.js?v=stockmobile20261107';
+import {saleCatalogView} from '../public/sale-catalog-view.js?v=empty20261107';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
 import {renderArrowIcons} from './arrow-icons.mjs';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
