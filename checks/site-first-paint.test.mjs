@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import vm from 'node:vm';
 import {initialSiteData} from '../server/initial-site-data.mjs';
 import {productOverview} from '../server/product-overview.mjs';
-import {occasionLandingView} from '../public/occasion-landing-view.js?v=stockstrip20261107';
+import {occasionLandingView} from '../public/occasion-landing-view.js?v=stockall20261107';
 import {pageModel,renderSeo} from '../server/seo.mjs';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 test('public initial data escapes script boundaries and never duplicates a catalog',()=>{const catalog={products:[{name:'</script><img>'}],settings:{}};const html=initialSiteData('<body></body>',catalog);assert.ok(html.includes('\\u003c/script>'));assert.equal(initialSiteData(html,catalog),html);for(const type of ['Rental','Sale','Product']){const source='<script id="initial'+type+'Catalog"></script></body>';assert.equal(initialSiteData(source,catalog),source);}});

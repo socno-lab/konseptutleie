@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import mysql from 'mysql2/promise';
 import {createMysqlStore} from '../server/store.mjs';
 import {groupMail} from '../public/admin/mail-model.js';
-import {defaultSettings,validateSiteSettings} from '../public/site-settings.js?v=stockstrip20261107';
+import {defaultSettings,validateSiteSettings} from '../public/site-settings.js?v=stockall20261107';
 test('mail groups preserve both recipients, put old problems before recent success, and search across all groups',()=>{
  const rows=[{reference:'old',channel:'customer',status:'uncertain',receivedAt:1},{reference:'old',channel:'internal',status:'sent',receivedAt:1},{reference:'new',channel:'customer',status:'sent',receivedAt:2}];
  const original=structuredClone(rows);assert.deepEqual(groupMail(rows).map(g=>g.reference),['old','new']);assert.equal(groupMail(rows)[0].channels.internal.status,'sent');

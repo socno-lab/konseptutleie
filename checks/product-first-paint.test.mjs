@@ -38,8 +38,8 @@ test('product shell is present before modules, moves rental controls once and sa
 
 test('parsing-time rental menu agrees with application usage rules including saved choices',async()=>{
  const {readFile}=await import('node:fs/promises'),{runInNewContext}=await import('node:vm');
- const {readPurposeState}=await import('../public/rental-purpose-model.js?v=stockstrip20261107');
- const {rentalUsageState}=await import('../public/rental-usage-model.js?v=stockstrip20261107');
+ const {readPurposeState}=await import('../public/rental-purpose-model.js?v=stockall20261107');
+ const {rentalUsageState}=await import('../public/rental-usage-model.js?v=stockall20261107');
  const source=await readFile(new URL('../public/product-shell-bootstrap.js?v=production20261107',import.meta.url),'utf8');
  for(const purpose of [undefined,'alle','fest','boligsalg','event','invalid'])for(const explicit of [undefined,'messe','standard','invalid'])for(const saved of [null,'standard','messe']){
   const url=new URL('https://konseptuell.no/leieprodukt.html');if(purpose!==undefined)url.searchParams.set('bruk',purpose);if(explicit!==undefined)url.searchParams.set('prisbruk',explicit);

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validateSubmission} from '../server/submissions.mjs';
 import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';
-import {getTermsVersions} from '../public/terms-versions.js?v=stockstrip20261107';
+import {getTermsVersions} from '../public/terms-versions.js?v=stockall20261107';
 
 const module={id:'module',name:'Endemodul',active:true,stock:20,unavailable:0,category:'Sofaer',moduleSeries:'Testsofa',moduleRole:'end',rentalModuleMinimum:2,rentalPricingMode:'manual',price:100,weekPrice:300,monthPrice:500};
 const pack=quantity=>({id:'pack',name:'Kjøpspakke',active:true,isPackage:true,category:'Pakker',components:[{id:'module',quantity}],businessPurchase:true,purchasePriceMode:'manual',purchasePrice:6000,rentalPricingMode:'manual',price:200,weekPrice:600,monthPrice:1000});

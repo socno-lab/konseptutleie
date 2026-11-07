@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {renderRecommendations} from '../public/product-recommendations.js?v=stockstrip20261107';
+import {renderRecommendations} from '../public/product-recommendations.js?v=stockall20261107';
 
 const base={id:'obj_jysk_skibby_base_sand',name:'Grunnsofa',moduleSeries:'JYSK SKIBBY, sand',moduleRole:'base',category:'Sofaer',active:true,stock:1,unavailable:0,image:'/base.webp',gallery:['/media/9ed8bbde97fa7549978a7df6bdbbae45'],price:740,weekPrice:1890,monthPrice:3150};
 const middle={...base,id:'obj_jysk_skibby_midt_sand',name:'Midtmodul',moduleRole:'middle',image:'/middle.webp',gallery:[],price:320,weekPrice:810,monthPrice:1350};

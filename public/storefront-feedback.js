@@ -1,4 +1,4 @@
-import './customer-info.js?v=stockstrip20261107';
+import './customer-info.js?v=stockall20261107';
 import './dialog-scroll-lock.js?v=enquirypage20261025b';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');

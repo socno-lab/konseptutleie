@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {pageModel,renderSeo} from '../server/seo.mjs';
-import {readPurposeState} from '../public/rental-purpose-model.js?v=stockstrip20261107';
+import {readPurposeState} from '../public/rental-purpose-model.js?v=stockall20261107';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 test('global package links override a previously selected housing purpose while explicit housing links stay scoped',()=>{
  const source='<html><head><title>Konseptuell</title></head><body><main><section id="occasionLanding"></section></main></body></html>';
