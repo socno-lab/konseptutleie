@@ -47,7 +47,7 @@
 #konsept-messe-preview .km-choice{border-top:1px solid var(--line);padding-top:16px}
 #konsept-messe-preview .km-choice h3{font-size:19px;margin:0 0 10px}
 #konsept-messe-preview .km-choice p{font-size:13px;color:var(--quiet)}
-#konsept-messe-preview .km-choice a{font-size:12px;margin-top:15px}
+#konsept-messe-preview .km-choice .km-link{font-size:12px;margin-top:15px}
 #konsept-messe-preview .km-cta{display:flex;justify-content:space-between;align-items:center;gap:28px;background:var(--olive);color:var(--paper);padding:30px;margin-top:43px}
 #konsept-messe-preview .km-cta h2{font-size:27px;margin-bottom:10px}
 #konsept-messe-preview .km-cta p{font-size:13px;max-width:480px}
