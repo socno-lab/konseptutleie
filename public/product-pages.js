@@ -1,3 +1,4 @@
+import {catalogPositionKey} from './catalog-position.js?v=launch20261024';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {renderRecommendations} from './product-recommendations.js?v=stockmobile20261107';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
@@ -31,7 +32,7 @@ export function productLink(id,mode='rent',context={}){
  return productPageUrl(id,mode,{...context,origin:location.origin,returnTo:isProductPage?(location.pathname===productPagePaths[mode]?catalogReturn():context.returnTo||(mode==='buy'?'/kjop.html':'/utvalg.html')):context.returnTo||location.pathname+location.search+location.hash});
 }
 export function navigateProduct(id,mode,context={}){
- if(!isProductPage){try{sessionStorage.setItem('konsept-scroll:'+location.pathname+location.search+location.hash,String(scrollY));}catch{}}
+ if(!isProductPage){try{sessionStorage.setItem(catalogPositionKey(location.href),String(scrollY));}catch{}}
  location.assign(productLink(id,mode,context));
 }
 export function selectPageProduct(p,mode,context={}){
@@ -94,7 +95,7 @@ export function restoreCatalogPosition(){
   const referrer=document.referrer?new URL(document.referrer):null;
   const fromProduct=referrer?.origin===location.origin&&Object.values(productPagePaths).includes(referrer.pathname);
   if(navigationType!=='back_forward'&&!fromProduct)return;
-  const key='konsept-scroll:'+location.pathname+location.search+location.hash;
+  const key=catalogPositionKey(location.href);
   const saved=sessionStorage.getItem(key);
   if(saved!==null)requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo({top:Number(saved)||0,behavior:'instant'})));
  }catch{}
@@ -120,5 +121,5 @@ export function installProductLinks(mode,getProducts,getContext=()=>({})){
   }
  };
  new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(scan);}}).observe(document.body,{subtree:true,childList:true});
- document.addEventListener('click',e=>{if(e.target.closest('a[data-product-link]')){try{sessionStorage.setItem('konsept-scroll:'+location.pathname+location.search+location.hash,String(scrollY));}catch{}e.stopPropagation();}},true);scan();
+ document.addEventListener('click',e=>{if(e.target.closest('a[data-product-link]')){try{sessionStorage.setItem(catalogPositionKey(location.href),String(scrollY));}catch{}e.stopPropagation();}},true);scan();
 }

@@ -37,6 +37,7 @@ releaseVersions.set('/product-gallery-sticky.js','stickygallery20261107');
 releaseVersions.set('/mobile-navigation.js','about20261107');
 for(const file of ['/app.js','/shop.js','/rental-catalog-view.js','/sale-catalog-view.js'])releaseVersions.set(file,'empty20261107');
 releaseVersions.set('/header-tools.js','searchhelp20261107');
+for(const file of ['/app.js','/shop.js','/product-pages.js'])releaseVersions.set(file,'return20261107');
 const versionFor=file=>releaseVersions.has(file)?'?v='+releaseVersions.get(file):legacyVersionFor(file);
 const imports=source=>[...source.matchAll(/\b(?:from|import)\s*['"]((?:\.{1,2}\/|\/)[^'"\s]+\.js(?:\?[^'"]*)?)['"]/g)].map(m=>m[1]);
 async function walk(directory){const files=[];for(const entry of await readdir(directory,{withFileTypes:true})){const name=path.join(directory,entry.name);if(entry.isDirectory())files.push(...await walk(name));else files.push(name);}return files;}
