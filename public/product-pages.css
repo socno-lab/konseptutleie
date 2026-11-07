@@ -109,3 +109,9 @@
 #initialProductOverview .rental-date-trigger{font:inherit;cursor:pointer;border:1px solid var(--line);color:inherit;display:block;box-sizing:border-box;width:100%;min-width:0;padding:12px;text-align:left;font-size:13px;font-weight:400;height:48px;min-height:48px;background:#faf9f5}
 #initialProductOverview .rental-date-trigger[data-selected=true]{border-color:var(--olive);background:#ecefe5}
 @media(max-width:640px){#initialProductOverview .rental-date-trigger{font-size:16px}}
+
+/* Desktop galleries follow the choices, stopping at the existing product grid.
+   Height is checked against the viewport so thumbnails never become trapped. */
+@media(min-width:801px){
+ .product-page .gallery-follows-scroll{position:sticky;top:var(--gallery-sticky-top,122px);align-self:start}
+}
