@@ -26,7 +26,7 @@ export async function submitEnquiry(form,{kind,basket,customRequest=false,reques
    break;
   }
   record.result=result;return result;
- }catch(error){if(error.name==='TimeoutError')throw Error('Sendingen tok for lang tid. Kontakt post@konseptuell.no med referanse '+record.id+' før du sender på nytt.');throw error;}finally{record.busy=false;}
+ }catch(error){if(error.name==='TimeoutError'||error.name==='AbortError')throw Error('Sendingen tok for lang tid. Opplysningene og valgene dine er beholdt. Prøv igjen; samme referanse brukes for å unngå dobbel innsending. Referanse: '+record.id);if(error instanceof TypeError)throw Error('Vi fikk ikke kontakt med serveren. Opplysningene og valgene dine er beholdt. Sjekk nettforbindelsen og prøv igjen. Referanse: '+record.id);throw error;}finally{record.busy=false;}
 }
 for(const form of document.querySelectorAll('#requestForm, #saleRequestForm')){
  const trap=document.createElement('input');trap.type='text';trap.name='website';trap.tabIndex=-1;trap.autocomplete='off';trap.hidden=true;trap.setAttribute('aria-hidden','true');form.append(trap);

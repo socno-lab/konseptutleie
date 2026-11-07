@@ -9,7 +9,7 @@ async function run(responses,check){
  const oldFetch=globalThis.fetch,oldStorage=globalThis.sessionStorage,calls=[];
  globalThis.FormData=class{constructor(){}[Symbol.iterator](){return Object.entries(fields)[Symbol.iterator]();}};
  globalThis.sessionStorage={getItem:()=>null,setItem:()=>{}};
- globalThis.fetch=async(url,init)=>{calls.push(JSON.parse(init.body));return responses.shift();};
+ globalThis.fetch=async(url,init)=>{calls.push(JSON.parse(init.body));const response=responses.shift();if(response instanceof Error)throw response;return response;};
  try{await check({},calls);}finally{globalThis.fetch=oldFetch;globalThis.FormData=nativeFormData;globalThis.sessionStorage=oldStorage;}
 }
 test('recovers a non-JSON gateway response using the identical submission id and body',async()=>{
@@ -27,5 +27,20 @@ test('keeps a failed response retryable and reports its status and reference wit
 test('does not retry an ordinary validation rejection',async()=>{
  await run([Response.json({error:'Kontroller datoene.'},{status:400})],async(form,calls)=>{
   await assert.rejects(submitEnquiry(form,options),/Kontroller datoene/);assert.equal(calls.length,1);
+ });
+});
+
+test('network failures keep the same submission identity for a safe retry',async()=>{
+ await run([new TypeError('Failed to fetch'),Response.json({ok:true,reference:'recovered'})],async(form,calls)=>{
+  await assert.rejects(submitEnquiry(form,options),/Opplysningene og valgene dine er beholdt.*nettforbindelsen/);
+  assert.equal((await submitEnquiry(form,options)).reference,'recovered');
+  assert.deepEqual(calls[0],calls[1]);
+ });
+});
+test('timeouts explain preserved input and allow a retry with the same identity',async()=>{
+ const timeout=new Error('timeout');timeout.name='TimeoutError';
+ await run([timeout,Response.json({ok:true,reference:'recovered'})],async(form,calls)=>{
+  await assert.rejects(submitEnquiry(form,options),/tok for lang tid.*beholdt/);
+  await submitEnquiry(form,options);assert.deepEqual(calls[0],calls[1]);
  });
 });
