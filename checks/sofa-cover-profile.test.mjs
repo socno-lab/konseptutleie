@@ -89,7 +89,7 @@ test('rental recommendations reuse the same three-seater cover framing as the ca
 });
 
 test('catalogue fallback cannot replace a selected sofa cover with its builder crop',async()=>{
- const source=await readFile(new URL('../public/app.js?v=production20261107',import.meta.url),'utf8');
+ const source=await readFile(new URL('../public/app.js?v=fest20261107',import.meta.url),'utf8');
  const declaration=source.match(/function catalogueArt\(p\)\{[^\n]+\}/)?.[0];
  assert.ok(declaration,'Catalogue image entrypoint is missing');
  const catalogueArt=new Function('sofaCardArt','art',`${declaration};return catalogueArt;`)(sofaCardArt,p=>p);
