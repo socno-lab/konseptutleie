@@ -4,7 +4,7 @@ import {validateCatalog} from '../server/catalog.mjs';
 import {createServer,publicCatalog} from '../app-server.mjs';
 import {digest} from '../server/auth.mjs';
 import {remaining} from '../public/catalog-model.js';
-import {saleEstimate} from '../public/sales-model.js?v=stock20261107';
+import {saleEstimate} from '../public/sales-model.js?v=stockstrip20261107';
 
 const product={id:'test_sofa',name:'TEST sofa',category:'Sofaer',material:'Teststoff',description:'Syntetisk testprodukt',price:100,weekPrice:500,monthPrice:1500,stock:3,unavailable:1,active:true,isPackage:false,isExample:false,type:'sofa',color:'#ffffff',image:'',saleEnabled:true,salePrice:7500};
 

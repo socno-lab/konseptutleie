@@ -874,3 +874,8 @@ body>main.proposal-main{padding-bottom:32px;margin-bottom:0}
  .faq.section{max-width:none;margin:0;padding-left:5%;padding-right:5%}
  .faq.section>*{width:calc((100% - 90px)/2)}
 }
+
+/* Owned rental capacity is painted with the image, without changing its dimensions. */
+.rental-product-photo{position:relative}
+.product-art>.rental-stock-strip,.rental-product-photo>.rental-stock-strip{position:absolute;inset:auto 0 0;z-index:2;display:block;padding:6px 9px;background:#e7ecdf;color:#414b38;font-size:11px;font-weight:500;line-height:1.4;letter-spacing:0;text-transform:none;text-align:center;pointer-events:none}
+.product-art:has(>.rental-stock-strip)>.illustration-badge{bottom:35px}

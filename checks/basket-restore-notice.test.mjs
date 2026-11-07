@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {normalizeBasket} from '../public/catalog-model.js';
 import {saveSofa,restoreSofas} from '../public/sofa-model.js';
-const source=fs.readFileSync(new URL('../public/app.js?v=stock20261107',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../public/app.js?v=stockstrip20261107',import.meta.url),'utf8');
 const sameBasket=vm.runInNewContext('('+source.match(/function sameBasket\(a,b\)\{[^\n]+/)[0]+')');
 const end={id:'end',moduleSeries:'S',moduleRole:'end',moduleWidth:92,active:true,stock:6,unavailable:0,price:600};
 const bed={id:'bed',active:true,stock:6,unavailable:0,price:300};

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {renderSeo,pageModel,escapeHtml,productCards,productContent} from '../server/seo.mjs';
-import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=stock20261107';
+import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=stockstrip20261107';
 const tokens='Admin $& $1 $$ $` $\' & " <tag>',product={id:'one',name:tokens,category:'Bord',active:true,type:'coffee',material:tokens,description:tokens,image:'/assets/product.jpg',price:100,weekPrice:200,monthPrice:300,saleEnabled:true,salePrice:1200};
 const source='<!doctype html><html><head><title>Original title</title></head><body><header>Original header</header><main><section id="occasionLanding">Original occasion</section><h2>Et utvalg å bygge på.</h2><h1>Møbler og belysning.</h1><div id="products" class="products"></div><div class="sale-grid" id="saleProducts"></div></main><footer>Original footer</footer></body></html>';
 

@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=stock20261107';
+import {getSiteSettings} from './site-settings.js?v=stockstrip20261107';
 // Explicit admin assignments override legacy category-based navigation.
 import {matchesPurpose as matchesCatalogPurpose,prioritizePackages} from './purpose-model.js?v=launch20261024';
 export {prioritizePackages};

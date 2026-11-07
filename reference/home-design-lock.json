@@ -12,11 +12,11 @@
     "imageAspectRatio": 1.6
   },
   "fingerprints": {
-    "shared-styles": "2e0d6f6e82f2ee7482bd5991fef88f5a24709404eb9e10b37cfbf45f94fcb38d",
+    "shared-styles": "024620455ab327c24dbaf9c29e8d4e56b6a3b9b780480b3903400e108d987f5e",
     "commerce-styles": "86a2306765b53db23579e396aaafbe0e1632b038e7b175ca3a7b55a5bd8e1dd0",
     "home-hero": "007cba6be7ed0ee8892eff668c1ee5e4d1546ffee9aef02416bbe492eb5c34f8",
     "rendered-home-hero": "007cba6be7ed0ee8892eff668c1ee5e4d1546ffee9aef02416bbe492eb5c34f8",
-    "home-card-renderer": "5e0cbd41af60051dd34476241ac5b4100d4b70ee22d768ab046c29c712b4defe",
+    "home-card-renderer": "e2cd70f60b72500624692c2a00ce50ce407436f646dfb34fe874e7639927e06e",
     "rental-image-markup": "d05f6427ad90c72a576fbb42e3ed7255859d9ebbc9819509fa18049b094f13d7",
     "purchase-image-markup": "0c3547eb40c85f2a70ec71344fba5ae3f9fc587cc3cca90ed38406e6076e9dc9"
   },
@@ -46,5 +46,6 @@
   "christmasReview": "2026-11-07: Nytt godkjent forsidefoto og juleinngang; 1280/390/320 kontrollert. Kun importversjon i home-sections endrer fingeravtrykket.",
   "adminLandingReview": "2026-11-07: Eier bestilte adminstyring av messe, fest, jul og produksjon. Kun importversjonen i home-sections.js er endret. Kontrollert forside 1280/390/320 px: samme 3/2/2 kolonner, bildeutsnitt og typografi, ingen horisontal scrolling. Delte stilark, hero og bildemarkup er uendret.",
   "managedPagesReview": "2026-11-07: Eier bestilte redigerbare forsidekort og felles innholdssidemal. Kun importversjonen endrer home-card-renderer. Forsiden visuelt kontrollert 1280/390/320 px med uendret hero, typografi, 3/2/2 kolonner og bildeformat. Lokal fixture mangler ett eksisterende bedriftsbilde; ingen bildekildeendring i denne leveransen.",
-  "stockReview": "2026-11-07: Eier bestilte total beholdning på enkeltprodukter med minst to. Fremhevede produktkort får samme diskrete tekst. Hero, bruksområdekort, bilder og stiler uendret. Kontrollert 1280/390/320 px samt produktkort og produktdetalj. Låsen oppdateres kun for home-sections-tekst og importversjoner."
+  "stockReview": "2026-11-07: Eier bestilte total beholdning på enkeltprodukter med minst to. Fremhevede produktkort får samme diskrete tekst. Hero, bruksområdekort, bilder og stiler uendret. Kontrollert 1280/390/320 px samt produktkort og produktdetalj. Låsen oppdateres kun for home-sections-tekst og importversjoner.",
+  "stockStripReview": "2026-11-07: Eier bestilte lys grønn antallsstripe i produktbildefelt og antall ferdige pakker. Kun avgrensede stripestiler er lagt til. Eksisterende bilder beholder mål og utsnitt; kort og pakker kontrollert desktop/mobil, forside 1280/390/320. Gjentatt antall under kort fjernet."
 }
