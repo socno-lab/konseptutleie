@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {variantFields,productVariants} from '../public/product-variants.js';
+import {variantFields,productVariants} from '../public/product-variants.js?v=production20261107';
 import {remaining,selectionDraft} from '../public/catalog-model.js';
 import {validateCatalog} from '../server/catalog.mjs';
 import {readFileSync} from 'node:fs';
@@ -25,7 +25,7 @@ test('Colour group and label survive catalog validation and malformed combinatio
 });
 
 test('rental colours exclude sale-only, zero-stock and hidden colours; furniture stays separate',async()=>{
- const {rentalVariants,groupedRentalCards}=await import('../public/product-variants.js');
+ const {rentalVariants,groupedRentalCards}=await import('../public/product-variants.js?v=production20261107');
  const sand={id:'sand',name:'BringMe, sand',category:'Belysning',variantGroup:'BringMe',variantLabel:'Sand',active:true,rentalEnabled:true,stock:4,unavailable:0};
  const green={...sand,id:'green',variantLabel:'Grønn'},sold={...sand,id:'black',variantLabel:'Sort',rentalEnabled:false,stock:0},hidden={...sand,id:'hidden',active:false},zero={...sand,id:'zero',stock:0};
  assert.deepEqual(rentalVariants(sand,[sand,green,sold,hidden,zero]).map(p=>p.id),['green','sand']);
@@ -34,7 +34,7 @@ test('rental colours exclude sale-only, zero-stock and hidden colours; furniture
  const cart=selectionDraft({},[sand,green],sand.id,4);assert.equal(remaining(green.id,cart,[sand,green]),4);
 });
 test('joining and leaving groups preserves unselected previous members',async()=>{
- const {linkVariantProducts}=await import('../public/product-variants.js');
+ const {linkVariantProducts}=await import('../public/product-variants.js?v=production20261107');
  const base={category:'Belysning',active:true,name:'Lampe',variantGroup:'A',variantLabel:'Sand'};
  const a={...base,id:'a'},b={...base,id:'b',variantLabel:'Grønn'},c={...base,id:'c',variantLabel:'Sort'};
  const added={...base,id:'new',variantLabel:'Blå'};
@@ -47,7 +47,7 @@ test('joining and leaving groups preserves unselected previous members',async()=
 });
 
 test('module colours link matching roles without mixing builders or rental stock',async()=>{
- const {linkVariantProducts}=await import('../public/product-variants.js');
+ const {linkVariantProducts}=await import('../public/product-variants.js?v=production20261107');
  const base={id:'a',active:true,category:'Sofaer',moduleSeries:'Senzo sennep',moduleRole:'base',variantGroup:'Senzo grunnsofa',variantLabel:'Sennep',stock:1,rentalEnabled:true};
  const green={...base,id:'b',moduleSeries:'Senzo grønn',variantLabel:'Grønn',stock:0,rentalEnabled:false};
  const middle={...base,id:'c',moduleRole:'middle'};

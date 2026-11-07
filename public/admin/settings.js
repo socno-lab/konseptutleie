@@ -1,4 +1,4 @@
-import {validateSiteSettings,configureSiteSettings} from '/site-settings.js';
+import {validateSiteSettings,configureSiteSettings} from '/site-settings.js?v=production20261107';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let revision=0,draft,products=[],images=[],panel=new URLSearchParams(location.search).get('panel')==='home'?'home':'categories',dirty=false;
 async function api(url,options){const response=await fetch(url,options);if(response.status===401){location.href='/admin/login';throw Error('Logg inn på nytt.');}const data=await response.json();if(!response.ok)throw Error(data.error||'Kunne ikke lagre.');return data;}

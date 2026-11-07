@@ -1,8 +1,8 @@
-import {saleUnitPrice} from './sales-model.js?v=launch20261024';
+import {saleUnitPrice} from './sales-model.js?v=production20261107';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {isServiceOffering} from './service-model.js?v=launch20261024';
 import {isTablewareRental} from './catalog-model.js?v=longrent20261026';
-import {categoryLabel} from './site-settings.js';
+import {categoryLabel} from './site-settings.js?v=production20261107';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>new Intl.NumberFormat('nb-NO').format(n)+' kr';
 export const isCustomProduct=p=>!!p?.isPackage&&p.components?.length>0;

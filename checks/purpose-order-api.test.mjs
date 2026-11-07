@@ -4,8 +4,8 @@ import {randomBytes} from 'node:crypto';
 import {validateCatalog} from '../server/catalog.mjs';
 import {createServer,publicCatalog} from '../app-server.mjs';
 import {digest} from '../server/auth.mjs';
-import {matchesPurpose} from '../public/rental-purpose-model.js';
-import {defaultSettings,configureSiteSettings} from '../public/site-settings.js';
+import {matchesPurpose} from '../public/rental-purpose-model.js?v=production20261107';
+import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=production20261107';
 import {memoryStore} from './helpers/memory-store.mjs';
 
 // All request data is fictional; no production catalog, SMTP or Google API is used.

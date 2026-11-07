@@ -5,7 +5,7 @@ import {validateSubmission} from '../server/submissions.mjs';
 import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';
 import {readFile} from 'node:fs/promises';
 import {publicHtmlNames,readHtmlTemplate} from '../server/html-templates.mjs';
-import {getTermsVersions} from '../public/terms-versions.js';
+import {getTermsVersions} from '../public/terms-versions.js?v=production20261107';
 import {osloToday,addDateDays} from '../public/rental-dates.js';
 globalThis.document={querySelectorAll:()=>[]};
 const {submitEnquiry}=await import('../public/submission-ui.js');
@@ -41,14 +41,14 @@ test('pure business purchase and mixed rental/purchase submit their required ter
 });
 test('release URLs refresh rental and purchase terms once without loading a second stale customer-info module',async()=>{
  const token='launch20261024',receiptToken='proposal20261105b';
- const customerInfo=await readFile(new URL('../public/customer-info.js',import.meta.url),'utf8');assert.match(customerInfo,/id="purchaseTermsLabel" hidden style="display:none!important"/,'inactive purchase terms must stay hidden before cart synchronisation despite important label display rules');
+ const customerInfo=await readFile(new URL('../public/customer-info.js?v=production20261107',import.meta.url),'utf8');assert.match(customerInfo,/id="purchaseTermsLabel" hidden style="display:none!important"/,'inactive purchase terms must stay hidden before cart synchronisation despite important label display rules');
  for(const name of publicHtmlNames){
   const html=await readHtmlTemplate(name),scripts=[...html.matchAll(/src="\/(app|shop|customer-info)\.js\?([^\"]+)"/g)];
-  assert.ok(scripts.length,'bootstrap missing from '+name);for(const [,module,query] of scripts)assert.equal(new URLSearchParams(query).get('v'),'sitefirst20261106',name+' loads stale '+module);
+  assert.ok(scripts.length,'bootstrap missing from '+name);for(const [,module,query] of scripts)assert.equal(new URLSearchParams(query).get('v'),'production20261107',name+' loads stale '+module);
  }
  const files=await Promise.all(['app','shop','storefront-feedback','submission-ui'].map(async name=>[name,await readFile(new URL('../public/'+name+'.js',import.meta.url),'utf8')]));
  const moduleUrls=name=>files.flatMap(([file,source])=>[...source.matchAll(new RegExp("['\"](?:\\./)("+name+"\\.js[^'\"]*)['\"]",'g'))].map(([,url])=>({file,url})));
  for(const name of ['customer-info','storefront-feedback','submission-ui','enquiry-terms']){
-  const imports=moduleUrls(name);assert.ok(imports.length,name+' import missing');assert.deepEqual([...new Set(imports.map(x=>x.url))],[name+'.js?v='+(name==='customer-info'?'sitefirst20261106':name==='submission-ui'?receiptToken:name==='storefront-feedback'?'sitefirst20261106':token)],name+' must have one release URL to avoid duplicate mounting');
+  const imports=moduleUrls(name);assert.ok(imports.length,name+' import missing');assert.deepEqual([...new Set(imports.map(x=>x.url))],[name+'.js?v='+(name==='customer-info'?'production20261107':name==='submission-ui'?receiptToken:name==='storefront-feedback'?'production20261107':token)],name+' must have one release URL to avoid duplicate mounting');
  }
 });

@@ -11,7 +11,7 @@ if(count){location.replace('/foresporsel.html');}else{
  try{sessionStorage.setItem('konsept-custom-request-v1',JSON.stringify({active:false,text:typeof custom.text==='string'?custom.text:''}));}catch{}
  const badge=document.getElementById('count');if(badge)badge.textContent='0';
  document.getElementById('openCart')?.addEventListener('click',()=>main.scrollIntoView({behavior:'smooth'}));
- const occasionNames={messe:'Messe og stand',event:'Event og selskap',bedrift:'Bedrift',fest:'Bryllup og fest',jul:'Jul og sesong',boligsalg:'Boligfoto og visning'};
+ const occasionNames={produksjon:'Foto, film og reklame',messe:'Messe og stand',event:'Event og selskap',bedrift:'Bedrift',fest:'Bryllup og fest',jul:'Jul og sesong',boligsalg:'Boligfoto og visning'};
  const occasion=document.createElement('input');occasion.type='hidden';occasion.name='occasion';occasion.value=occasionNames[new URL(location.href).searchParams.get('bruk')]||'';form.append(occasion);
  const saveDraft=()=>{const value=Object.fromEntries(fields.map(key=>[key,form.elements.namedItem(key).value]));try{sessionStorage.setItem(draftKey,JSON.stringify(value));}catch{}};
  form.addEventListener('input',saveDraft);window.addEventListener('pagehide',saveDraft);

@@ -1,21 +1,21 @@
 import {homeFirstPaint} from './home-first-paint.mjs';
-import {occasionLandingView} from '../public/occasion-landing-view.js';
+import {occasionLandingView} from '../public/occasion-landing-view.js?v=production20261107';
 import {initialSiteData} from './initial-site-data.mjs';
 import {customerInformationFirstPaint} from './customer-information-first-paint.mjs';
 import {productFirstPaint} from './product-first-paint.mjs';
 import {saleCatalogFirstPaint} from './sale-catalog-first-paint.mjs';
 import {catalogFirstPaint} from './catalog-first-paint.mjs';
 import {catalogFilters} from '../public/catalog-filters.js';
-import {catalogUsageMarkup} from '../public/catalog-usage-markup.js';
-import {validPurpose} from '../public/rental-purpose-model.js';
-import {rentalUsageState} from '../public/rental-usage-model.js';
+import {catalogUsageMarkup} from '../public/catalog-usage-markup.js?v=production20261107';
+import {validPurpose} from '../public/rental-purpose-model.js?v=production20261107';
+import {rentalUsageState} from '../public/rental-usage-model.js?v=production20261107';
 import {renderMesseLanding} from '../public/messe-landing.js';
 import {catalogIntroHtml} from '../public/catalog-intro.js';
 import {purchaseProductText} from '../public/purchase-copy.js';
-import {categoryLabel,getSiteSettings} from '../public/site-settings.js';
-import {homeOccasionCards} from '../public/home-occasions.js';
-import {matchesPurpose} from '../public/rental-purpose-model.js';
-import {salesEnabled,saleUnitPrice} from '../public/sales-model.js';
+import {categoryLabel,getSiteSettings} from '../public/site-settings.js?v=production20261107';
+import {homeOccasionCards} from '../public/home-occasions.js?v=production20261107';
+import {matchesPurpose} from '../public/rental-purpose-model.js?v=production20261107';
+import {salesEnabled,saleUnitPrice} from '../public/sales-model.js?v=production20261107';
 export const siteOrigin='https://konseptuell.no';
 export const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const e=escapeHtml,money=n=>new Intl.NumberFormat('nb-NO',{maximumFractionDigits:0}).format(n)+' kr';
@@ -23,7 +23,7 @@ const url=(p,buy=false)=>(buy?'/kjopsprodukt.html':'/leieprodukt.html')+'?produk
 const visible=p=>p.active&&!p.deletedAt&&!p.addonOnly;
 const rental=p=>visible(p)&&p.rentalEnabled!==false;
 export function indexableEnvironment(origin,env={},hosts=[]){return origin.replace(/\/$/,'')===siteOrigin&&!['test','development'].includes(env.NODE_ENV)&&env.SEO_INDEXING!=='false'&&hosts.includes('konseptuell.no');}
-export const occasions={messe:['Møbler til messe og event','messe','Lei møbler til messestand, event og loungeområder. Velg bord, stoler og sofaer enkeltvis eller ta utgangspunkt i ferdige pakker.'],bedrift:['Møbler til arbeidsplassen','bedrift','Lei møbler til venterom, resepsjon og fellesområder. Send en forespørsel om enkeltmøbler eller en samlet løsning.'],bryllup:['Møbler til bryllup og fest','fest','Lei møbler, servise og dekor til feiringen. Innhold, tilgjengelighet og transport avklares i tilbudet.'],jul:['Julepynt og møbler til jul og sesong','jul','Se juleoppsett, dekor og stylisttjenester til arbeidsplassen eller hjemmet. Omfang og pris avklares i tilbudet.'],boligfoto:['Møbelleie ved boligsalg','boligsalg','Lei enkeltmøbler til boligfoto og visning. For fullstyling eller delstyling kan du kontakte Konsept Boligstyling.'],alle:['Møbler til alle bruksområder','alle','Finn møbler til event, messe, bedrift og bolig. Se enkeltprodukter eller ferdige pakker.']};
+export const occasions={messe:['Møbler til messe og event','messe','Lei møbler til messestand, event og loungeområder. Velg bord, stoler og sofaer enkeltvis eller ta utgangspunkt i ferdige pakker.'],bedrift:['Møbler til arbeidsplassen','bedrift','Lei møbler til venterom, resepsjon og fellesområder. Send en forespørsel om enkeltmøbler eller en samlet løsning.'],produksjon:['Møbler og styling til din produksjon','produksjon','Reklamestyling, produktstyling og innredning av lokasjoner til foto, film og TV. Møbler og rekvisitter fra eget lager.'],bryllup:['Møbler til fest og sesong','fest','Lei møbler, servise og dekor til feiringen. Innhold, tilgjengelighet og transport avklares i tilbudet.'],jul:['Julepynt og møbler til jul og sesong','jul','Se juleoppsett, dekor og stylisttjenester til arbeidsplassen eller hjemmet. Omfang og pris avklares i tilbudet.'],boligfoto:['Møbelleie ved boligsalg','boligsalg','Lei enkeltmøbler til boligfoto og visning. For fullstyling eller delstyling kan du kontakte Konsept Boligstyling.'],alle:['Møbler til alle bruksområder','alle','Finn møbler til event, messe, bedrift og bolig. Se enkeltprodukter eller ferdige pakker.']};
 export function pageModel(path,params,products){
  const buy=path==='/kjop.html'||path==='/kjopsprodukt.html',pool=products.filter(p=>buy?visible(p)&&salesEnabled(p):rental(p));
  if(['/leieprodukt.html','/kjopsprodukt.html'].includes(path)){

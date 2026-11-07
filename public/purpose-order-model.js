@@ -1,4 +1,4 @@
-export const purposeOrderScopes=Object.freeze(['boligsalg','messe','bedrift','fest','jul','alle']);
+export const purposeOrderScopes=Object.freeze(['boligsalg','messe','bedrift','fest','jul','produksjon','alle']);
 const validPriority=value=>Number.isInteger(value)&&value>=-9999&&value<=9999;
 const isRecord=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&[Object.prototype,null].includes(Object.getPrototypeOf(value));
 

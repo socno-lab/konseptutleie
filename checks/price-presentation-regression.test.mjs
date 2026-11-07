@@ -5,13 +5,13 @@ import vm from 'node:vm';
 import {ratePlan,rentalDays,moduleConfiguration} from '../public/catalog-model.js';
 import {productPeriodState} from '../public/product-rental-period.js';
 import {packageGroupRates,packageGroupPeriodTotal} from '../public/package-cart-model.js';
-import {rentalUsageState} from '../public/rental-usage-model.js';
-import {scopeForOccasion} from '../public/rental-pricing-model.js';
+import {rentalUsageState} from '../public/rental-usage-model.js?v=production20261107';
+import {scopeForOccasion} from '../public/rental-pricing-model.js?v=production20261107';
 import {packageBuyoutOption} from '../public/buyout-model.js';
 import {packagePurchaseSelectionPrice} from '../public/business-purchase-model.js';
 import {saveSofa} from '../public/sofa-model.js';
 
-const source=fs.readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../public/app.js?v=production20261107',import.meta.url),'utf8');
 const functionSource=name=>{const start=source.indexOf('function '+name+'(');assert.ok(start>=0);const firstLine=source.slice(start,source.indexOf('\n',start));return firstLine.endsWith('}')?firstLine:source.slice(start,source.indexOf('\n}',start)+2);};
 const item=(id,extra={})=>({id,name:id,active:true,stock:30,unavailable:0,price:100,weekPrice:500,monthPrice:1000,...extra});
 const end=item('end',{moduleSeries:'Sofa',moduleRole:'end',moduleWidth:100}),middle=item('middle',{moduleSeries:'Sofa',moduleRole:'middle',moduleWidth:80,price:80,weekPrice:300,monthPrice:800}),textile=item('textile',{price:400,weekPrice:400,monthPrice:400,rentalPricingMode:'period',addonOnly:true});

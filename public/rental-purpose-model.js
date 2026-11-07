@@ -7,6 +7,7 @@ export const purposes=[
  {id:'bedrift',label:'Bedrift'},
  {id:'fest',label:'Bryllup og fest'},
  {id:'jul',label:'Jul og sesong'},
+ {id:'produksjon',label:'Foto, film og reklame'},
  {id:'alle',label:'Vis alle'}
 ];
 export const validPurpose=value=>value==='event'?'messe':purposes.some(p=>p.id===value)?value:'alle';
@@ -16,6 +17,8 @@ const occasionPackages=new Set(['obj_b3af6675a38744e0bc567acc3c547849','obj_3aaf
 export function matchesPurpose(product,value){
  const purpose=validPurpose(value);
  if(purpose==='alle')return true;
+ // Production is a cross-catalog collection of furniture and props, without duplicated stock.
+ if(purpose==='produksjon')return !product.isPackage&&product.offeringType!=='service'&&['Sofaer','Modulsofaer','Stoler','Bord','Hyller','Belysning','Tepper','Kunstige planter','Kunstige blomster','Dekor','Bilder','Speil','Servise','Utemøbler','Senger'].includes(product.category);
  if(product.purposesExplicit===true)return (product.purposes||[]).includes(purpose);
  if(product.id==='obj_a6ca0b4ab5d94e0b811e2fddf13b13b9')return purpose==='bedrift';
  if(purpose==='bedrift'&&product.isPackage&&product.businessPurchase===true)return true;
@@ -29,4 +32,4 @@ export function matchesPurpose(product,value){
 export function readPurposeState(url,saved='alle'){const u=new URL(url);return {purpose:validPurpose(u.searchParams.has('bruk')?u.searchParams.get('bruk'):saved),category:u.searchParams.get('kategori')||'Alle',query:u.searchParams.get('sok')||''};}
 export function purposeUrl(url,state){const u=new URL(url);u.searchParams.set('bruk',validPurpose(state.purpose));if(state.category&&state.category!=='Alle')u.searchParams.set('kategori',state.category);else u.searchParams.delete('kategori');if(state.query)u.searchParams.set('sok',state.query);else u.searchParams.delete('sok');return u.pathname+u.search+u.hash;}
 
-export function resolvedProductPurposes(product){return purposes.filter(p=>p.id!=='alle'&&matchesPurpose(product,p.id)).map(p=>p.id);}
+export function resolvedProductPurposes(product){return purposes.filter(p=>p.id!=='alle'&&p.id!=='produksjon'&&matchesPurpose(product,p.id)).map(p=>p.id);}

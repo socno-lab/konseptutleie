@@ -1,7 +1,7 @@
 import {createProposalSnapshot,proposalEmail} from './proposal.mjs';
 const customerReceipt=s=>({acquisition:s.acquisition,lines:s.lines,facts:s.facts,delivery:s.delivery,discount:s.discount,total:s.total,vatIncluded:s.vatIncluded,address:s.address,comment:s.comment});
-import {salesEnabled} from '../public/sales-model.js';
-import {validateEnquiryTerms} from '../public/terms-versions.js';
+import {salesEnabled} from '../public/sales-model.js?v=production20261107';
+import {validateEnquiryTerms} from '../public/terms-versions.js?v=production20261107';
 import {createEnquirySnapshot,requestDetails} from './enquiry-snapshot.mjs';
 import {enquiryEmail} from './enquiry-email.mjs';
 import {readFile} from 'node:fs/promises';

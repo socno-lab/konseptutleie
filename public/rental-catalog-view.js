@@ -1,17 +1,17 @@
-import {matchesPurpose,purposes} from './rental-purpose-model.js?v=launch20261024';
+import {matchesPurpose,purposes} from './rental-purpose-model.js?v=production20261107';
 import {isServiceOffering,serviceVariants,groupedServiceCards} from './service-model.js?v=launch20261024';
-import {productSubcategory,availableSubcategories} from './catalog-subcategories.js?v=launch20261024';
-import {variantFields,rentalVariants,groupedRentalCards,variantColour} from './product-variants.js?v=launch20261024';
+import {productSubcategory,availableSubcategories} from './catalog-subcategories.js?v=production20261107';
+import {variantFields,rentalVariants,groupedRentalCards,variantColour} from './product-variants.js?v=production20261107';
 import {isWall} from './wall-model.js?v=launch20261024';
 import {isTablewareRental,remaining,ratePlan} from './catalog-model.js?v=longrent20261026';
-import {orderRentalCards} from './catalog-order-model.js?v=cataloglast20261024';
+import {orderRentalCards} from './catalog-order-model.js?v=production20261107';
 import {rentalGroupRentedOut,rentalSeriesRentedOut,rentalStatusBadge} from './rental-status.js?v=rented20261029b';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
 import {joinedModuleCover} from './module-joined-profiles.js?v=lagoon20261025';
 import {moduleCardImage,sofaCardArt} from './module-card-image.js?v=sofaframes20261025';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
-import {isKiPhoto as photoIsKi,kiDisclosure} from './image-provenance.js?v=launch20261024';
+import {isKiPhoto as photoIsKi,kiDisclosure} from './image-provenance.js?v=production20261107';
 import {businessPurchaseEnabled,packagePurchaseSelectionPrice} from './business-purchase-model.js';
 import {packageBuyoutOption} from './buyout-model.js?v=longrent20261026';
 // One selection and card renderer for server first paint and client filtering.

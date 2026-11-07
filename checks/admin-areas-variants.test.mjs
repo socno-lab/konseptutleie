@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {matchesPurpose,resolvedProductPurposes} from '../public/rental-purpose-model.js';
+import {matchesPurpose,resolvedProductPurposes} from '../public/rental-purpose-model.js?v=production20261107';
 import {validateCatalog} from '../server/catalog.mjs';
-import {linkVariantProducts,productVariants} from '../public/product-variants.js';
+import {linkVariantProducts,productVariants} from '../public/product-variants.js?v=production20261107';
 import {readFileSync} from 'node:fs';
 test('Explicit admin use areas override legacy mappings, including empty selection',()=>{
  const p={id:'obj_a6ca0b4ab5d94e0b811e2fddf13b13b9',isPackage:true,businessPurchase:true,purposes:['fest','jul'],purposesExplicit:true};

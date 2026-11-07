@@ -1,7 +1,8 @@
-import {getSiteSettings} from './site-settings.js';
+import {getSiteSettings} from './site-settings.js?v=production20261107';
 // Known generated illustrations and edited assets; supplier photos remain unmarked.
 export const kiDisclosure='Bildet kan være retusjert eller generert med KI';
 const illustratedImages=new Set([
+ "/assets/foto-film-reklame-illustrasjon.jpg",
  "/media/2126a0ee94479443adf65bbadbbebc1d",
  "/media/8a1bc255c77178e023edd8c382221607",
  "/media/3cc7290000bf27578e4ae98ff2b1a6ce",

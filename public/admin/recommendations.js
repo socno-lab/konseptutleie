@@ -1,5 +1,5 @@
-import {recommendProducts,recommendationCandidate,recommendationFamily} from '/recommendation-model.js?v=longrent20261026';
-import {salesEnabled} from '/sales-model.js?v=launch20261024';
+import {recommendProducts,recommendationCandidate,recommendationFamily} from '/recommendation-model.js?v=production20261107';
+import {salesEnabled} from '/sales-model.js?v=production20261107';
 const html=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function mountRecommendationEditor(getSelected,getProducts,onChange){
  const configurations=[{mode:'buy',field:'recommendedProducts',root:'productRecommendationFields',prefix:'recommendation',summary:'productRecommendationsSummary',title:'Anbefalinger ved kjøp'},{mode:'rent',field:'rentalAlternatives',root:'rentalAlternativeFields',prefix:'rentalAlternative',summary:'rentalAlternativesSummary',title:'Lignende alternativer ved leie'}];

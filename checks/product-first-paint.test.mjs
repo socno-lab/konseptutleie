@@ -32,15 +32,15 @@ test('product shell is present before modules, moves rental controls once and sa
   assert.equal((html.match(/id="catalogPricingScope"/g)||[]).length,buy?0:1);
   assert.ok(html.indexOf('productPageHost')<html.indexOf('<section>'));
   assert.ok(!html.includes('evil.test'));
-  assert.match(html,/product-shell-bootstrap.js\?v=sitefirst20261106/);
+  assert.match(html,/product-shell-bootstrap.js\?v=production20261107/);
  }
 });
 
 test('parsing-time rental menu agrees with application usage rules including saved choices',async()=>{
  const {readFile}=await import('node:fs/promises'),{runInNewContext}=await import('node:vm');
- const {readPurposeState}=await import('../public/rental-purpose-model.js');
- const {rentalUsageState}=await import('../public/rental-usage-model.js');
- const source=await readFile(new URL('../public/product-shell-bootstrap.js',import.meta.url),'utf8');
+ const {readPurposeState}=await import('../public/rental-purpose-model.js?v=production20261107');
+ const {rentalUsageState}=await import('../public/rental-usage-model.js?v=production20261107');
+ const source=await readFile(new URL('../public/product-shell-bootstrap.js?v=production20261107',import.meta.url),'utf8');
  for(const purpose of [undefined,'alle','fest','boligsalg','event','invalid'])for(const explicit of [undefined,'messe','standard','invalid'])for(const saved of [null,'standard','messe']){
   const url=new URL('https://konseptuell.no/leieprodukt.html');if(purpose!==undefined)url.searchParams.set('bruk',purpose);if(explicit!==undefined)url.searchParams.set('prisbruk',explicit);
   let actual=null,price=null;const elements={catalogPricingScope:{replaceChildren:value=>actual=value}};

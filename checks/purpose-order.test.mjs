@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {purposeOrderScopes,validatePurposeOrder,sortByPurposeOrder} from '../public/purpose-order-model.js';
+import {purposeOrderScopes,validatePurposeOrder,sortByPurposeOrder} from '../public/purpose-order-model.js?v=production20261107';
 
 test('Purpose priorities are optional, copied and bounded integers, including zero',()=>{
  assert.deepEqual(validatePurposeOrder(undefined),{});
@@ -10,7 +10,7 @@ test('Purpose priorities are optional, copied and bounded integers, including ze
  assert.notEqual(result,source);
  result.jul=20;
  assert.equal(source.jul,2);
- assert.deepEqual(purposeOrderScopes,['boligsalg','messe','bedrift','fest','jul','alle']);
+ assert.deepEqual(purposeOrderScopes,['boligsalg','messe','bedrift','fest','jul','produksjon','alle']);
  assert(Object.isFrozen(purposeOrderScopes));
  assert.deepEqual(validatePurposeOrder(Object.assign(Object.create(null),{jul:0})),{jul:0});
 });
