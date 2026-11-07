@@ -60,7 +60,16 @@ function mount(){
   if(!entries)return;results.replaceChildren();current.replaceChildren();
   if(mode==='search'){
    const query=input.value.trim(),found=searchHeaderCatalog(entries,query,100),categories=searchHeaderCategories(entries,query);
-   status.textContent=!query?'Søk etter produkt, merke eller kategori.':found.length?found.length+' produkttreff'+(found.length>visibleResults?' – viser '+visibleResults+'.':'.'):categories.length?'Se hele kategorien nedenfor.':'Ingen treff. Prøv et annet søkeord.';
+   status.textContent=!query?'Søk etter produkt, merke eller kategori.':found.length?found.length+' produkttreff'+(found.length>visibleResults?' – viser '+visibleResults+'.':'.'):categories.length?'Se hele kategorien nedenfor.':'Ingen treff. Prøv et annet søkeord, eller fortell oss hva du ser etter.';
+   if(query&&!found.length&&!categories.length){
+    const help=document.createElement('div');help.className='header-search-empty';
+    const heading=document.createElement('h3');heading.textContent='Fant du ikke det du trenger?';
+    const text=document.createElement('p');text.textContent='Vi hjelper deg å finne en løsning.';
+    const actions=document.createElement('div');actions.className='catalog-empty-actions';
+    const reset=document.createElement('button');reset.type='button';reset.className='button button-outline';reset.textContent='Nullstill søk';reset.onclick=()=>{clearTimeout(debounce);input.value='';visibleResults=8;render();input.focus();};
+    const request=document.createElement('a');request.className='button dark';request.href='/tilpasset-foresporsel.html';request.textContent='Fortell oss hva du trenger ↗';
+    actions.append(reset,request);help.append(heading,text,actions);results.append(help);
+   }
    if(categories.length){const label=document.createElement('p');label.textContent=categories.length===1?'Kategori':'Kategorier';current.append(label,...categories.map(categoryRow));}
    for(const entry of found.slice(0,visibleResults))results.append(row(entry));
    browse.hidden=found.length<=visibleResults;browse.textContent='Vis flere treff';
