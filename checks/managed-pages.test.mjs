@@ -1,8 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=pages20261107';
-import {newContentPage,cardHref} from '../public/page-model.js?v=pages20261107';
-import {homeOccasionCards} from '../public/home-occasions.js?v=pages20261107';
-import {occasionLandingView} from '../public/occasion-landing-view.js?v=pages20261107';
+import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=stock20261107';
+import {newContentPage,cardHref} from '../public/page-model.js?v=stock20261107';
+import {homeOccasionCards} from '../public/home-occasions.js?v=stock20261107';
+import {occasionLandingView} from '../public/occasion-landing-view.js?v=stock20261107';
 import {pageModel,renderSeo,sitemap} from '../server/seo.mjs';import {readHtmlTemplate} from '../server/html-templates.mjs';
 const base=()=>validateSiteSettings(structuredClone(defaultSettings));
 test('legacy content migrates once into a shared template and preserves edited fields',()=>{

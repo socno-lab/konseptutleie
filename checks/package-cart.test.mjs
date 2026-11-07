@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupPeriodTotal,validPackageBasket} from '../public/package-cart-model.js';
 import {rentalEstimate,remaining} from '../public/catalog-model.js';
-import {rentalDeliveryCapacity} from '../public/delivery-model.js?v=pages20261107';
+import {rentalDeliveryCapacity} from '../public/delivery-model.js?v=stock20261107';
 const item=(id,extra={})=>({id,name:id,category:'Stoler',type:'chair',active:true,stock:30,unavailable:0,price:100,weekPrice:500,monthPrice:1000,...extra});
 const products=[item('chair'),item('table',{category:'Bord'}),item('plant',{category:'Kunstige planter'}),item('decor',{category:'Dekor'}),item('pack',{name:'Loungepakken',category:'Pakker',isPackage:true,components:[{id:'chair',quantity:2},{id:'table',quantity:1}],price:200,weekPrice:900,monthPrice:1800,relatedAddOns:['decor']}),item('other',{isPackage:true,components:[{id:'chair',quantity:1}]})];
 test('fixed package products are visible with multiplied quantities, without duplicate inventory or price',()=>{

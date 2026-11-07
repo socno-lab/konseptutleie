@@ -1,6 +1,6 @@
-import {pageEditor,pageEditorAction} from './page-editor.js?v=pages20261107';
-import {landingSettings} from './landing-settings.js?v=pages20261107';
-import {validateSiteSettings,configureSiteSettings} from '/site-settings.js?v=pages20261107';
+import {pageEditor,pageEditorAction} from './page-editor.js?v=stock20261107';
+import {landingSettings} from './landing-settings.js?v=stock20261107';
+import {validateSiteSettings,configureSiteSettings} from '/site-settings.js?v=stock20261107';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let revision=0,draft,products=[],images=[],panel=new URLSearchParams(location.search).get('panel')==='home'?'home':'categories',dirty=false;
 async function api(url,options){const response=await fetch(url,options);if(response.status===401){location.href='/admin/login';throw Error('Logg inn på nytt.');}const data=await response.json();if(!response.ok)throw Error(data.error||'Kunne ikke lagre.');return data;}

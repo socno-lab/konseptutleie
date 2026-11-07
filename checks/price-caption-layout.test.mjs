@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {productPeriodState} from '../public/product-rental-period.js';
 test('styling explanation and VAT share the single caption track, avoiding an implicit second card column',async()=>{
- const source=await readFile(new URL('../public/app.js?v=pages20261107',import.meta.url),'utf8');
+ const source=await readFile(new URL('../public/app.js?v=stock20261107',import.meta.url),'utf8');
  const render=['selectedRentalDays','rateGrid'].map(name=>source.split('\n').find(line=>line.startsWith('function '+name+'('))).join('\n');
  const context=vm.createContext({rentalScopeConfirmed:true,el:()=>null,productPeriodState,money:n=>n+' kr',products:[]});
  vm.runInContext(render,context);

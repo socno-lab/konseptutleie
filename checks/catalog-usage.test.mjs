@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {proposedCatalogUsage,catalogUsageLabel} from '../public/catalog-usage-model.js?v=pages20261107';
-import {purposes} from '../public/rental-purpose-model.js?v=pages20261107';
-import {applyRentalScope,rentalRateSets} from '../public/rental-pricing-model.js?v=pages20261107';
+import {proposedCatalogUsage,catalogUsageLabel} from '../public/catalog-usage-model.js?v=stock20261107';
+import {purposes} from '../public/rental-purpose-model.js?v=stock20261107';
+import {applyRentalScope,rentalRateSets} from '../public/rental-pricing-model.js?v=stock20261107';
 import {rentalEstimate} from '../public/catalog-model.js';
 
 test('Every actual assortment purpose selects its existing price basis',()=>{
@@ -92,7 +92,7 @@ test('A proposal does not alter existing rates, synthetic basket quantities or d
 test('all rental purposes and categories receive their complete usage field before client scripts',async()=>{
  const {readHtmlTemplate}=await import('../server/html-templates.mjs');
  const {pageModel,renderSeo}=await import('../server/seo.mjs');
- const {catalogUsageMarkup}=await import('../public/catalog-usage-markup.js?v=pages20261107');
+ const {catalogUsageMarkup}=await import('../public/catalog-usage-markup.js?v=stock20261107');
  const source=await readHtmlTemplate('utvalg.html');
  const products=[{id:'chair',name:'Stol',category:'Stoler',active:true},{id:'package',name:'Pakke',category:'Pakker',isPackage:true,active:true}];
  for(const purpose of purposes)for(const category of ['Alle','Stoler','Pakker'])for(const scope of [null,'standard','messe']){

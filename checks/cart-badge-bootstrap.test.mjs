@@ -57,7 +57,7 @@ test('bootstrap disconnects at DOM ready even if the page has no count node',()=
 });
 
 test('an early purchase-cart refresh cannot clear the saved basket before the catalogue arrives',async()=>{
- const shop=await readFile(new URL('../public/shop.js?v=pages20261107',import.meta.url),'utf8');
+ const shop=await readFile(new URL('../public/shop.js?v=stock20261107',import.meta.url),'utf8');
  const render=shop.slice(shop.indexOf('function renderCart(){'),shop.indexOf('function saleSofaRows(){'));
  const state={catalogReady:false,basket:{chair:2},products:[],enquiryFlow:{ready(){assert.fail('The cart must remain pending');}},saleEstimate(){assert.fail('An empty not-yet-loaded catalogue is not an empty basket');},save(){assert.fail('Saved basket must remain untouched');}};
  vm.runInNewContext(render+'\nrenderCart();',state);

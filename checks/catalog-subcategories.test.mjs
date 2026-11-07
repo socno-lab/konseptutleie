@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {productSubcategory,availableSubcategories} from '../public/catalog-subcategories.js?v=pages20261107';
+import {productSubcategory,availableSubcategories} from '../public/catalog-subcategories.js?v=stock20261107';
 test('chair and lamp types do not mix across parent categories',()=>{
  for(const [name,category,expected] of [['Hübsch Forma Dining Chair Natural','Stoler','Spisestoler'],['VIND Orust barkrakk','Stoler','Barkrakker'],['Venture Design My loungestol','Stoler','Loungestoler'],['Hübsch Rocco puff','Stoler','Puffer'],['Hübsch BringMe portabel lampe','Belysning','Portable lamper'],['Hübsch Mush bordlampe','Belysning','Bordlamper']])assert.equal(productSubcategory({name,category}),expected);
  assert.equal(productSubcategory({name:'Dining Chair',category:'Stoler'},'Bord'),'');
