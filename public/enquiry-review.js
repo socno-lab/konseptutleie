@@ -31,7 +31,6 @@ if(page==='/foresporsel.html'||page==='/tilpasset-foresporsel.html'){
     else if(value('deliveryDate'))fact('Ønsket levering',value('deliveryDate'),form.elements.namedItem('deliveryDate'));
     const delivery=form.elements.namedItem(sale?'shipping':'delivery');fact('Levering eller henting',value(sale?'shipping':'delivery'),delivery?.length?delivery[0].closest('fieldset')||delivery[0].parentElement:delivery);
    }
-   fact('E-post',value('email'),form.elements.namedItem('email'));
    node('p','Du kan rette valgene over uten å starte på nytt. Innsendingen er uforpliktende.').className='hint';
   }
   let queued=false;function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render();});}
