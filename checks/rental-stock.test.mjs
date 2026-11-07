@@ -12,7 +12,7 @@ test('detail uses selected variant and does not expose rental stock on purchase 
  const a={id:'a',name:'Natur',stock:4,category:'Stoler'},b={...a,id:'b',name:'Brun',stock:7};
  assert.match(productSummary(a,[a,b]),/Vi har 4 stk/);assert.match(productSummary(b,[a,b]),/Vi har 7 stk/);
  assert.doesNotMatch(productSummary(a,[a,b],{buy:true}),/Vi har 4 stk/);
- assert.match(productSummary(a,[a,b]),/ønsket periode avklares i tilbudet/);
+ assert.match(productSummary(a,[a,b]),/Tilgjengelighet for datoene dine bekreftes i tilbudet/);
 });
 
 test('package capacity follows the limiting owned component, including modules',()=>{
