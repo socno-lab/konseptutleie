@@ -22,3 +22,12 @@
 @media(max-width:800px){.content-gallery-feature{height:auto;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;gap:16px}.content-gallery-main{grid-column:1;grid-row:1}.content-gallery-main>button{height:auto}.content-gallery-main img{height:auto;aspect-ratio:1.5}.gallery-mobile-controls{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:8px}.gallery-mobile-controls button{min-width:44px;min-height:44px;background:transparent;border:1px solid var(--line);font:inherit}.content-gallery-feature>.content-gallery-grid{grid-column:1;grid-row:2;display:flex;overflow-x:auto;gap:12px;padding:5px}.content-gallery-grid button{flex:0 0 76px}.content-gallery-grid img{width:76px;height:51px;flex:none}.content-gallery-grid span{display:none}.content-gallery-copy{grid-column:1;grid-row:3;overflow:visible}.content-gallery-copy h3,.content-gallery-copy p{display:block;overflow:visible}.gallery-read-more{display:none}.content-gallery-dialog{padding:16px}.content-gallery-dialog img{height:45svh}}
 
 .gallery-read-more[hidden]{display:none}
+
+/* Compact transition from managed content to the shared discovery links. */
+.occasion-page main>.occasion-landing:has(.content-page){padding-bottom:45px}
+.occasion-page main>.occasion-landing:has(.content-page)~.seo-discovery{padding-top:45px}
+.occasion-page main>.occasion-landing:has(.content-page)~.seo-discovery>h2:first-child{margin-top:0}
+@media(max-width:800px){
+ .occasion-page main>.occasion-landing:has(.content-page){padding-bottom:28px}
+ .occasion-page main>.occasion-landing:has(.content-page)~.seo-discovery{padding-top:28px}
+}
