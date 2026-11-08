@@ -54,7 +54,7 @@ test('every public HTML response includes its closed shell while preserving bask
   const html=await readHtmlTemplate(name),header=headerOf(html);
   assertClosedShell(html,name);
   assert.match(header,/<a class="brand" href="\/"/);
-  assert.ok(linksOf(header).some(([href,label])=>href==='/'&&label==='Leie'),name+' keeps the rental link');
+  assert.ok(linksOf(header).some(([href,label])=>href==='/utvalg.html?bruk=alle#utvalg'&&label==='Se alle produkter'),name+' keeps the rental link');
   assert.ok(linksOf(header).some(([href,label])=>href==='/kjop.html'&&label==='Kjøpe'),name+' keeps the purchase link');
   if(name!=='kundeinfo.html'){
    const sale=['kjop.html','kjopsprodukt.html'].includes(name),id=sale?'openSaleCart':'openCart',countId=sale?'saleCount':'count';

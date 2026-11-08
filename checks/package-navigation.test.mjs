@@ -20,7 +20,7 @@ test('rendered home links show all products despite a saved housing purpose, whi
  const html=renderSeo(source,pageModel('/',new URLSearchParams(),products),products,true);
  const anchors=[...html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)].map(([,attributes,content])=>({href:attributes.match(/\bhref="([^"]+)"/)?.[1]?.replaceAll('&amp;','&'),text:content.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim()}));
  const allProducts=anchors.filter(anchor=>/^Se alle produkter(?:\s*↗)?$/.test(anchor.text));
- assert.equal(allProducts.length,2,'both home entry points must lead to the complete catalogue');
+ assert.equal(allProducts.length,3,'home and dropdown entry points must lead to the complete catalogue');
  for(const {href} of allProducts)assert.deepEqual(readPurposeState(new URL(href,'https://example.invalid'),'boligsalg'),{purpose:'alle',category:'Alle',query:''});
  const housing=anchors.find(anchor=>anchor.href&&new URL(anchor.href,'https://example.invalid').searchParams.get('bruk')==='boligsalg');
  assert.ok(housing,'the explicit housing entry point must remain available');

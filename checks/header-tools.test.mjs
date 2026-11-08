@@ -51,7 +51,8 @@ test('every public template has one initial tool shell and keeps its existing na
   assert.equal((html.match(/src="\/header-tools\.js\?[^" ]+"/g)||[]).length,1,name+' loads one controller');
   assert.equal((html.match(/href="\/header-tools\.css\?[^" ]+"/g)||[]).length,1,name+' loads its styles');
   assert.match(header,/<a class="brand" href="\/"/);
-  assert.match(header,/<nav\b[^>]*>[\s\S]*?<a href="\/">Leie<\/a>/);
+  assert.match(header,/<summary>Leie /);
+  assert.ok(header.includes('href="/utvalg.html?bruk=alle#utvalg"'));
   assert.match(header,/<a href="\/kjop\.html"[^>]*>Kjøpe<\/a>/);
   assert.match(html,/<\/header><div class="mobile-menu-layer" hidden>/);
   if(name!=='kundeinfo.html'){

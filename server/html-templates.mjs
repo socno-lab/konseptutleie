@@ -1,3 +1,4 @@
+import {renderPrimaryNavigation} from './primary-navigation.mjs';
 import {renderHeaderTools} from './header-tools.mjs';
 import {renderArrowIcons} from './arrow-icons.mjs';
 import {renderMobileNavigation} from './mobile-navigation.mjs';
@@ -32,7 +33,7 @@ export async function readHtmlTemplate(name,base=root){
  html=html.replace('</head>','<link rel="stylesheet" href="/product-dimensions.css?v=dimensions20261108b"></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/catalog-empty.css?v=empty20261107"></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/enquiry-review.css?v=compact20261107b"><script type="module" src="/enquiry-review.js?v=compact20261107b"></script></head>');
- html=renderArrowIcons(renderHeaderTools(renderMobileNavigation(html)));
+ html=renderArrowIcons(renderHeaderTools(renderMobileNavigation(renderPrimaryNavigation(html))));
  html=html.replace('</head>','<link rel="icon" href="/favicon.ico?v=brand20261105" sizes="any"><link rel="icon" type="image/png" href="/favicon.png?v=brand20261105" sizes="96x96"><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=brand20261105"><link rel="apple-touch-icon" href="/apple-touch-icon.png?v=brand20261105" sizes="180x180"></head>');
  // Occasion is an explicit form choice, never inferred from the catalogue category.
  html=html.replace(/(<select\b[^>]*\bid="occasion"[^>]*>)([\s\S]*?)(<\/select>)/g,(_,open,options,close)=>open+'<option value="" selected disabled>Velg anledning</option>'+options.replace(/\sselected(?:="[^"]*")?/g,'').replace('<option>Boligsalg</option>','<option>Boligfoto og visning</option>')+close);
@@ -46,9 +47,10 @@ export async function readHtmlTemplate(name,base=root){
  // Read the existing saved basket during parsing, before the header paints.
  // Catalogue validation remains the responsibility of the application modules.
  if(/<span id="(?:count|saleCount)">/.test(html))html=html.replace('</head>','<script src="/cart-badge-bootstrap.js?v=cartfirstpaint20261026"></script></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=cartcurrent20261027"><script type="module" src="/header-tools.js?v=optionimages20261108"></script><script type="module" src="/mobile-navigation.js?v=optionimages20261108"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=cartcurrent20261027"><script type="module" src="/header-tools.js?v=optionimages20261108"></script><script type="module" src="/mobile-navigation.js?v=primary20261108"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=productscope20261025"></head>');
  if(['index.html','utvalg.html','anledning.html','leieprodukt.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/rental-status.css?v=rented20261029b"></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/primary-navigation.css?v=20261108a"><script defer src="/primary-navigation.js?v=20261108a"></script></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;
 }
