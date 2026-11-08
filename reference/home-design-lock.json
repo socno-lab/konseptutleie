@@ -12,7 +12,7 @@
     "imageAspectRatio": 1.6
   },
   "fingerprints": {
-    "shared-styles": "043bb195cef84074c912aa020520c44d996f437ead5c663fc73713a75dc74b6f",
+    "shared-styles": "5abbc745a305975a9ea1e826001eb323417edb4e966aaa8d95d862418aeffac9",
     "commerce-styles": "86a2306765b53db23579e396aaafbe0e1632b038e7b175ca3a7b55a5bd8e1dd0",
     "home-hero": "007cba6be7ed0ee8892eff668c1ee5e4d1546ffee9aef02416bbe492eb5c34f8",
     "rendered-home-hero": "007cba6be7ed0ee8892eff668c1ee5e4d1546ffee9aef02416bbe492eb5c34f8",
@@ -52,5 +52,6 @@
   "mobileStockReview": "2026-11-07: Eier ba om eget antallsfelt under hele bildet på mobil. Bildefeltets mål og utsnitt er beholdt; ekstra mobilrad kontrollert 320/390 px, forside 320/390/1280 px. Desktop har opprinnelig stripe. Kun mobilregler og antallsmarkup/importversjoner endret.",
   "stockCountReview": "2026-11-08: Eier ba om ren antallsstripe og korrekt fysisk modultelling. Bare cacheversjonen i home-sections-importen endrer forsiderendererens fingeravtrykk; ingen markup eller CSS endret. Forsiden kontrollert visuelt 1280/390/320 px med uendrede bildeproporsjoner og kolonner, ingen horisontal scrolling på mobil.",
   "festReview": "2026-11-08: Only image-provenance import version changed in home-sections.js. Homepage layout checked at 1280/390/320; image markup and styles unchanged. New managed Fest og sesong page requested by owner.",
-  "optionalImageReview": "2026-11-08: Only import version changed in home-sections. Homepage checked at 1280/390/320, unchanged layout. Optional choice images scoped to content pages."
+  "optionalImageReview": "2026-11-08: Only import version changed in home-sections. Homepage checked at 1280/390/320, unchanged layout. Optional choice images scoped to content pages.",
+  "closingSpacingReview": "2026-11-08: Eier bestilte halvert avstand fra grønn avslutning til Finn møbler. Avgrenset til .closing + .seo-discovery: 60 px topppadding og ingen ekstra overskriftsmarg, 36 px på mobil. Kontrollert 1280/390/320 px, 3/2/2 forsidekolonner og ingen horisontal scrolling. Bare shared-styles oppdateres etter gjennomgang."
 }

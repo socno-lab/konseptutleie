@@ -899,3 +899,8 @@ body>main.proposal-main{padding-bottom:32px;margin-bottom:0}
   #products>article>.module-build-button,#products>article>.business-purchase-summary{grid-row:8}
  }
 }
+
+/* Compact transition from the home closing banner to discovery links. */
+.closing + .seo-discovery{padding-top:60px}
+.closing + .seo-discovery>h2:first-child{margin-top:0}
+@media(max-width:640px){.closing + .seo-discovery{padding-top:36px}}
