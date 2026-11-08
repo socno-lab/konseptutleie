@@ -7,6 +7,11 @@ const profiles={
 };
 export function copacabanaPhotoParts(parts){
  if(!parts.length||!parts.every(p=>{const f=profiles[p.product.id];return f&&(p.product.builderImage||p.product.image)===f.original;}))return false;
- for(const p of parts){const f=profiles[p.product.id];p.photo={source:'/assets/copacabana-'+f.name+'-front.webp',size:[1200,800],crop:f.crop,mirror:!!f.side&&p.role!==f.side,height:65,replaceBuilder:true};}
+ for(const [index,p] of parts.entries()){
+  const f=profiles[p.product.id],crop=[...f.crop],mirror=!!f.side&&p.role!==f.side;
+  // Remove the recessed cushion margins only at joins; keep outside silhouettes intact.
+  if(index>0)crop[mirror?2:0]+=mirror?-28:28;
+  if(index<parts.length-1)crop[mirror?0:2]+=mirror?28:-28;
+  p.photo={source:'/assets/copacabana-'+f.name+'-front.webp',size:[1200,800],crop,mirror,height:65,replaceBuilder:true};}
  return true;
 }
