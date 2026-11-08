@@ -1,4 +1,4 @@
-import {rentalCatalogView} from '../public/rental-catalog-view.js?v=dimensions20261108';
+import {rentalCatalogView} from '../public/rental-catalog-view.js?v=stockcount20261108';
 import {renderCatalogCard} from '../public/catalog-card-markup.js';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=stockmobile20261107';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';

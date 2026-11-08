@@ -1,4 +1,4 @@
-import {productSummary} from './product-summary.js?v=dimensions20261108';
+import {productSummary} from './product-summary.js?v=stockcount20261108';
 import {detailImageAttributes,setDetailPhotoSource} from './product-image-loading.js?v=detailfirst20261106';
 import {saleCatalogView,saleColourSwatches} from './sale-catalog-view.js?v=dimensions20261108';
 import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';

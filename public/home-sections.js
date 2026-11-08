@@ -1,4 +1,4 @@
-import {rentalStockMarkup} from './rental-stock.js?v=stockmobile20261107';
+import {rentalStockMarkup} from './rental-stock.js?v=stockcount20261108';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {isTablewareRental,ratePlan} from './catalog-model.js?v=longrent20261026';
 import {kiDisclosure} from './image-provenance.js?v=stockmobile20261107';

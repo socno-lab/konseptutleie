@@ -30,3 +30,15 @@ test('series counts owned modules only within the displayed series',()=>{
  assert.equal(rentalStockText(a,{products,series:true}),'20 moduler til utleie');
  assert.equal(rentalStockText(a,{products}),'8 stk. til utleie');
 });
+
+test('stock strip omits variant label but uses the selected stock',()=>{
+ assert.equal(rentalStockText({stock:4},{variantLabel:'Mørk brun'}),'4 stk. til utleie');
+});
+test('base with both ends counts as two physical modules without changing package capacity',()=>{
+ const base={id:'base',moduleSeries:'Test',moduleRole:'base',moduleRequired:true,stock:1},middle={id:'middle',moduleSeries:'Test',moduleRole:'middle',stock:1};
+ assert.equal(rentalStockText(base,{products:[base,middle],series:true}),'3 moduler til utleie');
+ assert.equal(rentalStockText(base,{products:[base,{...middle,stock:2}],series:true}),'4 moduler til utleie');
+ const pack={id:'pack',isPackage:true,components:[{id:'base',quantity:1},{id:'middle',quantity:1}]};
+ assert.equal(rentalStockText(pack,{products:[base,middle]}),'1 pakke til utleie');
+ assert.equal(rentalStockText(base,{products:[{...base,stock:2},middle],series:true}),'5 moduler til utleie');
+});

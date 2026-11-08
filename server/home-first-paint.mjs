@@ -1,4 +1,4 @@
-import {homeProductCards,homeSeasonContent,homeRateGrid} from '../public/home-sections.js?v=stockmobile20261107';
+import {homeProductCards,homeSeasonContent,homeRateGrid} from '../public/home-sections.js?v=stockcount20261108';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=stockmobile20261107';
 export function homeFirstPaint(html,products,settings){
  // Prices are supplied for both public usage levels; the parsing-time script selects the saved preference.

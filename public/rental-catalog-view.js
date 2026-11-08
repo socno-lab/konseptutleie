@@ -1,5 +1,5 @@
 import {dimensionSearchText} from './product-dimensions.js?v=launch20261024';
-import {rentalStockMarkup} from './rental-stock.js?v=stockmobile20261107';
+import {rentalStockMarkup} from './rental-stock.js?v=stockcount20261108';
 import {matchesPurpose,purposes} from './rental-purpose-model.js?v=stockmobile20261107';
 import {isServiceOffering,serviceVariants,groupedServiceCards} from './service-model.js?v=launch20261024';
 import {productSubcategory,availableSubcategories} from './catalog-subcategories.js?v=dimensions20261108';

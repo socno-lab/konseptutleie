@@ -1,5 +1,5 @@
 import {dimensionsMarkup} from './product-dimensions.js?v=launch20261024';
-import {rentalStockMarkup} from './rental-stock.js?v=stockmobile20261107';
+import {rentalStockMarkup} from './rental-stock.js?v=stockcount20261108';
 import {saleUnitPrice} from './sales-model.js?v=stockmobile20261107';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {isServiceOffering} from './service-model.js?v=launch20261024';
