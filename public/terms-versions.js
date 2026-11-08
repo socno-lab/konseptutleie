@@ -3,7 +3,7 @@ import {splitAcquisitionBasket} from './business-purchase-model.js';
 
 // These are the revisions displayed by customer-info.js, shared with the server.
 export const PURCHASE_TERMS_REVISION='2026-10-22-2';
-export const RENTAL_TERMS_REVISION='2026-10-22-leie-9';
+export const RENTAL_TERMS_REVISION='2026-11-08-leie-10';
 export function getTermsVersions(delivery=getSiteSettings().delivery){
  const tariffRevision=[...JSON.stringify(delivery)].reduce((hash,char)=>((hash*31+char.charCodeAt(0))>>>0),0).toString(36);
  return {rental:RENTAL_TERMS_REVISION+'-'+tariffRevision,purchase:PURCHASE_TERMS_REVISION};
