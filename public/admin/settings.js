@@ -1,4 +1,4 @@
-import {pageEditor,pageEditorAction} from './page-editor.js?v=stockmobile20261107';
+import {pageEditor,pageEditorAction} from './page-editor.js?v=gallery20261108final';
 import {landingSettings} from './landing-settings.js?v=stockmobile20261107';
 import {validateSiteSettings,configureSiteSettings} from '/site-settings.js?v=stockmobile20261107';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

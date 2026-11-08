@@ -1,5 +1,5 @@
 import {contentPages} from './page-model.js?v=stockmobile20261107';
-import {renderContentPage} from './content-page.js?v=stockmobile20261107';
+import {renderContentPage} from './content-page.js?v=gallery20261108final';
 import {getSiteSettings} from './site-settings.js?v=stockmobile20261107';
 import {renderProductionLanding,renderSeasonLanding,renderChristmasLanding} from './production-landing.js?v=stockmobile20261107';
 import {renderMesseLanding} from './messe-landing.js?v=stockmobile20261107';

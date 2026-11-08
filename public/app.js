@@ -1,6 +1,6 @@
 import {homeProductCards,homeSeasonContent,homeRateGrid} from './home-sections.js?v=stockcount20261108';
 import {setInitialMarkup} from './initial-markup.js?v=sitefirst20261106';
-import {occasionLandingView} from './occasion-landing-view.js?v=stockmobile20261107';
+import {occasionLandingView} from './occasion-landing-view.js?v=gallery20261108final';
 import {productIllustrationText} from './product-illustration.js?v=productcontent20261106';
 import {productSummary} from './product-summary.js?v=stockcount20261108';
 import {rentalScopeMarkup} from './rental-scope-markup.js?v=stockmobile20261107';
