@@ -21,7 +21,11 @@ async function styleVersion(base){
 export async function readHtmlTemplate(name,base=root){
  if(!publicHtmlNames.includes(name))throw Error('Ukjent HTML-mal.');
  let html;try{html=await readFile(path.join(base,'server','templates',name),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;html=await readFile(path.join(base,'public',name),'utf8');}
- html=html.replace(/(<footer\b[^>]*>[\s\S]*?)(<a\b[^>]*href="https:\/\/www\.konseptboligstyling\.no")/,'$1<a href="/om-oss" class="about-footer-link">Om oss</a>$2');
+ html=html.replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/,footer=>{
+  footer=footer.replace(/<p>(?:Møbler og dekor\. Nye anledninger\.<br>)?En del av Konsept Boligstyling\.<\/p>/,'').replace(/<a\b[^>]*href="https:\/\/www\.konseptboligstyling\.no"[^>]*>[\s\S]*?<\/a>/g,'').replace(/<p>Konseptuell · Konsept Boligstyling AS<\/p>/,'');
+  return footer.replace('</footer>','<div class="footer-contact"><span>Konsept Boligstyling AS · Org.nr. 931 261 894</span><a href="tel:+4792246713">92 24 67 13</a><a href="mailto:post@konseptuell.no">post@konseptuell.no</a></div></footer>');
+ });
+ html=html.replace('</head>','<link rel="stylesheet" href="/footer-contact.css?v=20261108"></head>');
  html=html.replace(/(<nav\b[^>]*aria-label="Hovedmeny"[^>]*>)([\s\S]*?)(<\/nav>)/,(_,open,links,close)=>open+links+(links.includes('href="/om-oss"')?'':'<a href="/om-oss">Om oss</a>')+close);
  html=html.replace(/<div id="empty" class="catalog-empty" hidden>[\s\S]*?<\/div>/,'<div id="empty" class="catalog-empty" hidden><h3>Fant du ikke det du trenger?</h3><p>Prøv færre filtre, eller fortell oss hva du ser etter. Vi hjelper deg å finne en løsning.</p><div class="catalog-empty-actions"><button type="button" class="button button-outline" id="showAllFurniture">Nullstill filtre</button><button type="button" class="button dark" data-catalog-custom>Fortell oss hva du trenger <span aria-hidden="true">↗</span></button></div></div>');
  html=html.replace('</head>','<link rel="stylesheet" href="/product-dimensions.css?v=dimensions20261108b"></head>');
