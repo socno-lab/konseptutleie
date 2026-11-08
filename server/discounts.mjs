@@ -1,6 +1,6 @@
-import {saleEstimate,saleModuleError} from '../public/sales-model.js?v=stockmobile20261107';
+import {saleEstimate,saleModuleError} from '../public/sales-model.js?v=fest20261108b';
 import {normalizeBasket,rentalEstimate} from '../public/catalog-model.js';
-import {rentalRateSets} from '../public/rental-pricing-model.js?v=stockmobile20261107';
+import {rentalRateSets} from '../public/rental-pricing-model.js?v=fest20261108b';
 import {parseDateOnly,osloToday,validateRentalPeriod} from '../public/rental-dates.js';
 const fail=message=>{throw Object.assign(Error(message),{status:400});};
 export function validateDiscountCodes(input){

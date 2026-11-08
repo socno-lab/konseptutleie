@@ -18,4 +18,16 @@ export function legacyContentPages(content){
  production.sections=[['sectionTitle','text2'],['sectionTitle2','text3'],['sectionTitle3','text4']].map(([h,t])=>({heading:p[h],text:p[t],label:'',type:'none',category:'Alle'}));
  return [messe,production];
 }
-export function contentPages(settings){return settings.contentPages||legacyContentPages(settings.landingContent);}
+export function seasonContentPage(content){
+ const p=newContentPage('bryllup'),c=content?.bryllup||{};
+ Object.assign(p,{area:'fest',heading:c.heading||'Møbler til fest og sesong',eyebrow:c.eyebrow||'FEST OG SESONG',intro:c.intro||'Møbler, servise og dekor til feiringen.',image:'/media/60a6a56ef08efd7ae0f2e32f08b448ec',imageAlt:'Dekket festbord med servise, glass og dekor',primaryLabel:'Fortell oss om anledningen',primaryType:'request',secondaryLabel:'Se pakker',secondaryType:'catalog',secondaryCategory:'Pakker',note:'Pris og tilgjengelighet avklares i et uforpliktende tilbud.',sectionsTitle:'Finn en løsning til anledningen',contactTitle:'Skal vi hjelpe med helheten?',contactText:'Fortell oss om anledningen, antall gjester, sted og ønsket uttrykk. Vi tilpasser møbler, dekor og omfang og setter sammen et uforpliktende forslag.',contactLabel:'Fortell oss om anledningen',faqTitle:'Praktisk før feiringen'});
+ const product=id=>'/leieprodukt.html?'+new URLSearchParams({produkt:id,bruk:'fest',prisbruk:'messe',retur:'/anledning.html?bruk=fest&anledning=bryllup'});
+ p.sections=[
+ {heading:'Borddekking med stylist',text:'Et helhetlig forslag med servise, bestikk, glass og stylist til 4–40 personer. Stil og omfang tilpasses anledningen.',label:'Se borddekking',type:'link',category:'Pakker',href:product('obj_b3af6675a38744e0bc567acc3c547849')},
+ {heading:'Temafest og feiring',text:'Fra bryllup og sommerfest til halloween og andre temaer. Vi hjelper med styling, møbler og dekor som passer feiringen.',label:'Se temafest',type:'link',category:'Pakker',href:product('obj_82cd3d7f152a41c3b6d6b5f04a4352f7')},
+ {heading:'Jul og sesong',text:'Velg et ferdig pyntet juletre, eller få et forslag til julepynt tilpasset bedriften, senteret eller andre lokaler.',label:'Se juleoppsett',type:'link',category:'Pakker',href:'/anledning.html?bruk=jul&anledning=jul'},
+ {heading:'Velg enkeltprodukter',text:'Sett sammen møbler, servise og dekor selv. Velg produktene og antallet dere trenger til anledningen.',label:'Se utvalget',type:'catalog',category:'Enkeltprodukter'}];
+ p.faq=[{question:'Kan oppsettet tilpasses våre ønsker?',answer:'Ja. Ta utgangspunkt i en pakke, eller fortell oss om anledningen, stilen og behovet. Innhold, omfang og pris avklares i tilbudet.'},{question:'Hvordan avtaler vi levering og henting?',answer:'Oppgi sted, dato og ønskede tidspunkter i forespørselen. Vi avklarer transport og tilgjengelighet i tilbudet. Henting på Strømmen kan avtales.'},{question:'Er forespørselen en bestilling?',answer:'Nei. Dere får et uforpliktende tilbud. Tilgjengelighet og innhold bekreftes før dere bestemmer dere.'}];
+ return p;
+}
+export function contentPages(settings){const pages=settings.contentPages||legacyContentPages(settings.landingContent);return pages.some(p=>p.id==='bryllup')?pages:[...pages,seasonContentPage(settings.landingContent)];}

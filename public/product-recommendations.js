@@ -1,7 +1,7 @@
 import {isRentedOut,rentalSeriesRentedOut,rentalStatusBadge} from './rental-status.js?v=rented20261029b';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
-import {recommendProducts} from './recommendation-model.js?v=dimensions20261108';
-import {saleUnitPrice} from './sales-model.js?v=stockmobile20261107';
+import {recommendProducts} from './recommendation-model.js?v=fest20261108b';
+import {saleUnitPrice} from './sales-model.js?v=fest20261108b';
 import {moduleCardImage,sofaCardArt} from './module-card-image.js?v=sofaframes20261025';
 const html=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:0}).format(n);

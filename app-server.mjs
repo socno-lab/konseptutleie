@@ -10,7 +10,7 @@ import {readHtmlTemplate} from './server/html-templates.mjs';
 import {indexableEnvironment,pageModel,renderSeo,sitemap,robots} from './server/seo.mjs';
 import {createSubmissionSender} from './server/submissions.mjs';
 import {createRequestGuard,contentPolicy} from './server/request-guard.mjs';
-import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js?v=stockmobile20261107';
+import {defaultSettings,configureSiteSettings,validateSiteSettings,validateSettingsUsage,sortProducts} from './public/site-settings.js?v=fest20261108b';
 import {createDeliveryEstimator,deliveryRates,warehouse} from './server/delivery.mjs';
 import {salesEnabled,saleUnitPrice} from './public/sales-model.js?v=stockmobile20261107';
 import {discountQuote,validateDiscountCodes} from './server/discounts.mjs';

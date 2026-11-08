@@ -1,6 +1,6 @@
 import {migrateCatalogDimensions} from './dimensions-migration.mjs';
 import {migrateStylingPricing} from './pricing-migration.mjs';
-import {defaultSettings} from '../public/site-settings.js?v=stockmobile20261107';
+import {defaultSettings} from '../public/site-settings.js?v=fest20261108b';
 import {deliveryCallLimits} from './delivery.mjs';
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';

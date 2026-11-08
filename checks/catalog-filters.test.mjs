@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {catalogFilters} from '../public/catalog-filters.js';
-import {defaultSettings} from '../public/site-settings.js?v=stockmobile20261107';
+import {defaultSettings} from '../public/site-settings.js?v=fest20261108b';
 import {pageModel,renderSeo} from '../server/seo.mjs';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 const settings=structuredClone(defaultSettings);

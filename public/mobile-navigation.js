@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=stockmobile20261107';
+import {getSiteSettings} from './site-settings.js?v=fest20261108b';
 
 const header=document.querySelector('body>header');
 if(header?.querySelector('.brand')&&!header.hasAttribute('data-mobile-menu-bound'))mountMobileMenu(header);

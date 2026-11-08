@@ -1,5 +1,5 @@
-import {homeProductCards,homeSeasonContent,homeRateGrid} from '../public/home-sections.js?v=stockcount20261108';
-import {applyRentalScope} from '../public/rental-pricing-model.js?v=stockmobile20261107';
+import {homeProductCards,homeSeasonContent,homeRateGrid} from '../public/home-sections.js?v=fest20261108b';
+import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261108b';
 export function homeFirstPaint(html,products,settings){
  // Prices are supplied for both public usage levels; the parsing-time script selects the saved preference.
  const cards=scope=>homeProductCards(applyRentalScope(products,scope||'messe'),settings,p=>homeRateGrid(p,{confirmed:!!scope,products:applyRentalScope(products,scope||'messe')}));

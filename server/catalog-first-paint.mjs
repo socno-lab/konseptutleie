@@ -1,8 +1,8 @@
-import {rentalCatalogView} from '../public/rental-catalog-view.js?v=stockcount20261108';
+import {rentalCatalogView} from '../public/rental-catalog-view.js?v=fest20261108b';
 import {renderCatalogCard} from '../public/catalog-card-markup.js';
-import {applyRentalScope} from '../public/rental-pricing-model.js?v=stockmobile20261107';
-import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
-import {subcategoryButtons} from '../public/catalog-subcategories.js?v=dimensions20261108';
+import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261108b';
+import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261108b';
+import {subcategoryButtons} from '../public/catalog-subcategories.js?v=fest20261108b';
 import {renderArrowIcons} from './arrow-icons.mjs';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function catalogFirstPaint(html,model,catalogProducts,settings){

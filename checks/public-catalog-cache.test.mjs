@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createPublicCatalogCache} from '../server/public-catalog-cache.mjs';
 import {createServer} from '../app-server.mjs';
 import {memoryStore} from './helpers/memory-store.mjs';
-import {defaultSettings} from '../public/site-settings.js?v=stockmobile20261107';
+import {defaultSettings} from '../public/site-settings.js?v=fest20261108b';
 import {digest} from '../server/auth.mjs';
 
 test('public cache deduplicates reads, expires, excludes private source fields and is bounded',async()=>{

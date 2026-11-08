@@ -1,6 +1,6 @@
-import {getSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
+import {getSiteSettings} from '../public/site-settings.js?v=fest20261108b';
 import {createHmac,randomBytes,timingSafeEqual} from 'node:crypto';
-import {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity} from '../public/delivery-model.js?v=stockmobile20261107';
+import {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity} from '../public/delivery-model.js?v=fest20261108b';
 export const warehouse='Segelckes vei 15, 2010 Strømmen, Norge';
 export {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity};
 export const deliveryCallLimits=Object.freeze([{name:'minute',ms:60000,max:10},{name:'hour',ms:3600000,max:100},{name:'day',ms:86400000,max:500}]);

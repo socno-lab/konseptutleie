@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {homeOccasionCards} from '../public/home-occasions.js?v=stockmobile20261107';
 import {responsiveImageAttributes} from '../public/media-image.js';
 import {renderSeo,pageModel} from '../server/seo.mjs';
-import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
+import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261108b';
 import {kiDisclosure} from '../public/image-provenance.js?v=stockmobile20261107';
 const image='/media/'+'a'.repeat(32),products=[{id:'active',name:'Active product',category:'Stoler',active:true,image},{id:'hidden',active:false,image:'/assets/hidden.jpg'},{id:'sale',active:true,rentalEnabled:false,image:'/assets/sale-only.jpg'}];
 const source='<!doctype html><html><head><title>Konseptuell</title></head><body><main><section id="cards"><div id="homeUseCases" class="use-case-grid" aria-label="Finn utvalg etter bruksområde"></div></section><section id="after">After cards</section></main></body></html>';

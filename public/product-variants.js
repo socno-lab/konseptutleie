@@ -1,4 +1,4 @@
-import {sortProducts} from './site-settings.js?v=stockmobile20261107';
+import {sortProducts} from './site-settings.js?v=fest20261108b';
 // Explicit groups prevent unrelated products with similar names from being combined.
 const existingVariants=new Map([
  ['Konsollbord med hylle, beige',['Konsollbord med hylle','Beige']],

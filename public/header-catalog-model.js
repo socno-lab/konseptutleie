@@ -1,11 +1,11 @@
-import {dimensionSearchText} from './product-dimensions.js?v=launch20261024';
-import {salesEnabled} from './sales-model.js?v=stockmobile20261107';
-import {variantFields,productVariants} from './product-variants.js?v=stockmobile20261107';
+import {dimensionSearchText} from './product-dimensions.js?v=fest20261108b';
+import {salesEnabled} from './sales-model.js?v=fest20261108b';
+import {variantFields,productVariants} from './product-variants.js?v=fest20261108b';
 import {productPageUrl} from './product-page-model.js?v=launch20261024';
 import {moduleCardImage} from './module-card-image.js?v=sofaframes20261025';
 import {isWall} from './wall-model.js?v=launch20261024';
 import {isServiceOffering} from './service-model.js?v=launch20261024';
-import {categoryLabel} from './site-settings.js?v=stockmobile20261107';
+import {categoryLabel} from './site-settings.js?v=fest20261108b';
 
 const encode=value=>encodeURIComponent(value).replace(/[!'()*]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
 const normalized=value=>String(value??'').toLocaleLowerCase('nb').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replaceAll('æ','ae').replaceAll('ø','o').replace(/[^a-z0-9]+/g,' ').trim();
