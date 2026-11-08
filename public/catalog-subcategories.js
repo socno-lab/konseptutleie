@@ -69,7 +69,7 @@ export function productSubcategory(p,category=p.category){
   return 'Annen oppbevaring';
  }
  if(category==='Tepper'){
-  if(/ø\s*\d|rund|round/.test(n+' '+(p.material||'').toLowerCase()))return 'Runde tepper';
+  if(p.dimensions?.diameter||/ø\s*\d|rund|round/.test(n+' '+(p.material||'').toLowerCase()))return 'Runde tepper';
   if(/løper|runner|smalt|70\s*[×x]\s*(140|200|240)/.test(n))return 'Løpere';
   return 'Gulvtepper';
  }

@@ -1,6 +1,6 @@
 import {salesEnabled} from './sales-model.js?v=stockmobile20261107';
 import {variantFields} from './product-variants.js?v=stockmobile20261107';
-import {productSubcategory} from './catalog-subcategories.js?v=stockmobile20261107';
+import {productSubcategory} from './catalog-subcategories.js?v=dimensions20261108';
 import {remaining} from './catalog-model.js?v=longrent20261026';
 import {resolvedProductPurposes} from './rental-purpose-model.js?v=stockmobile20261107';
 export function recommendationFamily(p){return variantFields(p).variantGroup||p.moduleSeries||p.id;}
@@ -41,4 +41,4 @@ export function recommendProducts(current,all,mode='rent',context={}){
 
 // Alternatives serve the same purpose; a sofa should never suggest a table or lamp.
 export function similarRentalType(a,b){if(a.category!==b.category)return false;const x=productSubcategory(a),y=productSubcategory(b);if(a.category==='Sofaer')return true;return x===y;}
-function sofaWidth(p,all){if(p.category!=='Sofaer')return 0;if(p.moduleSeries){const modules=all.filter(x=>x.moduleSeries===p.moduleSeries);const base=modules.find(x=>x.moduleRole==='base');if(base?.moduleWidth)return base.moduleWidth;const left=modules.find(x=>x.moduleRole==='left'),right=modules.find(x=>x.moduleRole==='right');if(left?.moduleWidth&&right?.moduleWidth)return left.moduleWidth+right.moduleWidth;const end=modules.find(x=>x.moduleRole==='end');if(end?.moduleWidth)return end.moduleWidth*2;}const match=String(p.material||'').match(/(?:B\s*)?(\d{2,3})\s*[×x]/i);return match?Number(match[1]):0;}
+function sofaWidth(p,all){if(p.category!=='Sofaer')return 0;if(p.moduleSeries){const modules=all.filter(x=>x.moduleSeries===p.moduleSeries);const base=modules.find(x=>x.moduleRole==='base');if(base?.moduleWidth)return base.moduleWidth;const left=modules.find(x=>x.moduleRole==='left'),right=modules.find(x=>x.moduleRole==='right');if(left?.moduleWidth&&right?.moduleWidth)return left.moduleWidth+right.moduleWidth;const end=modules.find(x=>x.moduleRole==='end');if(end?.moduleWidth)return end.moduleWidth*2;}if(p.dimensions?.width)return p.dimensions.width;const match=[p.material,p.dimensions?.other].filter(Boolean).join(' ').match(/(?:B\s*)?(\d{2,3})\s*[×x]/i);return match?Number(match[1]):0;}

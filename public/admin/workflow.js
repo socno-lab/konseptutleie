@@ -6,7 +6,8 @@ export function mountWorkflow(){
  $('editorNote').after(nav,...Object.values(sections));
  const move=(node,key)=>{if(!node)return;const hint=node.nextElementSibling?.matches('p.hint')?node.nextElementSibling:null;sections[key].append(node);if(hint)sections[key].append(hint);};
  const label=(id,key)=>move($(id)?.closest('label'),key);
- for(const id of ['productKind','objectName','objectCategory','objectSubcategory','objectMaterial','objectDescription'])label(id,'basic');
+ for(const id of ['productKind','objectName','objectCategory','objectSubcategory','objectMaterial'])label(id,'basic');
+ move($('dimensionFields'),'basic');label('objectDescription','basic');
  move(document.querySelector('.product-images'),'basic');move(document.querySelector('.purpose-admin'),'basic');
  move($('rentalPricingFields'),'prices');
  const priceFields=$('rentalPricingFields'),preview=$('rentalPricingPreview');

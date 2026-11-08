@@ -1,3 +1,4 @@
+import {migrateCatalogDimensions} from './dimensions-migration.mjs';
 import {migrateStylingPricing} from './pricing-migration.mjs';
 import {defaultSettings} from '../public/site-settings.js?v=stockmobile20261107';
 import {deliveryCallLimits} from './delivery.mjs';
@@ -40,8 +41,8 @@ export function createMysqlStore(env,seed){
     const currentSettings=JSON.parse(settingsRow.body),nextSettings=migrateStylingPricing(currentSettings);
     if(nextSettings!==currentSettings)await connection.execute('UPDATE ku_site_settings SET revision=revision+1,body=? WHERE id=1',[JSON.stringify(nextSettings)]);
     const [[row]]=await connection.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
-    const products=JSON.parse(row.body),cleaned=removeRetiredCosts(products);
-    if(products.some(product=>Object.hasOwn(product,'acquisitionCost')))
+    const products=JSON.parse(row.body),cleaned=migrateCatalogDimensions(removeRetiredCosts(products));
+    if(JSON.stringify(products)!==JSON.stringify(cleaned))
      await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(cleaned),new Date()]);
     await connection.commit();
    }catch(error){await connection.rollback();throw error;}finally{connection.release();}

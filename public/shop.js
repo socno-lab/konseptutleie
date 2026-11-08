@@ -1,6 +1,6 @@
-import {productSummary} from './product-summary.js?v=stockmobile20261107';
+import {productSummary} from './product-summary.js?v=dimensions20261108';
 import {detailImageAttributes,setDetailPhotoSource} from './product-image-loading.js?v=detailfirst20261106';
-import {saleCatalogView,saleColourSwatches} from './sale-catalog-view.js?v=empty20261107';
+import {saleCatalogView,saleColourSwatches} from './sale-catalog-view.js?v=dimensions20261108';
 import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {mountEnquiryFlow} from './enquiry-flow.js?v=sitefirst20261106';
@@ -10,7 +10,7 @@ import {mountCatalogPagination} from './catalog-pagination.js?v=firstcatalog2026
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=review20261107';
 import {configureSiteSettings} from './site-settings.js?v=stockmobile20261107';
-import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=return20261107';
+import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=dimensions20261108';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
 import {cartThumbnail} from './cart-thumbnail.js?v=launch20261024';

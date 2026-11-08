@@ -1,8 +1,9 @@
+import {dimensionSearchText} from './product-dimensions.js?v=launch20261024';
 import {productPageUrl} from './product-page-model.js?v=launch20261024';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {categoryLabel,getSiteSettings} from './site-settings.js?v=stockmobile20261107';
-import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=stockmobile20261107';
+import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=dimensions20261108';
 import {variantFields} from './product-variants.js?v=stockmobile20261107';
 import {salesEnabled,saleUnitPrice,deliveryText,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=stockmobile20261107';
 import {renderCatalogCard} from './catalog-card-markup.js?v=sitefirst20261106';
@@ -14,7 +15,7 @@ export function saleCatalogView({products,category='',tableFilter='',query=''}={
  if(!categories.includes(category))category='';
  const types=availableSubcategories(products,category);if(!types.includes(tableFilter))tableFilter='';
  const search=query.toLocaleLowerCase('nb');
- const shown=groupedSaleCards(products.filter(p=>(!category||p.category===category)&&(!tableFilter||productSubcategory(p,category)===tableFilter)&&(p.name+' '+p.material+' '+p.moduleSeries).toLocaleLowerCase('nb').includes(search)),products);
+ const shown=groupedSaleCards(products.filter(p=>(!category||p.category===category)&&(!tableFilter||productSubcategory(p,category)===tableFilter)&&(p.name+' '+p.material+' '+dimensionSearchText(p)+' '+p.moduleSeries).toLocaleLowerCase('nb').includes(search)),products);
  const params=new URLSearchParams();for(const [key,value] of Object.entries({kategori:category,underkategori:tableFilter,sok:query}))if(value)params.set(key,value);
  const returnTo='/kjop.html'+(params.size?'?'+params:'');
  const categoryHtml=['',...categories].map(c=>`<button type="button"${c===category?' class="active"':''} data-sale-category="${html(c)}" aria-pressed="${c===category}">${c?html(categoryLabel(c)):'Alle'}</button>`).join('');

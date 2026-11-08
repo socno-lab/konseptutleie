@@ -1,4 +1,4 @@
-import {recommendProducts,recommendationCandidate,recommendationFamily} from '/recommendation-model.js?v=stockmobile20261107';
+import {recommendProducts,recommendationCandidate,recommendationFamily} from '/recommendation-model.js?v=dimensions20261108';
 import {salesEnabled} from '/sales-model.js?v=stockmobile20261107';
 const html=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function mountRecommendationEditor(getSelected,getProducts,onChange){

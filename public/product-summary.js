@@ -1,3 +1,4 @@
+import {dimensionsMarkup} from './product-dimensions.js?v=launch20261024';
 import {rentalStockMarkup} from './rental-stock.js?v=stockmobile20261107';
 import {saleUnitPrice} from './sales-model.js?v=stockmobile20261107';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
@@ -20,5 +21,5 @@ export function productSummary(p,products,{buy=false,confirmed=true,purpose='all
  const service=isServiceOffering(p),tableware=!buy&&isTablewareRental(p,products),bed=p.id==='obj_41926e1953e546398f78ac60eeaf68a3'||p.isPackage&&p.components?.some(c=>c.id==='obj_41926e1953e546398f78ac60eeaf68a3');
  const custom=!buy&&isCustomProduct(p)&&p.components.every(c=>products.find(x=>x.id===c.id)?.isService===true);
  const eyebrow=buy?'KJØPE · '+(p.moduleSeries?'MODULSOFA':'NYTT PRODUKT'):(bed?'Senger':tableware?(category==='Pakker'&&purpose==='fest'?'Ferdige pakker':'Servise'):service?'Tjeneste':p.isPackage?'Ferdige pakker':categoryLabel(p.category))+' · '+(service?'LEVERES ETTER AVTALE':p.isExample===false?'UTLEIEPRODUKT':'EKSEMPELPRODUKT');
- return '<div data-product-summary="'+esc(p.id)+'"><p class="eyebrow">'+esc(eyebrow)+'</p><h1'+(buy?' id="saleDetailTitle"':'')+'>'+esc(p.moduleSeries||(tableware?'Servisepakke – sett sammen per person':p.name))+'</h1><p'+(buy?'':' class="product-measures"')+'>'+esc(p.moduleSeries?'Sett sammen modulene til ønsket størrelse og oppsett.':buy?purchaseProductText(p.material):p.material)+'</p>'+(!buy?rentalStockMarkup(p,{detail:true,products}):'')+(custom?'<p>'+esc(p.description)+'</p>':'')+'<div data-product-unit-price>'+productUnitPrice(p,{buy,confirmed})+'</div></div>';
+ return '<div data-product-summary="'+esc(p.id)+'"><p class="eyebrow">'+esc(eyebrow)+'</p><h1'+(buy?' id="saleDetailTitle"':'')+'>'+esc(p.moduleSeries||(tableware?'Servisepakke – sett sammen per person':p.name))+'</h1><p'+(buy?'':' class="product-measures"')+'>'+esc(p.moduleSeries?'Sett sammen modulene til ønsket størrelse og oppsett.':buy?purchaseProductText(p.material):p.material)+'</p>'+dimensionsMarkup(p)+(!buy?rentalStockMarkup(p,{detail:true,products}):'')+(custom?'<p>'+esc(p.description)+'</p>':'')+'<div data-product-unit-price>'+productUnitPrice(p,{buy,confirmed})+'</div></div>';
 }

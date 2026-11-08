@@ -1,6 +1,6 @@
 import {catalogPositionKey} from './catalog-position.js?v=launch20261024';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
-import {renderRecommendations} from './product-recommendations.js?v=stockmobile20261107';
+import {renderRecommendations} from './product-recommendations.js?v=dimensions20261108';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
 import {mountPageAnchor} from './page-anchor.js?v=anchor20261024';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);

@@ -6,7 +6,7 @@ import {sofaCardConfiguration} from '../public/sofa-card-model.js';
 import {frameSketch,presetFrames} from '../public/wall-model.js';
 import {productIllustrationText} from '../public/product-illustration.js';
 import {kiDisclosure,isKiPhoto} from '../public/image-provenance.js?v=stockmobile20261107';
-import {productSummary,productUnitPrice} from '../public/product-summary.js?v=stockmobile20261107';
+import {productSummary,productUnitPrice} from '../public/product-summary.js?v=dimensions20261108';
 import {detailImageAttributes} from '../public/product-image-loading.js';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=stockmobile20261107';
 import {rentalStatusBadge,isRentedOut} from '../public/rental-status.js';
