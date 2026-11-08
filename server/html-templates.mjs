@@ -50,7 +50,7 @@ export async function readHtmlTemplate(name,base=root){
  html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=cartcurrent20261027"><script type="module" src="/header-tools.js?v=optionimages20261108"></script><script type="module" src="/mobile-navigation.js?v=primary20261108"></script><link rel="stylesheet" href="/cart-addons.css?v=cartselect20261025"><link rel="stylesheet" href="/service-detail.css?v=pricinghint20261024"></head>');
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=productscope20261025"></head>');
  if(['index.html','utvalg.html','anledning.html','leieprodukt.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/rental-status.css?v=rented20261029b"></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/primary-navigation.css?v=20261108c"><script defer src="/primary-navigation.js?v=20261108a"></script></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/primary-navigation.css?v=20261108d"><script defer src="/primary-navigation.js?v=20261108a"></script></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;
 }
