@@ -4,7 +4,8 @@ export function pageAnchorTarget(document,hash){
  return !id||id==='utvalg'?null:document.getElementById(id);
 }
 
-export function mountPageAnchor({document=globalThis.document,window=globalThis.window}={}){
+export function mountPageAnchor({document=globalThis.document,window=globalThis.window,restoreInitial=true}={}){
+ let ignoreInitial=!restoreInitial;
  let ready=false,frame=0,timer=0,observer,activeHash='',interruptedHash;
  const hasTarget=()=>Boolean(pageAnchorTarget(document,window.location.hash));
  function cancel(){
@@ -13,6 +14,7 @@ export function mountPageAnchor({document=globalThis.document,window=globalThis.
  }
  function restore(){
   ready=true;cancel();
+  if(ignoreInitial)return false;
   const hash=window.location.hash,target=pageAnchorTarget(document,hash);
   if(!target)return false;
   // A slow catalog response must not undo a scroll the visitor already chose.
@@ -37,7 +39,7 @@ export function mountPageAnchor({document=globalThis.document,window=globalThis.
   timer=window.setTimeout(cancel,1500);
   return true;
  }
- const changed=()=>{interruptedHash=undefined;cancel();if(ready)restore();};
+ const changed=()=>{ignoreInitial=false;interruptedHash=undefined;cancel();if(ready)restore();};
  const interrupted=()=>{interruptedHash=window.location.hash;cancel();};
  const inputs=['wheel','touchstart','pointerdown','keydown'];
  window.addEventListener('hashchange',changed);

@@ -19,7 +19,7 @@ export function mountEnquiryFlow({cartId,formId,mode}){
   const back=document.createElement('a');back.href=mode==='buy'?'/kjop.html':'/utvalg.html?bruk=alle';back.className='text-button enquiry-back';back.textContent='← Fortsett å se produkter';host.append(back,cart);cart.classList.add('enquiry-full');
   const heading=cart.querySelector('h2');if(heading){const h1=document.createElement('h1');h1.id=heading.id;h1.textContent=mode==='buy'?'Din kjøpsforespørsel':heading.textContent;heading.replaceWith(h1);}
   for(const close of cart.querySelectorAll('[data-close="'+cartId+'"]'))close.hidden=true;
-  cart.addEventListener('cancel',event=>event.preventDefault());cart.show();cart.tabIndex=-1;cart.focus({preventScroll:true});requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));
+  cart.addEventListener('cancel',event=>event.preventDefault());cart.show();cart.tabIndex=-1;cart.focus({preventScroll:true});if(performance.getEntriesByType('navigation')[0]?.type==='navigate')requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));
   if(mode==='rent'){period=document.createElement('button');period.type='button';period.className='enquiry-period-link text-button';period.addEventListener('click',()=>{document.getElementById('rentalDates')?.scrollIntoView({behavior:'smooth',block:'start'});const target=document.querySelector('#rentalDates .rental-date-trigger,#rentalDates input:not([type=hidden])');target?.focus({preventScroll:true});});cart.querySelector('.drawer-head')?.after(period);}
  }else{cart.classList.add('enquiry-preview');cart.append(preview);}
  let pending=false;

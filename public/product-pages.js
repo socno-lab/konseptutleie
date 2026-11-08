@@ -2,22 +2,29 @@ import {catalogPositionKey} from './catalog-position.js?v=launch20261024';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {renderRecommendations} from './product-recommendations.js?v=dimensions20261108';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
-import {mountPageAnchor} from './page-anchor.js?v=anchor20261024';
+import {mountPageAnchor} from './page-anchor.js?v=scrollrestore20261108b';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);
 const primaryIds=new Set(['detail','modules','wall','saleDetail']);
 let host,recommendationSource,selectedRecommendation;
 // Content anchors wait for the rendered page; catalog returns keep their position.
 const navigationType=performance.getEntriesByType('navigation')[0]?.type;
 const refreshing=navigationType==='reload';
-const pageAnchor=isProductPage?null:mountPageAnchor();
-function scrollToPageTop(){scrollTo({top:0,left:0,behavior:'instant'});}
-if(refreshing&&!pageAnchor?.hasTarget()){
- const previousRestoration=history.scrollRestoration;history.scrollRestoration='manual';
- scrollToPageTop();
- addEventListener('load',scrollToPageTop,{once:true});
- addEventListener('pageshow',event=>{if(!event.persisted)scrollToPageTop();});
- addEventListener('pagehide',()=>{history.scrollRestoration=previousRestoration;},{once:true});
+const pageAnchor=isProductPage?null:mountPageAnchor({restoreInitial:!refreshing&&navigationType!=='back_forward'});
+// Reload position is separate from the return-to-catalogue bookmark.
+const reloadKey=()=> 'reload:'+catalogPositionKey(location.href);
+let reloadPosition=null,reloadInterrupted=false;
+try{if(refreshing)reloadPosition=sessionStorage.getItem(reloadKey());}catch{}
+addEventListener('pagehide',()=>{try{if(!document.querySelector('dialog[open]'))sessionStorage.setItem(reloadKey(),String(scrollY));}catch{}});
+for(const type of ['wheel','touchstart','pointerdown','keydown'])addEventListener(type,()=>{reloadInterrupted=true;},{passive:true});
+function restoreReloadPosition(){
+ if(reloadPosition===null||reloadInterrupted)return;
+ const y=Number(reloadPosition)||0;let observer,frame,timer;
+ const stop=()=>{observer?.disconnect();cancelAnimationFrame(frame);clearTimeout(timer);};
+ const apply=()=>{if(reloadInterrupted){stop();return;}scrollTo({top:y,behavior:'instant'});};
+ const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{frame=requestAnimationFrame(apply);});};
+ schedule();if(typeof ResizeObserver!=='undefined'){observer=new ResizeObserver(schedule);observer.observe(document.querySelector('main')||document.body);}timer=setTimeout(stop,1500);
 }
+
 
 function pageHost(){
  if(host)return host;
@@ -90,7 +97,7 @@ export function productPageError(message){if(!isProductPage)return;const target=
 export function restoreCatalogPosition(){
  if(isProductPage)return;
  if(pageAnchor.restore())return;
- if(refreshing){requestAnimationFrame(scrollToPageTop);return;}
+ if(refreshing){restoreReloadPosition();return;}
  try{
   const referrer=document.referrer?new URL(document.referrer):null;
   const fromProduct=referrer?.origin===location.origin&&Object.values(productPagePaths).includes(referrer.pathname);

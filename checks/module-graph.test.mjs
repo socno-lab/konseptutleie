@@ -47,6 +47,7 @@ for(const file of ['/product-pages.js','/admin/recommendations.js'])releaseVersi
 for(const file of ['/app.js', '/home-sections.js', '/product-summary.js', '/rental-catalog-view.js', '/rental-stock.js', '/shop.js'])releaseVersions.set(file,'stockcount20261108');
 for(const file of ["/admin/page-editor.js", "/admin/settings.js", "/app.js", "/content-page.js", "/occasion-landing-view.js"])releaseVersions.set(file,'gallery20261108final');
 releaseVersions.set('/content-gallery.js','gallery20261108final');
+for(const file of ["/app.js", "/enquiry-flow.js", "/page-anchor.js", "/product-pages.js", "/shop.js"])releaseVersions.set(file,'scrollrestore20261108b');
 const versionFor=file=>releaseVersions.has(file)?'?v='+releaseVersions.get(file):legacyVersionFor(file);
 const imports=source=>[...source.matchAll(/\b(?:from|import)\s*['"]((?:\.{1,2}\/|\/)[^'"\s]+\.js(?:\?[^'"]*)?)['"]/g)].map(m=>m[1]);
 async function walk(directory){const files=[];for(const entry of await readdir(directory,{withFileTypes:true})){const name=path.join(directory,entry.name);if(entry.isDirectory())files.push(...await walk(name));else files.push(name);}return files;}

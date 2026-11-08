@@ -94,3 +94,9 @@ test('repeated restoration coalesces work and destroying the controller removes 
 test('anchor navigation still works when layout observation is unavailable',()=>{
  const view=fixture('#slik',{resizeObserver:false}),controller=mountPageAnchor(view);assert.equal(controller.restore(),true);view.flushFrames();assert.equal(view.calls.length,1);assert.equal(view.calls[0].id,'slik');controller.destroy();
 });
+
+test('reload retains scroll even with an old hash; a new section click still navigates',()=>{
+ const view=fixture(),controller=mountPageAnchor({...view,restoreInitial:false});
+ assert.equal(controller.restore(),false);view.flushFrames();view.resize();view.flushFrames();assert.equal(view.calls.length,0);
+ view.hashchange('#slik');view.flushFrames();assert.equal(view.calls.at(-1).id,'slik');controller.destroy();
+});
