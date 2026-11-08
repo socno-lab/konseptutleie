@@ -192,3 +192,5 @@ Antallsstripe 7. november 2026: Etter eiers ønske vises samme eksisterende lyse
 8. november 2026: Innholdsfelt i felles mal kan ha valgfritt bilde fra biblioteket. Desktop plasserer bildet til venstre for tekst, mobil ved overskriften med beskrivelse under. Felt uten bilde beholder eksisterende markup og oppsett. Fest og sesong har fire bilder; Messe beholder tekstfelt. Kontrollert 1280/390/320 px og fjerning/lagring i lokal admin. Forsidens renderer har kun oppdatert importversjon.
 
 8. november 2026: Etter eiers bestilling reduseres avstanden fra grønn avslutningsseksjon til «Finn møbler til det du planlegger» fra 121 til 61 px på desktop og til 37 px på mobil, inkludert skillelinjen. Kun tilstøtende discovery-seksjon berøres. Forside kontrollert ved 1280/390/320 px med uendrede kolonner og uten horisontal scrolling.
+
+8. november 2026: Eier godkjente undertittelen «Møbler til anledningen» i nettstedets logo. Originalt ordmerke og bildefelt beholdes; tidligere undertittel klippes i CSS og den nye vises som skarp HTML-tekst. Header/footer og adminmaler oppdatert. Kontrollert 320/390/1280 px uten horisontal scrolling; designlåser består.

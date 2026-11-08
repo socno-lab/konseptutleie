@@ -1,0 +1,5 @@
+/* Preserve the original wordmark; render the approved tagline as crisp text. */
+.brand:has(>.brand-tagline){position:relative}
+.brand:has(>.brand-tagline)>img{clip-path:inset(0 0 36% 0)}
+.brand>.brand-tagline{position:absolute;left:0;top:69%;width:100%;margin:0!important;text-align:center!important;font-family:Georgia,serif;font-size:8px;font-weight:400;line-height:1.2;letter-spacing:1.4px;color:#414b38;white-space:nowrap}
+@media(max-width:640px){.brand>.brand-tagline{font-size:6px;letter-spacing:.8px}footer .brand>.brand-tagline{width:190px}}
