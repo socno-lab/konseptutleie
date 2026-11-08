@@ -23,3 +23,6 @@ body>header .primary-proposal{display:inline-flex;align-items:center;justify-con
 @media(max-width:640px){.occasion-home .hero .home-intro-detail,.occasion-home .hero .rental-hero-actions,.occasion-home .hero .home-delivery-compact{display:none}.occasion-home .home-mobile-actions{display:block;margin-top:24px}.occasion-home .home-use-cases{padding-top:16px}.occasion-home .hero .intro{margin-bottom:0}}
 
 @media(max-width:640px){.occasion-home .home-mobile-actions .hero-custom-link{background:var(--olive);color:var(--paper)}}
+
+.primary-dropdown>summary>span{display:block;width:6px;height:6px;font-size:0;line-height:0;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:translateY(-2px) rotate(45deg);flex-shrink:0}
+.primary-dropdown[open]::after{content:"";position:absolute;left:-20px;top:100%;width:230px;height:11px}
