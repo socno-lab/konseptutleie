@@ -5,5 +5,5 @@ body>footer.site-footer{background:#e9eddf;max-width:none;margin-left:0;margin-r
 
 .footer-social{margin-top:20px}.footer-social a{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-size:13px}.footer-social svg{flex:none}@media(max-width:640px){.footer-social{margin-top:16px}.site-footer .footer-social h2{text-align:center}}
 
-/* Footer links use one text underline, never the global nav border as well. */
-footer.site-footer nav a:hover{border-bottom:0}
+/* Footer and customer-information links already use a text underline. */
+footer.site-footer nav a:hover,nav.customer-links a:hover{border-bottom:0}
