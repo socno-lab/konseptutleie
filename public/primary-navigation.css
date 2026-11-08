@@ -1,4 +1,4 @@
-body>header .primary-navigation{display:flex;align-items:center;gap:clamp(14px,2vw,30px);font-size:13px;white-space:nowrap}
+body>header .primary-navigation{display:flex;align-items:center;gap:clamp(12px,1.5vw,24px);font-size:13px;white-space:nowrap}
 .primary-dropdown{position:relative;border:0;margin:0;padding:0}
 .primary-dropdown>summary{display:flex;align-items:center;gap:7px;min-height:44px;list-style:none;padding:0;font:inherit;cursor:pointer}
 .primary-dropdown>summary::-webkit-details-marker{display:none}
@@ -16,3 +16,5 @@ body>header .primary-proposal{display:inline-flex;align-items:center;justify-con
 @media(min-width:641px) and (max-width:1100px){body>header .brand{width:175px;flex-shrink:0}body>header.has-header-tools{gap:10px}body>header .primary-navigation{gap:12px;font-size:12px}body>header .primary-proposal{padding:8px 10px}body>header .bag .mobile-bag-label{display:none}}
 @media(min-width:641px) and (max-width:820px){body>header .brand{width:145px}body>header .primary-navigation{gap:8px;font-size:11px}body>header.has-header-tools{gap:6px}.header-tools{gap:0}.header-tool-button{width:34px;padding:6px}body>header .primary-proposal{padding:8px}}
 @media(max-width:640px){body>header .primary-navigation{display:none!important}.occasion-home .rental-hero-actions{display:grid;grid-template-columns:1fr;gap:10px}.occasion-home .rental-hero-actions>.text-button{width:100%;align-self:stretch}.occasion-home .home-delivery-compact{font-size:11px}}
+
+@media(min-width:641px) and (max-width:1000px){body>header .primary-navigation{flex-wrap:wrap;white-space:normal;gap:6px 12px}body>header .primary-navigation>a{white-space:nowrap}body>header{min-height:106px;height:auto;padding-block:12px}}
