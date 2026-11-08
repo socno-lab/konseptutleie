@@ -196,3 +196,5 @@ Antallsstripe 7. november 2026: Etter eiers ønske vises samme eksisterende lyse
 8. november 2026: Eier godkjente undertittelen «Møbler til anledningen» i nettstedets logo. Originalt ordmerke og bildefelt beholdes; tidligere undertittel klippes i CSS og den nye vises som skarp HTML-tekst. Header/footer og adminmaler oppdatert. Kontrollert 320/390/1280 px uten horisontal scrolling; designlåser består.
 
 8. november 2026: Eier godkjente illustrert forenkling av hovedmenyen: Leie og Om oss som nedtrekk, Kjøpe, Pakker & tjenester og Få et forslag. Kortere forsideintro, to tydelige knapper og kompakt leveringslinje. Full leveringsinformasjon beholdes i FAQ. Eksisterende logo, fonter, produktbilder og kortgeometri beholdes. Kontrollert desktop 1280, nettbrett 768, mobil 390 og 320 uten horisontal scrolling.
+
+8. november 2026: Mobilforside viser kort intro og anledningskort før handlingsknapper og leveringslinje, etter eiers bestilling. Desktop beholder intro og knapper over kortene. To mobilkolonner og bildeutsnitt beholdes. Kontrollert 320/390/1280 px.

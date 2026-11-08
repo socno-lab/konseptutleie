@@ -18,3 +18,6 @@ body>header .primary-proposal{display:inline-flex;align-items:center;justify-con
 @media(max-width:640px){body>header .primary-navigation{display:none!important}.occasion-home .rental-hero-actions{display:grid;grid-template-columns:1fr;gap:10px}.occasion-home .rental-hero-actions>.text-button{width:100%;align-self:stretch}.occasion-home .home-delivery-compact{font-size:11px}}
 
 @media(min-width:641px) and (max-width:1000px){body>header .primary-navigation{flex-wrap:wrap;white-space:normal;gap:6px 12px}body>header .primary-navigation>a{white-space:nowrap}body>header{min-height:106px;height:auto;padding-block:12px}}
+
+.home-mobile-actions{display:none}
+@media(max-width:640px){.occasion-home .hero .home-intro-detail,.occasion-home .hero .rental-hero-actions,.occasion-home .hero .home-delivery-compact{display:none}.occasion-home .home-mobile-actions{display:block;margin-top:24px}.occasion-home .home-use-cases{padding-top:16px}.occasion-home .hero .intro{margin-bottom:0}}
