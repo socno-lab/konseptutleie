@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=fest20261108b';
+import {getSiteSettings} from './site-settings.js?v=optionimages20261108';
 // Explicit admin assignments override legacy category-based navigation.
 import {matchesPurpose as matchesCatalogPurpose,prioritizePackages} from './purpose-model.js?v=launch20261024';
 export {prioritizePackages};

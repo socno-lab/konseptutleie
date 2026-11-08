@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261108b';
+import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=optionimages20261108';
 import {occasionLandingView} from '../public/occasion-landing-view.js?v=stockmobile20261107';
 import {matchesPurpose} from '../public/rental-purpose-model.js?v=stockmobile20261107';
 import {mediaUsage} from '../server/images.mjs';

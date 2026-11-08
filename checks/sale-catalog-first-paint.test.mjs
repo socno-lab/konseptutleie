@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 import {pageModel,renderSeo} from '../server/seo.mjs';
-import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261108b';
+import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=optionimages20261108';
 import {publicCatalog} from '../app-server.mjs';import {memoryStore} from './helpers/memory-store.mjs';
 import {saleCatalogView} from '../public/sale-catalog-view.js?v=empty20261107';
 import {readInitialCatalog} from '../public/catalog-card-markup.js';

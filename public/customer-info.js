@@ -1,13 +1,13 @@
-import {customerInformationPages} from './customer-information-content.js?v=fest20261108b';
+import {customerInformationPages} from './customer-information-content.js?v=optionimages20261108';
 import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
 import {mountMobileRentalDates} from './mobile-rental-dates.js?v=period20261028e';
 import {mountStorageNotice} from './storage-notice.js?v=launch20261024';
 mountStorageNotice();
-import {configureSiteSettings,getSiteSettings} from './site-settings.js?v=fest20261108b';
-import {getTermsVersions} from './terms-versions.js?v=fest20261108b';
+import {configureSiteSettings,getSiteSettings} from './site-settings.js?v=optionimages20261108';
+import {getTermsVersions} from './terms-versions.js?v=optionimages20261108';
 const initialSettings=readInitialCatalog(document)?.settings;
 if(initialSettings)configureSiteSettings(initialSettings);else try{const response=await fetch('/api/site-settings',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(response.ok)configureSiteSettings((await response.json()).settings);}catch{}
-import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=fest20261108b';
+import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=optionimages20261108';
 // Shared customer information for purchase, rental and information pages.
 export const rentalTermsVersion=getTermsVersions().rental;
 export const termsVersion=getTermsVersions().purchase;

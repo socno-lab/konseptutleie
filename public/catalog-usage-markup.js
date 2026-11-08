@@ -1,4 +1,4 @@
-import {catalogUsageLabel} from './catalog-usage-model.js?v=fest20261108b';
+import {catalogUsageLabel} from './catalog-usage-model.js?v=optionimages20261108';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Identical first-paint and client fallback markup for every rental catalogue.
 export function catalogUsageMarkup(state={}){

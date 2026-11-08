@@ -1,9 +1,9 @@
-import {contentPages} from './page-model.js?v=fest20261108b';
-import {renderContentPage} from './content-page.js?v=fest20261108b';
-import {getSiteSettings} from './site-settings.js?v=fest20261108b';
-import {renderProductionLanding,renderSeasonLanding,renderChristmasLanding} from './production-landing.js?v=fest20261108b';
-import {renderMesseLanding} from './messe-landing.js?v=fest20261108b';
-import {validPurpose} from './rental-purpose-model.js?v=fest20261108b';
+import {contentPages} from './page-model.js?v=optionimages20261108';
+import {renderContentPage} from './content-page.js?v=optionimages20261108';
+import {getSiteSettings} from './site-settings.js?v=optionimages20261108';
+import {renderProductionLanding,renderSeasonLanding,renderChristmasLanding} from './production-landing.js?v=optionimages20261108';
+import {renderMesseLanding} from './messe-landing.js?v=optionimages20261108';
+import {validPurpose} from './rental-purpose-model.js?v=optionimages20261108';
 const html=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function occasionLandingView(href,settings=getSiteSettings()){
  const url=new URL(href,'https://konseptuell.no');

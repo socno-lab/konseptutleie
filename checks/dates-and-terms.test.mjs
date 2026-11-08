@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {parseDateOnly,osloToday,addDateDays,rentalDayCount,validateRentalPeriod,MAX_RENTAL_DAYS} from '../public/rental-dates.js';
 import {getTermsVersions,requiredEnquiryTerms,validateEnquiryTerms} from '../public/terms-versions.js?v=stockmobile20261107';
 import {rentalDays} from '../public/catalog-model.js';
-import {defaultSettings} from '../public/site-settings.js?v=fest20261108b';
+import {defaultSettings} from '../public/site-settings.js?v=optionimages20261108';
 import {discountQuote} from '../server/discounts.mjs';
 import {validateSubmission,createSubmissionSender,submissionFingerprint} from '../server/submissions.mjs';
 import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';

@@ -1,5 +1,5 @@
-import {cardHref} from './page-model.js?v=fest20261108b';
-import {isKiPhoto,kiDisclosure} from './image-provenance.js?v=fest20261108b';
+import {cardHref} from './page-model.js?v=optionimages20261108';
+import {isKiPhoto,kiDisclosure} from './image-provenance.js?v=optionimages20261108';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Render the final icon on both server and client so icons.js cannot invalidate

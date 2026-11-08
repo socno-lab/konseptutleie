@@ -1,5 +1,5 @@
-import {saleCatalogView} from '../public/sale-catalog-view.js?v=fest20261108b';
-import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261108b';
+import {saleCatalogView} from '../public/sale-catalog-view.js?v=optionimages20261108';
+import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=optionimages20261108';
 import {renderArrowIcons} from './arrow-icons.mjs';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function saleCatalogFirstPaint(html,model,products,settings){

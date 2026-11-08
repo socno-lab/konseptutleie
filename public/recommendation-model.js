@@ -1,8 +1,8 @@
-import {salesEnabled} from './sales-model.js?v=fest20261108b';
-import {variantFields} from './product-variants.js?v=fest20261108b';
-import {productSubcategory} from './catalog-subcategories.js?v=fest20261108b';
+import {salesEnabled} from './sales-model.js?v=optionimages20261108';
+import {variantFields} from './product-variants.js?v=optionimages20261108';
+import {productSubcategory} from './catalog-subcategories.js?v=optionimages20261108';
 import {remaining} from './catalog-model.js?v=longrent20261026';
-import {resolvedProductPurposes} from './rental-purpose-model.js?v=fest20261108b';
+import {resolvedProductPurposes} from './rental-purpose-model.js?v=optionimages20261108';
 export function recommendationFamily(p){return variantFields(p).variantGroup||p.moduleSeries||p.id;}
 export function recommendationCandidate(p){return !!p&&!p.isPackage&&!p.isService&&!p.addonOnly&&!p.wallGroup&&!p.isExample;}
 export function validRecommendationIds(value){if(value===undefined)return [];if(!Array.isArray(value)||value.length>4||new Set(value).size!==value.length||value.some(id=>typeof id!=='string'||!/^[a-z0-9_-]{1,80}$/.test(id)))throw Error('Velg opptil fire ulike anbefalte produkter.');return [...value];}

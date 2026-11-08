@@ -1,6 +1,6 @@
 import {migrateCatalogDimensions} from './dimensions-migration.mjs';
 import {migrateStylingPricing} from './pricing-migration.mjs';
-import {defaultSettings} from '../public/site-settings.js?v=fest20261108b';
+import {defaultSettings} from '../public/site-settings.js?v=optionimages20261108';
 import {deliveryCallLimits} from './delivery.mjs';
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';

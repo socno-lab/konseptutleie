@@ -1,4 +1,4 @@
-import {prioritizePackages} from './rental-purpose-model.js?v=fest20261108b';
+import {prioritizePackages} from './rental-purpose-model.js?v=optionimages20261108';
 import {sortByPurposeOrder} from './purpose-order-model.js?v=production20261107';
 
 // isPackage describes a ready-made catalogue card, not every underlying product

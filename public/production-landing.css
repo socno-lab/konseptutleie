@@ -34,3 +34,10 @@
 
 /* Four choices retain a balanced two-column layout within the shared template. */
 @media(min-width:801px){.content-page .production-services:has(>article:nth-child(4):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Optional choice images: text-only cards keep their established layout. */
+.content-page .production-services>article.content-option-image{display:grid;grid-template-columns:clamp(100px,11vw,150px) minmax(0,1fr);grid-template-rows:auto 1fr auto;gap:12px 22px;align-items:start}
+.content-option-image>img{grid-column:1;grid-row:1/4;display:block;width:100%;aspect-ratio:4/3;height:auto;object-fit:cover}
+.content-option-image>h3,.content-option-image>p,.content-option-image>.text-button{grid-column:2;min-width:0;margin:0}
+.content-page .production-services>.content-option-image>.text-button{justify-self:start;padding-top:4px}
+@media(max-width:800px){.content-page .production-services>article.content-option-image{grid-template-columns:84px minmax(0,1fr);gap:14px 16px}.content-option-image>img{grid-row:1}.content-option-image>h3{align-self:center}.content-option-image>p,.content-option-image>.text-button{grid-column:1/-1}}

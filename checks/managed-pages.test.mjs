@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261108b';
+import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=optionimages20261108';
 import {newContentPage,cardHref} from '../public/page-model.js?v=stockmobile20261107';
 import {homeOccasionCards} from '../public/home-occasions.js?v=stockmobile20261107';
 import {occasionLandingView} from '../public/occasion-landing-view.js?v=stockmobile20261107';
@@ -31,3 +31,13 @@ test('season page preserves edits and routes each choice independently',()=>{
  p.heading='Vår festside';assert.equal(validateSiteSettings(s).contentPages.find(p=>p.id==='bryllup').heading,'Vår festside');
  for(const href of ['https://evil.example','//evil.example','/anledning.html?x=\\evil','javascript:alert(1)']){p.sections[0].href=href;assert.throws(()=>validateSiteSettings(s));}
 });
+
+test('choice images are optional, removable and validated without changing text-only layouts',()=>{
+ const s=base(),p=s.contentPages.find(p=>p.id==='bryllup');assert.ok(p.sections.every(x=>x.image));
+ const messe=occasionLandingView('/anledning.html?anledning=messe',s).html;assert.ok(!messe.includes('content-option-image'));
+ p.sections[0].image='';const saved=validateSiteSettings(s);assert.equal(saved.contentPages.find(p=>p.id==='bryllup').sections[0].image,'');
+ assert.equal((occasionLandingView('/anledning.html?anledning=bryllup',saved).html.match(/class="content-option-image"/g)||[]).length,3);
+ p.sections[0].image='javascript:alert(1)';assert.throws(()=>validateSiteSettings(s));
+});
+
+test('optional choice images are protected from deletion while used',async()=>{const {mediaUsage}=await import('../server/images.mjs');const s=base();s.contentPages[0].sections[0].image='/media/only-choice';assert.equal(mediaUsage({url:'/media/only-choice'},[],s).length,1);});

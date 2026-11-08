@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultSettings,configureSiteSettings,validateSiteSettings} from '../public/site-settings.js?v=fest20261108b';
+import {defaultSettings,configureSiteSettings,validateSiteSettings} from '../public/site-settings.js?v=optionimages20261108';
 import {migrateStylingPricing} from '../server/pricing-migration.mjs';
 import {rentalRateSets,retailRentalRates} from '../public/rental-pricing-model.js?v=stockmobile20261107';
 import {ratePlan} from '../public/catalog-model.js';

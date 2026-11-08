@@ -4,7 +4,7 @@ import {createSubmissionSender,validateSubmission,submissionFingerprint,retryabl
 import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';
 import {enquiryEmail} from '../server/enquiry-email.mjs';
 import {createServer} from '../app-server.mjs';
-import {configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=fest20261108b';
+import {configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=optionimages20261108';
 import {getTermsVersions} from '../public/terms-versions.js?v=stockmobile20261107';
 import {osloToday,addDateDays} from '../public/rental-dates.js';
 const products=[{id:'chair',name:'Stol med et langt navn og <uønsket> HTML & tekst',active:true,stock:10,unavailable:0,rentalPricingMode:'manual',price:100,weekPrice:300,monthPrice:500,saleEnabled:true,salePrice:1990,category:'Stoler'}],env={SMTP_PASS:'test-only',SMTP_USER:'post@konseptuell.no'};

@@ -1,7 +1,7 @@
 import {rentalStockMarkup} from './rental-stock.js?v=stockcount20261108';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {isTablewareRental,ratePlan} from './catalog-model.js?v=longrent20261026';
-import {kiDisclosure} from './image-provenance.js?v=fest20261108b';
+import {kiDisclosure} from './image-provenance.js?v=optionimages20261108';
 const html=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function homeProductCards(products,settings,rateGrid){
  const selected=settings.home.products.map(id=>products.find(p=>p.id===id&&p.active)).filter(Boolean),productTitle=p=>isTablewareRental(p,products)?'Servisepakke – sett sammen per person':p.name;

@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=fest20261108b';
+import {getSiteSettings} from './site-settings.js?v=optionimages20261108';
 // All reference prices and resulting rents include VAT. Acquisition cost stays private.
 export const rentalFactors = {price: 0.07, weekPrice: 0.20, monthPrice: 0.35};
 export const eventFactor = 1.5;
