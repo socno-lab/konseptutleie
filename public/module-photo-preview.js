@@ -27,8 +27,14 @@ function photo(part,x,y,width,height){
  if(part.photo?.lowerCrop){
   // Tight cushion joins above; original full-width frame and legs below.
   const lower=part.photo.lowerCrop,split=.64,cut=crop[1]+(crop[3]-crop[1])*split;
-  const tile=(box,top,h)=>`<svg y="${top}" width="${width+.15}" height="${h}" viewBox="${box}" preserveAspectRatio="none" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}"/></svg>`;
-  return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title>${tile(`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${cut-crop[1]}`,0,height*split)}${tile(`${lower[0]} ${cut} ${lower[2]-lower[0]} ${lower[3]-cut}`,height*split,height*(1-split))}</g>`;
+  const tile=(box,top,h,w=width+.15,left=0)=>`<svg x="${left}" y="${top}" width="${w}" height="${h}" viewBox="${box}" preserveAspectRatio="none" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}"/></svg>`;
+  const span=lower[2]-lower[0],edge=55;
+  const leftWidth=part.photo.joinLeft?edge/part.photo.legWidths[0]*4:edge/span*width;
+  const rightWidth=part.photo.joinRight?edge/part.photo.legWidths[1]*4:edge/span*width;
+  const frame=tile(`${lower[0]} ${cut} ${edge} ${lower[3]-cut}`,height*split,height*(1-split),leftWidth)
+   +tile(`${lower[0]+edge} ${cut} ${span-2*edge} ${lower[3]-cut}`,height*split,height*(1-split),width-leftWidth-rightWidth,leftWidth)
+   +tile(`${lower[2]-edge} ${cut} ${edge} ${lower[3]-cut}`,height*split,height*(1-split),rightWidth,width-rightWidth);
+  return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title>${tile(`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${cut-crop[1]}`,0,height*split)}${frame}</g>`;
  }
 const viewport=`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${crop[3]-crop[1]}`;
  return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title><svg style="width:${width+.15}px;height:${height}px" width="${width+.15}" height="${height}" viewBox="${viewport}" preserveAspectRatio="${known?'none':'xMidYMax meet'}" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}" preserveAspectRatio="none"/></svg></g>`;
