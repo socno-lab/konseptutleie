@@ -2,3 +2,5 @@ body>footer.site-footer{display:grid;grid-template-columns:minmax(0,1fr) auto;ga
 
 /* Shared pale green footer separates contact and navigation from page content. */
 body>footer.site-footer{background:#e9eddf;max-width:none;margin-left:0;margin-right:0;padding-top:36px}footer.site-footer .brand img{mix-blend-mode:multiply}footer.site-footer .footer-top{border-bottom-color:#cdd3c3}@media(max-width:640px){body>footer.site-footer{padding-top:28px}.site-footer .footer-company{text-align:center}.site-footer .footer-company .brand{width:190px;text-align:center}.site-footer .footer-top{gap:28px}}
+
+.footer-social{margin-top:20px}.footer-social a{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-size:13px}.footer-social svg{flex:none}@media(max-width:640px){.footer-social{margin-top:16px}.site-footer .footer-social h2{text-align:center}}
