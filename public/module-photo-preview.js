@@ -28,12 +28,14 @@ function photo(part,x,y,width,height){
   // Tight cushion joins above; original full-width frame and legs below.
   const lower=part.photo.lowerCrop,split=.64,cut=crop[1]+(crop[3]-crop[1])*split;
   const tile=(box,top,h,w=width+.15,left=0)=>`<svg x="${left}" y="${top}" width="${w}" height="${h}" viewBox="${box}" preserveAspectRatio="none" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}"/></svg>`;
-  const span=lower[2]-lower[0],edge=55;
-  const leftWidth=part.photo.joinLeft?edge/part.photo.legWidths[0]*4:edge/span*width;
-  const rightWidth=part.photo.joinRight?edge/part.photo.legWidths[1]*4:edge/span*width;
-  const frame=tile(`${lower[0]} ${cut} ${edge} ${lower[3]-cut}`,height*split,height*(1-split),leftWidth)
-   +tile(`${lower[0]+edge} ${cut} ${span-2*edge} ${lower[3]-cut}`,height*split,height*(1-split),width-leftWidth-rightWidth,leftWidth)
-   +tile(`${lower[2]-edge} ${cut} ${edge} ${lower[3]-cut}`,height*split,height*(1-split),rightWidth,width-rightWidth);
+  let frame=tile(`${lower[0]} ${cut} ${lower[2]-lower[0]} ${lower[3]-cut}`,height*split,height*(1-split));
+  if(part.photo.frame){
+   // Middle frames reuse the end module's outer leg, mirrored on the other side.
+   const f=part.photo.frame,c=f.crop,mid=(c[0]+c[2])/2,fy=c[1]+(c[3]-c[1])*split;
+   const box=`${f.side==='right'?mid:c[0]} ${fy} ${(c[2]-c[0])/2} ${c[3]-fy}`;
+   const half=`<svg width="${width/2+.1}" height="${height*(1-split)}" viewBox="${box}" preserveAspectRatio="none" overflow="hidden"><image href="/assets/copacabana-${f.name}-front.webp" width="1200" height="800"/></svg>`;
+   frame=f.side==='right'?`<g transform="translate(${width/2} ${height*split}) matrix(-1 0 0 1 0 0)">${half}</g><g transform="translate(${width/2} ${height*split})">${half}</g>`:`<g transform="translate(0 ${height*split})">${half}</g><g transform="translate(${width} ${height*split}) matrix(-1 0 0 1 0 0)">${half}</g>`;
+  }
   return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title>${tile(`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${cut-crop[1]}`,0,height*split)}${frame}</g>`;
  }
 const viewport=`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${crop[3]-crop[1]}`;
