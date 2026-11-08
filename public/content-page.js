@@ -1,4 +1,4 @@
-import {renderContentGallery} from './content-gallery.js?v=gallery20261108final';
+import {renderContentGallery} from './content-gallery.js?v=galleryplain20261108';
 const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const arrow='<span aria-hidden="true">↗</span>';
 export function renderContentPage(p){
