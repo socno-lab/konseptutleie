@@ -23,7 +23,14 @@ function photo(part,x,y,width,height){
  const size=known?profile.size:[1,1],crop=known?[...profile.crop]:[0,0,1,1];
  if(part.half&&!part.photo){const mid=(crop[0]+crop[2])/2;if(part.half==='left')crop[2]=mid;else crop[0]=mid;}
  const mirror=custom?.mirror??part.photo?.mirror??(!part.photo&&p.moduleRole==='end'&&part.role==='left');
- const viewport=`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${crop[3]-crop[1]}`;
+ 
+ if(part.photo?.lowerCrop){
+  // Tight cushion joins above; original full-width frame and legs below.
+  const lower=part.photo.lowerCrop,split=.64,cut=crop[1]+(crop[3]-crop[1])*split;
+  const tile=(box,top,h)=>`<svg y="${top}" width="${width+.15}" height="${h}" viewBox="${box}" preserveAspectRatio="none" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}"/></svg>`;
+  return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title>${tile(`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${cut-crop[1]}`,0,height*split)}${tile(`${lower[0]} ${cut} ${lower[2]-lower[0]} ${lower[3]-cut}`,height*split,height*(1-split))}</g>`;
+ }
+const viewport=`${crop[0]} ${crop[1]} ${crop[2]-crop[0]} ${crop[3]-crop[1]}`;
  return `<g data-photo-module="${escape(p.id)}" data-photo-role="${part.role}" transform="translate(${mirror?x+width:x} ${y})${mirror?' scale(-1 1)':''}"><title>${escape(p.name)}</title><svg style="width:${width+.15}px;height:${height}px" width="${width+.15}" height="${height}" viewBox="${viewport}" preserveAspectRatio="${known?'none':'xMidYMax meet'}" overflow="hidden"><image href="${escape(source)}" width="${size[0]}" height="${size[1]}" preserveAspectRatio="none"/></svg></g>`;
 }
 function previewZoom(){return '<button type="button" class="module-photo-zoom" data-zoom-target="self" aria-label="Forstørr valgt sofaoppsett"><span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5.5 5.5M10 6.5v7M6.5 10h7"/></svg></span></button>';}

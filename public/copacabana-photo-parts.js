@@ -12,6 +12,6 @@ export function copacabanaPhotoParts(parts){
   // Remove the recessed cushion margins only at joins; keep outside silhouettes intact.
   if(index>0)crop[mirror?2:0]+=mirror?-28:28;
   if(index<parts.length-1)crop[mirror?0:2]+=mirror?28:-28;
-  p.photo={source:'/assets/copacabana-'+f.name+'-front.webp',size:[1200,800],crop,mirror,height:65,replaceBuilder:true};}
+  p.photo={source:'/assets/copacabana-'+f.name+'-front.webp',size:[1200,800],crop,lowerCrop:f.crop,mirror,height:65,replaceBuilder:true};}
  return true;
 }
