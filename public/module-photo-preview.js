@@ -1,3 +1,4 @@
+import {copacabanaPhotoParts} from './copacabana-photo-parts.js';
 import {photoProfiles} from './module-photo-profiles.js?v=launch20261024';
 import {joinedPhotoParts} from './module-joined-profiles.js?v=lagoon20261025';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -35,7 +36,8 @@ export function modulePhotoPreview(modules,selection){
  const ends=beige?amount(selection,beigeEnd.id):0,middles=beige?amount(selection,beigeMiddle.id):0;
  // Use the exact assembled supplier photographs for the matching beige setups.
  if(beige&&ends===2&&middles<=1){const src=middles?'/assets/beige-sofa-tre-moduler.webp':'/assets/beige-sofa-to-moduler.webp';return `<figure class="module-photo"><img data-complete-sofa="true" src="${src}" alt="${escape(label)}"><figcaption>Valgt oppsett · produktbilde</figcaption>${previewZoom()}</figure>`;}
- let generated=parts.length>1&&joinedPhotoParts(parts);
+ const coherent=copacabanaPhotoParts(parts);
+ let generated=!coherent&&parts.length>1&&joinedPhotoParts(parts);
  if(beige&&parts.length>1){
   generated=true;
   // All tiles come from one coherent frontal scene, sharing camera and seat height.

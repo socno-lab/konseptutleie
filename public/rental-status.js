@@ -1,3 +1,4 @@
+import {requiredModuleQuantity} from './module-builder-settings.js';
 // Editorial status only. Inventory, prices and requested dates stay independent.
 const rentable = product => product && product.active !== false && !product.deletedAt && product.rentalEnabled !== false;
 export const isRentedOut = product => rentable(product) && product.rentalRentedOut === true;
@@ -12,7 +13,7 @@ export function rentalSeriesRentedOut(products, selection) {
  const members = products.filter(rentable);
  const selected = selection && members.filter(product => selection[product.id] > 0);
  if (selected?.length) return selected.some(isRentedOut);
- const required = members.filter(product => product.moduleRequired);
+ const required = members.filter(product => requiredModuleQuantity(product)>0);
  return required.length ? required.some(isRentedOut) : rentalGroupRentedOut(members);
 }
 

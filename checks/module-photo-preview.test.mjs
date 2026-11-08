@@ -53,7 +53,7 @@ test('both Copacabana colours form a continuous sofa for two through seven modul
  const {readFile}=await import('node:fs/promises');const {products}=JSON.parse(await readFile(new URL('./fixtures/module-photo-catalog.json',import.meta.url),'utf8'));
  for(const id of ['obj_c274f2d322614de4be80c2b891a78174','obj_ad4086d4e89041529b6c6563f220b046']){
   const p=products.find(p=>p.id===id);
-  for(const count of [2,3,4,7]){const markup=modulePhotoPreview([p],{[id]:count});assert.equal((markup.match(/data-photo-module=/g)||[]).length,count);assert.match(markup,/data-generated="true"/);assert.match(markup,/viewBox="-8 0 \d+ 100"/);assert.equal(new Set([...markup.matchAll(/<image href="([^"]+)"/g)].map(m=>m[1])).size,1);}
+  for(const count of [2,3,4,7]){const markup=modulePhotoPreview([p],{[id]:count});assert.equal((markup.match(/data-photo-module=/g)||[]).length,count);assert.match(markup,/data-generated="false"/);assert.match(markup,/copacabana-middle-(beige|brown)-front.webp/);assert.equal(new Set([...markup.matchAll(/<image href="([^"]+)"/g)].map(m=>m[1])).size,1);}
  }
 });
 test('KID ordinary ends and chaise share a frontal reference without changing module count',async()=>{
@@ -110,4 +110,18 @@ test('Lagoon uses aligned front crops for every two- and three-module selection'
   assert.equal(joinedPhotoParts(modulePhotoParts(altered,Object.fromEntries(altered.map(p=>[p.id,1])))),false);
  }
  assert.doesNotMatch(modulePhotoPreview(products,{[byRole.left.id]:1}),/data-generated="true"/);
+});
+
+test('Copacabana ends face outward and meet the selected middle',()=>{
+ for(const [endId,midId,endImage,midImage] of [
+ ['obj_4c3c94fd87ad42a8809fd76ce2a48fbb','obj_ad4086d4e89041529b6c6563f220b046','/media/35c6829dce7c534cea26802a7a059312','/assets/venture-home-lounge-hvit-front.webp'],
+ ['obj_7e1c0dfb719a4b00811cebcb77c7585a','obj_c274f2d322614de4be80c2b891a78174','/media/8db68f8ca3162cf69c7a5f555ae4ea1a','/assets/venture-home-lounge-front.webp']]){
+ const ps=[{id:endId,name:'End',moduleRole:'end',moduleWidth:74,image:endImage},{id:midId,name:'Middle',moduleRole:'middle',moduleWidth:70,image:midImage}];
+ const html=modulePhotoPreview(ps,{[endId]:2,[midId]:1});
+ assert.deepEqual([...html.matchAll(/data-photo-role="([^"]+)"/g)].map(m=>m[1]),['left','middle','right']);
+ assert.equal((html.match(/scale\(-1 1\)/g)||[]).length,1);
+ assert.equal((html.match(/data-photo-module=/g)||[]).length,3);
+ assert.match(html,/copacabana-end-/);assert.match(html,/copacabana-middle-/);
+ assert.ok(!modulePhotoPreview(ps.map(p=>({...p,builderImage:'/media/custom'})),{[endId]:2,[midId]:1}).includes('/assets/copacabana-'));
+ }
 });
