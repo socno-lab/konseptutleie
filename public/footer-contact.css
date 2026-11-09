@@ -7,3 +7,5 @@ body>footer.site-footer{background:#e9eddf;max-width:none;margin-left:0;margin-r
 
 /* Footer and customer-information links already use a text underline. */
 footer.site-footer nav a:hover,nav.customer-links a:hover{border-bottom:0}
+
+.footer-social-links{display:flex;flex-wrap:wrap;gap:0 18px}@media(max-width:640px){.footer-social-links{justify-content:center}}
