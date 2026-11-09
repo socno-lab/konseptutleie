@@ -82,6 +82,12 @@ export function renderSeo(source,m,products,indexable,settings=getSiteSettings()
  if(m.canonical==='/')html=homeFirstPaint(html,products,settings);
  if(m.canonical.startsWith('/kundeinfo'))html=customerInformationFirstPaint(html,settings);
  if(m.canonical!=='/')html=html.replace(/<h1([^>]*)>(Hva skal du[^]*?)<\/h1>/g,'<h2$1>$2</h2>');
+ if(m.canonical.startsWith('/anledning.html')){
+  // Deliver final arrow artwork before icons.js runs; never replace the hero node.
+  html=html.replace(/(<section[^>]+id="occasionLanding"[^>]*>)([\s\S]*?)(<\/main>)/,(_,opening,content,end)=>opening+content.replace(/↗/g,'<svg class="icon-arrow-up-right" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>')+end);
+  const hero=html.match(/<section class="production-hero[^]*?<figure><img src="([^"]+)"/);
+  if(hero)html=html.replace('</head>','<link rel="preload" as="image" fetchpriority="high" href="'+hero[1]+'"></head>');
+ }
  return initialSiteData(html,{products,settings});
 }
 export function sitemap(products,indexable){const paths=indexable?['/om-oss','/','/utvalg.html','/kjop.html','/midlertidig-moblering.html','/kundeinfo.html','/utvalg.html?bruk=boligsalg',...(products.some(p=>rental(p)&&p.isPackage)?['/utvalg.html?kategori=Pakker']:[]),...contentPages(getSiteSettings()).map(p=>'/anledning.html?bruk='+p.area+'&anledning='+p.id),...Object.entries(occasions).filter(([key])=>key!=='boligfoto').map(([key,v])=>'/anledning.html?bruk='+v[1]+'&anledning='+key),...[...new Set(products.filter(rental).map(p=>p.category))].map(c=>'/utvalg.html?kategori='+encodeURIComponent(c)),...[...new Set(products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>p.category))].map(c=>'/kjop.html?kategori='+encodeURIComponent(c)),...products.filter(rental).map(p=>url(p)),...products.filter(p=>visible(p)&&salesEnabled(p)).map(p=>url(p,true))]:[];return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+[...new Set(paths)].map(p=>'<url><loc>'+e(siteOrigin+p)+'</loc></url>').join('')+'</urlset>';}
