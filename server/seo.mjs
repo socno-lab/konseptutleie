@@ -86,7 +86,11 @@ export function renderSeo(source,m,products,indexable,settings=getSiteSettings()
   // Deliver final arrow artwork before icons.js runs; never replace the hero node.
   html=html.replace(/(<section[^>]+id="occasionLanding"[^>]*>)([\s\S]*?)(<\/main>)/,(_,opening,content,end)=>opening+content.replace(/↗/g,'<svg class="icon-arrow-up-right" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>')+end);
   const hero=html.match(/<section class="production-hero[^]*?<figure><img src="([^"]+)"/);
-  if(hero)html=html.replace('</head>','<link rel="preload" as="image" fetchpriority="high" href="'+hero[1]+'"></head>');
+  if(hero){
+   const tag=html.match(/<section class="production-hero[^]*?<figure>(<img[^>]+>)/)?.[1]||'';
+   const srcset=tag.match(/srcset="([^"]+)"/)?.[1],sizes=tag.match(/sizes="([^"]+)"/)?.[1];
+   html=html.replace('</head>','<link rel="preload" as="image" fetchpriority="high" href="'+hero[1]+'"'+(srcset?' imagesrcset="'+srcset+'" imagesizes="'+sizes+'"':'')+'></head>');
+  }
  }
  return initialSiteData(html,{products,settings});
 }
