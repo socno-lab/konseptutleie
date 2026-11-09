@@ -6,3 +6,6 @@
 @supports (width:1cqw){
  #products .product-art img[data-image-frame][src$="/media/192817af1c1368c0890367547d7787bd"]{--frame-height:173.54497cqh!important;--frame-bottom:9%!important}
 }
+
+/* Homepage: Fra vårt utvalg uses its own photo component. */
+.rental-product-photo>img[src$="/media/192817af1c1368c0890367547d7787bd"]{transform:scale(1.75);transform-origin:center}
