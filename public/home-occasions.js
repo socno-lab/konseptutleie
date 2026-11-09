@@ -6,6 +6,7 @@ const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 // the hydration comparison and replace already decoded images.
 const arrowUpRightIcon='<svg class="icon-arrow-up-right" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
 const areas={boligfoto:'boligsalg',messe:'messe',bryllup:'fest',jul:'jul',produksjon:'produksjon',bedrift:'bedrift',alle:'alle'};
+// All occasion images must load eagerly, including row two (guarded by build.mjs).
 // The server and client render the same admin-controlled cards, before the first paint.
 export function homeOccasionCards(products,settings){
  return settings.home.occasions.filter(c=>c.visible!==false).map((c,index)=>{
