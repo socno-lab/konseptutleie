@@ -18,7 +18,8 @@ export function catalogFirstPaint(html,model,catalogProducts,settings){
   const subcategories='<div id="rentalTableTypes" class="catalog-subcategories" role="group" aria-label="Underkategorier"'+(view.types.length?'':' hidden')+'>'+subcategoryButtons(view.types,view.tableFilter,filter)+'</div>';
   html=html.replace('<p id="mobileCatalogResults"',()=>subcategories+'<p id="mobileCatalogResults"');
   html=html.replace('<aside class="catalog-request"','<aside hidden class="catalog-request"');
-  if(!view.count)html=html.replace('id="empty" class="catalog-empty" hidden','id="empty" class="catalog-empty"');
+  if(filter==='Dekor'){html=html.replace('id="decorOffering" class="catalog-empty" aria-labelledby="decorOfferingHeading" hidden','id="decorOffering" class="catalog-empty" aria-labelledby="decorOfferingHeading"');html=html.replace(/(<p id="mobileCatalogResults"[^>]*>)[\s\S]*?<\/p>/,'$1</p>');}
+  if(!view.count&&filter!=='Dekor')html=html.replace('id="empty" class="catalog-empty" hidden','id="empty" class="catalog-empty"');
   const first=view.orderedCards.slice(0,view.tailHtml?23:24).map(renderCatalogCard).join('')+view.tailHtml;
   html=html.replace('<div id="products" class="products"></div>',()=>'<div id="products" class="products">'+renderArrowIcons(first)+'</div>');
   html=html.replace(/(<p id="catalogStatus"[^>]*>)[\s\S]*?<\/p>/,'$1</p>');
