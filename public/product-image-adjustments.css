@@ -1,0 +1,8 @@
+/* VERTICUS: remove excess visual whitespace, retaining the original photograph. */
+.initial-product-image:has(>img[src$="/media/192817af1c1368c0890367547d7787bd"]),
+.product-art.image-zoom:has(>img[src$="/media/192817af1c1368c0890367547d7787bd"]){overflow:hidden}
+.initial-product-image>img[src$="/media/192817af1c1368c0890367547d7787bd"],
+.product-art.image-zoom>img[src$="/media/192817af1c1368c0890367547d7787bd"]{transform:scale(1.82);transform-origin:center}
+@supports (width:1cqw){
+ #products .product-art img[data-image-frame][src$="/media/192817af1c1368c0890367547d7787bd"]{--frame-height:173.54497cqh!important;--frame-bottom:9%!important}
+}
