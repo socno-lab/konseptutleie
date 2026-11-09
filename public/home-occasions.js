@@ -11,6 +11,6 @@ export function homeOccasionCards(products,settings){
  return settings.home.occasions.filter(c=>c.visible!==false).map((c,index)=>{
   const p=products.find(p=>p.id===c.productId&&p.active&&p.rentalEnabled!==false&&!p.deletedAt),src=c.image||p?.image||'/assets/hero.jpg';
   const href=cardHref(c,settings);
-  return `<a href="${escape(href)}"><figure><img src="${escape(src)}" ${responsiveImageAttributes(src,'(max-width:640px) 50vw, 33vw')} alt="" loading="${index<3?'eager':'lazy'}"${index===0?' fetchpriority="high"':''} decoding="async"><span>${isKiPhoto(src,settings)?kiDisclosure:'Illustrasjonsbilde'}</span></figure><div><h3>${escape(c.title)}</h3><span aria-hidden="true">${arrowUpRightIcon}</span></div></a>`;
+  return `<a href="${escape(href)}"><figure><img src="${escape(src)}" ${responsiveImageAttributes(src,'(max-width:640px) 50vw, 33vw')} alt="" loading="eager"${index===0?' fetchpriority="high"':''} decoding="async"><span>${isKiPhoto(src,settings)?kiDisclosure:'Illustrasjonsbilde'}</span></figure><div><h3>${escape(c.title)}</h3><span aria-hidden="true">${arrowUpRightIcon}</span></div></a>`;
  }).join('');
 }

@@ -15,7 +15,7 @@ import {renderMesseLanding} from '../public/messe-landing.js?v=optionimages20261
 import {catalogIntroHtml} from '../public/catalog-intro.js';
 import {purchaseProductText} from '../public/purchase-copy.js';
 import {categoryLabel,getSiteSettings} from '../public/site-settings.js?v=optionimages20261108';
-import {homeOccasionCards} from '../public/home-occasions.js?v=optionimages20261108';
+import {homeOccasionCards} from '../public/home-occasions.js?v=eagercards20261109';
 import {matchesPurpose} from '../public/rental-purpose-model.js?v=optionimages20261108';
 import {salesEnabled,saleUnitPrice} from '../public/sales-model.js?v=optionimages20261108';
 export const siteOrigin='https://konseptuell.no';
