@@ -9,5 +9,9 @@ export function orderRentalCards(cards,purpose,category){
   ?[...cards.filter(card=>!card.isPackage),...cards.filter(card=>card.isPackage)]
   :purpose==='fest'&&category==='Pakker'?[...cards]:prioritizePackages(cards);
  // Explicit admin priorities and the Christmas fallback keep their precedence.
- return sortByPurposeOrder(baseline,purpose);
+ const ordered=sortByPurposeOrder(baseline,purpose);
+ // Messe visitors see the ready-made starting points before individual furniture.
+ return purpose==='messe'&&category==='Alle'
+  ? [...ordered.filter(card=>card.isPackage),...ordered.filter(card=>!card.isPackage)]
+  : ordered;
 }

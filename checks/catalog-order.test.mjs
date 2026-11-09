@@ -33,7 +33,7 @@ test('explicit admin ordering overrides the default package position and uses vi
  ];
  const before=structuredClone(cards);
  assert.deepEqual(ids(orderRentalCards(cards,'alle','Alle')),['preferred-package','chair','service','module-series','ordinary-package']);
- assert.deepEqual(ids(orderRentalCards(cards,'messe','Alle')),['chair','module-series','service','ordinary-package','preferred-package']);
+ assert.deepEqual(ids(orderRentalCards(cards,'messe','Alle')),['ordinary-package','preferred-package','chair','module-series','service']);
  assert.deepEqual(cards,before);
 });
 
@@ -70,3 +70,9 @@ test('the festive package exception still applies explicit admin priority withou
  assert.deepEqual(orderRentalCards([],'alle','Alle'),[]);
  assert.throws(()=>orderRentalCards(null,'alle','Alle'),TypeError);
 });
+
+ test('Messe All keeps packages first even when an individual item has an admin priority',()=>{
+ const cards=[{id:'chair',product:{purposeOrder:{messe:-10}}},{id:'lounge',isPackage:true,product:{}},{id:'table',product:{}},{id:'meeting',isPackage:true,product:{purposeOrder:{messe:1}}}];
+ assert.deepEqual(ids(orderRentalCards(cards,'messe','Alle')),['meeting','lounge','chair','table']);
+ assert.deepEqual(ids(orderRentalCards(cards,'bedrift','Alle')),['chair','table','lounge','meeting']);
+ });

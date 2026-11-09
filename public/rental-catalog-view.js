@@ -6,7 +6,7 @@ import {productSubcategory,availableSubcategories} from './catalog-subcategories
 import {variantFields,rentalVariants,groupedRentalCards,variantColour} from './product-variants.js?v=optionimages20261108';
 import {isWall} from './wall-model.js?v=launch20261024';
 import {isTablewareRental,remaining,ratePlan} from './catalog-model.js?v=longrent20261026';
-import {orderRentalCards} from './catalog-order-model.js?v=optionimages20261108';
+import {orderRentalCards} from './catalog-order-model.js?v=messefirst20261109';
 import {rentalGroupRentedOut,rentalSeriesRentedOut,rentalStatusBadge} from './rental-status.js?v=rented20261029b';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
 import {joinedModuleCover} from './module-joined-profiles.js?v=lagoon20261025';
