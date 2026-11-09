@@ -9,3 +9,5 @@ body>footer.site-footer{background:#e9eddf;max-width:none;margin-left:0;margin-r
 footer.site-footer nav a:hover,nav.customer-links a:hover{border-bottom:0}
 
 .footer-social-links{display:flex;flex-wrap:wrap;gap:0 18px}@media(max-width:640px){.footer-social-links{justify-content:center}}
+
+footer.site-footer .footer-social-links{gap:12px}footer.site-footer .footer-social-links a{width:44px;height:44px;padding:0;justify-content:center;border:1px solid #a9b29b;border-radius:50%;text-decoration:none}footer.site-footer .footer-social-links a:hover{background:#dde3d2;border-color:var(--ink);text-decoration:none}footer.site-footer .footer-social-links svg{width:18px;height:18px}
