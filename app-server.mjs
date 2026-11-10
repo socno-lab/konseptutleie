@@ -146,7 +146,7 @@ export function createServer(options={}){
     }
     if(pathname==='/api/admin/site-settings'){
      if(req.method==='GET')return out(200,await store.readSiteSettings());
-     if(req.method==='PUT'){const input=await json(req,1000000);if(!Number.isInteger(input.revision))throw error('Ugyldig versjon.');const catalog=await readCatalog();let settings;try{settings=validateSiteSettings(input.settings);validateSettingsUsage(settings,catalog.products);}catch(e){throw error(e.message);}const saved=await store.saveSiteSettings(input.revision,settings);if(saved){configureSiteSettings(settings);invalidatePublic();}return saved?out(200,saved):out(409,{error:'Innstillingene er endret i en annen fane. Last inn på nytt før lagring.'});}
+     if(req.method==='PUT'){const input=await json(req,1000000);if(!Number.isInteger(input.revision))throw error('Ugyldig versjon.');const catalog=await readCatalog();let settings;try{settings=validateSiteSettings({...input.settings,catalogOrder:input.settings.catalogOrder??(await store.readSiteSettings()).settings.catalogOrder});validateSettingsUsage(settings,catalog.products);}catch(e){throw error(e.message);}const saved=await store.saveSiteSettings(input.revision,settings);if(saved){configureSiteSettings(settings);invalidatePublic();}return saved?out(200,saved):out(409,{error:'Innstillingene er endret i en annen fane. Last inn på nytt før lagring.'});}
      return out(405,{error:'Metoden støttes ikke.'});
     }
     if(pathname==='/api/admin/catalog'){
