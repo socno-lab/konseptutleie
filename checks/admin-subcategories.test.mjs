@@ -18,10 +18,10 @@ const products=[
  {id:'deleted',name:'Barstol',category:'Stoler',deletedAt:'today',active:true}
 ];
 function setup(){
- const fields={adminSearch:{value:''},searchAll:{checked:true},adminSubcategoryPanel:{},adminSubcategoriesTitle:{},adminSubcategories:{}};
- const state={products,tab:'products',categoryFilter:'Stoler',subcategoryFilter:'Barkrakker',el:id=>fields[id],productSubcategory,subcategoryOptions,categoryLabel,subcategoryLabel,escape:String,adminCategory:p=>p.category,matchesArea:(p,area)=>!p.deletedAt,matchesWorkflowFilter:()=>true};
+ const fields={stockOnly:{checked:false},adminSearch:{value:''},searchAll:{checked:true},adminSubcategoryPanel:{},adminSubcategoriesTitle:{},adminSubcategories:{}};
+ const state={products,tab:'products',categoryFilter:'Stoler',subcategoryFilter:'Barkrakker',el:id=>fields[id],productSubcategory,subcategoryOptions,categoryLabel,subcategoryLabel,escape:String,isServiceOffering:p=>p.offeringType==='service',isWall:p=>!!p.wallGroup,adminCategory:p=>p.category,matchesArea:(p,area)=>!p.deletedAt,matchesWorkflowFilter:()=>true};
  vm.createContext(state);
- for(const [start,end] of [['function visibleItems()', 'function renderCategories()'],['function renderSubcategories()','function selectVisible()']])vm.runInContext(source.slice(source.indexOf(start),source.indexOf(end)),state);
+ for(const [start,end] of [['function matchesStockFilter(p)', 'function adminThumbnail(p)'],['function visibleItems()', 'function renderCategories()'],['function renderSubcategories()','function selectVisible()']])vm.runInContext(source.slice(source.indexOf(start),source.indexOf(end)),state);
  return {state,fields,ids:()=>Array.from(state.visibleItems(),p=>p.id)};
 }
 test('admin chair filter includes hidden and manually assigned products without mixing other categories',()=>{
@@ -43,4 +43,28 @@ test('subcategory buttons count hidden products and use the configured Barstoler
  assert.match(fields.adminSubcategories.innerHTML,/Alle i kategorien<\/span><small>4<\/small>/);
  state.tab='services';state.renderSubcategories();assert.equal(fields.adminSubcategoryPanel.hidden,true);
  state.tab='products';state.categoryFilter='Annet';state.subcategoryFilter='';state.renderSubcategories();assert.equal(fields.adminSubcategoryPanel.hidden,true);
+});
+
+test('stock filter uses remaining physical stock and combines with subcategory and status',()=>{
+ const {state,fields,ids}=setup();
+ state.products=products.map(p=>({...p,stock:2,unavailable:0}));
+ state.products.find(p=>p.id==='bar').unavailable=2;
+ state.products.find(p=>p.id==='manual').stock=0;
+ fields.stockOnly.checked=true;
+ assert.deepEqual(ids(),['hidden']);
+ state.renderSubcategories();
+ assert.match(fields.adminSubcategories.innerHTML,/Alle i kategorien<\/span><small>2<\/small>/);
+ assert.match(fields.adminSubcategories.innerHTML,/Barstoler<\/span><small>1<\/small>/);
+ state.matchesWorkflowFilter=p=>p.active;
+ assert.deepEqual(ids(),[]);
+ fields.stockOnly.checked=false;
+ assert.deepEqual(ids(),['bar','manual']);
+});
+test('stock filter excludes non-stock offerings but does not filter service and package tabs',()=>{
+ const {state,fields}=setup();fields.stockOnly.checked=true;
+ for(const p of [{},{stock:0},{stock:1,unavailable:2},{stock:2,isService:true},{stock:2,isPackage:true},{stock:2,offeringType:'service'},{stock:2,wallGroup:'Wall'}])assert.equal(state.matchesStockFilter(p),false);
+ assert.equal(state.matchesStockFilter({stock:3,unavailable:1,active:false}),true);
+ assert.equal(state.matchesStockFilter({stock:3,rentalEnabled:false}),true);
+ state.tab='services';assert.equal(state.matchesStockFilter({isService:true}),true);
+ state.tab='packages';assert.equal(state.matchesStockFilter({isPackage:true}),true);
 });

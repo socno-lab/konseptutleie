@@ -27,3 +27,12 @@
 .recommendation-selected ol{padding:0;list-style-position:inside}.recommendation-selected li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.recommendation-selected li>span{flex:1}.recommendation-selected li>div{display:flex;gap:8px;align-items:center}.recommendation-selected button{min-height:36px;min-width:36px}#recommendationPreview{font-size:12px;line-height:1.6}
 
 #adminSubcategoryPanel{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}#adminSubcategoriesTitle{font-size:13px;font-weight:600;letter-spacing:0;margin:0 0 12px}
+
+#objectList .admin-item{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;align-items:start;padding:12px}
+#objectList .admin-item-thumbnail{display:flex;align-items:center;justify-content:center;width:64px;height:64px;background:white;overflow:hidden}
+#objectList .admin-item-thumbnail img{display:block;width:64px;height:64px;object-fit:contain}
+#objectList .admin-item-thumbnail>span{font-size:10px;text-align:center;padding:4px;color:var(--muted)}
+#objectList .admin-item-copy{min-width:0;overflow-wrap:anywhere}
+#objectList .admin-item-copy>span{margin-top:4px}
+#stockOnlyLabel{display:flex;align-items:center;gap:8px;font-size:13px;margin:14px 0}
+.admin-sidebar #stockOnly{width:18px;height:18px;flex:0 0 18px;margin:0;accent-color:var(--olive)}
