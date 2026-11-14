@@ -20,13 +20,14 @@ test('visual homepage drafts use the existing validated, revision-checked save a
  try{
   const setup=await fetch(base+'/api/admin/setup',{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify({key,email:'admin@example.invalid',password:randomBytes(18).toString('base64url')})});
   const cookie=setup.headers.get('set-cookie').split(';')[0];
-  const draft=structuredClone(settings);draft.home.occasions[0].title='Visuelt oppdatert kort';draft.home.occasions[1].visible=false;draft.home.seasonEnabled=false;
+  const draft=structuredClone(settings);draft.home.occasions[0].title='Visuelt oppdatert kort';draft.home.occasions[0].image='/assets/camino-loungestol-beige-miljo.jpg';draft.home.occasions[1].visible=false;draft.home.seasonEnabled=false;
   assert.doesNotMatch(await(await fetch(base+'/')).text(),/Visuelt oppdatert kort/);
   const put=(revision,value=draft)=>fetch(base+'/api/admin/site-settings',{method:'PUT',headers:{origin,cookie,'Content-Type':'application/json'},body:JSON.stringify({revision,settings:value})});
   assert.equal((await put(1)).status,200);
   assert.equal((await put(1)).status,409);
   const saved=await(await fetch(base+'/api/admin/site-settings',{headers:{cookie}})).json();
   assert.equal(saved.settings.home.occasions[0].title,draft.home.occasions[0].title);
+  assert.equal(saved.settings.home.occasions[0].image,draft.home.occasions[0].image);
   assert.equal(saved.settings.home.occasions[1].visible,false);
   assert.equal(saved.settings.home.seasonEnabled,false);
   const html=await(await fetch(base+'/')).text();assert.match(html,/Visuelt oppdatert kort/);

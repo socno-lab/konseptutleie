@@ -17,29 +17,65 @@ export function previewDocument(source){
 
 export function homeVisualEditor({root,source}){
  const placeholders=new Map();
+ let cardLayout=null,knownCardIds=null;
  let state,mode='visual',device='desktop',selected='occasions',cardId='',frameReady=false,loading=false,timer,sourceHtml='',active=true;
- root.innerHTML=`<div class="visual-toolbar"><div class="visual-modes" role="group" aria-label="Redigeringsvisning"><button type="button" data-visual-mode="visual">Visuell forside</button><button type="button" data-visual-mode="form">Skjemavisning / øvrige sider</button></div><div class="visual-devices" role="group" aria-label="Forhåndsvis skjermstørrelse"><button type="button" data-visual-device="desktop">Desktop</button><button type="button" data-visual-device="mobile">Mobil</button></div></div><p class="visual-help">Klikk på et bruksområdekort eller et redigerbart felt. Endringer vises i utkastet og publiseres først når du lagrer. Faste sidetekster redigeres fortsatt i sidemalen.</p><div class="visual-layout"><div class="visual-preview"><div class="visual-stage"><iframe title="Visuell forhåndsvisning av forsiden – utkast" sandbox="allow-same-origin"></iframe></div><p class="visual-state" role="status">Laster forhåndsvisning …</p></div><aside class="visual-sidebar" aria-label="Rediger valgt del av forsiden"><label>Rediger seksjon<select data-visual-section>${Object.entries(sections).map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label><p class="visual-section-note"></p><div class="visual-fields"></div></aside></div>`;
+ root.innerHTML=`<div class="visual-toolbar"><div class="visual-modes" role="group" aria-label="Redigeringsvisning"><button type="button" data-visual-mode="visual">Visuell forside</button><button type="button" data-visual-mode="form">Skjemavisning / øvrige sider</button></div><div class="visual-devices" role="group" aria-label="Forhåndsvis skjermstørrelse"><button type="button" data-visual-device="desktop">Desktop</button><button type="button" data-visual-device="mobile">Mobil</button></div></div><p class="visual-help">Klikk på kortets navn for å endre navnet, eller på bildet for å velge et nytt. Du kan også bruke panelet ved siden av. Endringene publiseres når du trykker Lagre og publiser.</p><div class="visual-layout"><div class="visual-preview"><div class="visual-stage"><iframe title="Visuell forhåndsvisning av forsiden – utkast" sandbox="allow-same-origin"></iframe></div><p class="visual-state" role="status">Laster forhåndsvisning …</p></div><aside class="visual-sidebar" aria-label="Rediger valgt del av forsiden"><label>Rediger seksjon<select data-visual-section>${Object.entries(sections).map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label><p class="visual-section-note"></p><div class="visual-fields"></div></aside></div>`;
+ const picker=document.createElement('dialog');picker.className='visual-image-picker';picker.setAttribute('aria-label','Velg bilde til kortet');picker.innerHTML='<div class=visual-picker-head><h2>Velg bilde</h2><button type=button data-close-image>Lukk</button></div><label>Søk i bildebiblioteket<input type=search data-image-search placeholder="Søk etter bilde eller produkt"></label><p class=visual-image-count role=status></p><div class=visual-image-grid></div>';root.append(picker);
  const frame=root.querySelector('iframe'),stage=root.querySelector('.visual-stage'),fields=root.querySelector('.visual-fields'),status=root.querySelector('.visual-state'),note=root.querySelector('.visual-section-note');
  function size(){const width=device==='mobile'?390:1280,available=stage.clientWidth;if(!available)return;const scale=Math.min(1,available/width);frame.style.width=width+'px';frame.style.height=Math.round(stage.clientHeight/scale)+'px';frame.style.transform=`scale(${scale})`;frame.style.marginLeft=Math.max(0,(available-width*scale)/2)+'px';}
  new ResizeObserver(size).observe(stage);
  function mark(){if(!frameReady)return;for(const el of frame.contentDocument.querySelectorAll('[data-v-edit]'))el.toggleAttribute('data-v-selected',el.dataset.vEdit===selected&&(selected!=='occasions'||!!cardId&&el.dataset.vCard===cardId));}
- function restoreFields(){for(const child of [...fields.children]){const marker=placeholders.get(child);if(marker?.isConnected)marker.replaceWith(child);else source.append(child);placeholders.delete(child);}}
+ function restoreCardLayout(){if(!cardLayout)return;const {section,nodes,detail,children}=cardLayout;detail?.replaceChildren(...children);section.replaceChildren(...nodes);section.querySelectorAll('[data-editor-card]').forEach(el=>{el.hidden=false;el.removeAttribute('data-current-card');});cardLayout=null;}
+ function restoreFields(){restoreCardLayout();for(const child of [...fields.children]){const marker=placeholders.get(child);if(marker?.isConnected)marker.replaceWith(child);else source.append(child);placeholders.delete(child);}}
  function select(key,id='',field='',reveal=false){
-  selected=key;cardId=id;root.querySelector('[data-visual-section]').value=key;
+  selected=key;cardId=key==='occasions'?(state.draft.home.occasions.some(c=>c.id===id)?id:state.draft.home.occasions[0]?.id||''):id;id=cardId;root.querySelector('[data-visual-section]').value=key;
   // Move the original fields, keeping one draft and the existing validation/save handlers.
   restoreFields();
   const section=[...source.querySelectorAll('[data-home-editor]')].find(el=>el.dataset.homeEditor===key);
   if(section){const marker=document.createComment('visual editor fields');section.before(marker);placeholders.set(section,marker);fields.append(section);}
   for(const detail of fields.querySelectorAll('[data-editor-card]'))detail.open=!!id&&detail.dataset.editorCard===id;
-  if(id&&field){const detail=[...fields.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id);const control=[...(detail?.querySelectorAll('[data-field]')||[])].find(el=>el.dataset.field.endsWith('.'+field));control?.focus({preventScroll:true});}
+  if(key==='occasions'&&section)simpleCardFields(section,id);
+  if(id&&field==='title'){const detail=[...fields.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id);const control=[...(detail?.querySelectorAll('[data-field]')||[])].find(el=>el.dataset.field.endsWith('.'+field));control?.focus({preventScroll:true});}
   mark();sectionNote();
-  if(reveal){const sidebar=root.querySelector('.visual-sidebar'),detail=[...fields.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id),target=(field?[...(detail?.querySelectorAll('[data-field]')||[])].find(el=>el.dataset.field.endsWith('.'+field))?.closest('label'):null)||detail?.querySelector('summary');sidebar.scrollTop=target?sidebar.scrollTop+target.getBoundingClientRect().top-sidebar.getBoundingClientRect().top-16:0;if(matchMedia('(max-width:900px)').matches)sidebar.scrollIntoView({block:'start'});}
+  if(reveal&&field==='image')openImagePicker();
+  if(reveal){const sidebar=root.querySelector('.visual-sidebar'),detail=[...fields.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id),target=detail?.querySelector('.visual-card-basic')||detail?.querySelector('summary');sidebar.scrollTop=target?sidebar.scrollTop+target.getBoundingClientRect().top-sidebar.getBoundingClientRect().top-16:0;if(matchMedia('(max-width:900px)').matches)sidebar.scrollIntoView({block:'start'});}
  }
+ function simpleCardFields(section,id){
+  const detail=[...section.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id),nodes=[...section.childNodes],children=detail?[...detail.childNodes]:[];
+  cardLayout={section,nodes,detail,children};
+  const tools=document.createElement('div');tools.className='visual-card-tools';tools.innerHTML='<h2>Rediger kort</h2><label>Velg kort<select data-visual-card>'+state.draft.home.occasions.map(c=>`<option value="${esc(c.id)}" ${c.id===id?'selected':''}>${esc(c.title)}${c.visible===false?' · skjult':''}</option>`).join('')+'</select></label><button type="button" data-card-add>+ Nytt kort</button>';
+  section.prepend(tools);
+  section.querySelectorAll('[data-editor-card]').forEach(el=>{el.hidden=el!==detail;el.toggleAttribute('data-current-card',el===detail);});
+  if(!detail)return;
+  const basic=document.createElement('div');basic.className='visual-card-basic';
+  const title=detail.querySelector('[data-field$=".title"]').closest('label'),visible=detail.querySelector('[data-field$=".visible"]').closest('label');
+  const index=state.draft.home.occasions.findIndex(c=>c.id===id),card=state.draft.home.occasions[index],product=state.products.find(p=>p.id===card.productId),url=card.image||product?.image||'/assets/hero.jpg';
+  basic.append(title);
+  const image=document.createElement('div');image.className='visual-card-image';image.innerHTML=`<img src="${esc(url)}" alt="Bilde på ${esc(card.title)}"><button type="button" data-visual-image>Velg bilde</button>`;
+  basic.append(image,visible);
+  const more=document.createElement('details');more.className='visual-card-more';more.innerHTML='<summary>Lenke, rekkefølge og øvrige valg</summary>';
+  for(const child of children)if(child!==title&&child!==visible&&child.nodeName!=='SUMMARY')more.append(child);
+  detail.append(basic,more);
+ }
+ function imageItems(){
+  const images=(state.images||[]).filter(m=>!m.deletedAt),query=picker.querySelector('[data-image-search]').value.trim().toLocaleLowerCase('nb');
+  const matches=images.filter(m=>(m.name+' '+(state.draft.imageNames?.find(n=>n.url===m.url)?.name||'')).toLocaleLowerCase('nb').includes(query));
+  const shown=matches.slice(0,80);picker.querySelector('.visual-image-count').textContent=`${matches.length} bilder${matches.length>80?' · viser de første 80. Søk for å finne flere.':''}`;
+  picker.querySelector('.visual-image-grid').innerHTML=shown.map(m=>`<button type="button" data-select-image="${esc(m.url)}"><img src="${esc(m.url)}${/^\/media\/[a-f0-9]{32}$/.test(m.url)?'?thumb=320':''}" alt="" loading="lazy"><span>${esc(state.draft.imageNames?.find(n=>n.url===m.url)?.name||m.name)}</span></button>`).join('')||'<p>Ingen bilder passer søket.</p>';
+ }
+ function openImagePicker(){picker.querySelector('[data-image-search]').value='';imageItems();if(!picker.open)picker.showModal();}
+ picker.querySelector('[data-image-search]').addEventListener('input',imageItems);
+ picker.querySelector('[data-image-search]').addEventListener('keydown',event=>{if(event.key==='Enter')event.preventDefault();});
+ picker.addEventListener('click',event=>{if(event.target.closest('[data-close-image]')){picker.close();return;}const b=event.target.closest('[data-select-image]');if(!b)return;
+  const select=fields.querySelector('[data-current-card] select[data-field$=".image"]');if(!select)return;const url=b.dataset.selectImage;if(![...select.options].some(o=>o.value===url))select.add(new Option('Valgt bilde',url));select.value=url;picker.close();select.dispatchEvent(new Event('change',{bubbles:true}));
+ });
+ root.addEventListener('change',event=>{if(event.target.matches('[data-visual-card]'))select('occasions',event.target.value,'',true);});
  function sectionNote(){
   const doc=frameReady?frame.contentDocument:null,target=doc?.querySelector(selected==='occasions'?'#homeUseCases':selected==='products'?'.home-products':selected==='packages'?'.home-featured':'#homeSeason');
   const hidden=target&&(!target.getClientRects().length||frame.contentWindow.getComputedStyle(target).display==='none');
   note.textContent=selected==='season'&&hidden?'Sesongfeltet vises ikke med dagens dato og innstillinger. Du kan endre produkt, synlighet og måneder her.':hidden?'Denne seksjonen er skjult i dagens sidemal. Valgene beholdes, men vises ikke på den publiserte forsiden.':'';
  }
+ function disableNavigation(doc){doc.querySelectorAll('a').forEach(el=>{el.removeAttribute('href');el.removeAttribute('target');el.removeAttribute('download');});}
  function editable(el,key,id='',label=''){
   if(!el)return;el.dataset.vEdit=key;if(id)el.dataset.vCard=id;el.tabIndex=0;el.setAttribute('role','button');el.setAttribute('aria-label','Rediger '+(label||sections[key]));el.title='Klikk for å redigere '+(label||sections[key]).toLocaleLowerCase('nb');
  }
@@ -55,7 +91,7 @@ export function homeVisualEditor({root,source}){
   const packages=doc.querySelector('#homePackages');if(packages){packages.innerHTML=draft.home.packages.map(id=>scoped.find(p=>p.id===id&&p.active)).filter(Boolean).map(p=>`<article><button type="button" class="home-package-photo"><img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy"><span class="home-example">Bildet viser et eksempel</span></button><div class="home-package-copy"><h3>${esc(p.name)}</h3><p>${esc(p.material)}</p>${homeRateGrid(p,{products:scoped})}<button type="button" class="text-button">Se pakken og tilpass ↗</button></div></article>`).join('')||'<p>Vi hjelper deg å sette sammen en løsning. Fortell oss hva du trenger.</p>';}
   editable(doc.querySelector('.home-featured'),'packages');
   const season=doc.querySelector('#homeSeason');if(season){const html=homeSeasonContent(scoped,draft.home);season.innerHTML=html;season.hidden=!html;editable(season,'season');}
-  mark();sectionNote();frame.contentWindow.scrollTo(0,scroll);status.textContent='Utkast · klikk på markerte områder for å redigere. Lenker åpner ikke andre sider i forhåndsvisningen.';
+  disableNavigation(doc);mark();sectionNote();frame.contentWindow.scrollTo(0,scroll);status.textContent='Utkast · klikk på markerte områder for å redigere. Lenker åpner ikke andre sider i forhåndsvisningen.';
  }
  async function loadPreview(){
   if(loading||frameReady)return;loading=true;
@@ -78,7 +114,7 @@ export function homeVisualEditor({root,source}){
   for(const b of root.querySelectorAll('[data-visual-device]'))b.setAttribute('aria-pressed',String(b.dataset.visualDevice===device));
   if(show){select(selected,cardId);size();loadPreview();}else restoreFields();
  }
- root.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.dataset.visualMode){mode=b.dataset.visualMode;display();}if(b.dataset.visualDevice){device=b.dataset.visualDevice;display();sectionNote();}});
+ root.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.hasAttribute('data-visual-image')){openImagePicker();return;}if(b.dataset.visualMode){mode=b.dataset.visualMode;display();}if(b.dataset.visualDevice){device=b.dataset.visualDevice;display();sectionNote();}});
  root.querySelector('[data-visual-section]').addEventListener('change',event=>{select(event.target.value,'','',true);const doc=frameReady?frame.contentDocument:null;const target=doc?.querySelector(selected==='occasions'?'#homeUseCases':selected==='products'?'.home-products':selected==='packages'?'.home-featured':'#homeSeason');if(target?.getClientRects().length)target.scrollIntoView({block:'center'});});
- return {refresh,render(next){state=next;active=next.active;fields.replaceChildren();placeholders.clear();display();if(active)refresh();}};
+ return {refresh,render(next){const ids=next.draft.home.occasions.map(c=>c.id),added=knownCardIds&&ids.filter(id=>!knownCardIds.has(id));if(added?.length){selected='occasions';cardId=added.at(-1);}knownCardIds=new Set(ids);state=next;active=next.active;restoreCardLayout();fields.replaceChildren();placeholders.clear();display();queueMicrotask(()=>{const detail=fields.querySelector('[data-current-card]');if(detail)detail.open=true;});if(active)refresh();}};
 }
