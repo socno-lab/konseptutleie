@@ -1,0 +1,87 @@
+/* Homepage process strip: rendered in the initial HTML, with inline icons. */
+.home-page .home-process {
+  display: grid;
+  grid-template-columns: minmax(175px, .78fr) minmax(0, 3fr);
+  align-items: center;
+  gap: 32px;
+  padding-block: 32px;
+}
+.home-process-intro {
+  padding-right: 28px;
+  border-right: 1px solid var(--line);
+}
+.home-process-intro h2 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -.8px;
+}
+.home-process-intro p,
+.home-process-steps p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.home-process-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.home-process-steps li {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+}
+.home-process-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #e8ecdf;
+  color: var(--olive);
+}
+.home-process-icon svg {
+  display: block;
+  width: 27px;
+  height: 27px;
+}
+.home-process-steps h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+@media (max-width: 1100px) {
+  .home-page .home-process {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .home-process-intro {
+    padding-right: 0;
+    border-right: 0;
+  }
+}
+@media (max-width: 700px) {
+  .home-page .home-process {
+    padding-block: 28px;
+    gap: 22px;
+  }
+  .home-process-intro h2 {
+    font-size: 24px;
+  }
+  .home-process-steps {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .home-process-steps li {
+    gap: 14px;
+  }
+}
