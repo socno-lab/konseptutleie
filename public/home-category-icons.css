@@ -1,0 +1,23 @@
+/* Category symbols share the homepage line-icon style. */
+.home-category-grid .home-category-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.home-category-grid .home-category-icon {
+  display: block;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  margin-top: 3px;
+  color: var(--olive);
+}
+@media (max-width: 640px) {
+  .home-category-grid .home-category-title { gap: 8px; }
+  .home-category-grid .home-category-icon {
+    flex-basis: 20px;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+  }
+}
