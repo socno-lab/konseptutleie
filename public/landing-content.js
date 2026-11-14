@@ -24,9 +24,9 @@ export const defaultLandingContent={
   "sectionTitle": "Bryllup og fest",
   "text": "Borddekking med stylist, temafest eller en pakke tilpasset deres ønsker.",
   "action": "Se pakker til bryllup og fest ↗",
-  "sectionTitle2": "Jul og sesong",
+  "sectionTitle2": "Jul",
   "text2": "Velg et ferdig pyntet juletre eller få et forslag til julepynt tilpasset deres lokaler.",
-  "action2": "Se jul og sesong ↗",
+  "action2": "Se juleutvalget ↗",
   "helpTitle": "Skal vi hjelpe med helheten?",
   "text3": "Fortell oss om anledningen, antall gjester og ønsket uttrykk. Vi setter sammen et uforpliktende forslag.",
   "action3": "Be om et tilpasset forslag ↗"

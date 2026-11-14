@@ -7,7 +7,7 @@ export const purposes=[
  {id:'messe',label:'Messe, stand og event'},
  {id:'bedrift',label:'Bedrift'},
  {id:'fest',label:'Bryllup og fest'},
- {id:'jul',label:'Jul og sesong'},
+ {id:'jul',label:'Fest og sesong'},
  {id:'produksjon',label:'Foto, film og reklame'},
  {id:'alle',label:'Vis alle'}
 ];
