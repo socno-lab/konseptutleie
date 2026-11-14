@@ -1,0 +1,27 @@
+/* Shared outer spacing for homepage sections. The compact process strip has
+   its own inner spacing in home-process.css; hero/card framing stays separate. */
+.home-page {
+  --home-section-space: 56px;
+}
+
+.home-page > main > :is(.home-products, .home-featured, .home-categories, .home-season, .faq, .home-custom, .closing) {
+  padding-block: var(--home-section-space);
+}
+
+.home-page > main > .home-use-cases {
+  padding-bottom: var(--home-section-space);
+}
+
+.home-page > main > .seo-discovery {
+  padding-top: var(--home-section-space);
+}
+
+.home-page > main > .seo-discovery > h2:first-child {
+  margin-top: 0;
+}
+
+@media (max-width: 700px) {
+  .home-page {
+    --home-section-space: 32px;
+  }
+}
