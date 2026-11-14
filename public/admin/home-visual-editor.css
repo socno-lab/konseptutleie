@@ -1,0 +1,22 @@
+.settings-main.has-visual-editor{max-width:1560px}
+.visual-toolbar,.visual-modes,.visual-devices{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.visual-toolbar{justify-content:space-between;margin:20px 0 12px}
+.visual-toolbar button{padding:10px 14px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;font-size:13px;min-height:44px}
+.visual-toolbar button[aria-pressed=true]{background:var(--olive);color:white}
+.visual-help,.visual-state,.visual-section-note{font-size:12px;line-height:1.6}
+.visual-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start;margin-bottom:24px}
+.visual-preview{position:sticky;top:120px;min-width:0}
+.visual-stage{height:65vh;min-height:350px;position:relative;overflow:hidden;background:#e7e7e1;border:1px solid var(--line)}
+.visual-stage iframe{display:block;border:0;transform-origin:top left;background:var(--paper)}
+.visual-state{margin:8px 0}
+.visual-sidebar{min-width:0;max-height:75vh;overflow:auto;padding:0 16px 16px;border:1px solid var(--line);background:var(--paper)}
+.visual-sidebar h2{font-size:20px;margin-top:18px}.visual-sidebar p{font-size:12px;line-height:1.6}.visual-sidebar details{padding:12px}.visual-sidebar summary{font-size:14px}
+.visual-sidebar textarea,.visual-sidebar select,.visual-sidebar input{font:inherit;font-size:14px}
+.visual-sidebar .settings-row,.visual-sidebar .settings-grid{grid-template-columns:1fr}
+.visual-sidebar img{max-width:100%}.visual-sidebar button{max-width:100%;white-space:normal}
+.visual-sidebar .settings-actions{gap:4px}.visual-sidebar .settings-actions button{font-size:12px}
+.visual-section-note:empty{display:none}
+@media(max-width:900px){.visual-layout{grid-template-columns:1fr}.visual-preview{position:static}.visual-stage{height:55vh;min-height:320px}.visual-sidebar{max-height:65vh}.visual-sidebar input,.visual-sidebar select,.visual-sidebar textarea{font-size:16px}}
+
+.visual-sidebar input[type=checkbox]{display:inline-block;width:18px!important;height:18px;margin:0 6px 0 0;vertical-align:middle;accent-color:var(--olive)}
+.visual-sidebar{scroll-margin-top:120px}
