@@ -6,10 +6,10 @@ import {modulePreset,moduleConfiguration} from '../public/catalog-model.js';
 import {sofaCardConfiguration} from '../public/sofa-card-model.js';
 import {frameSketch,presetFrames} from '../public/wall-model.js';
 import {productIllustrationText} from '../public/product-illustration.js';
-import {kiDisclosure,isKiPhoto} from '../public/image-provenance.js?v=optionimages20261108';
-import {productSummary,productUnitPrice} from '../public/product-summary.js?v=optionimages20261108';
+import {kiDisclosure,isKiPhoto} from '../public/image-provenance.js?v=fest20261114';
+import {productSummary,productUnitPrice} from '../public/product-summary.js?v=fest20261114';
 import {detailImageAttributes} from '../public/product-image-loading.js';
-import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=optionimages20261108';
+import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {rentalStatusBadge,isRentedOut} from '../public/rental-status.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function productOverview(model,products,settings){

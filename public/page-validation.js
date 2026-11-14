@@ -1,4 +1,4 @@
-import {legacyContentPages,seasonContentPage,newContentPage,pageAreas,pageCategories,legacyAreas,cardDestination} from './page-model.js?v=optionimages20261108';
+import {legacyContentPages,seasonContentPage,newContentPage,pageAreas,pageCategories,legacyAreas,cardDestination} from './page-model.js?v=fest20261114';
 export function validatePages(raw,content,imageUrl){
  if(raw===undefined)raw=legacyContentPages(content);
  if(!Array.isArray(raw)||raw.length>40)throw Error('Velg maksimalt 40 sider.');

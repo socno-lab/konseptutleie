@@ -1,6 +1,6 @@
-import {rentalCatalogView} from '/rental-catalog-view.js?v=adminorder20261110';
-import {configureSiteSettings,sortProducts} from '/site-settings.js?v=optionimages20261108';
-import {purposes} from '/rental-purpose-model.js?v=optionimages20261108';
+import {rentalCatalogView} from '/rental-catalog-view.js?v=fest20261114';
+import {configureSiteSettings,sortProducts} from '/site-settings.js?v=fest20261114';
+import {purposes} from '/rental-purpose-model.js?v=fest20261114';
 import {rememberCardOrder,validateCatalogOrder} from '/catalog-manual-order.js';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let settings,revision,products=[],cards=[],dirty=false;

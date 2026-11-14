@@ -1,4 +1,4 @@
-import {landingContentLabels} from '/landing-content.js?v=content20261107';
+import {landingContentLabels} from '/landing-content.js?v=fest20261114';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function landingSettings(draft,products,images){
  const names={bryllup:'Fest og sesong',jul:'Jul',produksjon:'Foto, film og reklame'};

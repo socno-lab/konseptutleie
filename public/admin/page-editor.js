@@ -1,6 +1,6 @@
-import {contentPages,newContentPage,cardDestination,pageAreas,pageCategories} from '../page-model.js?v=optionimages20261108';
+import {contentPages,newContentPage,cardDestination,pageAreas,pageCategories} from '../page-model.js?v=fest20261114';
 import {renderContentPage} from '../content-page.js?v=galleryplain20261108';
-import {homeOccasionCards} from '../home-occasions.js?v=optionimages20261108';
+import {homeOccasionCards} from '../home-occasions.js?v=fest20261114';
 const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const areaLabels={alle:'Alle bruksområder',boligsalg:'Boligfoto og visning',messe:'Messe, stand og event',bedrift:'Bedrift',fest:'Bryllup og fest',jul:'Fest og sesong',produksjon:'Foto, film og reklame'};
 const galleryHint=(path,value)=>/\.gallery\.\d+\.(text|heading)$/.test(path)?`<small data-gallery-hint>${String(value||'').length} tegn · Anbefalt maks ${path.endsWith('.heading')?60:180}. ${String(value||'').length>(path.endsWith('.heading')?60:180)?'Lang tekst vises via Les mer på desktop.':'Full tekst er alltid tilgjengelig.'}</small>`:'';

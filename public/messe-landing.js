@@ -1,5 +1,5 @@
-import {getSiteSettings} from './site-settings.js?v=optionimages20261108';
-import {defaultLandingContent} from './landing-content.js?v=content20261107';
+import {getSiteSettings} from './site-settings.js?v=fest20261114';
+import {defaultLandingContent} from './landing-content.js?v=fest20261114';
 const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Shared server/client landing content. No pricing, catalogue or basket mutations.
 export function renderMesseLanding(settings=getSiteSettings()){const c=settings.landingContent?.messe||defaultLandingContent.messe;return `<div id="konsept-messe-preview" class="messe-landing"><div class="km-wrap">
