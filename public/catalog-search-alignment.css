@@ -1,0 +1,6 @@
+/* Align the search underline with the bottom of the first category row. */
+@media(min-width:641px){
+ .catalog-page #utvalg>.catalog-tools{align-items:flex-start}
+ .catalog-page #utvalg>.catalog-tools>.search{margin-top:0;border-top:1px solid transparent}
+ .catalog-page #utvalg>.catalog-tools>.search>span:last-child{line-height:1}
+}

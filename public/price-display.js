@@ -26,7 +26,6 @@ function mountPriceDisplay(){
   before(document.getElementById('saleCartItems'),'purchase-cart');
   before(document.getElementById('saleCategories')?.closest('.catalog-tools'),'purchase-catalog');
   before(document.getElementById('saleDetailContent'),'purchase-product');
-  atHost(document.querySelector('.footer-meta'));
   const help=document.getElementById('catalogUsageHelp');
   if(help&&!help.querySelector('.mobile-price-switch')){
    const button=document.createElement('button');button.type='button';button.className='mobile-price-switch';help.append(' ',button);

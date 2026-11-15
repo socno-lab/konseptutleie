@@ -32,7 +32,7 @@ export async function readHtmlTemplate(name,base=root){
  html=html.replace(/(<nav\b[^>]*aria-label="Hovedmeny"[^>]*>)([\s\S]*?)(<\/nav>)/,(_,open,links,close)=>open+links+(links.includes('href="/om-oss"')?'':'<a href="/om-oss">Om oss</a>')+close);
  html=html.replace(/<div id="empty" class="catalog-empty" hidden>[\s\S]*?<\/div>/,'<div id="empty" class="catalog-empty" hidden><h3>Fant du ikke det du trenger?</h3><p>Prøv færre filtre, eller fortell oss hva du ser etter. Vi hjelper deg å finne en løsning.</p><div class="catalog-empty-actions"><button type="button" class="button button-outline" id="showAllFurniture">Nullstill filtre</button><button type="button" class="button dark" data-catalog-custom>Fortell oss hva du trenger <span aria-hidden="true">↗</span></button></div></div>');
  html=html.replace('</head>','<link rel="stylesheet" href="/product-dimensions.css?v=dimensions20261108b"></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/catalog-empty.css?v=empty20261107"></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/catalog-empty.css?v=empty20261107"><link rel="stylesheet" href="/catalog-search-alignment.css?v=20261115"></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/enquiry-review.css?v=compact20261107b"><script type="module" src="/enquiry-review.js?v=customfirst20261115"></script></head>');
  html=renderArrowIcons(renderHeaderTools(renderMobileNavigation(renderPrimaryNavigation(html))));
  html=html.replace('</head>','<link rel="icon" href="/favicon.ico?v=brand20261105" sizes="any"><link rel="icon" type="image/png" href="/favicon.png?v=brand20261105" sizes="96x96"><link rel="icon" type="image/svg+xml" href="/favicon.svg?v=brand20261105"><link rel="apple-touch-icon" href="/apple-touch-icon.png?v=brand20261105" sizes="180x180"></head>');
@@ -52,7 +52,7 @@ export async function readHtmlTemplate(name,base=root){
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=productscope20261025"></head>');
  if(['index.html','utvalg.html','anledning.html','leieprodukt.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/rental-status.css?v=rented20261029b"></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/primary-navigation.css?v=proposalhover20261115"><script defer src="/primary-navigation.js?v=20261108b"></script></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/price-display.css?v=vatcarttop20261115"><script type="module" src="/price-display.js?v=vatcarttop20261115"></script></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/price-display.css?v=vatcarttop20261115"><script type="module" src="/price-display.js?v=nofootervat20261115"></script></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;
 }
