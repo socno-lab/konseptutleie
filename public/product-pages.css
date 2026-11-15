@@ -115,3 +115,8 @@
 @media(min-width:801px){
  .product-page .gallery-follows-scroll{position:sticky;top:var(--gallery-sticky-top,122px);align-self:start}
 }
+
+/* The surrounding minus/plus buttons already provide the number stepper. */
+.product-page .product-quantity .quantity input[type="number"]{appearance:textfield;-moz-appearance:textfield}
+.product-page .product-quantity .quantity input[type="number"]::-webkit-inner-spin-button,
+.product-page .product-quantity .quantity input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
