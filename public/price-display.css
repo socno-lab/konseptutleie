@@ -19,3 +19,20 @@ html[data-price-mode=excl] [data-price-detail]{display:flex!important}
  .footer-meta>.price-display-picker{margin:12px 0 0}
 }
 span[data-price-gross]{display:inline;font:inherit;color:inherit;letter-spacing:inherit}
+
+/* Mobile disclosure only; the desktop label and segmented buttons stay unchanged. */
+.price-display-toggle{display:none}
+@media(max-width:640px){
+ .price-display-picker{position:relative;justify-content:flex-end;gap:0;margin:4px 0}
+ .price-display-picker>span{display:none}
+ .price-display-picker>.price-display-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:6px 0;border:0;background:transparent;color:inherit;font:inherit;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+ .price-display-picker>.price-display-options{display:none;position:absolute;width:max-content;max-width:none;right:0;top:100%;z-index:10;box-shadow:0 4px 12px #2d332a26}
+ .price-display-picker.is-open>.price-display-options{display:inline-flex}
+ .price-display-picker>.price-display-options button{min-height:44px}
+ .price-display-toggle:focus-visible{outline:2px solid #414b38;outline-offset:3px}
+ .catalog-usage>.price-display-picker{position:relative;margin:0;align-items:center}
+ .product-pricing-scope>.price-display-picker{margin:0 12px 0 auto}
+ .product-page #catalogPricingScope>.mobile-catalog-usage{margin-bottom:0}
+ .footer-meta>.price-display-picker{margin:4px 0 0}
+ .footer-meta .price-display-options{top:auto;bottom:100%}
+}
