@@ -107,7 +107,7 @@ function mountRentalDelivery(form){
   addressNotice.hidden=load.manual;
   if(load.manual){result.textContent=load.reason==='custom'?'Ved tilpasset forespørsel avklares transport og pris i tilbudet.':load.reason==='capacity'?'Forespørselen krever utvidet transport. Frakt med ekstern transportør prises i tilbudet.':'Transportpris bekreftes i tilbudet.';return;}
   if(!ready()){result.textContent='Fyll inn komplett adresse for transportpris. Egen henting og retur er gratis.';return;}
-  if(current){result.innerHTML=(current.manual?'Transport over '+getSiteSettings().delivery.maxMinutes+' minutter fra lageret avtales særskilt. ':'')+'<span translate="no" style="font:400 13px sans-serif;color:#1f1f1f;white-space:nowrap">Google Maps</span> · <a href="/kundeinfo.html#personvern" target="_blank" rel="noopener">Personvern</a>';return;}
+  if(current){result.innerHTML=(current.manual?'Transport over '+getSiteSettings().delivery.maxMinutes+' minutter fra lageret avtales særskilt. ':'')+'<span class="hint">Kjøretid beregnet med <span translate="no" style="font:400 13px sans-serif;color:#1f1f1f;white-space:nowrap">Google Maps</span></span>';return;}
   result.textContent=pendingKey===addressKey()?'Beregner transportpris …':'Transportpris avklares i tilbudet.';
   }finally{updated();}
  };
