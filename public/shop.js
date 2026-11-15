@@ -3,7 +3,7 @@ import {detailImageAttributes,setDetailPhotoSource} from './product-image-loadin
 import {saleCatalogView,saleColourSwatches} from './sale-catalog-view.js?v=fest20261114';
 import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
-import {mountEnquiryFlow} from './enquiry-flow.js?v=cartmoney20261115';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=customfirst20261115';
 import './customer-info.js?v=transportcopy20261115';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=carttotal20261029';
 import {mountCatalogPagination} from './catalog-pagination.js?v=firstcatalog20261105';

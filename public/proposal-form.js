@@ -3,7 +3,7 @@ const form=document.getElementById('proposalForm'),main=document.getElementById(
 const draftKey='konsept-proposal-draft-v1',fields=['customRequest','period','place','budget','name','email','phone','company'];
 const read=(storage,key,fallback)=>{try{return JSON.parse(storage.getItem(key)||'null')||fallback;}catch{return fallback;}};
 const basket=read(localStorage,'konsept-cart-v1',{}),count=basket&&typeof basket==='object'&&!Array.isArray(basket)?Object.values(basket).filter(q=>Number.isInteger(q)&&q>0).reduce((a,b)=>a+b,0):0;
-if(count){location.replace('/foresporsel.html');}else{
+if(count){try{const saved=JSON.parse(sessionStorage.getItem('konsept-custom-request-v1')||'null');sessionStorage.setItem('konsept-custom-request-v1',JSON.stringify({active:true,text:typeof saved?.text==='string'?saved.text.slice(0,3000):''}));}catch{}location.replace('/foresporsel.html');}else{
  const custom=read(sessionStorage,'konsept-custom-request-v1',{}),rent=read(sessionStorage,'konsept-enquiry-draft-rent',{}),draft=read(sessionStorage,draftKey,null);
  const initial=draft||{...Object.fromEntries(['name','email','phone','company'].map(key=>[key,rent[key]||''])),customRequest:custom.text||'',period:rent.start&&rent.end?rent.start+' – '+rent.end:''};
  if(initial.customRequest?.trim()==='Jeg ønsker et forslag til julepynt tilpasset våre lokaler.')initial.customRequest='';
