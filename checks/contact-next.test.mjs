@@ -24,10 +24,11 @@ test('manual and included transport focus their visible enabled choice; unavaila
   const ui=fixture(option);ui.enter();assert.equal(ui.focused,option.disabled?.includes(option.selected)?ui.transport[0]:ui.transport[option.selected]);
  }
 });
-test('purchase goes to shipping, address goes to postal code, desktop and composition keep native behavior',()=>{
+test('purchase goes to shipping; desktop Enter after postal city also stops at delivery',()=>{
  const purchase=fixture({purchase:true});purchase.enter();assert.equal(purchase.focused,purchase.transport[0]);
  const rental=fixture();rental.enter(rental.fields[0]);assert.equal(rental.focused,rental.fields[1]);
- const desktop=fixture({mobile:false});assert.equal(desktop.enter(),false);assert.equal(desktop.focused,null);
+ const desktop=fixture({mobile:false});assert.equal(desktop.enter(),true);assert.equal(desktop.focused,desktop.transport[1]);
+ const desktopAddress=fixture({mobile:false});assert.equal(desktopAddress.enter(desktopAddress.fields[0]),false);assert.equal(desktopAddress.focused,null);
  const composing=fixture();assert.equal(composing.enter(composing.fields[2],{isComposing:true}),false);assert.equal(composing.focused,null);
  assert.equal(fixture().enter({tagName:'TEXTAREA'}),false);
 });

@@ -152,7 +152,7 @@ if(rentalForm||saleForm){
   const fields=[...form.querySelectorAll('input,select,textarea')].filter(field=>!['hidden','checkbox','radio'].includes(field.type));
   for(const field of fields)if(field.tagName==='INPUT'&&!['date','number'].includes(field.type))field.enterKeyHint='next';
   form.addEventListener('keydown',event=>{
-   if(event.key!=='Enter'||event.isComposing||['start','end'].includes(event.target.id)||!matchMedia('(max-width:640px)').matches||event.target.tagName!=='INPUT'||['date','number','checkbox','radio'].includes(event.target.type))return;
+   if(event.key!=='Enter'||event.isComposing||['start','end'].includes(event.target.id)||(!matchMedia('(max-width:640px)').matches&&event.target.name!=='postalCity')||event.target.tagName!=='INPUT'||['date','number','checkbox','radio'].includes(event.target.type))return;
    // The transport radios are not text fields, but must be the next stop after the address.
    // Focus the current available choice without selecting or changing a delivery method.
    const transport=event.target.name==='postalCity'?[...form.querySelectorAll('input[name="delivery"],select[name="shipping"]')].filter(field=>!field.disabled&&field.getClientRects().length):[];
