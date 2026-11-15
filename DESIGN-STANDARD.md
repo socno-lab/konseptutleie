@@ -216,3 +216,5 @@ Prisvisning inkl./ekskl. mva., uttrykkelig godkjent av eier 15. november 2026: E
 15. november 2026: Eier valgte tekstknappen «Vis priser» på mobil (opptil 640 px), som åpner inkl./ekskl.-valgene over innholdet. Valget lukkes ved valg, Escape eller klikk utenfor. Desktop beholder tidligere etikett, knapper, plassering og avstander. Kontrollert 390/320 px, desktop 1280 px, prisbytte og videreføring til kurven. Beregningsmodell og innsending er uendret; eksisterende pris- og innsendingstester består.
 
 15. november 2026: Eier erstattet mobilens prisvelger med én tekstlenke i «Utvalg og leiepriser …» i katalogens eksisterende forklaring. Lenken bytter direkte og viser motsatt valg. Øvrige prisvelgere skjules på mobil; mva.-merking og lagret valg beholdes. Desktop er gjenopprettet til opprinnelig etikett og segmentknapper uten disclosure. Kontrollert ved 320/390/1280 px og videreføring til produktside.
+
+15. november 2026: Etter eiers ønske står desktopens bruksområdevelger og mva.-velger i samme gridrad, med identisk topp og høyde. Kontrollert ved 1280 px (begge 48,4 px høye) og mobil 390 px med eksisterende tekstlenke. Ingen endringer i prisfunksjon.
