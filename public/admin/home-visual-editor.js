@@ -1,3 +1,4 @@
+import {applyProductCopy} from '../home-product-copy.js?v=productcopy20261115';
 import {homeOccasionCards} from '../home-occasions.js?v=fest20261114';
 import {homeProductCards,homeSeasonContent,homeRateGrid} from '../home-sections.js?v=fest20261114';
 import {applyRentalScope} from '../rental-pricing-model.js?v=fest20261114';
@@ -51,7 +52,7 @@ export function homeVisualEditor({root,source}){
  targets.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button)return;const el=button.previewElement;if(!el?.isConnected)return;
   const r=frame.getBoundingClientRect(),hit=event.detail?frame.contentDocument.elementFromPoint((event.clientX-r.left)/previewScale,(event.clientY-r.top)/previewScale):null;
-  const field=el.dataset.vEdit==='occasions'?(hit?.closest('img')?'image':'title'):'';
+  const field=el.dataset.vEdit==='occasions'?(hit?.closest('img')?'image':'title'):el.dataset.vEdit==='products'?(hit?.closest('#homeProductsIntro')?'productsIntro':hit?.closest('#homeProductsHeading')?'productsHeading':''):'';
   select(el.dataset.vEdit,el.dataset.vCard||'',field,true);
  });
  function restoreCardLayout(){if(!cardLayout)return;const {section,nodes,detail,children}=cardLayout;detail?.replaceChildren(...children);section.replaceChildren(...nodes);section.querySelectorAll('[data-editor-card]').forEach(el=>{el.hidden=false;el.removeAttribute('data-current-card');});cardLayout=null;}
@@ -65,6 +66,7 @@ export function homeVisualEditor({root,source}){
   for(const detail of fields.querySelectorAll('[data-editor-card]'))detail.open=!!id&&detail.dataset.editorCard===id;
   if(key==='occasions'&&section)simpleCardFields(section,id);
   if(id&&field==='title'){const detail=[...fields.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id);const control=[...(detail?.querySelectorAll('[data-field]')||[])].find(el=>el.dataset.field.endsWith('.'+field));control?.focus({preventScroll:true});}
+  if(key==='products'&&field)fields.querySelector(`[data-field="home.${field}"]`)?.focus({preventScroll:true});
   mark();sectionNote();
   if(reveal&&key==='occasions'&&field==='image')openImagePicker();
   if(reveal){const sidebar=root.querySelector('.visual-sidebar'),detail=[...fields.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id),target=detail?.querySelector('.visual-card-basic')||detail?.querySelector('summary');sidebar.scrollTop=target?sidebar.scrollTop+target.getBoundingClientRect().top-sidebar.getBoundingClientRect().top-16:0;sidebar.scrollIntoView({block:matchMedia('(max-width:900px)').matches?'start':'nearest'});}
@@ -112,6 +114,7 @@ export function homeVisualEditor({root,source}){
  function update(){
   if(!frameReady||!state)return;
   const doc=frame.contentDocument,{draft,products}=state,scroll=stage.scrollTop;
+  applyProductCopy(doc,draft.home);
   const cards=doc.querySelector('#homeUseCases');
   if(cards){cards.innerHTML=homeOccasionCards(products,draft);draft.home.occasions.filter(c=>c.visible!==false).forEach((c,i)=>editable(cards.children[i],'occasions',c.id,c.title));}
   const scoped=applyRentalScope(products.filter(p=>!p.deletedAt), 'messe');
