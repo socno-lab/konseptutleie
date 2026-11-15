@@ -218,3 +218,5 @@ Prisvisning inkl./ekskl. mva., uttrykkelig godkjent av eier 15. november 2026: E
 15. november 2026: Eier erstattet mobilens prisvelger med én tekstlenke i «Utvalg og leiepriser …» i katalogens eksisterende forklaring. Lenken bytter direkte og viser motsatt valg. Øvrige prisvelgere skjules på mobil; mva.-merking og lagret valg beholdes. Desktop er gjenopprettet til opprinnelig etikett og segmentknapper uten disclosure. Kontrollert ved 320/390/1280 px og videreføring til produktside.
 
 15. november 2026: Etter eiers ønske står desktopens bruksområdevelger og mva.-velger i samme gridrad, med identisk topp og høyde. Kontrollert ved 1280 px (begge 48,4 px høye) og mobil 390 px med eksisterende tekstlenke. Ingen endringer i prisfunksjon.
+
+15. november 2026: Etter eiers skisse flyttes leiekurvens desktopprisvelger inn i overskriftsraden til høyre for tittelen. Den tidligere separate raden fjernes slik at bruksområde og produkter kommer høyere opp. Kontrollert med Minglepakken, bytte inkl./ekskl. mva. og mobil 390 px uten synlig prisvelger eller overflow.

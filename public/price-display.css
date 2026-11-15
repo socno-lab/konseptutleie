@@ -39,3 +39,12 @@ span[data-price-gross]{display:inline;font:inherit;color:inherit;letter-spacing:
  .catalog-usage>.price-display-picker>.price-display-options{grid-column:3;grid-row:2;align-self:stretch}
  .catalog-usage>.price-display-picker>.price-display-options button{min-height:46px}
 }
+
+/* Use the spare space beside the enquiry heading for the desktop price controls. */
+@media(min-width:761px){
+ body.enquiry-page #cart.enquiry-full .drawer-head{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:24px;align-items:center}
+ body.enquiry-page #cart.enquiry-full .drawer-head>div:not(.price-display-picker){display:contents}
+ body.enquiry-page #cart.enquiry-full .drawer-head .eyebrow{grid-column:1/-1;grid-row:1}
+ body.enquiry-page #cart.enquiry-full .drawer-head h1{grid-column:1;grid-row:2}
+ body.enquiry-page #cart.enquiry-full .drawer-head>.price-display-picker{grid-column:2;grid-row:2;margin:0 0 24px;flex-wrap:nowrap}
+}
