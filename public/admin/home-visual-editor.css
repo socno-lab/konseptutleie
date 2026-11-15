@@ -31,3 +31,12 @@
 @media(max-width:600px){.visual-image-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.visual-image-picker{padding:14px}.visual-image-picker input{font-size:16px}}
 
 .visual-sidebar h2,.visual-image-picker h2{letter-spacing:0}
+
+/* Parent-owned hit targets and scrolling work with Safari's script-disabled iframe. */
+.visual-stage{overflow:auto;overscroll-behavior:contain}
+.visual-canvas{position:relative;min-height:100%;width:100%}
+.visual-stage iframe{position:absolute;top:0;pointer-events:none;margin-left:0}
+.visual-targets{position:absolute;inset:0;pointer-events:none}
+.visual-preview-target{position:absolute;display:block;padding:0!important;margin:0!important;min-height:0!important;max-width:none!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;pointer-events:auto;cursor:pointer;touch-action:pan-y}
+.visual-preview-target:hover{outline:2px dashed #717e60;outline-offset:-2px}
+.visual-preview-target:focus-visible{outline:3px solid #424e38;outline-offset:-3px}

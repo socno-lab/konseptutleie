@@ -19,12 +19,41 @@ export function homeVisualEditor({root,source}){
  const placeholders=new Map();
  let cardLayout=null,knownCardIds=null;
  let state,mode='visual',device='desktop',selected='occasions',cardId='',frameReady=false,loading=false,timer,sourceHtml='',active=true;
- root.innerHTML=`<div class="visual-toolbar"><div class="visual-modes" role="group" aria-label="Redigeringsvisning"><button type="button" data-visual-mode="visual">Visuell forside</button><button type="button" data-visual-mode="form">Skjemavisning / øvrige sider</button></div><div class="visual-devices" role="group" aria-label="Forhåndsvis skjermstørrelse"><button type="button" data-visual-device="desktop">Desktop</button><button type="button" data-visual-device="mobile">Mobil</button></div></div><p class="visual-help">Klikk på kortets navn for å endre navnet, eller på bildet for å velge et nytt. Du kan også bruke panelet ved siden av. Endringene publiseres når du trykker Lagre og publiser.</p><div class="visual-layout"><div class="visual-preview"><div class="visual-stage"><iframe title="Visuell forhåndsvisning av forsiden – utkast" sandbox="allow-same-origin"></iframe></div><p class="visual-state" role="status">Laster forhåndsvisning …</p></div><aside class="visual-sidebar" aria-label="Rediger valgt del av forsiden"><label>Rediger seksjon<select data-visual-section>${Object.entries(sections).map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label><p class="visual-section-note"></p><div class="visual-fields"></div></aside></div>`;
+ root.innerHTML=`<div class="visual-toolbar"><div class="visual-modes" role="group" aria-label="Redigeringsvisning"><button type="button" data-visual-mode="visual">Visuell forside</button><button type="button" data-visual-mode="form">Skjemavisning / øvrige sider</button></div><div class="visual-devices" role="group" aria-label="Forhåndsvis skjermstørrelse"><button type="button" data-visual-device="desktop">Desktop</button><button type="button" data-visual-device="mobile">Mobil</button></div></div><p class="visual-help">Klikk på kortets navn for å endre navnet, eller på bildet for å velge et nytt. Du kan også bruke panelet ved siden av. Endringene publiseres når du trykker Lagre og publiser.</p><div class="visual-layout"><div class="visual-preview"><div class="visual-stage"><div class="visual-canvas"><iframe title="Visuell forhåndsvisning av forsiden – utkast" sandbox="allow-same-origin" tabindex="-1" aria-hidden="true"></iframe><div class="visual-targets" aria-label="Rediger områder i forhåndsvisningen"></div></div></div><p class="visual-state" role="status">Laster forhåndsvisning …</p></div><aside class="visual-sidebar" aria-label="Rediger valgt del av forsiden"><label>Rediger seksjon<select data-visual-section>${Object.entries(sections).map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label><p class="visual-section-note"></p><div class="visual-fields"></div></aside></div>`;
  const picker=document.createElement('dialog');picker.className='visual-image-picker';picker.setAttribute('aria-label','Velg bilde til kortet');picker.innerHTML='<div class=visual-picker-head><h2>Velg bilde</h2><button type=button data-close-image>Lukk</button></div><label>Søk i bildebiblioteket<input type=search data-image-search placeholder="Søk etter bilde eller produkt"></label><p class=visual-image-count role=status></p><div class=visual-image-grid></div>';root.append(picker);
  const frame=root.querySelector('iframe'),stage=root.querySelector('.visual-stage'),fields=root.querySelector('.visual-fields'),status=root.querySelector('.visual-state'),note=root.querySelector('.visual-section-note');
- function size(){const width=device==='mobile'?390:1280,available=stage.clientWidth;if(!available)return;const scale=Math.min(1,available/width);frame.style.width=width+'px';frame.style.height=Math.round(stage.clientHeight/scale)+'px';frame.style.transform=`scale(${scale})`;frame.style.marginLeft=Math.max(0,(available-width*scale)/2)+'px';}
- new ResizeObserver(size).observe(stage);
- function mark(){if(!frameReady)return;for(const el of frame.contentDocument.querySelectorAll('[data-v-edit]'))el.toggleAttribute('data-v-selected',el.dataset.vEdit===selected&&(selected!=='occasions'||!!cardId&&el.dataset.vCard===cardId));}
+ const canvas=root.querySelector('.visual-canvas'),targets=root.querySelector('.visual-targets');
+ let previewScale=1,geometryFrame=0,previewObserver;
+ // WebKit blocks parent-installed listeners inside a script-disabled sandbox (bug 218086).
+ // Keep the sandbox; native buttons and native scrolling live in the parent document.
+ function scheduleGeometry(){cancelAnimationFrame(geometryFrame);geometryFrame=requestAnimationFrame(size);}
+ function size(){
+  const width=device==='mobile'?390:1280,available=stage.clientWidth;if(!available)return;
+  previewScale=Math.min(1,available/width);const left=Math.max(0,(available-width*previewScale)/2);
+  frame.style.width=width+'px';frame.style.transform=`scale(${previewScale})`;frame.style.left=left+'px';
+  if(!frameReady){frame.style.height=Math.round(stage.clientHeight/previewScale)+'px';canvas.style.height=stage.clientHeight+'px';return;}
+  const doc=frame.contentDocument;
+  // Reset the viewport before measuring, so switching to desktop can shrink the canvas.
+  frame.style.height=Math.round(stage.clientHeight/previewScale)+'px';
+  const height=Math.max(doc.documentElement.scrollHeight,doc.body.scrollHeight);
+  frame.style.height=height+'px';canvas.style.height=Math.ceil(height*previewScale)+'px';
+  for(const button of targets.children){const el=button.previewElement;if(!el?.isConnected)continue;const r=el.getBoundingClientRect();button.hidden=!r.width||!r.height;
+   button.style.left=(left+r.left*previewScale)+'px';button.style.top=(r.top*previewScale)+'px';button.style.width=r.width*previewScale+'px';button.style.height=r.height*previewScale+'px';
+  }
+ }
+ new ResizeObserver(scheduleGeometry).observe(stage);
+ function mark(){if(!frameReady)return;for(const button of targets.children){const el=button.previewElement,chosen=el.dataset.vEdit===selected&&(selected!=='occasions'||!!cardId&&el.dataset.vCard===cardId);button.setAttribute('aria-pressed',String(chosen));el.toggleAttribute('data-v-selected',chosen);}}
+ function rebuildTargets(){
+  const buttons=[...frame.contentDocument.querySelectorAll('[data-v-edit]')].map(el=>{const button=document.createElement('button');button.type='button';button.className='visual-preview-target';button.previewElement=el;button.setAttribute('aria-label',el.getAttribute('aria-label'));button.title=el.title;return button;});
+  targets.replaceChildren(...buttons);mark();size();
+ }
+ targets.addEventListener('pointerdown',event=>{if(event.target.closest('button'))event.preventDefault();});
+ targets.addEventListener('click',event=>{
+  const button=event.target.closest('button');if(!button)return;const el=button.previewElement;if(!el?.isConnected)return;
+  const r=frame.getBoundingClientRect(),hit=event.detail?frame.contentDocument.elementFromPoint((event.clientX-r.left)/previewScale,(event.clientY-r.top)/previewScale):null;
+  const field=el.dataset.vEdit==='occasions'?(hit?.closest('img')?'image':'title'):'';
+  select(el.dataset.vEdit,el.dataset.vCard||'',field,true);
+ });
  function restoreCardLayout(){if(!cardLayout)return;const {section,nodes,detail,children}=cardLayout;detail?.replaceChildren(...children);section.replaceChildren(...nodes);section.querySelectorAll('[data-editor-card]').forEach(el=>{el.hidden=false;el.removeAttribute('data-current-card');});cardLayout=null;}
  function restoreFields(){restoreCardLayout();for(const child of [...fields.children]){const marker=placeholders.get(child);if(marker?.isConnected)marker.replaceWith(child);else source.append(child);placeholders.delete(child);}}
  function select(key,id='',field='',reveal=false){
@@ -82,7 +111,7 @@ export function homeVisualEditor({root,source}){
  function refresh(){clearTimeout(timer);timer=setTimeout(update,120);}
  function update(){
   if(!frameReady||!state)return;
-  const doc=frame.contentDocument,{draft,products}=state,scroll=frame.contentWindow.scrollY;
+  const doc=frame.contentDocument,{draft,products}=state,scroll=stage.scrollTop;
   const cards=doc.querySelector('#homeUseCases');
   if(cards){cards.innerHTML=homeOccasionCards(products,draft);draft.home.occasions.filter(c=>c.visible!==false).forEach((c,i)=>editable(cards.children[i],'occasions',c.id,c.title));}
   const scoped=applyRentalScope(products.filter(p=>!p.deletedAt), 'messe');
@@ -91,7 +120,7 @@ export function homeVisualEditor({root,source}){
   const packages=doc.querySelector('#homePackages');if(packages){packages.innerHTML=draft.home.packages.map(id=>scoped.find(p=>p.id===id&&p.active)).filter(Boolean).map(p=>`<article><button type="button" class="home-package-photo"><img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy"><span class="home-example">Bildet viser et eksempel</span></button><div class="home-package-copy"><h3>${esc(p.name)}</h3><p>${esc(p.material)}</p>${homeRateGrid(p,{products:scoped})}<button type="button" class="text-button">Se pakken og tilpass ↗</button></div></article>`).join('')||'<p>Vi hjelper deg å sette sammen en løsning. Fortell oss hva du trenger.</p>';}
   editable(doc.querySelector('.home-featured'),'packages');
   const season=doc.querySelector('#homeSeason');if(season){const html=homeSeasonContent(scoped,draft.home);season.innerHTML=html;season.hidden=!html;editable(season,'season');}
-  disableNavigation(doc);mark();sectionNote();frame.contentWindow.scrollTo(0,scroll);status.textContent='Utkast · klikk på markerte områder for å redigere. Lenker åpner ikke andre sider i forhåndsvisningen.';
+  disableNavigation(doc);rebuildTargets();sectionNote();stage.scrollTop=scroll;status.textContent='Utkast · klikk på markerte områder for å redigere. Lenker åpner ikke andre sider i forhåndsvisningen.';
  }
  async function loadPreview(){
   if(loading||frameReady)return;loading=true;
@@ -102,12 +131,10 @@ export function homeVisualEditor({root,source}){
  frame.addEventListener('load',()=>{
   if(!frame.contentDocument?.querySelector('#homeUseCases'))return;frameReady=true;
   const doc=frame.contentDocument;
-  // Focusing a tall, scaled section on pointerdown can scroll it before click fires.
-  // Keep pointer selection stable; keyboard users still use tabindex and Enter/Space.
-  doc.addEventListener('pointerdown',event=>{if(event.target.closest('[data-v-edit]'))event.preventDefault();},true);
-  doc.addEventListener('click',event=>{const target=event.target.closest('[data-v-edit]');if(target){event.preventDefault();event.stopPropagation();select(target.dataset.vEdit,target.dataset.vCard||'',event.target.closest('img')?'image':event.target.closest('h3')?'title':'',true);}else if(event.target.closest('a,button,input,select,textarea')){event.preventDefault();event.stopPropagation();}},true);
-  doc.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){const target=event.target.closest('[data-v-edit]');if(target){event.preventDefault();select(target.dataset.vEdit,target.dataset.vCard||'','',true);}}});
+  previewObserver?.disconnect();previewObserver=new ResizeObserver(scheduleGeometry);previewObserver.observe(doc.body);
   update();size();
+  // Parent-side image load observation also catches layout changes without child scripts.
+  for(const img of doc.images)img.decode?.().then(scheduleGeometry,()=>{});
  });
  function display(){
   const show=active&&mode==='visual';root.hidden=!active;source.hidden=show;
@@ -118,6 +145,6 @@ export function homeVisualEditor({root,source}){
   if(show){select(selected,cardId);size();loadPreview();}else restoreFields();
  }
  root.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;if(b.hasAttribute('data-visual-image')){openImagePicker();return;}if(b.dataset.visualMode){mode=b.dataset.visualMode;display();}if(b.dataset.visualDevice){device=b.dataset.visualDevice;display();sectionNote();}});
- root.querySelector('[data-visual-section]').addEventListener('change',event=>{select(event.target.value,'','',true);const doc=frameReady?frame.contentDocument:null;const target=doc?.querySelector(selected==='occasions'?'#homeUseCases':selected==='products'?'.home-products':selected==='packages'?'.home-featured':'#homeSeason');if(target?.getClientRects().length)target.scrollIntoView({block:'center'});});
+ root.querySelector('[data-visual-section]').addEventListener('change',event=>{select(event.target.value,'','',true);const doc=frameReady?frame.contentDocument:null;const target=doc?.querySelector(selected==='occasions'?'#homeUseCases':selected==='products'?'.home-products':selected==='packages'?'.home-featured':'#homeSeason');if(target?.getClientRects().length){stage.scrollTop=Math.max(0,target.getBoundingClientRect().top*previewScale-24);}});
  return {refresh,render(next){const ids=next.draft.home.occasions.map(c=>c.id),added=knownCardIds&&ids.filter(id=>!knownCardIds.has(id));if(added?.length){selected='occasions';cardId=added.at(-1);}knownCardIds=new Set(ids);state=next;active=next.active;restoreCardLayout();fields.replaceChildren();placeholders.clear();display();queueMicrotask(()=>{const detail=fields.querySelector('[data-current-card]');if(detail)detail.open=true;});if(active)refresh();}};
 }
