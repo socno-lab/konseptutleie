@@ -220,3 +220,9 @@ Prisvisning inkl./ekskl. mva., uttrykkelig godkjent av eier 15. november 2026: E
 15. november 2026: Etter eiers ønske står desktopens bruksområdevelger og mva.-velger i samme gridrad, med identisk topp og høyde. Kontrollert ved 1280 px (begge 48,4 px høye) og mobil 390 px med eksisterende tekstlenke. Ingen endringer i prisfunksjon.
 
 15. november 2026: Etter eiers skisse flyttes leiekurvens desktopprisvelger inn i overskriftsraden til høyre for tittelen. Den tidligere separate raden fjernes slik at bruksområde og produkter kommer høyere opp. Kontrollert med Minglepakken, bytte inkl./ekskl. mva. og mobil 390 px uten synlig prisvelger eller overflow.
+
+## Fast design for prisvisning – godkjent 15. november 2026
+
+Eier godkjente og ba uttrykkelig om å låse nåværende løsning. Desktopkatalogens mva.-boks står på samme linje og har samme høyde som bruksområdevelgeren, med «Vis priser» venstrejustert over boksen. I leiekurven står prisvelgeren til høyre for overskriften og er loddrett sentrert mot hele overskriftsfeltet; den opptar ingen egen rad foran produktlisten. På mobil finnes bare tekstlenken i katalogens «Utvalg og leiepriser …»-forklaring, med direkte bytte mellom inkl./ekskl. mva. og motsatt valg som lenketekst. Andre prisvelgere er skjult på mobil. Valget huskes på tvers av sider og kurv; kanoniske bruttobeløp, beregning og innsending beholdes.
+
+Prisvisningens CSS og kontroller er nå omfattet av presentasjonslåsen. Endringer krever begrunnet visuell gjennomgang etter AGENTS.md; eiers uttrykkelige nye ønsker gjelder fortsatt. Referansebilder: reference/approved-cart-price-heading-2026-11-15.png, reference/approved-catalog-vat-alignment-2026-11-15.png og reference/approved-mobile-vat-link-2026-11-15.png.

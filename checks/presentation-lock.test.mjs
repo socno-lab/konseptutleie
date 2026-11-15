@@ -8,3 +8,10 @@ test('the common guard rejects changed basket icon size, service price type and 
   const changed={...source,[key]:change(source[key])};assert.notEqual(changed[key],source[key]);assert.throws(()=>verifyPresentation(changed,baseline),/DESIGNLÅS/);
  }
 });
+
+test('the approved VAT layout and placement controller are protected',async()=>{
+ const source=await presentationSources();
+ for(const key of ['public/price-display.css','public/price-display.js']){
+  assert.throws(()=>verifyPresentation({...source,[key]:source[key]+'\n/* changed */'},baseline),/DESIGNLÅS/);
+ }
+});
