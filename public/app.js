@@ -47,7 +47,7 @@ import {joinedModuleCover} from './module-joined-profiles.js?v=lagoon20261025';
 import {productSubcategory,availableSubcategories,subcategoryButtons} from './catalog-subcategories.js?v=fest20261114';
 import {cartThumbnail,productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
 import {sofaCartRow} from './sofa-cart-row.js?v=lagoon20261025';
-import {mountStorefrontFeedback} from './storefront-feedback.js?v=optionimages20261108';
+import {mountStorefrontFeedback} from './storefront-feedback.js?v=enquiry20261115';
 import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=fest20261114';
 import {mountDiscount} from './discount-ui.js?v=submitprice20261025c';
 let discount;

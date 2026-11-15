@@ -1,4 +1,4 @@
-import './customer-info.js?v=optionimages20261108';
+// Customer form initialization belongs to the rental/purchase entry module.
 import './dialog-scroll-lock.js?v=enquirypage20261025b';
 export function mountStorefrontFeedback(openCart){
  const header=document.querySelector('body>header');
