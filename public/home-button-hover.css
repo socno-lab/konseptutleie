@@ -1,0 +1,15 @@
+/* Match the navigation hover treatment on the homepage's primary actions. */
+@media(hover:hover){
+ .home-page .rental-hero-actions>:is(.home-catalog-link,.hero-custom-link):hover{
+  text-decoration-line:underline;
+  text-decoration-color:currentColor;
+  text-decoration-thickness:1px;
+  text-underline-offset:4px;
+ }
+}
+.home-page .rental-hero-actions>:is(.home-catalog-link,.hero-custom-link):focus-visible{
+ text-decoration-line:underline;
+ text-decoration-thickness:1px;
+ text-underline-offset:4px;
+}
+.home-page .rental-hero-actions>:is(.home-catalog-link,.hero-custom-link)>span[aria-hidden]{display:inline-block;text-decoration:none}

@@ -32,6 +32,7 @@ export async function readHtmlTemplate(name,base=root){
  html=html.replace(/(<nav\b[^>]*aria-label="Hovedmeny"[^>]*>)([\s\S]*?)(<\/nav>)/,(_,open,links,close)=>open+links+(links.includes('href="/om-oss"')?'':'<a href="/om-oss">Om oss</a>')+close);
  html=html.replace(/<div id="empty" class="catalog-empty" hidden>[\s\S]*?<\/div>/,'<div id="empty" class="catalog-empty" hidden><h3>Fant du ikke det du trenger?</h3><p>Prøv færre filtre, eller fortell oss hva du ser etter. Vi hjelper deg å finne en løsning.</p><div class="catalog-empty-actions"><button type="button" class="button button-outline" id="showAllFurniture">Nullstill filtre</button><button type="button" class="button dark" data-catalog-custom>Fortell oss hva du trenger <span aria-hidden="true">↗</span></button></div></div>');
  html=html.replace('</head>','<link rel="stylesheet" href="/product-dimensions.css?v=dimensions20261108b"></head>');
+ if(name==='index.html')html=html.replace('</head>','<link rel="stylesheet" href="/home-button-hover.css?v=20261115"></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/catalog-empty.css?v=empty20261107"><link rel="stylesheet" href="/catalog-search-alignment.css?v=20261115"></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/enquiry-review.css?v=compact20261107b"><script type="module" src="/enquiry-review.js?v=customfirst20261115"></script></head>');
  html=renderArrowIcons(renderHeaderTools(renderMobileNavigation(renderPrimaryNavigation(html))));
