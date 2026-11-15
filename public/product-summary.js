@@ -1,3 +1,4 @@
+import {priceMarkup} from './price-display-model.js?v=vat20261115b';
 import {dimensionsMarkup} from './product-dimensions.js?v=optionimages20261108';
 import {rentalStockMarkup} from './rental-stock.js?v=stockcount20261108';
 import {saleUnitPrice} from './sales-model.js?v=fest20261114';
@@ -6,11 +7,11 @@ import {isServiceOffering} from './service-model.js?v=launch20261024';
 import {isTablewareRental} from './catalog-model.js?v=longrent20261026';
 import {categoryLabel} from './site-settings.js?v=fest20261114';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money=n=>new Intl.NumberFormat('nb-NO').format(n)+' kr';
+const money=priceMarkup;
 export const isCustomProduct=p=>!!p?.isPackage&&p.components?.length>0;
 export function productUnitPrice(p,{buy=false,confirmed=true}={}){
  if(p.moduleSeries)return '<p class="hint">Velg oppsett for å se samlet pris.</p>';
- if(buy){const price=saleUnitPrice(p);return '<p class="sale-detail-price">'+(price===null?'Pris på forespørsel':new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:2}).format(price))+' <small>inkl. mva.</small></p>';}
+ if(buy){const price=saleUnitPrice(p);return '<p class="sale-detail-price">'+(price===null?'Pris på forespørsel':money(price))+' <small>inkl. mva.</small></p>';}
  if(!confirmed)return '<p class="rental-price-pending">Velg bruk for å se leiepris</p>';
  if(p.priceOnRequest||!Number.isFinite(p.price)||p.price<=0)return '<p class="quote-only"><strong>Pris på forespørsel</strong><small>Du får et samlet, uforpliktende tilbud.</small></p>';
  const unit=p.isProposal?'per person':p.isPackage?'per pakke':'per enhet';

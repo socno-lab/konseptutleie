@@ -1,3 +1,4 @@
+import {priceMarkup} from './price-display-model.js?v=vat20261115b';
 const money=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:2}).format(n);
 // No code list is sent to the storefront. Every quote is priced and validated on the server.
 export function mountDiscount(target,payload,{onChange=()=>{}}={}){
@@ -27,7 +28,7 @@ export function mountDiscount(target,payload,{onChange=()=>{}}={}){
     if(current!==version)return null;
     if(next!==currentKey())throw Error('Utvalget er endret. Kontroller rabattkoden på nytt.');
     if(!response.ok)throw Error(body.error||'Kunne ikke kontrollere rabattkoden.');
-    result=body;status.textContent=body.code+' gir '+body.percent+' % rabatt på prisede '+(body.mode==='buy'?'produkter':'leieobjekter')+'.';totals.innerHTML='<div><span>Rabatt</span><strong>−'+money(body.discount)+'</strong></div><div class="estimate-total"><span>'+(body.hasUnpriced?'Delpris etter rabatt':'Sum etter rabatt')+'</span><strong>'+money(body.total)+'</strong></div><p class="hint">Inkl. mva. Transport, styling og andre tillegg er ikke med. Endelig tilbud bekreftes av oss.</p>';changed();return result;
+    result=body;status.textContent=body.code+' gir '+body.percent+' % rabatt på prisede '+(body.mode==='buy'?'produkter':'leieobjekter')+'.';totals.innerHTML='<div><span>Rabatt</span><strong>−'+priceMarkup(body.discount)+'</strong></div><div class="estimate-total"><span>'+(body.hasUnpriced?'Delpris etter rabatt':'Sum etter rabatt')+'</span><strong>'+priceMarkup(body.total)+'</strong></div><p class="hint">Inkl. mva. Transport, styling og andre tillegg er ikke med. Endelig tilbud bekreftes av oss.</p>';changed();return result;
    }catch(error){if(current===version){result=null;status.textContent=error.message;key='';changed();}return null;}
    finally{if(current===version){pending=null;changed();}}
   })();changed();return pending;

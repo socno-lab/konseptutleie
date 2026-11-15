@@ -19,7 +19,7 @@ const products=[end,middle,textile],selection={end:2,middle:1},money=n=>n+' kr';
 const dateAfter=days=>new Date(Date.UTC(2026,10,days)).toISOString().slice(0,10);
 
 function moduleMarkup(days=null,extra=textile,{chosen=selection,catalog=products}={}){
- const items=catalog.map(p=>p.id===extra?.id?extra:p),context={products:items,moduleSelection:chosen,config:moduleConfiguration('Sofa',chosen,{},items),textile:extra,rentalScopeConfirmed:true,ratePlan,rentalDays,productPeriodState:(start,end)=>productPeriodState(start,end,{today:'2026-10-28'}),packageGroupPeriodTotal,money,html:String,addonPrice:()=>'',el:id=>({value:days?(id==='start'?'2026-11-01':dateAfter(days)):''})};
+ const items=catalog.map(p=>p.id===extra?.id?extra:p),context={products:items,moduleSelection:chosen,config:moduleConfiguration('Sofa',chosen,{},items),textile:extra,rentalScopeConfirmed:true,ratePlan,rentalDays,productPeriodState:(start,end)=>productPeriodState(start,end,{today:'2026-10-28'}),packageGroupPeriodTotal,money,priceMarkup:money,priceMarkup:money,html:String,addonPrice:()=>'',el:id=>({value:days?(id==='start'?'2026-11-01':dateAfter(days)):''})};
  const functions=['selectedRentalDays','rateGrid','rentalSelectionSummary','moduleBasePricing','moduleSelectionPricing'].map(functionSource).join('\n');
  return vm.runInNewContext(functions+'\n({base:moduleBasePricing(config),summary:moduleSelectionPricing(config,textile)})',context);
 }
@@ -81,7 +81,7 @@ test('custom package separates multiple period addons while actual duration stil
  assert.deepEqual([rates.price,rates.weekPrice,rates.monthPrice],[280,1300,2800]);
  assert.equal(rates.separateCharges[0].quantity,2);assert.equal(rates.separateCharges[0].total,800);
  for(const days of [null,1,2,7,30,31,60,61]){
-  const period=packageGroupPeriodTotal(group,products,days),html=vm.runInNewContext(functionSource('packageRentalPrices')+'\npackageRentalPrices(group,rates,days,period)',{group,rates,days,period,money,html:String});
+  const period=packageGroupPeriodTotal(group,products,days),html=vm.runInNewContext(functionSource('packageRentalPrices')+'\npackageRentalPrices(group,rates,days,period)',{group,rates,days,period,money,priceMarkup:money,priceMarkup:money,html:String});
   assert.match(html,/280 kr \/ døgn · 1300 kr \/ uke · 2800 kr \/ måned/);
   assert.match(html,/2 × textile<br>800 kr per påbegynte 30 dager/);
   if(days){const expected=2*ratePlan(end,days).total+ratePlan(middle,days).total+800*Math.ceil(days/30);assert.equal(period,expected);assert.ok(html.includes('Valgt leieperiode med tilvalg: <strong>'+money(expected)));}
@@ -118,7 +118,7 @@ test('explicit incompatible pricing basis clears occasion instead of silently re
 
 test('direct purchase detail summary includes addon purchase values and never hides an unknown extra',()=>{
  const pack=item('pack',{isPackage:true,businessPurchase:true,purchasePrice:30000}),extra={...textile,buyoutUnitPrice:1200},stylist=item('stylist',{category:'Styling',offeringType:'service',priceOnRequest:true}),items=[pack,extra,stylist];
- const render=extras=>vm.runInNewContext(functionSource('businessPurchaseSummary')+'\nbusinessPurchaseSummary(pack,2,extras,false,"buy",true)',{pack,extras,products:items,packageBuyoutOption,packagePurchaseSelectionPrice,money,html:String});
+ const render=extras=>vm.runInNewContext(functionSource('businessPurchaseSummary')+'\nbusinessPurchaseSummary(pack,2,extras,false,"buy",true)',{pack,extras,products:items,packageBuyoutOption,packagePurchaseSelectionPrice,money,priceMarkup:money,html:String});
  assert.match(render({textile:2}),/Kjøpspris for pakken: 62400 kr/);
  assert.doesNotMatch(render({textile:2}),/60800 kr/);
  assert.match(render({textile:2,stylist:1}),/Kjøpspris for pakken: Pris på forespørsel/);

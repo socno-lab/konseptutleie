@@ -1,3 +1,4 @@
+import {priceMarkup} from '../public/price-display-model.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -24,7 +25,7 @@ async function mountedDelivery(){
  const form={querySelector(selector){return fields[selector.match(/name="([^"]+)"/)[1]];},closest:()=>dialog,contains:field=>Object.values(fields).includes(field),addEventListener(name,callback){(formListeners[name]??=[]).push(callback);}};
  const document={activeElement:null,createElement:tag=>tag==='fieldset'?group:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
  const products=[{id:'chair',name:'Teststol',category:'Stoler'},{id:'sofa',name:'Testsofa',type:'sofa'},{id:'tree',deliveryIncluded:true,isService:true,offeringType:'service'}];
- const context=vm.createContext({document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
+ const context=vm.createContext({priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
  vm.runInContext(getter+'\n'+source.slice(first,last)+'\nmountRentalDelivery(form);\nvar deliverySummaryProvider;',context);
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));

@@ -1,4 +1,4 @@
-import {saleCatalogView} from '../public/sale-catalog-view.js?v=fest20261114';
+import {saleCatalogView} from '../public/sale-catalog-view.js?v=vat20261115b';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {renderArrowIcons} from './arrow-icons.mjs';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

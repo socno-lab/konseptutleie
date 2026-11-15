@@ -1,3 +1,4 @@
+import {priceMarkup} from './price-display-model.js?v=vat20261115b';
 import {rentalStockMarkup} from './rental-stock.js?v=stockcount20261108';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {isTablewareRental,ratePlan} from './catalog-model.js?v=longrent20261026';
@@ -15,7 +16,7 @@ export function homeSeasonContent(products,home,month=new Date().getMonth()+1){
 }
 
 export function homeRateGrid(p,{confirmed=false,days=null,products=[]}={}){
- const rentalScopeConfirmed=confirmed,selectedRentalDays=()=>days,money=n=>new Intl.NumberFormat('nb-NO').format(n)+' kr';
+ const rentalScopeConfirmed=confirmed,selectedRentalDays=()=>days,money=priceMarkup;
 function textileUnit(p){return /tekstilpakke/i.test(p.name||'')?(/lenestol/i.test(p.name)?'stol':'sofa'):'';}
 function decorUnit(p){return /^Dekorpakke til /i.test(p.name||'')?(/hylle/i.test(p.name)?'hylle':'bord'):'';}
 function addonUnit(p){return textileUnit(p)||decorUnit(p)||(/^Vase med kunstige blomster/i.test(p.name||'')?'vase':'');}

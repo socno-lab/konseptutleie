@@ -1,3 +1,4 @@
+import {priceMarkup} from './price-display-model.js?v=vat20261115b';
 import {dimensionSearchText} from './product-dimensions.js?v=optionimages20261108';
 import {rentalStockMarkup} from './rental-stock.js?v=stockcount20261108';
 import {matchesPurpose,purposes} from './rental-purpose-model.js?v=fest20261114';
@@ -18,7 +19,7 @@ import {businessPurchaseEnabled,packagePurchaseSelectionPrice} from './business-
 import {packageBuyoutOption} from './buyout-model.js?v=longrent20261026';
 // One selection and card renderer for server first paint and client filtering.
 export function rentalCatalogView({products,settings,purpose='alle',filter='Alle',tableFilter='',query='',cart={},days=null,rentalScopeConfirmed=false,businessChoices={}}){
- const isCatalogPage=true,selectedRentalDays=()=>days,money=n=>new Intl.NumberFormat('nb-NO').format(n)+' kr';
+ const isCatalogPage=true,selectedRentalDays=()=>days,money=priceMarkup;
  const categoryLabel=id=>settings.categories.find(c=>c.id===id)?.label||id;
  const isKiPhoto=src=>photoIsKi(src,settings);
  const businessPackageIds=new Set(products.filter(businessPurchaseEnabled).map(p=>p.id));

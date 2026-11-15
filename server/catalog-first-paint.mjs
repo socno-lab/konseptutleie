@@ -1,4 +1,4 @@
-import {rentalCatalogView} from '../public/rental-catalog-view.js?v=fest20261114';
+import {rentalCatalogView} from '../public/rental-catalog-view.js?v=vat20261115b';
 import {renderCatalogCard} from '../public/catalog-card-markup.js';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';

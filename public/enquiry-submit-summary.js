@@ -44,10 +44,11 @@ export function mountSubmitSummary(form){
  section.className='enquiry-submit-summary';section.hidden=true;
  section.setAttribute('aria-label','Prisoppsummering');section.setAttribute('aria-live','polite');
  button.parentNode.insertBefore(section,button);
- function row(label,value,total=false){
+ function row(label,value,total=false,fixed=''){
   const line=doc.createElement('div'),name=doc.createElement('span'),price=doc.createElement('span');
   line.className=total?'enquiry-submit-summary-total':'enquiry-submit-summary-row';
   price.className='enquiry-submit-summary-value';name.textContent=label;
+  if(typeof value==='number'){price.setAttribute('data-price-gross',String(value));if(fixed)price.setAttribute('data-price-fixed',fixed);}
   price.textContent=typeof value==='number'?money(value):value;
   line.append(name,price);return line;
  }
@@ -55,8 +56,9 @@ export function mountSubmitSummary(form){
   const model=submitSummaryModel(state);section.hidden=model.hidden;section.replaceChildren();
   if(!model.hidden){
    for(const item of model.rows)section.append(row(item.label,item.value));
-   section.append(row(model.label,model.total===null?'Avklares i tilbudet':model.total,true));
-   const note=doc.createElement('p');note.className='enquiry-submit-summary-note';note.textContent=model.note;section.append(note);
+   if(model.total!==null){for(const [label,fixed] of [['Sum ekskl. mva.','net'],['Mva. (25 %)','vat']]){const line=row(label,model.total,false,fixed);line.setAttribute('data-price-detail','');section.append(line);}}
+   section.append(row(model.label+' inkl. mva.',model.total===null?'Avklares i tilbudet':model.total,true,'gross'));
+   const note=doc.createElement('p');note.className='enquiry-submit-summary-note';note.textContent=model.note.replace(/Beregnet leie er [^.]+\. /,'').replace('Alle priser er inkl. mva.','Vare- og transportlinjer vises inkl. mva. Totalprisen er alltid inkludert merverdiavgift.');section.append(note);
   }
   return model;
  }};

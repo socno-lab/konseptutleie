@@ -6,8 +6,8 @@ test('first HTML has visible product image, name and the selected rental rates w
  const html=productOverview({product,buy:false,productUsage:{scope:'messe',confirmed:true}},[product],{});
  const visible=html.split('<template')[0];
  assert.match(visible,/<h1>Stol &lt;ett&gt;<\/h1>/);assert.match(visible,/loading="eager" fetchpriority="high"/);
- assert.match(visible,/150 kr/);assert.match(visible,/450 kr/);assert.doesNotMatch(visible,/100 kr/);
- assert.match(html,/id="initialProductPrice-standard"/);assert.match(html,/100 kr/);
+ assert.match(visible,/150\s+kr/);assert.match(visible,/450\s+kr/);assert.doesNotMatch(visible,/100\s+kr/);
+ assert.match(html,/id="initialProductPrice-standard"/);assert.match(html,/100\s+kr/);
  const summary=productSummary({...product,...product.rentalRates.messe},[product],{confirmed:true});assert.ok(visible.includes(summary));
 });
 test('unknown usage does not expose the default rate as a confirmed rental price',()=>{
@@ -24,6 +24,6 @@ test('unit prices distinguish fixed periods, unpriced products and module config
 test('purchase HTML uses the sale price and filters rental wording from the material description',()=>{
  const p={...product,material:'Massiv eik. Returneres etter leie.'};
  const html=productOverview({product:p,buy:true},[p],{});
- assert.match(html,/3\s949,00\s(?:kr|NOK)/);assert.match(html,/Massiv eik/);assert.doesNotMatch(html,/Returneres/);
+ assert.match(html,/3\s949(?:,00)?\s(?:kr|NOK)/);assert.match(html,/Massiv eik/);assert.doesNotMatch(html,/Returneres/);
  assert.ok(html.includes(productSummary(p,[p],{buy:true})));assert.doesNotMatch(html,/initialProductPrice-standard/);
 });

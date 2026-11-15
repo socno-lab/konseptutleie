@@ -1,3 +1,4 @@
+import {priceMarkup} from './price-display-model.js?v=vat20261115b';
 import {dimensionSearchText} from './product-dimensions.js?v=optionimages20261108';
 import {productPageUrl} from './product-page-model.js?v=launch20261024';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
@@ -8,7 +9,7 @@ import {variantFields} from './product-variants.js?v=fest20261114';
 import {salesEnabled,saleUnitPrice,deliveryText,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=fest20261114';
 import {renderCatalogCard} from './catalog-card-markup.js?v=sitefirst20261106';
 const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:2}).format(n),price=p=>saleUnitPrice(p)===null?'Pris på forespørsel':money(saleUnitPrice(p));
+const money=priceMarkup,price=p=>saleUnitPrice(p)===null?'Pris på forespørsel':money(saleUnitPrice(p));
 export function saleCatalogView({products,category='',tableFilter='',query=''}={}){
  products=products.filter(p=>p.active&&!p.deletedAt&&salesEnabled(p));
  const categories=getSiteSettings().categories.map(c=>c.id).filter(c=>products.some(p=>p.category===c));
