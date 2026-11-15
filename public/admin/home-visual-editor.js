@@ -37,8 +37,8 @@ export function homeVisualEditor({root,source}){
   if(key==='occasions'&&section)simpleCardFields(section,id);
   if(id&&field==='title'){const detail=[...fields.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id);const control=[...(detail?.querySelectorAll('[data-field]')||[])].find(el=>el.dataset.field.endsWith('.'+field));control?.focus({preventScroll:true});}
   mark();sectionNote();
-  if(reveal&&field==='image')openImagePicker();
-  if(reveal){const sidebar=root.querySelector('.visual-sidebar'),detail=[...fields.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id),target=detail?.querySelector('.visual-card-basic')||detail?.querySelector('summary');sidebar.scrollTop=target?sidebar.scrollTop+target.getBoundingClientRect().top-sidebar.getBoundingClientRect().top-16:0;if(matchMedia('(max-width:900px)').matches)sidebar.scrollIntoView({block:'start'});}
+  if(reveal&&key==='occasions'&&field==='image')openImagePicker();
+  if(reveal){const sidebar=root.querySelector('.visual-sidebar'),detail=[...fields.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id),target=detail?.querySelector('.visual-card-basic')||detail?.querySelector('summary');sidebar.scrollTop=target?sidebar.scrollTop+target.getBoundingClientRect().top-sidebar.getBoundingClientRect().top-16:0;sidebar.scrollIntoView({block:matchMedia('(max-width:900px)').matches?'start':'nearest'});}
  }
  function simpleCardFields(section,id){
   const detail=[...section.querySelectorAll('[data-editor-card]')].find(el=>el.dataset.editorCard===id),nodes=[...section.childNodes],children=detail?[...detail.childNodes]:[];
@@ -102,6 +102,9 @@ export function homeVisualEditor({root,source}){
  frame.addEventListener('load',()=>{
   if(!frame.contentDocument?.querySelector('#homeUseCases'))return;frameReady=true;
   const doc=frame.contentDocument;
+  // Focusing a tall, scaled section on pointerdown can scroll it before click fires.
+  // Keep pointer selection stable; keyboard users still use tabindex and Enter/Space.
+  doc.addEventListener('pointerdown',event=>{if(event.target.closest('[data-v-edit]'))event.preventDefault();},true);
   doc.addEventListener('click',event=>{const target=event.target.closest('[data-v-edit]');if(target){event.preventDefault();event.stopPropagation();select(target.dataset.vEdit,target.dataset.vCard||'',event.target.closest('img')?'image':event.target.closest('h3')?'title':'',true);}else if(event.target.closest('a,button,input,select,textarea')){event.preventDefault();event.stopPropagation();}},true);
   doc.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)){const target=event.target.closest('[data-v-edit]');if(target){event.preventDefault();select(target.dataset.vEdit,target.dataset.vCard||'','',true);}}});
   update();size();
