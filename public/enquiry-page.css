@@ -11,7 +11,7 @@ body.enquiry-page .enquiry-full>.close,body.enquiry-page .enquiry-full .drawer-h
 .enquiry-full .drawer-head{display:block}.enquiry-full .package-cart-head{grid-template-columns:minmax(0,1fr) auto}
 .enquiry-period-link{display:block;margin:0 0 24px;text-align:left;scroll-margin-top:130px}
 #enquiryPage #rentalDates{scroll-margin-top:130px}
-#enquiryPage .package-cart-copy p{overflow-wrap:anywhere}
+#enquiryPage .package-cart-copy p{overflow-wrap:normal;word-break:normal}
 @media(max-width:640px){#enquiryPage{margin-top:24px;padding:0 16px}.enquiry-full .package-cart-head{grid-template-columns:minmax(0,1fr)}.enquiry-full .drawer-head h1,.enquiry-full>h1{font-size:30px}.enquiry-preview-content>.button{font-size:14px}}
 
 body.enquiry-page #cart.enquiry-full[hidden],body.enquiry-page #saleCart.enquiry-full[hidden]{display:none!important}
@@ -28,3 +28,7 @@ body.enquiry-page #cart.enquiry-full[hidden],body.enquiry-page #saleCart.enquiry
 
 /* Stable heading and page height while a browser-local basket is validated. */
 #enquiryLoading{min-height:65vh}#enquiryLoading h1{font-size:clamp(30px,4vw,45px);line-height:1.15;margin:0 0 24px;letter-spacing:-1px}@media(max-width:640px){#enquiryLoading h1{font-size:30px}}
+
+/* Keep nonbreaking currency amounts intact; names can still wrap anywhere. */
+#cart .item-copy>:is(.cart-rate-prices,.cart-period-price,.cart-sofa-prices),#cart .package-cart-copy p,#cart .package-cart-total,#cart .business-purchase-summary,#saleCart .sale-row-copy>small,#saleCart .cart-sofa-prices{overflow-wrap:normal;word-break:normal}
+#cart .price-estimate>div>strong,#saleCart .sale-summary>div>strong{white-space:nowrap;overflow-wrap:normal;word-break:normal}

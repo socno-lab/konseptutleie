@@ -206,3 +206,5 @@ Antallsstripe 7. november 2026: Etter eiers ønske vises samme eksisterende lyse
 14. november 2026: Eier godkjente hånd med pekefinger/trykkmarkering ved «Velg selv» og tilbudsdokument ved «Få et uforpliktende tilbud». Bare SVG-stiene i de to eksisterende ikonfeltene endres. Samme strek, størrelse, grønne sirkel og lastebil beholdes. Kontrollert visuelt i lokal forside; designlåsen består uten referanseendring.
 
 14. november 2026: Eier bestilte kategoriikoner i «Finn dine favoritter»: sofa, bord, stol, tallerken/glass, plante og vase til venstre for titlene. Statiske dekorative SVG-er med samme strek som prosessikonene, uten sirkel. Eksisterende piler, lenker og typografi beholdes. Scoped home-category-icons.css. Visuelt kontrollert i isolert kategorioversikt ved 320, 390 og 1280 px. Designlåsen består uten endring.
+
+Mobilkurv: Beløp, tusenskiller og «kr» skal holdes samlet med harde mellomrom. Prislinjene kan brytes mellom leieperioder og forklarende tekst; produktnavn beholder fri linjebryting. Gjelder vanlige varer, sofaer, pakkeinnhold, tilvalg og kjøpskurv. Prisberegning og skjemadata endres ikke. Presisert av eier 15. november 2026.
