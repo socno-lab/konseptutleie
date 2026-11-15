@@ -2,7 +2,7 @@
   "approved": "2026-10-24",
   "reason": "Eier godkjente samlet uttrykk etter rettelser av kurv, tilvalg, antallsknapper, ikonsentrering, tjenestetypografi og bekreftelse, og ba uttrykkelig om en felles designstandard.",
   "fingerprints": {
-    "public/cart-addons.css": "60a58eb1719096ba0073acd84cc13c8ca99b50eaffb0d3e7bb933f205548bd97",
+    "public/cart-addons.css": "7b06822b3196afa333a9b9220d3a26b2f1cc442d215c173ef73b535fc0af7426",
     "public/service-detail.css": "3e1740045550914721641c9df29428f1609f8d56d23371fe3f3a5f613ff075bc",
     "public/cart-thumbnail.js": "deef4cb0e6d49f42b77313d8821ea8db0ea54a2707c3dbfba5ca4f6d91d3f162",
     "public/sofa-cart-row.js": "d4fa589a236a70776760077fc7ea94e5fa43425090f577ae953ade92bbd8f573",
@@ -21,5 +21,9 @@
   "receiptTotalLabelReview": "2026-10-25: Eier ba om Beregnet leiesum / Beregnet kjøpesum, med inkl. transport når kjent transport inngår. Delt etikettfunksjon brukes i kunde-/intern e-post (HTML og tekst) og nettbekreftelse. Blandet leie/kjøp merkes Beregnet sum for leie og kjøp. Ukjent sum beholder avklaringsmelding. Visuelt kontrollert ved 1280, 390 og 320 px. Kun tekst og fjerning av pakkedelsummer endres, ingen øvrig markup, CSS eller beregningsregler. Bevis: outputs/no-subtotals-*.png.",
   "acquisitionSelectReview": "2026-10-25: Eier ba om samme felttykkelse på handlekurvens Leie eller kjøpe?-nedtrekk som øvrige felt. Kun #cart .business-cart-choice select får eksplisitt 48 px høyde/min-height, 1 px kant, padding 11/12 px og skrift 13 px / 400 (mobil 16 px / 400), tilsvarende Anledning. Målt likt ved 1280 og 390 px, kontrollert 320 px uten horisontal scrolling. Ingen øvrige stiler eller funksjoner endret. Bevis outputs/cart-select-{1280,390}.png.",
   "lagoonPreviewReview": "2026-10-25: Eier meldte unaturlige Lagoon-skjøter og enkeltmodul på katalogkort. Godkjent bildelayout beholdes, men frontillustrasjonen har nå felles perspektiv og sammenhengende rygg/sete/base. sofa-cart-row.js er kun importversjonert til den samme oppdaterte renderer som leie/kjøp/bygger bruker; ingen radmarkup eller CSS endret. Kurv visuelt kontrollert ved 390 og 1280 px uten overlapp, samme lille bildefelt og uendrede prislinjer. Bare dette filfingeravtrykket oppdateres bevisst. Bevis: outputs/lagoon-builder-20261025/kurv-{390,1280}.png.",
-  "vatDisplayReview": "2026-11-15: Sofaens prislinje aksepterer trusted priceMarkup med opprinnelig bruttobeløp, slik at eiers godkjente mva-valg også gjelder sofa. Kunde-/produktnavn escapes som før. Typografi, bildefelt, tilvalg og knapper kontrollert på desktop og mobil, også 320 px. Ingen beregnings- eller kvitteringsendringer."
+  "vatDisplayReview": "2026-11-15: Sofaens prislinje aksepterer trusted priceMarkup med opprinnelig bruttobeløp, slik at eiers godkjente mva-valg også gjelder sofa. Kunde-/produktnavn escapes som før. Typografi, bildefelt, tilvalg og knapper kontrollert på desktop og mobil, også 320 px. Ingen beregnings- eller kvitteringsendringer.",
+  "quantityMatchReview20261115": {
+    "reason": "Eier ba om like brede antallsvelgere for pakkeprodukter og tekstil-/dekortilvalg. Kun tilvalgenes desktopbredde korrigeres fra 40 til 36 px per celle; mobil beholder 40 px.",
+    "verified": "Minglepakken med dekor og Loungepakken med tekstil: alle antallsvelgere 108 × 40 px desktop og 120 × 40 px mobil. Pluss/minus kontrollert lokalt. Forside ved 1280/390/320 px uten horisontal scrolling, samme kolonner og bildegeometri; kjent manglende lokalt arbeidsplassbilde. Ingen endringer i beregning eller innsending."
+  }
 }

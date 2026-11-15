@@ -27,8 +27,8 @@
 /* Add-on counters match the size, spacing and alignment of their product counters. */
 #cart .cart-addon>.quantity{width:114px;gap:9px;justify-content:center;justify-self:end;align-self:center}
 #cart .cart-addon>.quantity>button,#cart .cart-addon>.quantity>span{width:32px;min-width:32px!important;height:40px;min-height:40px;font-size:15px}
-#cart .package-cart-line.package-cart-addon>.quantity{width:120px;gap:0;justify-content:center}
-#cart .package-cart-line.package-cart-addon>.quantity>button,#cart .package-cart-line.package-cart-addon>.quantity>output{width:40px;min-width:40px;height:40px;min-height:40px;font-size:15px}
+#cart .package-cart-line.package-cart-addon>.quantity{width:auto;gap:0;justify-content:center}
+#cart .package-cart-line.package-cart-addon>.quantity>button,#cart .package-cart-line.package-cart-addon>.quantity>output{width:36px;min-width:36px;height:40px;min-height:40px;font-size:15px}
 @media(max-width:640px){#cart .cart-addon>.quantity,#cart .package-cart-line.package-cart-addon>.quantity{justify-self:start}}
 /* Centre optional-extra icons in their row while keeping them smaller than product pictures. */
 #cart .cart-addon>.thumb,#cart .package-cart-line.package-cart-addon>.cart-thumbnail{align-self:center}
@@ -53,3 +53,6 @@
 /* Explicit height also keeps Safari acquisition selects at the checkout field size. */
 #cart .business-cart-choice select{display:block;width:100%;height:48px;min-height:48px;box-sizing:border-box;padding:11px 12px;font-family:inherit;font-size:13px;font-weight:400;line-height:24px;border:1px solid #cbd0bf}
 @media(max-width:640px){#cart .business-cart-choice select{font-size:16px}}
+
+/* Package extras use the same wider touch controls as their parent on mobile. */
+@media(max-width:640px){#cart .package-cart-line.package-cart-addon>.quantity>button,#cart .package-cart-line.package-cart-addon>.quantity>output{width:40px;min-width:40px}}
