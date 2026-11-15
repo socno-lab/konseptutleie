@@ -52,7 +52,7 @@ export async function readHtmlTemplate(name,base=root){
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=productscope20261025"></head>');
  if(['index.html','utvalg.html','anledning.html','leieprodukt.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/rental-status.css?v=rented20261029b"></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/primary-navigation.css?v=proposalhover20261115"><script defer src="/primary-navigation.js?v=20261108b"></script></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/price-display.css?v=vat20261115b"><script type="module" src="/price-display.js?v=vat20261115b"></script></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/price-display.css?v=vatlabel20261115"><script type="module" src="/price-display.js?v=vat20261115b"></script></head>');
  const version=await styleVersion(base);
  return version?html.replace(/(href=["']\/style\.css)(?:\?[^"']*)?(["'])/g,'$1?v='+version+'$2'):html;
 }
