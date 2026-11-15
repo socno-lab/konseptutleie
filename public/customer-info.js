@@ -153,7 +153,10 @@ if(rentalForm||saleForm){
   for(const field of fields)if(field.tagName==='INPUT'&&!['date','number'].includes(field.type))field.enterKeyHint='next';
   form.addEventListener('keydown',event=>{
    if(event.key!=='Enter'||event.isComposing||['start','end'].includes(event.target.id)||!matchMedia('(max-width:640px)').matches||event.target.tagName!=='INPUT'||['date','number','checkbox','radio'].includes(event.target.type))return;
-   const next=fields.slice(fields.indexOf(event.target)+1).find(field=>!field.disabled&&field.getClientRects().length);
+   // The transport radios are not text fields, but must be the next stop after the address.
+   // Focus the current available choice without selecting or changing a delivery method.
+   const transport=event.target.name==='postalCity'?[...form.querySelectorAll('input[name="delivery"],select[name="shipping"]')].filter(field=>!field.disabled&&field.getClientRects().length):[];
+   const next=transport.find(field=>field.checked)||transport[0]||fields.slice(fields.indexOf(event.target)+1).find(field=>!field.disabled&&field.getClientRects().length);
    if(next){event.preventDefault();next.focus();}
   });
  }
