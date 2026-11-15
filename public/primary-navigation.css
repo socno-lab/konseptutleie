@@ -7,6 +7,7 @@ body>header .primary-navigation{display:flex;align-items:center;gap:clamp(12px,1
 .primary-dropdown-panel strong{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:6px 0}
 .primary-dropdown-panel a:hover{border-bottom:0;text-decoration:underline;text-underline-offset:4px}
 body>header .primary-proposal{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 18px;background:var(--olive);color:var(--paper);border:1px solid var(--olive)}
+@media(min-width:641px) and (hover:hover){body>header .primary-proposal:hover{text-decoration:underline;text-decoration-color:#fff;text-decoration-thickness:1px;text-underline-offset:4px}}
 .occasion-home .hero-topline{display:none}
 .occasion-home .hero .intro{max-width:780px}
 .occasion-home .rental-hero-actions{gap:14px;margin:24px 0 0;flex-direction:row;flex-wrap:wrap}
