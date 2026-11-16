@@ -2,7 +2,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const root=new URL('../',import.meta.url);
 export async function presentationSources(){
- const files=['public/catalog-search-alignment.css','public/price-display.css','public/price-display.js','public/cart-addons.css','public/service-detail.css','public/cart-thumbnail.js','public/sofa-cart-row.js','public/receipt-layout.js','server/enquiry-email.mjs'];
+ const files=['public/cart-usage-compact.css','public/catalog-search-alignment.css','public/price-display.css','public/price-display.js','public/cart-addons.css','public/service-detail.css','public/cart-thumbnail.js','public/sofa-cart-row.js','public/receipt-layout.js','server/enquiry-email.mjs'];
  const entries=await Promise.all(files.map(async file=>[file,await readFile(new URL(file,root),'utf8')]));
  const ui=await readFile(new URL('public/submission-ui.js',root),'utf8');
  const start=ui.indexOf('export function showEnquiryConfirmation(');

@@ -1,0 +1,11 @@
+.cart-usage-explanation{display:none}
+@media(min-width:761px){
+ body.enquiry-page #cart #cartPricingScope{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 24px;padding:13px 0;margin:18px 0;border:0;border-block:1px solid var(--line);background:transparent}
+ body.enquiry-page #cart #cartPricingScope>.rental-selected-usage{grid-column:1;grid-row:1;margin:0;align-self:start;padding-right:120px;pointer-events:none}
+ body.enquiry-page #cart #cartPricingScope>p:not(.rental-selected-usage){display:none}
+ body.enquiry-page #cart #cartPricingScope>details{grid-column:1/-1;grid-row:1;min-width:0;margin:0}
+ body.enquiry-page #cart #cartPricingScope>details>summary{display:block;width:max-content;margin-left:auto;list-style:none;text-underline-offset:4px}
+ body.enquiry-page #cart #cartPricingScope>details>summary::-webkit-details-marker{display:none}
+ body.enquiry-page #cart #cartPricingScope>details>summary::marker{content:''}
+ body.enquiry-page #cart #cartPricingScope .cart-usage-explanation{display:block;margin:16px 0 8px;font-size:13px}
+}

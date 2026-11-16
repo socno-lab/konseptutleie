@@ -11,7 +11,8 @@
     "confirmation-rendering": "2d7e8aa64524ea1986e16b912fc6f804e260cb224c3439118f2e2e5694f757cc",
     "public/price-display.css": "5e22d3eb79a05bd4ff56fa32c42aa529ddb485160749620d29457f5ced204e31",
     "public/price-display.js": "273baded85e1c1e0f87f4f001113ca45cf19f7d25a842a8cb099d6baacf6bfbb",
-    "public/catalog-search-alignment.css": "6e66143a35caf494176f4132c5ec35752dcd94e11e5ab81ded89009d84bafa92"
+    "public/catalog-search-alignment.css": "6e66143a35caf494176f4132c5ec35752dcd94e11e5ab81ded89009d84bafa92",
+    "public/cart-usage-compact.css": "9a1285b18213dc94b281fd072fac9c8c5411a4205d30e4369c2a79731490f646"
   },
   "formFieldsReview": "2026-10-24: Uttrykkelig brukerbestilt samordning av Fra/Til dato og rabattkode med Anledning, samt 48 px felthøyde og Bruk kode-knapp. Målt desktop: 13 px / 400 og 48 px. Mobil 390 px: 16 px / 400 og 48 px for alle feltene. Kodefelt og knapp har identisk toppkant. Ingen andre beskyttede referanser endret.",
   "transportReview": "2026-10-24: Eier ba om å fjerne gjentatt standardtekst for tekstiltilvalg og vise transport med lastebilikon, leveringsmåte og pris i e-post og nettbekreftelse. Kontrollert desktop og mobil 390 px uten overlapp eller horisontal scrolling; egne ønsker og beløp beholdes.",
@@ -47,5 +48,10 @@
   "searchAndFooterApproved20261115": {
     "reason": "Eier bestilte fjerning av prisvelger i footer og låsing av design etter endring, samt flukt mellom søkeunderstrek og første kategorirads nedre ramme.",
     "verified": "Desktop ved 1280/1452 px: søk og første kategoriknapp har nøyaktig samme bunnkoordinat. Mobil 390 px: eksisterende søkefelt 48 px uten overflow. Footer uten prisvelger på katalogside. Eksisterende mva.-velgere og beregningsmodell beholdes."
+  },
+  "compactCartUsageApproved20261116": {
+    "reason": "Eier godkjente kompakt desktoprad og ba om designstandard; pil ned skulle utelates.",
+    "verified": "Valgt bruk til venstre og understreket Endre bruk til høyre. Forklaring og eksisterende valg åpnes i samme details. Testet endring messe → standard → messe med Minglepakken: priser 670/1670/2490 → 440/1110/1660 → 670/1670/2490. Mobil 390 px beholder eksisterende boks og én forklaring, uten overflow.",
+    "reference": "approved-cart-compact-usage-2026-11-16.png"
   }
 }
