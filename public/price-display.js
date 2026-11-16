@@ -1,12 +1,15 @@
-import {priceDisplayKey,readPriceMode,savePriceMode,priceParts,displayedPrice,formatPrice,taxDisplayText} from './price-display-model.js?v=vat20261115b';
+import {priceDisplayKey,priceDefaultKey,readPriceMode,savePriceMode,saveDefaultPriceMode,priceParts,displayedPrice,formatPrice,taxDisplayText} from './price-display-model.js?v=vatdefault20261116';
 
 function mountPriceDisplay(){
  const local=()=>{try{return window.localStorage;}catch{return null;}},session=()=>{try{return window.sessionStorage;}catch{return null;}};
- let mode=readPriceMode(local(),session());
+ const url=new URL(location.href);
+ let savedPurpose;try{savedPurpose=session()?.getItem('konsept-purpose-v1');}catch{}
+ let mode=saveDefaultPriceMode({purpose:url.searchParams.get('bruk')||savedPurpose,scope:url.searchParams.get('prisbruk')},local(),session());
+ let explicitMode=null;
  const labels=new WeakMap();
  // Only price captions and pricing components: never customer fields, legal terms,
  // product names/descriptions, structured data or the underlying form values.
- const taxScopes=['.rate-caption','.cart-period-price','.cart-common-info','.package-cart-total','.sale-detail-price','.sale-price','.sale-card>small','.sale-catalog-heading>.hint','.recommendation-card small','.business-purchase-summary','#selectionPrices','#saleSummary','#saleModuleTotal','#couponTotals','#catalogUsageHelp','#catalogPricingScope','.catalog-usage-tariff','.catalog-usage-impact','#detailContent [data-detail-addon-price]','#detailContent [data-detail-addon-buyout]','#detailContent .addon-description','#moduleSummary','#moduleTotal','.rental-options>.hint','.addon-choices small','#moduleSummary .hint','.catalog-usage-impact','.enquiry-submit-summary-note'].join(',');
+ const taxScopes=['#catalogUsageDialog>.hint','.rate-caption','.cart-period-price','.cart-common-info','.package-cart-total','.sale-detail-price','.sale-price','.sale-card>small','.sale-catalog-heading>.hint','.recommendation-card small','.business-purchase-summary','#selectionPrices','#saleSummary','#saleModuleTotal','#couponTotals','#catalogUsageHelp','#catalogPricingScope','.catalog-usage-tariff','.catalog-usage-impact','#detailContent [data-detail-addon-price]','#detailContent [data-detail-addon-buyout]','#detailContent .addon-description','#moduleSummary','#moduleTotal','.rental-options>.hint','.addon-choices small','#moduleSummary .hint','.catalog-usage-impact','.enquiry-submit-summary-note'].join(',');
  function picker(){
   const group=document.createElement('div');group.className='price-display-picker';group.setAttribute('role','group');group.setAttribute('aria-label','Vis priser');
   group.innerHTML='<span>Vis priser</span><div class="price-display-options"><button type="button" data-price-mode="incl">Inkl. mva.</button><button type="button" data-price-mode="excl">Ekskl. mva.</button></div>';
@@ -51,12 +54,13 @@ function mountPriceDisplay(){
  const observer=new MutationObserver(refresh);
  document.addEventListener('click',event=>{
   const mobileSwitch=event.target.closest('.mobile-price-switch');
-  if(mobileSwitch){mode=savePriceMode(mode==='incl'?'excl':'incl',local(),session());refresh();return;}
+  if(mobileSwitch){explicitMode=mode=savePriceMode(mode==='incl'?'excl':'incl',local(),session());refresh();return;}
   const button=event.target.closest('button[data-price-mode]');if(!button)return;
-  mode=savePriceMode(button.dataset.priceMode,local(),session());refresh();
+  explicitMode=mode=savePriceMode(button.dataset.priceMode,local(),session());refresh();
  });
- window.addEventListener('storage',event=>{if(event.key===priceDisplayKey||event.key===null){try{session()?.removeItem(priceDisplayKey);}catch{}mode=readPriceMode(local(),session());refresh();}});
- window.addEventListener('pageshow',()=>{mode=readPriceMode(local(),session());refresh();});
+ document.addEventListener('rental-price-display-context',event=>{const automatic=saveDefaultPriceMode(event.detail||{},local(),session());mode=explicitMode||automatic;refresh();});
+ window.addEventListener('storage',event=>{if([priceDisplayKey,priceDefaultKey,null].includes(event.key)){if(event.key!==priceDefaultKey)explicitMode=null;try{session()?.removeItem(event.key||priceDisplayKey);}catch{}mode=explicitMode||readPriceMode(local(),session());refresh();}});
+ window.addEventListener('pageshow',()=>{mode=explicitMode||readPriceMode(local(),session());refresh();});
  refresh();
 }
 if(typeof document!=='undefined'&&typeof window!=='undefined'){

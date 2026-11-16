@@ -1,4 +1,4 @@
-import {priceMarkup} from './price-display-model.js?v=vat20261115b';
+import {priceMarkup,saveDefaultPriceMode} from './price-display-model.js?v=vatdefault20261116';
 let catalogManualOrder=[];
 import {requiredModuleQuantity,moduleStartCandidates} from './module-builder-settings.js';
 import {homeProductCards,homeSeasonContent,homeRateGrid} from './home-sections.js?v=vat20261115b';
@@ -391,6 +391,10 @@ function renderPricingScope(){
 }
 function ensureRentalUsage(action){if(rentalScopeConfirmed)return true;if(catalogUsage){catalogUsage.open(action);return false;}pendingUsageAction=action;renderPricingScope();if(!el('pricingChoice').open)el('pricingChoice').showModal();return false;}
 function setRentalScope(scope,confirmed=true){
+ let priceLocal,priceSession;try{priceLocal=window.localStorage;}catch{}try{priceSession=window.sessionStorage;}catch{}
+ const priceContext={purpose,scope,occasion:el('occasion').value};
+ saveDefaultPriceMode(priceContext,priceLocal,priceSession);
+ document.dispatchEvent(new CustomEvent('rental-price-display-context',{detail:priceContext}));
  rentalScope=scope==='messe'?'messe':'standard';rentalScopeConfirmed=confirmed;if(confirmed){savedRentalScope=rentalScope;try{localStorage.setItem('konsept-rental-scope-v1',rentalScope);}catch{}}
  products=applyRentalScope(catalogProducts,rentalScope);if(isCatalogPage){const url=new URL(location.href);if(confirmed)url.searchParams.set('prisbruk',rentalScope);else url.searchParams.delete('prisbruk');history.replaceState(null,'',url.pathname+url.search+url.hash);}renderPricingScope();
  if(catalogProducts.length){for(const id of ['detail','modules','wall'])if(el(id).open)closeSurface(el(id));renderProducts();renderCart();if(isProductPage){const p=products.find(p=>p.id===new URL(location.href).searchParams.get('produkt'));if(el('modules').open)renderModuleBuilder();else if(el('wall').open)refreshWall();else if(el('detail').open&&p){const fields=[...el('detailContent').querySelectorAll('input,select,textarea')].map(field=>({value:field.value,checked:field.checked,edited:field.dataset.edited}));openProduct(p);[...el('detailContent').querySelectorAll('input,select,textarea')].forEach((field,index)=>{const saved=fields[index];if(saved){field.value=saved.value;field.checked=saved.checked;if(saved.edited)field.dataset.edited=saved.edited;}});refreshSelection();}if(p)selectPageProduct(p,'rent',{bruk:purpose,prisbruk:rentalScope});}}
