@@ -205,7 +205,7 @@ export function createServer(options={}){
    if(seoPaths.includes(pathname)&&['GET','HEAD'].includes(req.method)){
     const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));if(!release)return send(429,'For mange forespørsler. Prøv igjen senere.','text/plain',{'Retry-After':'60'});res.once('finish',release);res.once('close',release);
     const catalog=await readPublicCatalog();
-    if(pathname==='/sitemap.xml')return send(200,sitemap(catalog.products,indexing),'application/xml; charset=utf-8');
+    if(pathname==='/sitemap.xml')return send(200,sitemap(catalog.products,indexing,catalog.settings),'application/xml; charset=utf-8');
     const model=pageModel(pathname,url.searchParams,catalog.products,catalog.settings);
     if(pathname==='/kjop.html')model.saleCanAdmin=store.enabled&&await authenticated();
     if(model.product)model.productCanAdmin=store.enabled&&await authenticated();
