@@ -12,7 +12,7 @@ function render(products,context={prisbruk:'messe',bruk:'alle'}){
 test('rental alternative quotes all three pictured modules, not the recommended base alone',()=>{
  const markup=render([base,middle]);
  assert.match(markup,/Oppsettet på bildet: 3 moduler/);
- assert.match(markup,/1 060 kr \/ døgn/);
+ assert.match(markup,/data-price-gross="1060">1 060 kr<\/span> \/ døgn/);
  assert.doesNotMatch(markup,/Fra |740 kr \/ døgn/);
  assert.match(markup,/Leiepris for sofaen som vist, uten tilvalg/);
 });

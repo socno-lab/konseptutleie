@@ -1,6 +1,6 @@
 import {applyProductCopy} from '../home-product-copy.js?v=productcopy20261115';
 import {homeOccasionCards} from '../home-occasions.js?v=fest20261114';
-import {homeProductCards,homeSeasonContent,homeRateGrid} from '../home-sections.js?v=fest20261114';
+import {homeProductCards,homeSeasonContent,homeRateGrid} from '../home-sections.js?v=vat20261115b';
 import {applyRentalScope} from '../rental-pricing-model.js?v=fest20261114';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sections={occasions:'Bruksområdekort',products:'Fremhevede produkter',packages:'Fremhevede pakker',season:'Sesongfelt'};

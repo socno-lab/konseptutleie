@@ -1,4 +1,4 @@
-import {priceMarkup} from './price-display-model.js?v=vat20261115b';
+import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {productSummary} from './product-summary.js?v=vat20261115b';
 import {detailImageAttributes,setDetailPhotoSource} from './product-image-loading.js?v=detailfirst20261106';
 import {saleCatalogView,saleColourSwatches} from './sale-catalog-view.js?v=vat20261115b';

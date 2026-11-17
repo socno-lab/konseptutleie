@@ -1,4 +1,4 @@
-import {priceMarkup} from './price-display-model.js?v=vat20261115b';
+import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {dimensionSearchText} from './product-dimensions.js?v=optionimages20261108';
 import {rentalStockMarkup} from './rental-stock.js?v=stockcount20261108';
 import {matchesPurpose,purposes} from './rental-purpose-model.js?v=fest20261114';

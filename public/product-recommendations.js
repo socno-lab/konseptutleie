@@ -1,4 +1,4 @@
-import {priceMarkup} from './price-display-model.js?v=vat20261115b';
+import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {isRentedOut,rentalSeriesRentedOut,rentalStatusBadge} from './rental-status.js?v=rented20261029b';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
 import {recommendProducts} from './recommendation-model.js?v=fest20261114';

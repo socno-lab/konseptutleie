@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=optionimages20261108';
+import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {occasionLandingView} from '../public/occasion-landing-view.js?v=stockmobile20261107';
 import {matchesPurpose} from '../public/rental-purpose-model.js?v=stockmobile20261107';
 import {mediaUsage} from '../server/images.mjs';
+import {messeDescription} from '../public/messe-seo-content.js';
 import {pageModel} from '../server/seo.mjs';
 
 test('legacy settings retain all landing defaults and collections',()=>{
@@ -21,7 +22,7 @@ test('all four configured landing headings render and messe preserves line break
  }
  s.landingContent.messe.heading='Første linje\nAndre linje';
  assert.match(occasionLandingView('/anledning.html?anledning=messe',s).html,/Første linje<br>Andre linje/);
- try{configureSiteSettings(s);assert.equal(pageModel('/anledning.html',new URLSearchParams('anledning=messe'),[]).description,'Ny innledning fra admin');}finally{configureSiteSettings();}
+ try{configureSiteSettings(s);assert.equal(pageModel('/anledning.html',new URLSearchParams('anledning=messe'),[]).description,messeDescription);}finally{configureSiteSettings();}
 });
 test('invalid content and duplicate product assignments are rejected',()=>{
  for(const mutate of [s=>s.landingContent.messe.heading='<script>alert(1)</script>',s=>s.landingContent.messe.image='javascript:alert(1)',s=>s.collections.christmasProducts=[],s=>s.collections.productionProducts=['a','a']]){

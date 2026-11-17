@@ -1,3 +1,4 @@
+import {osloToday,addDateDays} from '../public/rental-dates.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ratePlan} from '../public/catalog-model.js';
@@ -9,7 +10,7 @@ test('included tree delivery does not remove transport for other products',()=>{
 import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';
 test('server receipt includes tree transport but requires transport price for an additional chair',()=>{
  const chair={id:'chair',name:'Stol',active:true,stock:10,unavailable:0,rentalPricingMode:'manual',price:100,weekPrice:300,monthPrice:500};
- const products=[{...tree,active:true,stock:1,unavailable:0},chair],value={id:'test',kind:'rental',name:'Emilie Eksempel',email:'kunde@example.invalid'},details={phone:'00000000',address:'Eksempelveien 12, 1470 Eksempelsted',occasion:'Bedrift',delivery:'Ønsker levering og henting',start:'2026-11-15',end:'2027-01-15'};
+ const products=[{...tree,active:true,stock:1,unavailable:0},chair],value={id:'test',kind:'rental',name:'Emilie Eksempel',email:'kunde@example.invalid'},details={phone:'00000000',address:'Eksempelveien 12, 1470 Eksempelsted',occasion:'Bedrift',delivery:'Ønsker levering og henting',start:addDateDays(osloToday(),7),end:addDateDays(osloToday(),68)};
  const alone=createEnquirySnapshot(value,{basket:{tree:1},details},products);assert.equal(alone.total,9875);assert.equal(alone.delivery.total,0);assert.match(alone.delivery.label,/inkludert/);
  const mixed=createEnquirySnapshot(value,{basket:{tree:1,chair:1},details},products);assert.equal(mixed.delivery.total,null);assert.equal(mixed.total,null);
  const priced=createEnquirySnapshot(value,{basket:{tree:1,chair:1},details},products,{verifyDelivery:()=>({total:1380})});assert.equal(priced.delivery.total,1380);

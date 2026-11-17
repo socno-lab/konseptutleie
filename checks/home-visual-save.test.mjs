@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import {createServer} from '../app-server.mjs';
-import {defaultSettings,configureSiteSettings,validateSiteSettings} from '../public/site-settings.js?v=optionimages20261108';
+import {defaultSettings,configureSiteSettings,validateSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {memoryStore} from './helpers/memory-store.mjs';
 
 test('visual homepage drafts use the existing validated, revision-checked save and only publish on save',async()=>{

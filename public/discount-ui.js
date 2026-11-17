@@ -1,4 +1,4 @@
-import {priceMarkup} from './price-display-model.js?v=vat20261115b';
+import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 const money=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK',maximumFractionDigits:2}).format(n);
 // No code list is sent to the storefront. Every quote is priced and validated on the server.
 export function mountDiscount(target,payload,{onChange=()=>{}}={}){

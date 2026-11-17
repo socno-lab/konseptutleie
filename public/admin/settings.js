@@ -1,7 +1,7 @@
 import {homeVisualEditor} from './home-visual-editor.js?v=productcopy20261115';
 import {pageEditor,pageEditorAction} from './page-editor.js?v=visual20261114';
 import {landingSettings} from './landing-settings.js?v=fest20261114';
-import {validateSiteSettings,configureSiteSettings} from '/site-settings.js?v=productcopy20261115';
+import {validateSiteSettings,configureSiteSettings} from '/site-settings.js?v=fest20261114';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const visual=homeVisualEditor({root:document.getElementById('homeVisualEditor'),source:document.getElementById('settingsContent')});
 let revision=0,draft,products=[],images=[],panel=new URLSearchParams(location.search).get('panel')==='home'?'home':'categories',dirty=false;

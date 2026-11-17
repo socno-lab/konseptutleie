@@ -18,13 +18,13 @@ class Element {
 function environment(t){
  const original=Object.fromEntries(['document','window','location','sessionStorage','MutationObserver','fetch'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
  const storage=new Map(),window=new Element();let active={};
- Object.assign(globalThis,{window,location:{pathname:'/leieprodukt.html',origin:'https://example.invalid',assign(){}},sessionStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},MutationObserver:class{observe(){}},document:{head:new Element(),createElement:()=>new Element(),getElementById:id=>active[id]||null,querySelector:()=>null}});
+ Object.assign(globalThis,{window,location:{pathname:'/leieprodukt.html',origin:'https://example.invalid',assign(){}},sessionStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},MutationObserver:class{observe(){}},document:Object.assign(new Element(),{head:new Element(),createElement:()=>new Element(),getElementById:id=>active[id]||null,querySelector:()=>null})});
  t.after(()=>{for(const [key,descriptor]of Object.entries(original))if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];});
- return {storage,window,setForm(form){active={cart:new Element(),form};}};
+ return {storage,window,setForm(form){form.parentElement=globalThis.document;active={cart:new Element(),form};}};
 }
 function makeForm(values={}){
  const form=new Element();form.elements=Object.entries({name:'',occasion:'Annet',start:'',end:'',stylist:'yes',stylingNotes:'',rentalTermsAccepted:'v1',termsAccepted:'v1',deliveryToken:'',website:'',...values}).map(([name,value])=>Object.assign(new Element(),{name,value,type:['stylist','rentalTermsAccepted','termsAccepted'].includes(name)?'checkbox':'text'}));
- for(const field of form.elements)field.parentElement=form;form.elements.namedItem=name=>form.elements.find(field=>field.name===name);return form;
+ for(const field of form.elements){field.parentElement=form;field.form=form;}form.elements.namedItem=name=>form.elements.find(field=>field.name===name);return form;
 }
 function coupon(){const elements=Object.fromEntries(['input','#couponApply','#couponRemove','#couponStatus','#couponTotals'].map(selector=>[selector,new Element()]));return {elements,querySelector:selector=>elements[selector],set innerHTML(value){}};}
 const flow=()=>mountEnquiryFlow({cartId:'cart',formId:'form',mode:'rent'});
@@ -33,14 +33,14 @@ test('enquiry navigation preserves explicit stylist choice and notes without con
  const env=environment(t),first=makeForm({name:'Test',occasion:'Bedrift',stylingNotes:'Hjelp med oppsett',deliveryToken:'private-transport-token'});env.setForm(first);flow();
  const occasion=first.elements.namedItem('occasion');assert.equal(occasion.value,'');occasion.value='Bedrift';occasion.dispatchEvent(new Event('change',{bubbles:true}));
  for(const name of ['stylist','rentalTermsAccepted','termsAccepted'])first.elements.namedItem(name).checked=true;
- first.dispatchEvent(new Event('change'));
+ first.elements.namedItem('stylist').dispatchEvent(new Event('change',{bubbles:true}));
  const draft=JSON.parse(env.storage.get('konsept-enquiry-draft-rent'));
  assert.equal(draft.stylist,true);assert.equal(draft.stylingNotes,'Hjelp med oppsett');assert.equal(draft.occasion,'Bedrift');assert.equal(draft.occasionConfirmed,true);
  for(const name of ['rentalTermsAccepted','termsAccepted','deliveryToken','website'])assert.equal(Object.hasOwn(draft,name),false);
  const second=makeForm();env.setForm(second);const restored=flow();
  assert.equal(second.elements.namedItem('stylist').checked,true);assert.equal(second.elements.namedItem('stylingNotes').value,'Hjelp med oppsett');assert.equal(restored.restoredField('occasion'),true);assert.equal(restored.restoredField('termsAccepted'),false);
  assert.equal(second.elements.namedItem('rentalTermsAccepted').checked,false);assert.equal(second.elements.namedItem('deliveryToken').value,'');
- second.elements.namedItem('stylist').checked=false;second.dispatchEvent(new Event('change'));
+ second.elements.namedItem('stylist').checked=false;second.elements.namedItem('stylist').dispatchEvent(new Event('change',{bubbles:true}));
  const third=makeForm();third.elements.namedItem('stylist').checked=true;env.setForm(third);const thirdFlow=flow();assert.equal(third.elements.namedItem('stylist').checked,false);
  thirdFlow.clearDraft();third.dispatchEvent(new Event('input'));assert.equal(env.storage.has('konsept-enquiry-draft-rent'),false);assert.equal(thirdFlow.restoredField('stylist'),false);
 });
@@ -62,7 +62,7 @@ test('legacy occasion drafts are ignored without losing contact, dates or stylin
 
 test('only an occasion field change confirms a choice and navigation preserves that explicit choice',t=>{
  const env=environment(t),key='konsept-enquiry-draft-rent',form=makeForm();env.setForm(form);flow();const occasion=form.elements.namedItem('occasion');
- assert.equal(occasion.value,'');occasion.value='Bedrift';form.dispatchEvent(new Event('change'));assert.equal(JSON.parse(env.storage.get(key)).occasionConfirmed,false);
+ assert.equal(occasion.value,'');occasion.value='Bedrift';form.elements.namedItem('name').dispatchEvent(new Event('change',{bubbles:true}));assert.equal(JSON.parse(env.storage.get(key)).occasionConfirmed,false);
  occasion.dispatchEvent(new Event('input',{bubbles:true}));env.window.dispatchEvent(new Event('pagehide'));assert.equal(JSON.parse(env.storage.get(key)).occasion,'');
  occasion.dispatchEvent(new Event('change',{bubbles:true}));form.elements.namedItem('name').value='Ny kunde';form.elements.namedItem('name').dispatchEvent(new Event('input',{bubbles:true}));env.window.dispatchEvent(new Event('pagehide'));
  assert.equal(JSON.parse(env.storage.get(key)).occasion,'Bedrift');assert.equal(JSON.parse(env.storage.get(key)).occasionConfirmed,true);

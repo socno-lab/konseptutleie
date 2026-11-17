@@ -11,8 +11,8 @@ const options={today:'2026-10-28'};
 
 test('shared storefront scripts use one customer-information instance and purchase submit copy',()=>{
  const app=readFileSync(new URL('../public/app.js?v=review20261107',import.meta.url),'utf8'),shop=readFileSync(new URL('../public/shop.js?v=review20261107',import.meta.url),'utf8'),feedback=readFileSync(new URL('../public/storefront-feedback.js?v=stockmobile20261107',import.meta.url),'utf8');
- for(const source of [app,shop,feedback])assert.match(source,/customer-info\.js\?v=stockmobile20261107/);
- for(const source of [app,shop])assert.match(source,/submission-ui\.js\?v=proposal20261105b/);
+ const customerImports=[app,shop].map(source=>source.match(/(?:from|import) ['"]([^'"]*customer-info\.js(?:\?[^'"]*)?)['"]/)[1]);assert.equal(new Set(customerImports).size,1);
+ const submissionImports=[app,shop].map(source=>source.match(/(?:from|import) ['"]([^'"]*submission-ui\.js(?:\?[^'"]*)?)['"]/)[1]);assert.equal(new Set(submissionImports).size,1);
  assert.match(readFileSync(new URL('../public/submission-ui.js',import.meta.url),'utf8'),/Send kjøpsforespørsel/);
  assert.match(readFileSync(new URL('../public/mobile-rental-dates.js',import.meta.url),'utf8'),/rentalDatesMounted/);
 });

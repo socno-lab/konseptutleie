@@ -1,4 +1,4 @@
-import {priceMarkup} from './price-display-model.js?v=vat20261115b';
+import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {customerInformationPages} from './customer-information-content.js?v=vat20261115b';
 import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
 import {mountMobileRentalDates} from './mobile-rental-dates.js?v=period20261028e';
