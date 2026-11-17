@@ -58,3 +58,32 @@ test('no-JavaScript sale amounts retain cents rather than rounding the published
  const sale={id:'sale',name:'Bord',active:true,saleEnabled:true,salePrice:999.9};
  assert.match(productCards([sale],true),/999,90 kr inkl\. mva\./);
 });
+
+test('descriptive sofa search metadata leaves product identity, visible content and rates unchanged',()=>{
+ const settings=site(),module={...products[0],id:'module',name:'Lys beige – hjørne-/endemodul',category:'Sofaer',isPackage:false,moduleSeries:'Modulsofa, lys beige',moduleRole:'end'};
+ const catalogue=[module],snapshot=JSON.stringify(catalogue);
+ const model=pageModel('/leieprodukt.html',new URLSearchParams('produkt=module&bruk=messe&prisbruk=messe'),catalogue,settings);
+ assert.equal(model.title,'Lei modulsofa i lys beige – hjørne-/endemodul | Konseptuell');
+ assert.equal(model.h1,module.name);assert.equal(model.product,module);assert.equal(model.canonical,'/leieprodukt.html?produkt=module');
+ const oldCopy={...model,title:'Lei '+module.name+' | Konseptuell',description:'Lei '+module.name+'. '+module.material+'. Velg leieperiode og send en forespørsel om tilgjengelighet.'};
+ const body=m=>renderSeo(source,m,catalogue,true,settings).split('</head>')[1];
+ assert.equal(body(model),body(oldCopy));assert.equal(JSON.stringify(catalogue),snapshot);
+ const namedModule={...module,name:'Kid Isa – venstre endemodul, natur'};
+ assert.match(pageModel('/leieprodukt.html',new URLSearchParams('produkt=module'),[namedModule],settings).title,/Lei sofamodul – Kid Isa/);
+ const namedSofa={...module,name:'Senzo grunnsofa'};
+ assert.equal(pageModel('/leieprodukt.html',new URLSearchParams('produkt=module'),[namedSofa],settings).title,'Lei Senzo grunnsofa | Konseptuell');
+});
+
+test('category search copy describes the rental use without changing filters, housing or purchase context',()=>{
+ const settings=site(),catalogue=[{...products[3],id:'bed',category:'Senger'},{...products[3],id:'stylist',category:'Styling'},{...products[3],id:'custom',category:'custom_id'}];
+ settings.categories.push({id:'custom_id',label:'Speil',subcategories:[]});
+ const model=pageModel('/utvalg.html',new URLSearchParams('kategori=Senger'),catalogue,settings);
+ assert.match(model.description,/gjester, midlertidig overnatting og boligfoto/);assert.equal(model.h1,'Senger til leie');assert.deepEqual(model.items.map(p=>p.id),['bed']);
+ const body=m=>renderSeo(source,m,catalogue,true,settings).split('</head>')[1];
+ assert.equal(body(model),body({...model,description:'Lei senger til event, messe og midlertidige rom.'}));
+ assert.match(pageModel('/utvalg.html',new URLSearchParams('kategori=Styling'),catalogue,settings).description,/hjelp med styling og sesongdekor/);
+ assert.match(pageModel('/utvalg.html',new URLSearchParams('kategori=custom_id'),catalogue,settings).description,/Lei speil til boligfoto/);
+ assert.match(pageModel('/utvalg.html',new URLSearchParams('kategori=Senger&bruk=boligsalg'),catalogue,settings).description,/Lei enkeltmøbler til boligfoto/);
+ assert.match(pageModel('/utvalg.html',new URLSearchParams('kategori=Dekor'),catalogue,settings).description,/Enkeltdekor leies ikke ut separat/);
+ assert.match(pageModel('/kjop.html',new URLSearchParams(),catalogue,settings).description,/Se nye møbler og interiør fra salgssortimentet/);
+});
