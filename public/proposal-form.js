@@ -1,3 +1,4 @@
+import {proposalInitialValues} from './proposal-draft.js';
 import {submitEnquiry} from './submission-ui.js?v=review20261107';
 const form=document.getElementById('proposalForm'),main=document.getElementById('proposalMain'),status=document.getElementById('proposalStatus');
 const draftKey='konsept-proposal-draft-v1',fields=['customRequest','period','place','budget','name','email','phone','company'];
@@ -5,7 +6,7 @@ const read=(storage,key,fallback)=>{try{return JSON.parse(storage.getItem(key)||
 const basket=read(localStorage,'konsept-cart-v1',{}),count=basket&&typeof basket==='object'&&!Array.isArray(basket)?Object.values(basket).filter(q=>Number.isInteger(q)&&q>0).reduce((a,b)=>a+b,0):0;
 if(count){try{const saved=JSON.parse(sessionStorage.getItem('konsept-custom-request-v1')||'null');sessionStorage.setItem('konsept-custom-request-v1',JSON.stringify({active:true,text:typeof saved?.text==='string'?saved.text.slice(0,3000):''}));}catch{}location.replace('/foresporsel.html');}else{
  const custom=read(sessionStorage,'konsept-custom-request-v1',{}),rent=read(sessionStorage,'konsept-enquiry-draft-rent',{}),draft=read(sessionStorage,draftKey,null);
- const initial=draft||{...Object.fromEntries(['name','email','phone','company'].map(key=>[key,rent[key]||''])),customRequest:custom.text||'',period:rent.start&&rent.end?rent.start+' – '+rent.end:''};
+ const initial=proposalInitialValues({draft,rent,custom});
  if(initial.customRequest?.trim()==='Jeg ønsker et forslag til julepynt tilpasset våre lokaler.')initial.customRequest='';
  for(const key of fields)if(typeof initial[key]==='string')form.elements.namedItem(key).value=initial[key];
  // A free-form enquiry is separate from the product basket, including old drafts.
@@ -14,7 +15,7 @@ if(count){try{const saved=JSON.parse(sessionStorage.getItem('konsept-custom-requ
  document.getElementById('openCart')?.addEventListener('click',()=>main.scrollIntoView({behavior:'smooth'}));
  const occasionNames={produksjon:'Foto, film og reklame',messe:'Messe og stand',event:'Event og selskap',bedrift:'Bedrift',fest:'Bryllup og fest',jul:'Fest og sesong',boligsalg:'Boligfoto og visning'};
  const occasion=document.createElement('input');occasion.type='hidden';occasion.name='occasion';occasion.value=occasionNames[new URL(location.href).searchParams.get('bruk')]||'';form.append(occasion);
- const saveDraft=()=>{const value=Object.fromEntries(fields.map(key=>[key,form.elements.namedItem(key).value]));try{sessionStorage.setItem(draftKey,JSON.stringify(value));}catch{}};
+ const saveDraft=()=>{const value=Object.fromEntries(fields.map(key=>[key,form.elements.namedItem(key).value]));try{sessionStorage.setItem(draftKey,JSON.stringify({...value,periodSource:'customer'}));}catch{}};
  form.addEventListener('input',saveDraft);window.addEventListener('pagehide',saveDraft);
  let busy=false;
  form.addEventListener('submit',async event=>{
