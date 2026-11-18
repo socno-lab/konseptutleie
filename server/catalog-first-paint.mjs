@@ -2,7 +2,8 @@ import {rentalCatalogView} from '../public/rental-catalog-view.js?v=vat20261115b
 import {renderCatalogCard} from '../public/catalog-card-markup.js';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
-import {subcategoryButtons} from '../public/catalog-subcategories.js?v=fest20261114';
+import {countedSubcategoryButtons as subcategoryButtons} from '../public/catalog-filter-count.js?v=counts20261118';
+import {rentalSubcategoryCounts} from '../public/catalog-filters.js';
 import {renderArrowIcons} from './arrow-icons.mjs';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function catalogFirstPaint(html,model,catalogProducts,settings){
@@ -15,7 +16,7 @@ export function catalogFirstPaint(html,model,catalogProducts,settings){
   const view=rentalCatalogView({products,settings,purpose:model.catalogUsage.purpose,filter,tableFilter:model.catalogCategory==='Modulsofaer'?'Modulsofaer':model.catalogSubcategory,query:model.catalogQuery,rentalScopeConfirmed:model.catalogUsage.confirmed});
   html=html.replace(/(<p id="purposeResults"[^>]*>)[\s\S]*?<\/p>/,(_,open)=>open+escape(view.desktopCount)+'</p>');
   html=html.replace(/(<p id="mobileCatalogResults"[^>]*>)[\s\S]*?<\/p>/,(_,open)=>open+escape(view.mobileCount)+'</p>');
-  const subcategories='<div id="rentalTableTypes" class="catalog-subcategories" role="group" aria-label="Underkategorier"'+(view.types.length?'':' hidden')+'>'+subcategoryButtons(view.types,view.tableFilter,filter)+'</div>';
+  const subcategories='<div id="rentalTableTypes" class="catalog-subcategories" role="group" aria-label="Underkategorier"'+(view.types.length?'':' hidden')+'>'+subcategoryButtons(view.types,view.tableFilter,filter,rentalSubcategoryCounts(products,settings,model.catalogUsage.purpose,filter,model.catalogQuery,view.types))+'</div>';
   html=html.replace('<p id="mobileCatalogResults"',()=>subcategories+'<p id="mobileCatalogResults"');
   html=html.replace('<aside class="catalog-request"','<aside hidden class="catalog-request"');
   if(filter==='Dekor'){html=html.replace(/(<p id="mobileCatalogResults"[^>]*>)[\s\S]*?<\/p>/,'$1</p>');}
