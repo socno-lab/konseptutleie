@@ -5,6 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {priceDisplayScript} from '../server/price-display-script.mjs';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 import {formatPrice,priceDisplayKey,priceDefaultKey} from '../public/price-display-model.js';
+import {pricePickerContent} from '../public/price-display-markup.js';
 
 const source=await priceDisplayScript();
 const storage=(values={})=>{const data=new Map(Object.entries(values));return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,String(value)),removeItem:key=>data.delete(key)};};
@@ -53,7 +54,7 @@ function browser({local={},session={},url='https://konseptuell.no/utvalg.html',b
  const context=vm.createContext({document,window,location:{href:url},URL,Intl,MutationObserver,NodeFilter:{SHOW_TEXT:4},Node:{ELEMENT_NODE:1,TEXT_NODE:3},console});
  const element=(tag,attrs={},text)=>{const node=new Element(tag);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);if(text!==undefined)node.append(text);return node;};
  const dispatch=(name,event={})=>{for(const handler of listeners.get(name)||[])handler(event);};
- return {document,window,listeners,windowListeners,observers,localStore,sessionStore,element,get created(){return created;},run(){vm.runInContext(source,context);},body(...nodes){const body=element('body');body.append(...nodes);document.body=body;document.documentElement.append(body);this.flush([{type:'childList',target:document.documentElement,addedNodes:[body]}]);return body;},flush(records=[]){for(const observer of observers.filter(o=>o.active))observer.callback(records,observer);},ready(){document.readyState='interactive';dispatch('DOMContentLoaded');},click(mode){dispatch('click',{target:element('button',{'data-price-mode':mode})});},context(detail){dispatch('rental-price-display-context',{detail});}};
+ return {document,window,listeners,windowListeners,observers,localStore,sessionStore,element,get created(){return created;},run(){vm.runInContext(source,context);},body(...nodes){const body=element('body');body.append(...nodes);document.body=body;document.documentElement.append(body);this.flush([{type:'childList',target:document.documentElement,addedNodes:[body]}]);return body;},flush(records=[]){for(const observer of observers.filter(o=>o.active))observer.callback(records,observer);},ready(){document.readyState='interactive';dispatch('DOMContentLoaded');},click(mode,target=element('button',{'data-price-mode':mode})){dispatch('click',{target});},context(detail){dispatch('rental-price-display-context',{detail});}};
 }
 
 test('generated VAT runtime is standalone, checked in, and loaded synchronously before body',async()=>{
@@ -98,6 +99,28 @@ test('one controller retains original captions across parsing, readiness and rep
  assert.equal(caption.textContent,'Leiepriser ekskl. mva.');assert.equal(host.childNodes.length,0);
  b.ready();assert.equal(b.observers.length,1);assert.equal(b.listeners.get('click').length,1);assert.equal(b.listeners.get('rental-price-display-context').length,1);assert.equal(b.windowListeners.get('storage').length,1);assert.equal(host.querySelectorAll('.price-display-picker').length,1);
  for(const mode of ['incl','excl','incl']){b.click(mode);assert.equal(caption.textContent,mode==='incl'?'Leiepriser inkl. mva.':'Leiepriser ekskl. mva.');assert.equal(price.textContent,formatPrice(mode==='incl'?400:320));assert.equal(price.dataset.priceGross,'400');assert.equal(host.querySelectorAll('.price-display-picker').length,1);}
+});
+
+test('server-rendered VAT buttons use the saved mode before DOM ready and retain identity through hydration',()=>{
+ for(const [saved,serverMode,purpose] of [['excl','incl','boligsalg'],['incl','excl','messe']]){
+  const b=browser({local:{[priceDisplayKey]:saved},url:'https://konseptuell.no/utvalg.html?bruk='+purpose});b.run();
+  const host=b.element('section',{id:'catalogUsage',class:'catalog-usage has-price-display'});
+  const picker=b.element('div',{class:'price-display-picker',role:'group','aria-label':'Vis priser'});picker.innerHTML=pricePickerContent(serverMode);
+  const incl=picker.querySelector('[data-price-mode="incl"]'),excl=picker.querySelector('[data-price-mode="excl"]');
+  assert.equal(incl.getAttribute('aria-pressed'),String(serverMode==='incl'));assert.equal(excl.getAttribute('aria-pressed'),String(serverMode==='excl'));
+  const price=b.element('span',{'data-price-gross':'3949'},formatPrice(3949));host.append(picker);b.body(host,price);
+  const check=mode=>{
+   assert.equal(host.querySelector('.price-display-picker'),picker);assert.equal(picker.querySelector('[data-price-mode="incl"]'),incl);assert.equal(picker.querySelector('[data-price-mode="excl"]'),excl);
+   assert.equal(incl.getAttribute('aria-pressed'),String(mode==='incl'));assert.equal(excl.getAttribute('aria-pressed'),String(mode==='excl'));
+   assert.equal(incl.textContent,'Inkl. mva.');assert.equal(excl.textContent,'Ekskl. mva.');assert.equal(b.document.querySelectorAll('.price-display-picker').length,1);
+   assert.equal(price.textContent,formatPrice(mode==='incl'?3949:3159.2));assert.equal(price.dataset.priceGross,'3949');
+  };
+  check(saved);assert.equal(b.document.readyState,'loading');assert.equal(b.created,0,'existing controls must be updated without constructing replacements');
+  b.ready();check(saved);assert.match(host.className,/(?:^|\s)has-price-display(?:\s|$)/);
+  b.context({purpose});check(saved);
+  for(const mode of ['incl','excl','incl']){b.click(mode,mode==='incl'?incl:excl);check(mode);b.flush();check(mode);}
+  assert.equal(b.observers.length,1);assert.equal(b.listeners.get('click').length,1);
+ }
 });
 
 test('parser continuation restores original text without retaining an early excl substitution',()=>{

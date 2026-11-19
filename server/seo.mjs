@@ -9,7 +9,7 @@ import {productFirstPaint} from './product-first-paint.mjs';
 import {saleCatalogFirstPaint} from './sale-catalog-first-paint.mjs';
 import {catalogFirstPaint} from './catalog-first-paint.mjs';
 import {catalogFilters} from '../public/catalog-filters.js';
-import {catalogUsageMarkup} from '../public/catalog-usage-markup.js?v=fest20261114';
+import {catalogUsageMarkup} from '../public/catalog-usage-markup.js?v=pickerfirst20261119';
 import {validPurpose} from '../public/rental-purpose-model.js?v=fest20261114';
 import {rentalUsageState} from '../public/rental-usage-model.js?v=fest20261114';
 import {renderMesseLanding} from '../public/messe-landing.js?v=fest20261114';
@@ -114,7 +114,7 @@ export function renderSeo(source,m,products,indexable,settings=getSiteSettings()
  const tags=`<meta name="robots" content="${indexable&&m.status===200?'index,follow,max-image-preview:large':'noindex,nofollow,noarchive'}"><meta name="description" content="${e(m.description)}"><link rel="canonical" href="${e(siteOrigin+m.canonical)}"><meta property="og:locale" content="nb_NO"><meta property="og:type" content="${m.buy&&m.product?'product':'website'}"><meta property="og:site_name" content="Konseptuell"><meta property="og:title" content="${e(m.title)}"><meta property="og:description" content="${e(m.description)}"><meta property="og:url" content="${e(siteOrigin+m.canonical)}"><meta property="og:image" content="${e(imageUrl)}"><meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">${structuredData(m,settings)}</script>`;
  html=html.replace('</head>',()=>tags+'</head>');
  if(m.catalogUsage)html=html.replace(/(<div class="filters"[^>]*>)[\s\S]*?<\/div>/,(_,open)=>open+catalogFilters(products.filter(p=>p.rentalEnabled!==false),settings,m.catalogCategory,m.catalogUsage.purpose,m.catalogQuery,m.catalogRefinement)+'</div>');
- if(m.catalogUsage)html=html.replace('<section id="catalogUsage" aria-labelledby="catalogUsageHeading"></section>',()=>'<section id="catalogUsage" class="catalog-usage" aria-labelledby="catalogUsageHeading">'+catalogUsageMarkup(m.catalogUsage)+'</section>');
+ if(m.catalogUsage)html=html.replace('<section id="catalogUsage" aria-labelledby="catalogUsageHeading"></section>',()=>'<section id="catalogUsage" class="catalog-usage has-price-display" aria-labelledby="catalogUsageHeading">'+catalogUsageMarkup(m.catalogUsage)+'</section>');
  if(m.canonical==='/')html=html.replace(/(<div id="homeUseCases"[^>]*>)[\s\S]*?<\/div>/,(_match,open)=>open+homeOccasionCards(products,settings)+'</div>');
  if(['/leieprodukt.html','/kjopsprodukt.html'].includes(m.canonical.split('?')[0]))html=html.replace('<main>',()=>'<main><noscript><style>#productPageHost{display:none!important}</style>'+productContent(m,products)+'</noscript>');
  else if(m.canonical.startsWith('/utvalg.html'))html=html.replace(/<h2>Et utvalg å bygge på\.<\/h2>/,()=>'<h1>'+e(m.h1)+'</h1>').replace(/<p id="catalogIntro">[\s\S]*?<\/p>/,()=>'<p id="catalogIntro">'+(m.catalogIntro||catalogIntroHtml())+'</p>').replace('<div id="products" class="products"></div>',()=>'<noscript><style>#products{display:none!important}</style><div class="products">'+productCards(m.items,m.buy,m.catalogUsage)+'</div></noscript><div id="products" class="products"></div>');

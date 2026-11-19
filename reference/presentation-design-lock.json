@@ -10,7 +10,7 @@
     "server/enquiry-email.mjs": "04a43992ad8e4eb2e72090bc91fb0d3064b7f202676f5060fc26f0f660a94a73",
     "confirmation-rendering": "2d7e8aa64524ea1986e16b912fc6f804e260cb224c3439118f2e2e5694f757cc",
     "public/price-display.css": "5e22d3eb79a05bd4ff56fa32c42aa529ddb485160749620d29457f5ced204e31",
-    "public/price-display.js": "ff0b5e28c792c281fb12da8f230c4103a568926c824cba9d23f33bb2769673ae",
+    "public/price-display.js": "541f6dfc9b7f6d93fb8a99a65e36714d178df0ed375c8d94fa03e65141a25374",
     "public/catalog-search-alignment.css": "6e66143a35caf494176f4132c5ec35752dcd94e11e5ab81ded89009d84bafa92",
     "public/cart-usage-compact.css": "9a1285b18213dc94b281fd072fac9c8c5411a4205d30e4369c2a79731490f646"
   },
@@ -61,5 +61,9 @@
   "vatFirstPaintReview20261119": {
     "reason": "Eier meldte at lagret ekskl. mva. først ble brukt etter innlasting. Samme prismodell og kontroller kjøres nå i ett klassisk head-script før appmodulene; kontrollenes eksisterende markup og CSS beholdes.",
     "verified": "Katalog med appmoduler deaktivert viser korrekt lagret ekskl. mva., riktige beløp og SSR-kategori. Tilbakebytte til inkl. og videre vanlig innlasting kontrollert. Tester dekker før DOMContentLoaded, delt parsing, lagringsfallback og bevarte bruttobeløp/skjemafelt. Forside sammenlignet ved 1280/390/320 px med eksisterende bildegeometri uten horisontal scrolling. Kun kontrollerens fingerprint er bevisst oppdatert."
+  },
+  "vatPickerFirstPaintReview20261119": {
+    "reason": "Eier meldte blinking i katalogens inkl./ekskl.-knapper ved innlasting. Prisvelgeren leveres nå i første HTML med delt markup og korrekt standard; lagret valg settes under parsing. Oppstarten gjenbruker knappene og beholder has-price-display-klassen.",
+    "verified": "Nøyaktig samme katalog- og knappekoordinater ved 1280 px med hovedmodulene deaktivert og etter vanlig oppstart. Lagret ekskl., begge prisvalg og bruksområdedialog kontrollert. Mobil 390 px beholder eksisterende tekstlenke og ingen horisontal scrolling. Forside ved 1280/390/320 px beholder kolonner og bildeforhold (169,5 × 147,4 px ved 390), med kjent manglende bilde i lokal katalogkopi. Ingen CSS, prisberegning eller innsending er endret. Bare kontrollerens fingerprint oppdateres bevisst."
   }
 }

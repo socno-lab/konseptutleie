@@ -1,4 +1,4 @@
-import {catalogUsageMarkup} from './catalog-usage-markup.js?v=fest20261114';
+import {catalogUsageMarkup} from './catalog-usage-markup.js?v=pickerfirst20261119';
 import {purposes} from './rental-purpose-model.js?v=fest20261114';
 import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from './rental-usage-model.js?v=fest20261114';
 import {proposedCatalogUsage,catalogUsageLabel} from './catalog-usage-model.js?v=fest20261114';
@@ -8,9 +8,12 @@ const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 // Stage choices locally: nothing changes in the catalogue or basket until Apply.
 export function mountCatalogUsage(host,{state,apply,impact=()=>''}){
  if(!host)return null;
- host.className='catalog-usage';
- if(!host.querySelector('#catalogUsageButton'))host.innerHTML=catalogUsageMarkup();
- const button=host.querySelector('button'),dialog=document.createElement('dialog');
+ host.classList.add('catalog-usage','has-price-display');
+ if(!host.querySelector('#catalogUsageButton')){
+  const current=state();
+  host.innerHTML=catalogUsageMarkup({purpose:current.currentPurpose,scope:current.currentScope,confirmed:current.confirmed});
+ }
+ const button=host.querySelector('#catalogUsageButton'),dialog=document.createElement('dialog');
  dialog.id='catalogUsageDialog';dialog.className='catalog-usage-dialog';dialog.setAttribute('aria-labelledby','catalogUsageTitle');
  dialog.innerHTML='<div class="catalog-usage-heading"><h2 id="catalogUsageTitle">Hva skal du bruke møblene til?</h2><button type="button" class="close" data-usage-close aria-label="Lukk valg av bruksområde">✕</button></div><p class="hint">'+rentalUsageExplanation+' Boligfoto og visning har egne leiepriser. Arrangementer og annen bruk har samme prismodell.</p><div class="catalog-usage-purposes" role="group" aria-label="Velg bruksområde">'+purposes.map(p=>'<button type="button" data-catalog-purpose="'+p.id+'" aria-pressed="false">'+escape(p.label)+'</button>').join('')+'</div><div data-usage-basis></div><div class="catalog-usage-impact" data-usage-impact role="status" hidden></div><p class="hint">Alle leiepriser inkluderer mva. Transport, tilgjengelighet og endelig tilbud bekreftes separat.</p><div class="catalog-usage-actions"><button type="button" class="button button-outline" data-usage-close>Avbryt</button><button type="button" class="button dark" data-usage-apply>Bekreft</button></div>';
  document.body.append(dialog);
