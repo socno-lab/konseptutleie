@@ -20,6 +20,9 @@ function mountPriceDisplay(){
  function refresh(){
   observer.disconnect();
   document.documentElement.dataset.priceMode=mode;
+  // During parsing, only project existing price text. Mount controls once the
+  // body is complete so the parser cannot append content after those controls.
+  if(document.readyState!=='loading'){
   const usage=document.getElementById('catalogUsage');
   if(usage){usage.classList.add('has-price-display');atHost(usage);}
   else atHost(document.getElementById('catalogPricingScope'));
@@ -35,6 +38,7 @@ function mountPriceDisplay(){
   }
   for(const button of document.querySelectorAll('.mobile-price-switch'))button.textContent=mode==='incl'?'Vis priser ekskl. mva.':'Vis priser inkl. mva.';
   for(const button of document.querySelectorAll('button[data-price-mode]'))button.setAttribute('aria-pressed',String(button.dataset.priceMode===mode));
+  }
   for(const node of document.querySelectorAll('[data-price-gross]')){
    const gross=Number(node.dataset.priceGross);if(!Number.isFinite(gross))continue;
    const fixed=node.dataset.priceFixed;
@@ -45,11 +49,11 @@ function mountPriceDisplay(){
    const walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT);let node;
    while((node=walker.nextNode())){
     if(node.parentElement.closest('.price-display-picker,.mobile-price-switch,[data-price-gross],[data-price-fixed],input,textarea,select,script,style'))continue;
-    const last=labels.get(node),original=last&&node.data===last.shown?last.original:node.data;
+    const last=labels.get(node),original=last&&node.data===last.shown?last.original:last&&document.readyState==='loading'&&node.data.startsWith(last.shown)?last.original+node.data.slice(last.shown.length):node.data;
     const shown=taxDisplayText(original,mode);if(shown!==node.data)node.data=shown;labels.set(node,{original,shown});
    }
   }
-  observer.observe(document.body,{childList:true,subtree:true,characterData:true});
+  observer.observe(document.documentElement,{childList:true,subtree:true,characterData:true});
  }
  const observer=new MutationObserver(refresh);
  document.addEventListener('click',event=>{
@@ -61,8 +65,9 @@ function mountPriceDisplay(){
  document.addEventListener('rental-price-display-context',event=>{const automatic=saveDefaultPriceMode(event.detail||{},local(),session());mode=explicitMode||automatic;refresh();});
  window.addEventListener('storage',event=>{if([priceDisplayKey,priceDefaultKey,null].includes(event.key)){if(event.key!==priceDefaultKey)explicitMode=null;try{session()?.removeItem(event.key||priceDisplayKey);}catch{}mode=explicitMode||readPriceMode(local(),session());refresh();}});
  window.addEventListener('pageshow',()=>{mode=explicitMode||readPriceMode(local(),session());refresh();});
+ document.addEventListener('DOMContentLoaded',refresh,{once:true});
  refresh();
 }
 if(typeof document!=='undefined'&&typeof window!=='undefined'){
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountPriceDisplay,{once:true});else mountPriceDisplay();
+ mountPriceDisplay();
 }

@@ -10,7 +10,7 @@
     "server/enquiry-email.mjs": "04a43992ad8e4eb2e72090bc91fb0d3064b7f202676f5060fc26f0f660a94a73",
     "confirmation-rendering": "2d7e8aa64524ea1986e16b912fc6f804e260cb224c3439118f2e2e5694f757cc",
     "public/price-display.css": "5e22d3eb79a05bd4ff56fa32c42aa529ddb485160749620d29457f5ced204e31",
-    "public/price-display.js": "8d305309effdc684269c557ed45500b5d788092dceffe2b5ab5dd88c68a5f455",
+    "public/price-display.js": "ff0b5e28c792c281fb12da8f230c4103a568926c824cba9d23f33bb2769673ae",
     "public/catalog-search-alignment.css": "6e66143a35caf494176f4132c5ec35752dcd94e11e5ab81ded89009d84bafa92",
     "public/cart-usage-compact.css": "9a1285b18213dc94b281fd072fac9c8c5411a4205d30e4369c2a79731490f646"
   },
@@ -57,5 +57,9 @@
   "vatDefaultsApproved20261116": {
     "reason": "Eier bestilte ekskl. mva. som automatisk standard for bedriftsrelaterte bruksområder og inkl. mva. for private, med kundens aktive prisvalg som varig overstyring.",
     "verified": "Kun standardvalg og lagring er endret; eksisterende prisvelger-markup og CSS beholdes. Lokal test: messe ekskl. → fest inkl.; aktivt inkl. beholdes ved Bedrift, produktside og kurv; aktivt ekskl. beholdes på Kjøpe og boligfoto på mobil. Kurvvisning 300 → 240 kr med data-price-gross=300 og identiske skjemafelt. Mobil 390 px uten overflow. Beregnings- og innsendingstester består."
+  },
+  "vatFirstPaintReview20261119": {
+    "reason": "Eier meldte at lagret ekskl. mva. først ble brukt etter innlasting. Samme prismodell og kontroller kjøres nå i ett klassisk head-script før appmodulene; kontrollenes eksisterende markup og CSS beholdes.",
+    "verified": "Katalog med appmoduler deaktivert viser korrekt lagret ekskl. mva., riktige beløp og SSR-kategori. Tilbakebytte til inkl. og videre vanlig innlasting kontrollert. Tester dekker før DOMContentLoaded, delt parsing, lagringsfallback og bevarte bruttobeløp/skjemafelt. Forside sammenlignet ved 1280/390/320 px med eksisterende bildegeometri uten horisontal scrolling. Kun kontrollerens fingerprint er bevisst oppdatert."
   }
 }

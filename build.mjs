@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {assertPriceDisplayScript} from './server/price-display-script.mjs';
 import {homeOccasionCards} from './public/home-occasions.js';
 import {defaultSettings} from './public/site-settings.js';
 import {assertPresentationLock} from './server/presentation-lock.mjs';
@@ -17,6 +18,7 @@ const occasionImages=[...homeOccasionCards(products,defaultSettings).matchAll(/<
 assert.equal(occasionImages.length,defaultSettings.home.occasions.filter(c=>c.visible!==false).length);
 assert.ok(occasionImages.length>=6,'Homepage loading check must cover the second row.');
 for(const image of occasionImages)assert.match(image,/loading="eager"/,'Every homepage occasion image must load eagerly.');
+await assertPriceDisplayScript();
 await assertStorefrontFont();
 await assertDesignLock();
 await assertPresentationLock();
