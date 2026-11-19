@@ -1,3 +1,5 @@
+import {randomBytes} from 'node:crypto';
+import {createAdminCodeSender,adminCookie} from './server/admin-email-code.mjs';
 import {initialSiteData} from './server/initial-site-data.mjs';
 import {proposalPageHtml} from './server/proposal-page.mjs';
 import {enquiryHealth} from './server/enquiry-health.mjs';
@@ -43,7 +45,8 @@ export function createServer(options={}){
  const origin=options.origin||env.APP_ORIGIN||'https://blueviolet-ant-597153.hostingersite.com';
  // Only the configured HTTPS origin opts in; do not impose HTTPS on local HTTP previews or unrelated subdomains.
  const transportSecurity=new URL(origin).protocol==='https:'?{'Strict-Transport-Security':'max-age=31536000'}:{};
- const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session':'konsept_session';
+ const setupKey=options.setupKey??env.ADMIN_SETUP_KEY??'',secure=options.secureCookies??true,cookieName=secure?'__Host-konsept_session_mfa':'konsept_session_mfa',challengeCookie=secure?'__Host-konsept_login':'konsept_login';
+ const adminCodes=createAdminCodeSender(env,store,options.sendAdminMail);
  const submissions=createSubmissionSender(env,store,options.sendMail);
  const delivery=createDeliveryEstimator(env,options.deliveryFetch,{reserve:store.enabled?now=>store.reserveDeliveryCall(now):undefined});
  async function readCatalog(){const data=await store.readCatalog(),site=store.readSiteSettings?await store.readSiteSettings():{settings:defaultSettings};const settings=configureSiteSettings(site.settings);return {...data,settings};}
@@ -74,7 +77,7 @@ export function createServer(options={}){
     const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));
     if(!release)return out(429,{error:'For mange forespørsler. Vent litt og prøv igjen.'},{'Retry-After':'60'});
     res.once('finish',release);res.once('close',release);
-    if(['/api/admin/login','/api/admin/setup','/api/admin/password'].includes(pathname)&&!['GET','HEAD'].includes(req.method)){
+    if(['/api/admin/login','/api/admin/login/verify','/api/admin/setup','/api/admin/password'].includes(pathname)&&!['GET','HEAD'].includes(req.method)){
      const releaseAuth=enterAuth('auth');if(!releaseAuth)return out(429,{error:'Innlogging er opptatt. Vent litt og prøv igjen.'},{'Retry-After':'5'});
      res.once('finish',releaseAuth);res.once('close',releaseAuth);
     }
@@ -106,7 +109,7 @@ export function createServer(options={}){
      if(typeof data.email!=='string'||data.email.length>254||!/^\S+@\S+\.\S+$/.test(data.email)||typeof data.password!=='string'||data.password.length<12||data.password.length>128)return out(400,{error:'Oppgi gyldig e-post og et passord på 12–128 tegn.'});
      const created=await store.createAdmin(data.email.trim().toLowerCase(),await hashPassword(data.password));
      if(!created)return out(409,{error:'Administrator er allerede opprettet.'});
-     return out(200,{ok:true},{'Set-Cookie':await issueSession(store,cookieName,secure)});
+     return out(200,{ok:true,loginRequired:true});
     }
     if(pathname==='/api/admin/login'&&req.method==='POST'){
      if(!await store.attempt(digest('login:'+req.socket.remoteAddress)))return out(429,{error:'For mange forsøk. Vent 15 minutter.'});
@@ -114,8 +117,16 @@ export function createServer(options={}){
      if(typeof data.email!=='string'||typeof data.password!=='string'||data.password.length>128)return out(401,{error:'Feil e-post eller passord.'});
      const verified=user&&await verifyPassword(data.password,user.passwordHash);
      if(!verified||!secretEqual(data.email.trim().toLowerCase(),user.email))return out(401,{error:'Feil e-post eller passord.'});
+     const token=await adminCodes.begin(user);
      await store.resetAttempts(digest('login:'+req.socket.remoteAddress));
-     return out(200,{ok:true},{'Set-Cookie':await issueSession(store,cookieName,secure)});
+     return out(200,{ok:true,codeRequired:true,expiresIn:600},{'Set-Cookie':adminCookie(challengeCookie,token,secure,600)});
+    }
+    if(pathname==='/api/admin/login/verify'&&req.method==='POST'){
+     const data=await json(req,1000),pending=sessionToken(req,challengeCookie);
+     if(pending.length!==43||typeof data.code!=='string'||!/^\d{6}$/.test(data.code))return out(401,{error:'Oppgi en gyldig sekssifret kode. Ved utløpt kode må du logge inn på nytt.'});
+     const token=randomBytes(32).toString('base64url');
+     if(!await store.consumeAdminCode(digest(pending),digest(pending+':'+data.code),digest(token),Date.now()))return out(401,{error:'Feil eller utløpt kode. Etter fem feil må du logge inn på nytt.'});
+     return out(200,{ok:true},{'Set-Cookie':[adminCookie(cookieName,token,secure,28800),expiredCookie(challengeCookie,secure)]});
     }
     if(pathname==='/api/admin/logout'&&req.method==='POST'){
      const token=sessionToken(req,cookieName);if(token)await store.removeSession(digest(token));return out(200,{ok:true},{'Set-Cookie':expiredCookie(cookieName,secure)});
@@ -226,7 +237,7 @@ export function createServer(options={}){
   }
  });
  const emailTimer=setInterval(()=>void submissions.flush(),60000);emailTimer.unref();
- server.once('listening',()=>void submissions.flush());server.once('close',()=>{clearInterval(emailTimer);submissions.close();});
+ server.once('listening',()=>void submissions.flush());server.once('close',()=>{clearInterval(emailTimer);submissions.close();adminCodes.close();});
  server.requestTimeout=30000;server.headersTimeout=15000;server.maxHeadersCount=64;server.maxRequestsPerSocket=200;
  return server;
 }

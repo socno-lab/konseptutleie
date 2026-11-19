@@ -23,7 +23,7 @@ test('HTTP public projection shares a short cache while auth and admin reads sta
  const store=await memoryStore(),originalRead=store.readCatalog.bind(store);let reads=0,settingsReads=0,site={revision:1,settings:structuredClone(defaultSettings)};
  site.settings.home.products=[];site.settings.home.packages=[];site.settings.home.occasions.forEach(c=>{c.productId='';});
  store.readCatalog=async()=>{reads++;return originalRead();};store.readSiteSettings=async()=>{settingsReads++;return structuredClone(site);};store.saveSiteSettings=async(revision,settings)=>revision===site.revision?(site={revision:revision+1,settings:structuredClone(settings)}):null;
- const token='a'.repeat(43);await store.addSession(digest(token),Date.now()+60000);const cookie='konsept_session='+token,origin='http://admin.example.invalid';
+ const token='a'.repeat(43);await store.addSession(digest(token),Date.now()+60000);const cookie='konsept_session_mfa='+token,origin='http://admin.example.invalid';
  const server=createServer({origin,store,secureCookies:false,publicCatalogCache:{ttlMs:60000}});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
  const request=(url,data)=>fetch(base+url,{method:'PUT',headers:{cookie,Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(data)});
  try{

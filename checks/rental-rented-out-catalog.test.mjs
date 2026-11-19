@@ -63,7 +63,7 @@ test('catalogue API saves, reads, preserves and clears the manual rental marker'
  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
  t.after(()=>new Promise(resolve=>server.close(resolve)));
  const base='http://127.0.0.1:'+server.address().port;
- const headers={Origin:origin,'Content-Type':'application/json',Cookie:'konsept_session='+token};
+ const headers={Origin:origin,'Content-Type':'application/json',Cookie:'konsept_session_mfa='+token};
  async function read(path){
   const response=await fetch(base+path,{headers});
   assert.equal(response.status,200);

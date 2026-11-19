@@ -64,3 +64,16 @@ Eier/drift må selv dokumentere faktisk SPF/DKIM/DMARC og returpost, leveringspr
 | Restore/rollback-resultat og tidsbruk | |
 | E-postlevering, DNS og leverandørkontroller | |
 | Avvik, gjenstående arbeid og godkjenning | |
+
+
+## Admin: passord og e-postkode (19. november 2026)
+
+Innlogging krever eksisterende administratorpassord og en sekssifret engangskode sendt til **andreas@konseptboligstyling.no**. Mottakeren er fastsatt på serveren og kan ikke velges av klienten. Beskytt også denne postkassen med sterk tofaktorautentisering. SMTP bruker samme eksisterende konfigurasjon som kunde-e-post, men en separat transport; det endrer ikke kundens e-postkø eller prisberegning.
+
+Koden er gyldig i 10 minutter, har maksimalt fem kodeforsøk og krever samme nettleser som passordtrinnet. En ny kode erstatter den gamle. Utsendinger begrenses til én per minutt og fem per time, lagret i databasen slik at omstart ikke nullstiller grensene. Databasen lagrer bare kontrollsummer, inkludert en tilfeldig hemmelighet i en HttpOnly-cookie; koden logges ikke. Den siste utfordringsraden erstattes ved neste tillatte innlogging. Utløp og engangsbruk kontrolleres på serveren; en konsumert kode og ny økt lagres atomisk. Endring av passord ugyldiggjør ventende koder og andre innloggede økter.
+
+Eksisterende passordøkter gjelder ikke etter publisering: MFA bruker egen `ku_admin_mfa_sessions`-tabell og `__Host-konsept_session_mfa`-cookie. Verken opprettelse av administrator eller passordtrinnet alene utsteder en innlogget økt. Den korte `__Host-konsept_login`-cookien gir ingen administratortilgang. Begge bruker Secure, HttpOnly, SameSite=Strict og Path=/ i produksjon. Adminøkten varer maksimalt åtte timer.
+
+Ved manglende SMTP eller avvist sending holdes admin stengt; passord alene er aldri reserveinnlogging. Kontroller SMTP-konfigurasjon og postkassens søppelpost ved problemer. Tilgangstap til postkassen krever at eier bekrefter ny mottaker gjennom sikker driftsadgang og en kontrollert serverendring. Ikke be om passord eller engangskoder i chat eller logg. Det finnes ingen offentlig omgåelses-/tilbakestillingsrute. Kundehandlekurv og innsending krever fortsatt ingen adminøkt.
+
+Lokale tester bruker syntetiske administratorer og en fanget e-posttransport. SMTP-aksept er ikke bevis på innbokslevering; eier bekrefter levering ved første ordinære innlogging. I isolerte restoretester må også admintransporten erstattes med en lokal testtransport; produksjons-SMTP skal fortsatt være blokkert.

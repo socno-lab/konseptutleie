@@ -1,3 +1,4 @@
+import {adminMailFixture,loginAdmin} from './helpers/admin-login.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -9,9 +10,10 @@ import {isWall,presetFrames} from '../public/wall-model.js';
 import {imageMime} from '../server/images.mjs';
 
 import {memoryStore} from './helpers/memory-store.mjs';
-test('Admin setup, sessions, CSRF, revision conflicts, media assignment and wall metadata',async()=>{
+test('Admin setup, sessions, CSRF, revision conflicts, media assignment and wall metadata',async t=>{
+ let now=Date.now();t.mock.method(Date,'now',()=>now);
  const store=await memoryStore(),key=randomBytes(24).toString('base64url'),password=randomBytes(18).toString('base64url'),origin='http://admin.example.invalid';
- const server=createServer({store,setupKey:key,origin,secureCookies:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+ const mail=adminMailFixture(store),server=createServer({...mail.options,store,setupKey:key,origin,secureCookies:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
  const post=(url,body,cookie='',extra={})=>fetch(base+url,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',cookie,...extra},body:JSON.stringify(body)});
  let cookie='';
  try{
@@ -20,7 +22,7 @@ test('Admin setup, sessions, CSRF, revision conflicts, media assignment and wall
   assert.equal((await fetch(base+'/admin/index.html',{redirect:'manual'})).status,302);
   assert.equal((await post('/api/admin/setup',{key,email:'admin@example.invalid',password},'',{Origin:'https://foreign.invalid'})).status,403);
   assert.equal((await post('/api/admin/setup',{key:'wrong',email:'admin@example.invalid',password})).status,403);
-  const setup=await post('/api/admin/setup',{key,email:'admin@example.invalid',password});assert.equal(setup.status,200);cookie=setup.headers.get('set-cookie').split(';')[0];assert.match(setup.headers.get('set-cookie'),/HttpOnly; SameSite=Strict/);
+  const setup=await post('/api/admin/setup',{key,email:'admin@example.invalid',password});assert.equal(setup.status,200);assert.equal(setup.headers.get('set-cookie'),null);const verified=await loginAdmin(post,mail,{email:'admin@example.invalid',password});cookie=verified.headers.get('set-cookie').split(';')[0];assert.match(verified.headers.get('set-cookie'),/HttpOnly; SameSite=Strict/);
   assert.equal((await post('/api/admin/setup',{key,email:'other@example.invalid',password})).status,409);
   assert.equal((await fetch(base+'/api/admin/status')).status,200);
   assert.equal((await (await fetch(base+'/api/admin/status')).json()).setupRequired,false);
@@ -38,7 +40,7 @@ test('Admin setup, sessions, CSRF, revision conflicts, media assignment and wall
   const library=await (await fetch(base+'/api/admin/media',{headers:{cookie}})).json();assert.ok(library.images.find(m=>m.url===image.url).usedBy.some(p=>p.id===wall.id));
   assert.equal((await post('/api/admin/logout',{},cookie)).status,200);assert.equal((await fetch(base+'/api/admin/catalog',{headers:{cookie}})).status,401);
   assert.equal((await post('/api/admin/login',{email:'admin@example.invalid',password:'incorrect'})).status,401);
-  const login=await post('/api/admin/login',{email:'admin@example.invalid',password});assert.equal(login.status,200);assert.notEqual(login.headers.get('set-cookie').split(';')[0],cookie);
+  now+=61000;const login=await loginAdmin(post,mail,{email:'admin@example.invalid',password});assert.equal(login.status,200);assert.notEqual(login.headers.get('set-cookie').split(';')[0],cookie);
  }finally{await new Promise(r=>server.close(r));}
 });
 test('Product validation rejects invalid walls and preserves ordinary products without module settings',async()=>{
@@ -48,14 +50,15 @@ test('Product validation rejects invalid walls and preserves ordinary products w
  assert.equal(presetFrames('quad').length,4);assert.equal(imageMime(Buffer.from('<html>not an image</html>')),null);
 });
 
-test('Account lookup and password change require a session, revoke old sessions and preserve catalog',async()=>{
+test('Account lookup and password change require a session, revoke old sessions and preserve catalog',async t=>{
+ let now=Date.now();t.mock.method(Date,'now',()=>now);
  const store=await memoryStore(),key=randomBytes(24).toString('base64url'),password=randomBytes(18).toString('base64url'),nextPassword=randomBytes(18).toString('base64url'),origin='http://admin.example.invalid';
- const server=createServer({store,setupKey:key,origin,secureCookies:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+ const mail=adminMailFixture(store),server=createServer({...mail.options,store,setupKey:key,origin,secureCookies:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
  const request=(url,body,cookie='',method='POST',source=origin)=>fetch(base+url,{method,headers:{Origin:source,'Content-Type':'application/json',cookie},body:JSON.stringify(body)});
  try{
   const before=await store.readCatalog();assert.equal((await fetch(base+'/api/admin/account')).status,401);assert.equal((await request('/api/admin/password',{password:nextPassword,confirmation:nextPassword},'','PUT')).status,401);
-  const setup=await request('/api/admin/setup',{key,email:'Owner@example.invalid',password});const first=setup.headers.get('set-cookie').split(';')[0];
-  const login=await request('/api/admin/login',{email:'owner@example.invalid',password});const second=login.headers.get('set-cookie').split(';')[0];
+  const setup=await request('/api/admin/setup',{key,email:'Owner@example.invalid',password});assert.equal(setup.headers.get('set-cookie'),null);const verified=await loginAdmin(request,mail,{email:'owner@example.invalid',password});const first=verified.headers.get('set-cookie').split(';')[0];
+  now+=61000;const login=await loginAdmin(request,mail,{email:'owner@example.invalid',password});const second=login.headers.get('set-cookie').split(';')[0];
   assert.deepEqual(await (await fetch(base+'/api/admin/account',{headers:{cookie:first}})).json(),{email:'owner@example.invalid'});
   assert.equal((await request('/api/admin/password',{password:nextPassword,confirmation:nextPassword},first,'PUT','https://foreign.invalid')).status,403);
   assert.equal((await request('/api/admin/password',{password:nextPassword,confirmation:'different'},first,'PUT')).status,400);
@@ -64,7 +67,7 @@ test('Account lookup and password change require a session, revoke old sessions 
   for(const cookie of [first,second])assert.equal((await fetch(base+'/api/admin/account',{headers:{cookie}})).status,401);
   assert.equal((await fetch(base+'/api/admin/account',{headers:{cookie:fresh}})).status,200);
   assert.equal((await request('/api/admin/login',{email:'owner@example.invalid',password})).status,401);
-  assert.equal((await request('/api/admin/login',{email:'OWNER@example.invalid',password:nextPassword})).status,200);
+  now+=61000;assert.equal((await loginAdmin(request,mail,{email:'OWNER@example.invalid',password:nextPassword})).status,200);
   assert.deepEqual(await store.readCatalog(),before);
  }finally{await new Promise(r=>server.close(r));}
 });

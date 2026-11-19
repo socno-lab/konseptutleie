@@ -66,7 +66,7 @@ test('authenticated admin save round-trips purpose priorities and invalidates ca
  store.readSiteSettings=async()=>({revision:1,settings:structuredClone(defaultSettings)});
  const token=randomBytes(32).toString('base64url');
  await store.addSession(digest(token),Date.now()+60000);
- const origin='http://purpose-order.example.invalid',cookie='konsept_session='+token;
+ const origin='http://purpose-order.example.invalid',cookie='konsept_session_mfa='+token;
  const server=createServer({store,origin,secureCookies:false,publicCatalogCache:{ttlMs:60000}});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const base='http://127.0.0.1:'+server.address().port;

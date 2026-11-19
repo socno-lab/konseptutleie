@@ -1,3 +1,4 @@
+import {adminMailFixture,setupAdmin} from './helpers/admin-login.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
@@ -5,11 +6,11 @@ import {readFile} from 'node:fs/promises';
 import {createServer} from '../app-server.mjs';
 import {memoryStore} from './helpers/memory-store.mjs';
 test('Image trash protects used images, retains bytes and restores uploads and bundled assets',async()=>{
- const store=await memoryStore(),key=randomBytes(24).toString('base64url'),password=randomBytes(18).toString('base64url'),origin='http://admin.example.invalid';const server=createServer({store,setupKey:key,origin,secureCookies:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+ const store=await memoryStore(),key=randomBytes(24).toString('base64url'),password=randomBytes(18).toString('base64url'),origin='http://admin.example.invalid';const mail=adminMailFixture(store),server=createServer({...mail.options,store,setupKey:key,origin,secureCookies:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
  const post=(path,body,cookie='',source=origin)=>fetch(base+path,{method:'POST',headers:{Origin:source,'Content-Type':'application/json',cookie},body:JSON.stringify(body)});
  try{
   assert.equal((await post('/api/admin/media/trash',{url:'/assets/example.png'})).status,401);
-  const setup=await post('/api/admin/setup',{key,email:'admin@example.invalid',password});const cookie=setup.headers.get('set-cookie').split(';')[0];
+  const setup=await setupAdmin(post,mail,{key,email:'admin@example.invalid',password});const cookie=setup.headers.get('set-cookie').split(';')[0];
   const catalog=await store.readCatalog(),used=catalog.products.find(p=>p.image.startsWith('/assets/')).image;
   assert.equal((await post('/api/admin/media/trash',{url:used},cookie)).status,409);
   assert.equal((await post('/api/admin/media/trash',{url:used},cookie,'https://foreign.invalid')).status,403);

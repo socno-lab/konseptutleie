@@ -1,3 +1,4 @@
+import {adminCodeStore} from './admin-code-store.mjs';
 import {migrateCatalogDimensions} from './dimensions-migration.mjs';
 import {migrateStylingPricing} from './pricing-migration.mjs';
 import {defaultSettings} from '../public/site-settings.js?v=fest20261114';
@@ -19,7 +20,8 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_catalog (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL, updated_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_discounts (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_admin (id INT PRIMARY KEY, email VARCHAR(254) NOT NULL, password_hash VARCHAR(255) NOT NULL)',
-    'CREATE TABLE IF NOT EXISTS ku_sessions (token_hash CHAR(64) PRIMARY KEY, expires_at BIGINT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_admin_email_code (id INT PRIMARY KEY, token_hash CHAR(64) NOT NULL, code_hash CHAR(64) NOT NULL, admin_hash CHAR(64) NOT NULL, expires_at BIGINT NOT NULL, attempts INT NOT NULL, send_after BIGINT NOT NULL, window_start BIGINT NOT NULL, sends INT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_admin_mfa_sessions (token_hash CHAR(64) PRIMARY KEY, expires_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_login_limits (bucket CHAR(64) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_delivery_limits (bucket VARCHAR(16) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_enquiries (id CHAR(36) PRIMARY KEY, fingerprint CHAR(64) NOT NULL, body LONGTEXT NOT NULL, created_at BIGINT NOT NULL, INDEX(created_at))',
@@ -60,7 +62,7 @@ export function createMysqlStore(env,seed){
    await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(products),updatedAt]);await connection.commit();return {revision:revision+1,products,updatedAt};
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
- return {enabled,init,async close(){if(pool)await pool.end();},
+ return {...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
   async readEnquiry(id){
    const [[row]]=await query('SELECT fingerprint,body FROM ku_enquiries WHERE id=?',[id]);
    if(row)return {fingerprint:row.fingerprint,snapshot:JSON.parse(row.body)};
@@ -159,11 +161,11 @@ export function createMysqlStore(env,seed){
   async createAdmin(email,passwordHash){const [r]=await query('INSERT IGNORE INTO ku_admin (id,email,password_hash) VALUES (1,?,?)',[email,passwordHash]);return r.affectedRows===1;},
   async changePassword(sessionHash,passwordHash){
    await init();const connection=await pool.getConnection();
-   try{await connection.beginTransaction();await connection.execute('SELECT id FROM ku_admin WHERE id=1 FOR UPDATE');const [[session]]=await connection.execute('SELECT token_hash FROM ku_sessions WHERE token_hash=? AND expires_at>?',[sessionHash,Date.now()]);if(!session){await connection.rollback();return false;}await connection.execute('UPDATE ku_admin SET password_hash=? WHERE id=1',[passwordHash]);await connection.execute('DELETE FROM ku_sessions');await connection.commit();return true;}catch(error){await connection.rollback();throw error;}finally{connection.release();}
+   try{await connection.beginTransaction();await connection.execute('SELECT id FROM ku_admin WHERE id=1 FOR UPDATE');const [[session]]=await connection.execute('SELECT token_hash FROM ku_admin_mfa_sessions WHERE token_hash=? AND expires_at>?',[sessionHash,Date.now()]);if(!session){await connection.rollback();return false;}await connection.execute('UPDATE ku_admin SET password_hash=? WHERE id=1',[passwordHash]);await connection.execute('DELETE FROM ku_admin_mfa_sessions');await connection.commit();return true;}catch(error){await connection.rollback();throw error;}finally{connection.release();}
   },
-  async session(hash){const [[r]]=await query('SELECT expires_at AS expiresAt FROM ku_sessions WHERE token_hash=? AND expires_at>?',[hash,Date.now()]);return r||null;},
-  async addSession(hash,expiresAt){await query('DELETE FROM ku_sessions WHERE expires_at<?',[Date.now()]);await query('INSERT INTO ku_sessions(token_hash,expires_at) VALUES (?,?)',[hash,expiresAt]);},
-  async removeSession(hash){await query('DELETE FROM ku_sessions WHERE token_hash=?',[hash]);},
+  async session(hash){const [[r]]=await query('SELECT expires_at AS expiresAt FROM ku_admin_mfa_sessions WHERE token_hash=? AND expires_at>?',[hash,Date.now()]);return r||null;},
+  async addSession(hash,expiresAt){await query('DELETE FROM ku_admin_mfa_sessions WHERE expires_at<?',[Date.now()]);await query('INSERT INTO ku_admin_mfa_sessions(token_hash,expires_at) VALUES (?,?)',[hash,expiresAt]);},
+  async removeSession(hash){await query('DELETE FROM ku_admin_mfa_sessions WHERE token_hash=?',[hash]);},
   async attempt(bucket){const now=Date.now(),until=now+15*60*1000;await query('INSERT INTO ku_login_limits(bucket,attempts,reset_at) VALUES (?,1,?) ON DUPLICATE KEY UPDATE attempts=IF(reset_at<?,1,attempts+1),reset_at=IF(reset_at<?,VALUES(reset_at),reset_at)',[bucket,until,now,now]);const [[r]]=await query('SELECT attempts FROM ku_login_limits WHERE bucket=?',[bucket]);return r.attempts<=10;},
   async resetAttempts(bucket){await query('DELETE FROM ku_login_limits WHERE bucket=?',[bucket]);},
   async mediaTrashState(){const [rows]=await query('SELECT url,deleted_at FROM ku_media_state');return Object.fromEntries(rows.map(row=>[row.url,row.deleted_at]));},

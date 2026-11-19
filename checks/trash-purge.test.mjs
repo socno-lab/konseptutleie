@@ -1,3 +1,4 @@
+import {adminMailFixture,setupAdmin} from './helpers/admin-login.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
@@ -19,11 +20,11 @@ test('Permanent product deletion protects references from live and trashed owner
 });
 
 test('Permanent trash API checks auth, origin, confirmation and revision; removes upload bytes and blocks bundled images after restart',async()=>{
- const store=await memoryStore(),key=randomBytes(24).toString('base64url'),origin='http://admin.example.invalid',server=createServer({store,setupKey:key,origin,secureCookies:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+ const store=await memoryStore(),key=randomBytes(24).toString('base64url'),origin='http://admin.example.invalid',mail=adminMailFixture(store),server=createServer({...mail.options,store,setupKey:key,origin,secureCookies:false});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
  const post=(path,body,cookie='',source=origin)=>fetch(base+path,{method:'POST',headers:{Origin:source,'Content-Type':'application/json',cookie},body:JSON.stringify(body)});
  try{
   assert.equal((await post('/api/admin/trash/purge',{})).status,401);
-  const setup=await post('/api/admin/setup',{key,email:'admin@example.invalid',password:randomBytes(18).toString('base64url')}),cookie=setup.headers.get('set-cookie').split(';')[0];
+  const setup=await setupAdmin(post,mail,{key,email:'admin@example.invalid',password:randomBytes(18).toString('base64url')}),cookie=setup.headers.get('set-cookie').split(';')[0];
   const catalog=await store.readCatalog(),table=catalog.products.find(p=>p.name==='Charlie bord, svart');
   const trashed=await (await post('/api/admin/products/'+table.id+'/trash',{revision:catalog.revision},cookie)).json();
   const input={revision:trashed.revision,productIds:[table.id],mediaUrls:[],confirmation:'SLETT'};

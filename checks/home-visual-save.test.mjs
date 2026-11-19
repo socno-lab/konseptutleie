@@ -1,3 +1,4 @@
+import {adminMailFixture,setupAdmin} from './helpers/admin-login.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
@@ -14,11 +15,12 @@ test('visual homepage drafts use the existing validated, revision-checked save a
  store.readSiteSettings=async()=>structuredClone(site);
  store.saveSiteSettings=async(revision,settings)=>revision===site.revision?structuredClone(site={revision:revision+1,settings:structuredClone(settings)}):null;
  const origin='http://visual.example.invalid',key=randomBytes(24).toString('base64url');
- const server=createServer({store,origin,setupKey:key,secureCookies:false});
+ const mail=adminMailFixture(store),server=createServer({...mail.options,store,origin,setupKey:key,secureCookies:false});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const base='http://127.0.0.1:'+server.address().port;
  try{
-  const setup=await fetch(base+'/api/admin/setup',{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify({key,email:'admin@example.invalid',password:randomBytes(18).toString('base64url')})});
+  const post=(path,body,cookie='')=>fetch(base+path,{method:'POST',headers:{origin,'Content-Type':'application/json',cookie},body:JSON.stringify(body)});
+  const setup=await setupAdmin(post,mail,{key,email:'admin@example.invalid',password:randomBytes(18).toString('base64url')});
   const cookie=setup.headers.get('set-cookie').split(';')[0];
   const draft=structuredClone(settings);draft.home.occasions[0].title='Visuelt oppdatert kort';draft.home.occasions[0].image='/assets/camino-loungestol-beige-miljo.jpg';draft.home.occasions[1].visible=false;draft.home.seasonEnabled=false;
   draft.home.productsHeading='Møbler & ideer – lokal kontroll';draft.home.productsIntro='Velg møbler til ditt rom.\nVi hjelper med resten.';
