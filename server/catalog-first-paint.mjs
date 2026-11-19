@@ -20,7 +20,7 @@ export function catalogFirstPaint(html,model,catalogProducts,settings){
   // Keep the already escaped text and remove only the decorative count span.
   const categoryButtons=html.match(/<div class="filters"[^>]*>([\s\S]*?)<\/div>/)?.[1]||'';
   const selectedCategory=[...categoryButtons.matchAll(/<button\b[^>]*\bdata-filter="([^"]*)"[^>]*>([\s\S]*?)<\/button>/g)].find(match=>match[1]===escape(filter))?.[2].replace(/<[^>]*>/g,'')||'Alle';
-  html=html.replace(/(<button\b[^>]*\bid="mobileCategoryButton"[^>]*>\s*<span>)[\s\S]*?(<\/span>)/,(_,open,close)=>open+'Kategori: '+selectedCategory+close);
+  html=html.replace(/(<button\b[^>]*\bid="mobileCategoryButton"[^>]*)(>\s*<span>)[\s\S]*?(<\/span>)/,(_,open,label,close)=>open.replace(/\saria-label="[^"]*"/,'')+' aria-label="Velg kategori: '+selectedCategory+'"'+label+selectedCategory+close);
   html=html.replace(/(<p id="purposeResults"[^>]*>)[\s\S]*?<\/p>/,(_,open)=>open+escape(view.desktopCount)+'</p>');
   html=html.replace(/(<p id="mobileCatalogResults"[^>]*>)[\s\S]*?<\/p>/,(_,open)=>open+escape(view.mobileCount)+'</p>');
   const subcategories='<div id="rentalTableTypes" class="catalog-subcategories" role="group" aria-label="Underkategorier"'+(view.types.length?'':' hidden')+'>'+subcategoryButtons(view.types,view.tableFilter,filter,rentalSubcategoryCounts(products,settings,model.catalogUsage.purpose,filter,model.catalogQuery,view.types,model.catalogRefinement))+'</div>';

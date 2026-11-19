@@ -11,7 +11,7 @@
     "confirmation-rendering": "2d7e8aa64524ea1986e16b912fc6f804e260cb224c3439118f2e2e5694f757cc",
     "public/price-display.css": "5e22d3eb79a05bd4ff56fa32c42aa529ddb485160749620d29457f5ced204e31",
     "public/price-display.js": "1dda7e0a2b93aeef0663143c0be26719433de19e7bf958c86b5f62d434c88e8d",
-    "public/catalog-search-alignment.css": "6e66143a35caf494176f4132c5ec35752dcd94e11e5ab81ded89009d84bafa92",
+    "public/catalog-search-alignment.css": "1c1ae13b5509282acdcaf8da430b6c292265a1692df0ebabfa0a93a6688fd334",
     "public/cart-usage-compact.css": "9a1285b18213dc94b281fd072fac9c8c5411a4205d30e4369c2a79731490f646"
   },
   "formFieldsReview": "2026-10-24: Uttrykkelig brukerbestilt samordning av Fra/Til dato og rabattkode med Anledning, samt 48 px felthøyde og Bruk kode-knapp. Målt desktop: 13 px / 400 og 48 px. Mobil 390 px: 16 px / 400 og 48 px for alle feltene. Kodefelt og knapp har identisk toppkant. Ingen andre beskyttede referanser endret.",
@@ -69,5 +69,9 @@
   "mobileVatFirstPaintReview20261119": {
     "reason": "Eier meldte at mobilens Vis priser-lenke kom senere enn forklaringsteksten. Eksisterende mobile-price-switch leveres nå i første HTML/fallback, og motsatt prisvalg synkroniseres under parsing uten å erstatte parserens tekstnode.",
     "verified": "Samme hjelpetekst, én prislenke og identiske koordinater ved 390 px før og etter hovedmodulene; begge prisvalg kontrollert. Tester dekker lagret inkl./ekskl. over motsatt standard, delt parsing, uendret node og gjentatte klikk. Katalog kontrollert ved 320/390/1280 px, desktopkontrollene beholdes. Forside ved 320/390/1280 px har samme kolonner og bildeforhold uten horisontal scrolling; kjent manglende bilde i lokal katalogkopi. Bare price-display.js-fingerprint oppdateres; prisberegning og innsending er uendret."
+  },
+  "mobileCatalogFieldsReview20261119": {
+    "reason": "Eier ba om å fjerne synlig Kategori-prefiks fra mobilvelgeren og den store oransje fokusrammen rundt katalogsøket. Mobilens søk bruker nå eksisterende 1 px ramme i olivengrønt som fokusmarkering; global og desktopfokus er uendret.",
+    "verified": "Enkeltprodukter (133) står på én linje ved 390 px; søk og kategorivelger er begge 46 px høye. Første HTML og runtime har samme tekst, med beskrivende aria-label. Mobiltrykk på søk gir ingen outline/skygge og endrer bare rammefargen. Kategoriendring til Bord og søk etter sofa kontrollert. Katalog ved 320/390/1280 og forside ved 320/390/1280 beholder layout/bildeforhold uten horisontal scrolling; kjent manglende lokalt forsidebilde. Kun dette stilarkets fingerprint oppdateres bevisst."
   }
 }

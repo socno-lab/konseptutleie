@@ -52,8 +52,8 @@ test('housing category and its count are present in initial mobile HTML before J
   const model=pageModel('/utvalg.html',new URLSearchParams({bruk:'boligsalg',kategori:requested}),data.products);
   const view=rentalCatalogView({products:applyRentalScope(data.products.filter(p=>p.rentalEnabled!==false),model.catalogUsage.scope),settings:data.settings,purpose:'boligsalg',filter:'Enkeltprodukter'});
   const html=renderSeo(source,model,data.products,true,data.settings);
-  assert.equal(mobileCategoryLabel(html),'Kategori: Enkeltprodukter ('+view.count+')');
-  assert.match(html,/id="mobileCategoryButton"[^>]*><span>Kategori: Enkeltprodukter \(\d+\)<\/span><span aria-hidden="true">⌄<\/span>/);
+  assert.equal(mobileCategoryLabel(html),'Enkeltprodukter ('+view.count+')');
+  assert.match(html,/id="mobileCategoryButton"[^>]*aria-label="Velg kategori: Enkeltprodukter \(\d+\)"[^>]*><span>Enkeltprodukter \(\d+\)<\/span><span aria-hidden="true">⌄<\/span>/);
  }
 });
 
@@ -63,12 +63,12 @@ test('initial mobile category count follows colour and search but not the chosen
  configureSiteSettings(data.settings);
  const params=new URLSearchParams({bruk:'messe',kategori:'Stoler',underkategori:'Spisestoler',farge:'gronn'});
  let model=pageModel('/utvalg.html',params,products),html=renderSeo(source,model,products,true,data.settings);
- assert.equal(mobileCategoryLabel(html),'Kategori: Stoler (2)');
+ assert.equal(mobileCategoryLabel(html),'Stoler (2)');
  assert.match(html,/>1 produkt<\/p>/);
  params.set('sok','Spisestol');model=pageModel('/utvalg.html',params,products);html=renderSeo(source,model,products,true,data.settings);
- assert.equal(mobileCategoryLabel(html),'Kategori: Stoler (1)');
+ assert.equal(mobileCategoryLabel(html),'Stoler (1)');
  params.set('sok','ingen-treff');model=pageModel('/utvalg.html',params,products);html=renderSeo(source,model,products,true,data.settings);
- assert.equal(mobileCategoryLabel(html),'Kategori: Stoler (0)');
+ assert.equal(mobileCategoryLabel(html),'Stoler (0)');
 });
 
 test('initial mobile label preserves custom category text as escaped text and retains the arrow',()=>{
@@ -76,7 +76,8 @@ test('initial mobile label preserves custom category text as escaped text and re
  try{
   const products=[{id:'custom-board',name:'Plate beige',category:'kategori_test',active:true,stock:1,maxQuantity:1,material:'Tre',price:100,weekPrice:400,monthPrice:900,rentalEnabled:true}];
   const model=pageModel('/utvalg.html',new URLSearchParams({bruk:'alle',kategori:'kategori_test'}),products),html=renderSeo(source,model,products,true,customSettings);
-  assert.equal(mobileCategoryLabel(html),'Kategori: Plater &amp; &quot;lys&quot; (1)');
+  assert.equal(mobileCategoryLabel(html),'Plater &amp; &quot;lys&quot; (1)');
+  assert.match(html,/id="mobileCategoryButton"[^>]*aria-label="Velg kategori: Plater &amp; &quot;lys&quot; \(1\)"/);
   assert.match(html,/id="mobileCategoryButton"[^>]*><span>[^<]*<\/span><span aria-hidden="true">⌄<\/span>/);
   assert.doesNotMatch(mobileCategoryLabel(html),/&amp;amp;/);
  }finally{configureSiteSettings(data.settings);}

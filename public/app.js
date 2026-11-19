@@ -427,7 +427,8 @@ function syncMobileCatalog(){
  if((!isCatalogPage&&!isProductPage)||!el('mobileCategoryButton'))return;
  const categoryButtons=[...el('utvalg').querySelectorAll('.filters [data-filter]')].filter(b=>purpose!=='boligsalg'||b.dataset.filter!=='Pakker');
  const selectedCategory=categoryButtons.find(b=>b.dataset.filter===filter)?.textContent||'Alle';
- el('mobileCategoryButton').querySelector('span').textContent='Kategori: '+selectedCategory;
+ el('mobileCategoryButton').querySelector('span').textContent=selectedCategory;
+ el('mobileCategoryButton').setAttribute('aria-label','Velg kategori: '+selectedCategory);
  if(el('mobileCatalogUsageLabel'))el('mobileCatalogUsageLabel').textContent=!rentalScopeConfirmed?'Velg bruk for å se leiepriser':pricingScopeLabel();
  if(el('mobileChangeUsage'))el('mobileChangeUsage').textContent=rentalScopeConfirmed?'Endre':'Velg bruk';
  el('mobileCategoryChoices').innerHTML=categoryButtons.map(b=>`<button type="button" data-mobile-filter="${html(b.dataset.filter)}" aria-pressed="${filter===b.dataset.filter}">${b.innerHTML}</button>`).join('');

@@ -4,3 +4,9 @@
  .catalog-page #utvalg>.catalog-tools>.search{margin-top:0;border-top:1px solid transparent}
  .catalog-page #utvalg>.catalog-tools>.search>span:last-child{line-height:1}
 }
+
+/* On mobile, the search field itself carries the focus indicator. */
+@media(max-width:640px){
+ .catalog-page #utvalg>.catalog-tools>.search input:focus{outline:none;box-shadow:none}
+ .catalog-page #utvalg>.catalog-tools>.search:focus-within{border-color:var(--olive)}
+}
