@@ -104,6 +104,7 @@ test('all rental purposes and categories receive their complete usage field befo
   assert.ok(html.includes('<section id="catalogUsage" class="catalog-usage has-price-display" aria-labelledby="catalogUsageHeading">'+catalogUsageMarkup(model.catalogUsage)+'</section>'));
   const usage=html.match(/<section id="catalogUsage"[^>]*>([\s\S]*?)<\/section>/)?.[1];
   assert.equal((usage.match(/class="price-display-picker"/g)||[]).length,1,'the initial HTML already has exactly one VAT picker');
+  assert.equal((usage.match(/class="mobile-price-switch"/g)||[]).length,1,'the initial HTML already has exactly one mobile VAT switch');
   const expected=purpose.id==='alle'?scope==='standard'?'Boligfoto og visning':scope==='messe'?'Arrangementer og annen bruk':'Velg prisgrunnlag':purpose.label;
   assert.ok(catalogUsageLabel(model.catalogUsage).includes(expected));
   assert.ok(html.indexOf('id="catalogUsageButton"')<html.indexOf('class="catalog-tools"'));
@@ -112,7 +113,7 @@ test('all rental purposes and categories receive their complete usage field befo
  assert.equal(unknown.catalogUsage.purpose,'alle');assert.equal(unknown.catalogUsage.confirmed,false);
 });
 
-test('initial usage picker keeps approved labels and shares runtime markup with the correct purpose default',()=>{
+test('initial desktop picker and mobile switch keep approved labels with the correct purpose default',()=>{
  for(const purpose of purposes){
   const mode=['messe','event','bedrift','produksjon'].includes(purpose.id)?'excl':'incl';
   const html=catalogUsageMarkup({purpose:purpose.id,scope:purpose.id==='boligsalg'?'standard':'messe',confirmed:true});
@@ -121,7 +122,9 @@ test('initial usage picker keeps approved labels and shares runtime markup with 
   assert.equal((html.match(/data-price-mode="excl"/g)||[]).length,1);
   assert.match(html,new RegExp('data-price-mode="incl" aria-pressed="'+(mode==='incl')+'">Inkl\\. mva\\.</button>'));
   assert.match(html,new RegExp('data-price-mode="excl" aria-pressed="'+(mode==='excl')+'">Ekskl\\. mva\\.</button>'));
+  assert.ok(html.includes('<p id="catalogUsageHelp">Utvalg og leiepriser tilpasses bruksområdet. Alle priser inkluderer mva. <button type="button" class="mobile-price-switch">'+(mode==='incl'?'Vis priser ekskl. mva.':'Vis priser inkl. mva.')+'</button></p>'),'the mobile switch is in the initial help text and names the opposite display mode');
  }
+ assert.match(catalogUsageMarkup(),/class="mobile-price-switch">Vis priser ekskl\. mva\.<\/button>/);
 });
 
 test('mount preserves the SSR picker and layout classes, and supplies the same picker for an empty host',()=>{
@@ -146,6 +149,8 @@ test('mount preserves the SSR picker and layout classes, and supplies the same p
    assert.equal(contents,initial,'existing first-paint nodes are retained and fallback markup is identical');
    assert.equal(replacements,firstPaint?0:1);
    assert.equal((contents.match(/class="price-display-picker"/g)||[]).length,1);
+   assert.equal((contents.match(/class="mobile-price-switch"/g)||[]).length,1);
+   assert.match(contents,/class="mobile-price-switch">Vis priser inkl\. mva\.<\/button>/);
    assert.equal(mounted.button,button);
    assert.equal(typeof button.onclick,'function');
    assert.equal(vatButton.onclick,undefined,'the usage dialog is bound only to its own button');

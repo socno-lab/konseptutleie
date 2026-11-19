@@ -6,6 +6,7 @@ import {priceDisplayScript} from '../server/price-display-script.mjs';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 import {formatPrice,priceDisplayKey,priceDefaultKey} from '../public/price-display-model.js';
 import {pricePickerContent} from '../public/price-display-markup.js';
+import {catalogUsageMarkup} from '../public/catalog-usage-markup.js';
 
 const source=await priceDisplayScript();
 const storage=(values={})=>{const data=new Map(Object.entries(values));return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,String(value)),removeItem:key=>data.delete(key)};};
@@ -127,4 +128,35 @@ test('parser continuation restores original text without retaining an early excl
  const b=browser({local:{[priceDisplayKey]:'excl'}});b.run();const caption=b.element('p',{class:'rate-caption'},'Leiepriser inkl. mva.');b.body(caption);const text=caption.childNodes[0];assert.equal(text.data,'Leiepriser ekskl. mva.');
  text.data+=' Levering inkluderer mva.';b.flush([{type:'characterData',target:text}]);assert.equal(text.data,'Leiepriser ekskl. mva. Levering er ekskl. mva.');
  b.ready();b.click('incl');assert.equal(text.data,'Leiepriser inkl. mva. Levering inkluderer mva.');b.click('excl');assert.equal(text.data,'Leiepriser ekskl. mva. Levering er ekskl. mva.');
+});
+
+
+test('initial mobile VAT link uses the saved opposite action before readiness and survives hydration and repeated clicks',()=>{
+ for(const [saved,purpose] of [['excl','boligsalg'],['incl','messe']]){
+  const b=browser({local:{[priceDisplayKey]:saved},url:'https://konseptuell.no/utvalg.html?bruk='+purpose});b.run();
+  const host=b.element('section',{id:'catalogUsage',class:'catalog-usage has-price-display'});host.innerHTML=catalogUsageMarkup({purpose,confirmed:true});
+  const help=host.querySelector('#catalogUsageHelp'),button=help.querySelector('.mobile-price-switch'),originalNode=button.childNodes[0];
+  const price=b.element('span',{'data-price-gross':'400'},formatPrice(400));b.body(host,price);
+  const check=mode=>{
+   assert.equal(help.querySelector('.mobile-price-switch'),button);assert.equal(help.querySelectorAll('.mobile-price-switch').length,1);
+   assert.equal(button.textContent,mode==='incl'?'Vis priser ekskl. mva.':'Vis priser inkl. mva.');
+   assert.equal(help.childNodes[0].data,mode==='incl'?'Utvalg og leiepriser tilpasses bruksområdet. Alle priser inkluderer mva. ':'Utvalg og leiepriser tilpasses bruksområdet. Alle priser er ekskl. mva. ');
+   assert.equal(price.textContent,formatPrice(mode==='incl'?400:320));assert.equal(price.dataset.priceGross,'400');
+  };
+  check(saved);assert.equal(button.childNodes[0],originalNode);assert.equal(b.created,0);
+  b.flush();check(saved);assert.equal(button.childNodes[0],originalNode);
+  b.ready();check(saved);assert.equal(button.childNodes[0],originalNode);
+  b.context({purpose});check(saved);
+  let mode=saved;for(let i=0;i<4;i++){b.click(null,button);mode=mode==='incl'?'excl':'incl';check(mode);b.flush();check(mode);}
+ }
+});
+
+test('mobile VAT link waits for complete parser text without inserting or replacing parser nodes',()=>{
+ const b=browser({local:{[priceDisplayKey]:'excl'}});b.run();
+ const help=b.element('p',{id:'catalogUsageHelp'},'Alle priser inkluderer mva. '),button=b.element('button',{class:'mobile-price-switch',type:'button'});help.append(button);b.body(help);
+ assert.equal(button.childNodes.length,0,'the parser must supply the button text');
+ button.append('Vis priser eks');b.flush();const node=button.childNodes[0];assert.equal(node.data,'Vis priser eks');
+ node.data+='kl. mva.';b.flush();assert.equal(button.childNodes[0],node);assert.equal(node.data,'Vis priser inkl. mva.');
+ b.ready();assert.equal(button.childNodes[0],node);assert.equal(help.querySelectorAll('.mobile-price-switch').length,1);
+ b.click(null,button);assert.equal(button.textContent,'Vis priser ekskl. mva.');assert.equal(help.childNodes[0].data,'Alle priser inkluderer mva. ');
 });

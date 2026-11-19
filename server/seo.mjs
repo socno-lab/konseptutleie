@@ -9,7 +9,7 @@ import {productFirstPaint} from './product-first-paint.mjs';
 import {saleCatalogFirstPaint} from './sale-catalog-first-paint.mjs';
 import {catalogFirstPaint} from './catalog-first-paint.mjs';
 import {catalogFilters} from '../public/catalog-filters.js';
-import {catalogUsageMarkup} from '../public/catalog-usage-markup.js?v=pickerfirst20261119';
+import {catalogUsageMarkup} from '../public/catalog-usage-markup.js?v=mobilefirst20261119';
 import {validPurpose} from '../public/rental-purpose-model.js?v=fest20261114';
 import {rentalUsageState} from '../public/rental-usage-model.js?v=fest20261114';
 import {renderMesseLanding} from '../public/messe-landing.js?v=fest20261114';

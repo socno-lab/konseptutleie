@@ -21,7 +21,7 @@ function mountPriceDisplay(){
  function refresh(){
   observer.disconnect();
   document.documentElement.dataset.priceMode=mode;
-  // During parsing, only project existing price text. Mount controls once the
+  // During parsing, only update existing text and attributes. Mount fallback controls once the
   // body is complete so the parser cannot append content after those controls.
   if(document.readyState!=='loading'){
   const usage=document.getElementById('catalogUsage');
@@ -37,7 +37,14 @@ function mountPriceDisplay(){
   if(help&&!help.querySelector('.mobile-price-switch')){
    const button=document.createElement('button');button.type='button';button.className='mobile-price-switch';help.append(' ',button);
   }
-  for(const button of document.querySelectorAll('.mobile-price-switch'))button.textContent=mode==='incl'?'Vis priser ekskl. mva.':'Vis priser inkl. mva.';
+  }
+  for(const button of document.querySelectorAll('.mobile-price-switch')){
+   const text=mode==='incl'?'Vis priser ekskl. mva.':'Vis priser inkl. mva.';
+   if(document.readyState==='loading'){
+    // Keep the parser's text node; wait for the complete label if HTML arrives in chunks.
+    const node=button.childNodes[0];
+    if(node?.nodeType===Node.TEXT_NODE&&/^Vis priser (?:inkl|ekskl)\. mva\.$/.test(node.data)&&node.data!==text)node.data=text;
+   }else if(button.textContent!==text)button.textContent=text;
   }
   // Existing server-rendered buttons receive the saved mode before first paint.
   for(const button of document.querySelectorAll('button[data-price-mode]')){

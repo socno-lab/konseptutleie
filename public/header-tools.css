@@ -55,6 +55,8 @@ body.header-tools-open{overflow:hidden}
 .has-card-favorite>.card-favorite-toggle[aria-pressed=true] svg{fill:#000;stroke:#000}
 .card-favorite-toggle:focus-visible{outline:2px solid var(--olive);outline-offset:0}
 .has-card-favorite>.product-art>span:first-child:not(.illustration-badge),.has-card-favorite>.sale-photo>.sale-kind{max-width:calc(100% - 58px)}
+/* Keep wrapped category labels aligned when initial buttons become product links. */
+.has-card-favorite>.product-art>span:first-child:not(.illustration-badge){text-align:left}
 
 /* Compact mobile icon spacing: keep basket and logo fixed, preserve 44px touch targets. */
 @media(max-width:640px){body>header.has-header-tools>.header-tools{gap:0;transform:translateX(8px)}.header-tool-button{flex-shrink:0}}
