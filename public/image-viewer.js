@@ -1,4 +1,4 @@
-import './product-carousel.js?v=launch20261024';
+import './product-carousel.js?v=loadstable20261119';
 import {kiDisclosure,isKiPhoto} from './image-provenance.js?v=fest20261114';
 const viewer=document.createElement('dialog');
 viewer.id='imageViewer';viewer.className='image-viewer';viewer.setAttribute('aria-labelledby','imageViewerTitle');

@@ -33,6 +33,8 @@ test('product shell is present before modules, moves rental controls once and sa
   assert.ok(html.indexOf('productPageHost')<html.indexOf('<section>'));
   assert.ok(!html.includes('evil.test'));
   assert.match(html,/product-shell-bootstrap.js\?v=production20261107/);
+  assert.equal((html.match(/data-price-location="purchase-product"/g)||[]).length,buy?1:0);
+  if(buy){assert.ok(html.indexOf('class="product-breadcrumbs"')<html.indexOf('data-price-location="purchase-product"'));assert.ok(html.indexOf('data-price-location="purchase-product"')<html.indexOf('id="initialProductOverview"'),'picker survives removal of the temporary overview');}
  }
 });
 

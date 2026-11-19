@@ -1,3 +1,4 @@
+import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {customerInformationPages} from './customer-information-content.js?v=privacy20261119';
 import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
@@ -18,7 +19,7 @@ const legal=document.getElementById('customerInfo');
 if(legal&&!document.querySelector('main>.customer-links a[href="#leiebetingelser"]'))document.querySelector('main>.customer-links')?.insertAdjacentHTML('afterbegin','<a href="#leiebetingelser">Leiebetingelser</a>');
 if(legal){const render=()=>{const key=location.hash.slice(1)||'kjopsvilkar',page=pages[key]||pages.kjopsvilkar;document.title=page[0]+' · Konseptuell';if(legal.dataset.page!==key){legal.innerHTML='<h1>'+page[0]+'</h1>'+page[1];legal.dataset.page=key;}};render();addEventListener('hashchange',()=>{render();scrollTo({top:0,left:0,behavior:'instant'});});}
 const footer=document.querySelector('footer');
-if(footer){const links=document.createElement('nav');links.className='customer-links';links.setAttribute('aria-label','Vilkår og personvern');links.innerHTML='<a href="/kundeinfo.html#leiebetingelser">Leiebetingelser</a><a href="/kundeinfo.html#kjopsvilkar">Kjøpsvilkår</a><a href="/kundeinfo.html#personvern">Personvern</a><a href="/kundeinfo.html#informasjonskapsler">Informasjonskapsler</a>';footer.append(links);}
+if(footer&&!footer.querySelector(':scope > .customer-links'))footer.insertAdjacentHTML('beforeend',customerFooterLinksMarkup);
 function completeAddress(form){return ['address','postalCode','postalCity'].map(name=>form.querySelector('[name="'+name+'"]')?.value.trim()||'').filter(Boolean).join(', ');}
 function mountAddressFields(form){
  const address=form.querySelector('[name="address"]'),choice=form.querySelector('[name="shipping"], [name="delivery"]');

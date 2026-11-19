@@ -116,6 +116,12 @@ export function installProductLinks(mode,getProducts,getContext=()=>({})){
    const id=button.dataset.product||button.dataset.detail||button.dataset.rentalColour||products.find(p=>p.moduleSeries===button.dataset.build)?.id||products.find(p=>button.dataset.wall&&p.wallGroup===button.dataset.wall)?.id;if(!products.some(p=>p.id===id))continue;
    const link=document.createElement('a');for(const attr of button.attributes)if(!['type','aria-pressed'].includes(attr.name))link.setAttribute(attr.name,attr.value);link.href=productLink(id,mode,getContext());link.dataset.productLink='';link.append(...button.childNodes);button.replaceWith(link);
   }
+  // Keep first-paint rental links tied to the exact current filter/return URL.
+  // Their final card geometry is already present, so no elements move here.
+  if(mode==='rent')for(const link of document.querySelectorAll('a[data-rental-catalog-link]')){
+   const id=link.dataset.detail||link.dataset.rentalColour||products.find(p=>p.moduleSeries===link.dataset.build)?.id||products.find(p=>link.dataset.wall&&p.wallGroup===link.dataset.wall)?.id;
+   if(id){const href=productLink(id,mode,getContext());if(link.getAttribute('href')!==href)link.setAttribute('href',href);}
+  }
   for(const card of document.querySelectorAll('#products>article,#saleProducts>article')){
    const photo=card.querySelector('a.product-art[data-product-link],a.sale-photo[data-product-link]');
    const heading=card.querySelector('h3');
@@ -124,6 +130,7 @@ export function installProductLinks(mode,getProducts,getContext=()=>({})){
    if(!heading.querySelector('.catalog-card-link')){
     const link=document.createElement('a');link.className='catalog-card-link';link.href=photo.href;link.dataset.productLink='';link.append(...heading.childNodes);heading.append(link);
    }
+   if(mode==='rent'){const link=heading.querySelector('.catalog-card-link');if(link.getAttribute('href')!==photo.getAttribute('href'))link.setAttribute('href',photo.getAttribute('href'));}
    for(const action of card.querySelectorAll('.product-meta>.add,.product-meta>.module-build-button,:scope>.button[data-product]'))action.remove();
   }
  };

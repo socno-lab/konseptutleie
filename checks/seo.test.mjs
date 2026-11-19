@@ -17,3 +17,12 @@ import {readFile as readSource} from 'node:fs/promises';
 test('client catalog accepts its semantic H1 and keeps navigation and filters functional',async()=>{const app=await readSource(new URL('../public/app.js?v=review20261107',import.meta.url),'utf8');assert.match(app,/querySelector\('\.section-head h1,\.section-head h2'\)/);assert.doesNotMatch(app,/el\('utvalg'\)\.querySelector\('h2'\)/);const css=await readSource(new URL('../public/product-pages.css',import.meta.url),'utf8');assert.match(css,/:not\(#productPageHost\):not\(#seoProduct\)/);});
 
 test('SEO preserves the customer-facing home heading and responsive card image sizes',async()=>{const home=await readSource(new URL('../public/index.html',import.meta.url),'utf8');const m=pageModel('/',new URLSearchParams(),products),html=renderSeo(home,m,products,true);assert.match(html,/<h1>Hva skal du <em>leie til\?<\/em><\/h1>/);assert.match(html,/<title>Leie og kjøp av møbler, interiør og dekor/);for(const name of ['app.js','shop.js']){const app=await readSource(new URL('../public/'+name,import.meta.url),'utf8');assert.doesNotMatch(app,/loading="lazy" decoding="async" width="480" height="360"/);}const css=await readSource(new URL('../public/style.css',import.meta.url),'utf8');assert.match(css,/\.use-case-grid img\{height:auto;\}/);});
+
+
+test('storefront footer has all customer links before JavaScript loads',async()=>{
+ for(const name of publicHtmlNames){
+  const html=await readHtmlTemplate(name),footer=html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
+  assert.ok(footer,name);assert.equal((footer.match(/class="customer-links"/g)||[]).length,1,name);
+  for(const page of ['leiebetingelser','kjopsvilkar','personvern','informasjonskapsler'])assert.ok(footer.includes('href="/kundeinfo.html#'+page+'"'),name+' '+page);
+ }
+});

@@ -17,7 +17,7 @@ test('HTML contains the exact initial card batch and counts, with remaining card
  for(const purpose of ['alle','messe','fest','jul','bedrift','boligsalg'])for(const filter of ['Alle','Enkeltprodukter','Stoler','Bord','Sofaer','Pakker'])for(const query of ['','bord','no-match-xyz']){
   const params=new URLSearchParams({bruk:purpose,kategori:filter,sok:query,prisbruk:'messe'}),model=pageModel('/utvalg.html',params,data.products);
   const effectiveFilter=purpose==='boligsalg'&&filter==='Pakker'?'Enkeltprodukter':filter;
-  const view=rentalCatalogView({products:applyRentalScope(data.products.filter(p=>p.rentalEnabled!==false),model.catalogUsage.scope),settings:data.settings,purpose,filter:effectiveFilter,query,rentalScopeConfirmed:true});
+  const view=rentalCatalogView({products:applyRentalScope(data.products.filter(p=>p.rentalEnabled!==false),model.catalogUsage.scope),settings:data.settings,purpose,filter:effectiveFilter,query,rentalScopeConfirmed:true,rentalScope:model.catalogUsage.scope});
   const html=renderSeo(source,model,data.products,true,data.settings),count=Math.min(view.count,view.tailHtml?23:24);
   assert.ok(html.includes('>'+view.desktopCount+'</p>'));
   assert.ok(html.includes('>'+view.mobileCount+'</p>'));
@@ -25,6 +25,14 @@ test('HTML contains the exact initial card batch and counts, with remaining card
   assert.equal((html.match(/class="header-favorite-toggle card-favorite-toggle"/g)||[]).length,count);
   assert.ok(html.includes(renderArrowIcons(view.orderedCards.slice(0,count).map(renderCatalogCard).join(''))));
   assert.equal((html.match(/id="rentalTableTypes"/g)||[]).length,1);
+  assert.equal((html.match(/class="catalog-pagination"/g)||[]).length,1);
+  assert.ok(html.includes('Viser '+count+' av '+view.count+' produkter'));
+  for(const card of html.matchAll(/<article data-catalog-render="[^"]*"[\s\S]*?<\/article>/g)){
+   assert.match(card[0],/class="[^"]*catalog-product-card/);
+   assert.match(card[0],/class="catalog-card-link"/);
+   assert.doesNotMatch(card[0],/<button\b[^>]*data-(?:detail|build|wall|rental-colour)=/);
+   assert.doesNotMatch(card[0],/class="(?:add|button dark module-build-button)"/);
+  }
   assert.match(html,/<noscript><style>#products\{display:none!important\}<\/style>/);
   const serialized=html.match(/<script type="application\/json" id="initialRentalCatalog">([\s\S]*?)<\/script>/)[1];
   assert.deepEqual(readInitialCatalog({getElementById:()=>({textContent:serialized})}),JSON.parse(JSON.stringify({products:data.products,settings:data.settings})));

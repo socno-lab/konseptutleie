@@ -1,4 +1,4 @@
-import {rentalCatalogView} from './rental-catalog-view.js?v=compactsort20261119b';
+import {rentalCatalogView} from './rental-catalog-view.js?v=loadstable20261119';
 import {filterCountMarkup} from './catalog-filter-count.js?v=counts20261118';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const standardCategories=['Bord','Senger','Sofaer','Stoler','Utemøbler','Servise','Pakker','Bilder','Hyller','Belysning','Tepper','Kunstige planter','Kunstige blomster','Dekor'];

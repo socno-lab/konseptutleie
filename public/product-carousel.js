@@ -1,4 +1,5 @@
 // Shared image navigation; vertical gestures always remain with the product dialog.
+import {productCarouselContent} from './product-carousel-markup.js?v=galleryfirst20261119';
 const mounted=new WeakSet();
 function mount(root){
  if(!root)return;
@@ -10,7 +11,7 @@ function mount(root){
  const choices=[...root.querySelectorAll(sale?'[data-photo]':'[data-product-photo]')];
  if(choices.length<2)return;
  const controls=document.createElement('div');controls.className='product-image-controls';controls.setAttribute('role','group');controls.setAttribute('aria-label','Bla mellom produktbilder');
- controls.innerHTML='<button type="button" aria-label="Forrige produktbilde"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><span class="product-image-count" aria-live="polite"></span><button type="button" aria-label="Neste produktbilde"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>';
+ controls.innerHTML=productCarouselContent();
  stage.append(controls);
  const current=()=>{if(sale&&root.querySelector('#saleModulePreview:not([hidden])'))return -1;const src=stage.querySelector(sale?'#saleDetailPhoto':'img')?.getAttribute('src');return choices.findIndex(b=>(b.dataset.photo||b.dataset.productPhoto)===src);};
  const paint=()=>{const i=current(),label=i<0?'Valgt oppsett':`${i+1} / ${choices.length}`;const count=controls.querySelector('span');if(count.textContent!==label)count.textContent=label;};

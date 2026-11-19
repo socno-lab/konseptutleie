@@ -6,6 +6,7 @@ import {publicCatalog} from '../app-server.mjs';import {memoryStore} from './hel
 import {saleCatalogView} from '../public/sale-catalog-view.js?v=empty20261107';
 import {readInitialCatalog} from '../public/catalog-card-markup.js';
 import {renderArrowIcons} from '../server/arrow-icons.mjs';
+import {pricePickerContent} from '../public/price-display-markup.js';
 const store=await memoryStore(),data=publicCatalog({...await store.readCatalog(),settings:defaultSettings}),source=await readHtmlTemplate('kjop.html');
 test('purchase HTML contains the same filtered count, categories and initial cards as the browser',()=>{
  configureSiteSettings(data.settings);
@@ -33,6 +34,16 @@ test('first purchase batch is bounded; eager images and hearts exist before Java
   assert.match(card,/class="catalog-card-link"/);assert.match(card,/card-favorite-toggle/);
  }
  assert.match(view.renderItem(view.shown[0],0),/fetchpriority="high"/);
+ assert.match(html,/class="catalog-pagination"[^>]*><p[^>]*>Viser 24 av 61 produkter<\/p><button[^>]*aria-controls="saleProducts"[^>]*>Vis 24 flere<\/button>/);
+});
+
+test('purchase VAT controls and available colours match the live catalogue before modules run',()=>{
+ const base=data.products.find(p=>p.saleEnabled),products=[{...base,id:'sale-green',name:'Stol grønn',material:'Grønn',moduleSeries:'',variantGroup:''},{...base,id:'rental-pink',name:'Stol rosa',material:'Rosa',saleEnabled:false,moduleSeries:'',variantGroup:''}];
+ const html=renderSeo(source,pageModel('/kjop.html',new URLSearchParams(),products),products,true,data.settings);
+ assert.equal((html.match(/data-price-location="purchase-catalog"/g)||[]).length,1);
+ assert.ok(html.includes(pricePickerContent()));assert.ok(html.indexOf('data-price-location="purchase-catalog"')<html.indexOf('class="catalog-tools"'));
+ const choices=html.match(/id="saleRefinements"[\s\S]*?<\/select>/)?.[0];assert.match(choices,/value="color:gronn"/);assert.doesNotMatch(choices,/value="color:rosa"/);
+ assert.match(html,/class="catalog-pagination"[^>]*hidden/);
 });
 test('snapshot and search text cannot inject HTML, and detail pages retain their own loading flow',()=>{
  const products=[{...data.products.find(p=>p.saleEnabled),name:'</script><script>bad()</script> & $&'}],q='"><script>bad()</script>';

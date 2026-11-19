@@ -82,7 +82,6 @@
 #initialProductOverview{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start;gap:44px}
 #initialProductOverview .initial-product-image{height:430px;position:relative;background:white;margin:0 0 12px;overflow:hidden}
 #initialProductOverview .initial-product-image>img{display:block;width:100%;height:100%;object-fit:contain}
-.initial-gallery-count{display:none}
 .product-page [data-product-summary] .rate-grid{margin-top:12px}
 .product-page [data-product-summary] .rate-caption{font-size:9px;line-height:1.6}
 @media(max-width:800px){#initialProductOverview{gap:24px}}
@@ -90,7 +89,7 @@
  #initialProductOverview{grid-template-columns:minmax(0,1fr);gap:18px}
  #initialProductOverview .initial-product-image{height:clamp(260px,83vw,350px)}
  #initialProductOverview .initial-product-image.has-gallery>img{height:calc(100% - 38px)}
- .initial-gallery-count{display:flex;height:38px;align-items:center;justify-content:center;font-size:11px}
+ #initialProductOverview .initial-sale-module.has-gallery>.sale-module-preview{height:calc(100% - 38px)}
 }
 
 .initial-product-configuration>svg,.initial-product-configuration .module-photo{width:100%;height:100%;margin:0}.initial-product-configuration .module-photo>img,.initial-product-configuration .module-photo>svg{width:100%;max-height:100%;object-fit:contain}

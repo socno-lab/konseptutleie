@@ -1,11 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mountCatalogPagination} from '../public/catalog-pagination.js';
+import {mountCatalogPagination,catalogPaginationMarkup} from '../public/catalog-pagination.js';
 
 // A small DOM adapter keeps these behavioural tests independent of browsers.
 // Browser QA separately checks the real card markup and responsive layout.
 class Element{
  constructor(doc,tag){this.ownerDocument=doc;this.tagName=tag.toUpperCase();this.childNodes=[];this.attributes=new Map();this.listeners=new Map();this.hidden=false;this.id='';}
+ get nextElementSibling(){return this.parentNode?.childNodes[this.parentNode.childNodes.indexOf(this)+1]||null;}
+ matches(selector){return selector.startsWith('.')&&(this.className||'').split(' ').includes(selector.slice(1));}
+ querySelector(selector){return this.childNodes.find(child=>child.matches(selector))||null;}
  append(...nodes){for(const node of nodes){node.remove();node.parentNode=this;this.childNodes.push(node);}}
  remove(){if(this.parentNode){const siblings=this.parentNode.childNodes;siblings.splice(siblings.indexOf(this),1);this.parentNode=null;}}
  after(node){node.remove();const siblings=this.parentNode.childNodes;node.parentNode=this.parentNode;siblings.splice(siblings.indexOf(this)+1,0,node);}
@@ -21,6 +24,21 @@ function fixture(storage=null){const doc={createElement:tag=>new Element(doc,tag
 function memoryStorage(){const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value)};}
 const products=Array.from({length:59},(_,index)=>({id:'product-'+index,name:'Produkt '+index}));
 const renderItem=item=>'<article><a href="/leieprodukt.html?produkt='+item.id+'">'+item.name+'</a></article>';
+
+test('server pagination contains the final status and bounded button, and mounting preserves both nodes',()=>{
+ const markup=catalogPaginationMarkup({id:'products',total:59,visibleCount:23,initialPageSize:23});
+ assert.match(markup,/^<div class="catalog-pagination"><p class="hint catalog-pagination-status" role="status" aria-live="polite">Viser 23 av 59 produkter<\/p>/);
+ assert.match(markup,/aria-controls="products">Vis 24 flere<\/button>/);
+ assert.match(catalogPaginationMarkup({id:'saleProducts',total:25,visibleCount:24}),/aria-controls="saleProducts">Vis 1 flere<\/button>/);
+ assert.match(catalogPaginationMarkup({id:'products',total:2,visibleCount:2,initialPageSize:23}),/^<div class="catalog-pagination" hidden>/);
+ const view=fixture(),controls=view.doc.createElement('div'),status=view.doc.createElement('p'),button=view.doc.createElement('button');
+ controls.className='catalog-pagination';status.className='hint catalog-pagination-status';button.className='button dark catalog-pagination-button';
+ status.textContent='Viser 23 av 59 produkter';button.textContent='Vis 24 flere';controls.append(status,button);view.grid.after(controls);
+ const controller=mountCatalogPagination(view.grid,{items:products,key:'ssr',initialPageSize:23,renderItem});
+ assert.equal(view.controls,controls);assert.equal(view.controls.childNodes[0],status);assert.equal(view.controls.childNodes[1],button);
+ assert.equal(view.section.childNodes.length,2);assert.equal(status.textContent,'Viser 23 av 59 produkter');
+ button.click();assert.equal(controller.visibleCount,47);assert.equal(status.textContent,'Viser 47 av 59 produkter');
+});
 
 test('only one batch is rendered initially, and further batches preserve cards, links and final teaser',()=>{
  const view=fixture(),rendered=[];

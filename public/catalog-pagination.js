@@ -1,6 +1,13 @@
 const catalogues=new WeakMap();
 const storagePrefix='konsept-catalog-page:v1:';
 let nextCatalogueId=0;
+const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// First paint reserves the exact same status/button row that the client adopts.
+export function catalogPaginationMarkup({id,total,visibleCount,initialPageSize=24,pageSize=24,noun='produkter'}){
+ const remaining=Math.max(0,total-visibleCount);
+ return '<div class="catalog-pagination"'+(total<=initialPageSize?' hidden':'')+'><p class="hint catalog-pagination-status" role="status" aria-live="polite">Viser '+visibleCount+' av '+total+' '+escape(noun)+'</p><button type="button" class="button dark catalog-pagination-button" aria-controls="'+escape(id)+'"'+(remaining<=0?' hidden':'')+'>Vis '+Math.min(pageSize,remaining)+' flere</button></div>';
+}
 
 function sessionStorageFor(container){try{return container.ownerDocument.defaultView?.sessionStorage;}catch{return null;}}
 function storedCount(storage,key){try{const count=Number(storage?.getItem(storagePrefix+key));return Number.isSafeInteger(count)&&count>0?count:0;}catch{return 0;}}
@@ -19,11 +26,12 @@ export function mountCatalogPagination(container,options){
 
 function createCatalogue(container,initialOptions){
  const doc=container.ownerDocument,storage=initialOptions.storage===undefined?sessionStorageFor(container):initialOptions.storage;
- const controls=doc.createElement('div');controls.className='catalog-pagination';
- const status=doc.createElement('p');status.className='hint catalog-pagination-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
- const button=doc.createElement('button');button.type='button';button.className='button dark catalog-pagination-button';
+ const existing=container.nextElementSibling;
+ const controls=existing?.matches('.catalog-pagination')?existing:doc.createElement('div');controls.className='catalog-pagination';
+ const status=controls.querySelector('.catalog-pagination-status')||doc.createElement('p');status.className='hint catalog-pagination-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+ const button=controls.querySelector('.catalog-pagination-button')||doc.createElement('button');button.type='button';button.className='button dark catalog-pagination-button';
  if(!container.id)container.id='catalog-page-list-'+(++nextCatalogueId);
- button.setAttribute('aria-controls',container.id);controls.append(status,button);container.after(controls);
+ button.setAttribute('aria-controls',container.id);if(status.parentNode!==controls)controls.append(status);if(button.parentNode!==controls)controls.append(button);if(container.nextElementSibling!==controls)container.after(controls);
  let items=[],renderItem,key,preserveKey,pageSize=24,initialPageSize=24,visibleCount=0,tailNodes=[],noun='produkter',firstRender=true,destroyed=false;
 
  function updateControls(){

@@ -1,6 +1,7 @@
 import {catalogRefinementsMarkup} from '../public/catalog-refinements.js?v=compactsort20261119b';
-import {rentalCatalogView} from '../public/rental-catalog-view.js?v=compactsort20261119b';
+import {rentalCatalogView} from '../public/rental-catalog-view.js?v=loadstable20261119';
 import {renderCatalogCard} from '../public/catalog-card-markup.js';
+import {catalogPaginationMarkup} from '../public/catalog-pagination.js';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {countedSubcategoryButtons as subcategoryButtons} from '../public/catalog-filter-count.js?v=counts20261118';
@@ -14,7 +15,10 @@ export function catalogFirstPaint(html,model,catalogProducts,settings){
   let filter=model.catalogCategory==='Modulsofaer'?'Sofaer':model.catalogCategory;
   if(!['Alle','Enkeltprodukter'].includes(filter)&&!settings.categories.some(c=>c.id===filter))filter='Alle';
   if(model.catalogUsage.purpose==='boligsalg'&&filter==='Pakker')filter='Enkeltprodukter';
-  const view=rentalCatalogView({products,settings,purpose:model.catalogUsage.purpose,filter,tableFilter:model.catalogCategory==='Modulsofaer'?'Modulsofaer':model.catalogSubcategory,query:model.catalogQuery,rentalScopeConfirmed:model.catalogUsage.confirmed,refinement:model.catalogRefinement});
+  const heading=escape(filter==='Pakker'?'Loungepakker og ferdige møbelpakker':!['Alle','Enkeltprodukter'].includes(filter)?(settings.categories.find(c=>c.id===filter)?.label||filter)+' til leie':model.catalogUsage.purpose==='boligsalg'?'Møbelleie ved boligsalg':'Møbler til leie');
+  html=html.replace(/(<section\b[^>]*\bid="utvalg"[^>]*>[\s\S]*?<div class="section-head">[\s\S]*?<h[12]\b[^>]*>)[\s\S]*?(<\/h[12]>)/,(_,open,close)=>open+'<span class="desktop-catalog-title">'+heading+'</span><span class="mobile-catalog-title">'+heading+'</span>'+close);
+  html=html.replace(/<input\b(?=[^>]*\bid="search")[^>]*>/,input=>input.replace(/\svalue(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?(?=[\s/>])/gi,'').replace(/\s*\/?>$/,()=>' value="'+escape(model.catalogQuery)+'">'));
+  const view=rentalCatalogView({products,settings,purpose:model.catalogUsage.purpose,filter,tableFilter:model.catalogCategory==='Modulsofaer'?'Modulsofaer':model.catalogSubcategory,query:model.catalogQuery,rentalScopeConfirmed:model.catalogUsage.confirmed,rentalScope:model.catalogUsage.scope,refinement:model.catalogRefinement});
   // Reuse the rendered category label/count, just as syncMobileCatalog reads
   // the button's textContent. Its count excludes the selected subcategory.
   // Keep the already escaped text and remove only the decorative count span.
@@ -28,8 +32,9 @@ export function catalogFirstPaint(html,model,catalogProducts,settings){
   html=html.replace('<aside class="catalog-request"','<aside hidden class="catalog-request"');
   if(filter==='Dekor'){html=html.replace(/(<p id="mobileCatalogResults"[^>]*>)[\s\S]*?<\/p>/,'$1</p>');}
   if(!view.count&&filter!=='Dekor')html=html.replace('id="empty" class="catalog-empty" hidden','id="empty" class="catalog-empty"');
-  const first=view.orderedCards.slice(0,view.tailHtml?23:24).map(renderCatalogCard).join('')+view.tailHtml;
-  html=html.replace('<div id="products" class="products"></div>',()=>'<div id="products" class="products">'+renderArrowIcons(first)+'</div>');
+  const initialPageSize=view.tailHtml?23:24;
+  const first=view.orderedCards.slice(0,initialPageSize).map(renderCatalogCard).join('')+view.tailHtml;
+  html=html.replace('<div id="products" class="products"></div>',()=>'<div id="products" class="products">'+renderArrowIcons(first)+'</div>'+catalogPaginationMarkup({id:'products',total:view.count,visibleCount:Math.min(initialPageSize,view.count),initialPageSize}));
   html=html.replace(/(<p id="catalogStatus"[^>]*>)[\s\S]*?<\/p>/,'$1</p>');
   // Public snapshot only: same sanitized data used by /api/catalog, never admin rows.
   const data=JSON.stringify({products:catalogProducts,settings}).replace(/</g,'\\u003c');
