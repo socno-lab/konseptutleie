@@ -1,3 +1,4 @@
+import {headerToolsLayer} from './header-tools.mjs';
 // Reuse the storefront shell and fonts; this page has no checkout bootstrap.
 export function proposalPageHtml(source){
  const head=source.slice(0,source.indexOf('</head>')).replace(/<title>[\s\S]*?<\/title>/,'<title>Fortell oss hva du trenger | Konseptuell</title>');
@@ -16,5 +17,5 @@ export function proposalPageHtml(source){
 <p class="hint">Uforpliktende forespørsel · vi svarer normalt innen én virkedag. Pris og tilgjengelighet avklares i tilbudet. Vi bruker opplysningene til å følge opp forespørselen din. <a href="/kundeinfo.html#personvern">Les om personvern</a>.</p>
 <button class="button dark" type="submit">Send forespørsel ↗</button><p id="proposalStatus" role="status" aria-live="polite"></p>
 </form><noscript>Slå på JavaScript for å sende skjemaet, eller kontakt <a href="mailto:post@konseptuell.no">post@konseptuell.no</a>.</noscript>
-</main>`+footer+'</body></html>';
+</main>`+footer+headerToolsLayer+'</body></html>';
 }

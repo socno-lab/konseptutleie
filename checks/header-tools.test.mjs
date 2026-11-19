@@ -1,3 +1,4 @@
+import {proposalPageHtml} from '../server/proposal-page.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -91,3 +92,13 @@ test('static 404 retains its recovery links and exposes the same closed header t
  assert.match(html,/<link rel="stylesheet" href="\/header-tools\.css\?/);
  assert.match(html,/<\/header><div class="mobile-menu-layer" hidden>/);
 });
+
+ test('standalone proposal page retains working search and favorites outside its enquiry form',async()=>{
+ const html=proposalPageHtml(await readHtmlTemplate('index.html'));
+ assertTools(html,'proposal');
+ assert.equal((html.match(/src="\/header-tools\.js\?[^" ]+"/g)||[]).length,1);
+ assert.equal((html.match(/href="\/header-tools\.css\?[^" ]+"/g)||[]).length,1);
+ assert.ok(html.indexOf('class="header-tools-layer"')>html.indexOf('</main>'));
+ assert.equal((html.match(/id="proposalForm"/g)||[]).length,1);
+ assert.doesNotMatch(html,/<script[^>]*src="\/app\.js|id="requestForm"/);
+ });
