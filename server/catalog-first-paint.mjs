@@ -1,11 +1,11 @@
 import {catalogRefinementsMarkup} from '../public/catalog-refinements.js?v=compactsort20261119b';
-import {rentalCatalogView} from '../public/rental-catalog-view.js?v=loadstable20261119';
-import {renderCatalogCard} from '../public/catalog-card-markup.js';
-import {catalogPaginationMarkup} from '../public/catalog-pagination.js';
+import {rentalCatalogView} from '../public/rental-catalog-view.js?v=choicesfirst20261119';
+import {renderCatalogCard} from '../public/catalog-card-markup.js?v=choicesfirst20261119';
+import {catalogPaginationMarkup} from '../public/catalog-pagination.js?v=choicesfirst20261119';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {countedSubcategoryButtons as subcategoryButtons} from '../public/catalog-filter-count.js?v=counts20261118';
-import {rentalSubcategoryCounts} from '../public/catalog-filters.js';
+import {rentalSubcategoryCounts} from '../public/catalog-filters.js?v=choicesfirst20261119';
 import {renderArrowIcons} from './arrow-icons.mjs';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function catalogFirstPaint(html,model,catalogProducts,settings){

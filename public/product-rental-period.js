@@ -9,6 +9,7 @@ export function productPeriodState(start,end,options={}) {
 export function periodChangeNotice(start,end,previousStart,previousEnd,hasRentalItems) {
  return hasRentalItems&&(start!==previousStart||end!==previousEnd)?'Felles leieperiode: Endringen gjelder alle leievarer i forespørselen. Beregnede leiesummer oppdateres for alle varene.':'';
 }
+const linkedPeriods=new WeakSet();
 // Reuse the request form's existing authoritative fields and range picker.
 // No second date state, pricing engine, or product-specific period is introduced.
 export function mountProductRentalPeriod(host,{before=null,isPurchase=()=>false}={}) {
@@ -18,6 +19,8 @@ export function mountProductRentalPeriod(host,{before=null,isPurchase=()=>false}
   section=document.querySelector('#initialProductOverview [data-product-rental-period]')||document.createElement('section');section.dataset.productRentalPeriod='';section.className='rental-options';section.setAttribute('aria-label','Leieperiode for produktet');
   if(!section.childNodes.length)section.innerHTML=productPeriodMarkup();
   if(before)before.before(section);else host.append(section);
+ }
+ if(!linkedPeriods.has(section)){linkedPeriods.add(section);
   section.addEventListener('click',event=>{const button=event.target.closest('[data-period-field]');if(!button)return;const field=document.getElementById(button.dataset.periodField);if(field){field.disabled=false;field.click();}});
  }
  section.hidden=isPurchase();

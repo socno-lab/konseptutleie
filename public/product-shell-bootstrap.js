@@ -9,6 +9,8 @@
  const selected=purpose!=='alle'?(purpose==='boligsalg'?'standard':'messe'):[params.get('prisbruk'),basis].find(x=>x==='standard'||x==='messe');
  const template=document.getElementById('initialScope-'+selected);if(template)scope.replaceChildren(template.content.cloneNode(true));
  const price=document.querySelector('#initialProductOverview [data-product-unit-price]'),priceTemplate=document.getElementById('initialProductPrice-'+selected);if(price&&priceTemplate)price.replaceChildren(priceTemplate.content.cloneNode(true));
+ const options=document.querySelector('#initialProductOverview [data-initial-product-options]'),optionsTemplate=document.getElementById('initialProductOptions-'+selected);if(options&&optionsTemplate)options.replaceChildren(optionsTemplate.content.cloneNode(true));
+ for(const key of ['standard','messe'])document.getElementById('initialProductOptions-'+key)?.remove();
  for(const key of ['standard','messe'])document.getElementById('initialScope-'+key)?.remove();
  for(const key of ['standard','messe'])document.getElementById('initialProductPrice-'+key)?.remove();
 })();

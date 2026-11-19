@@ -8,7 +8,7 @@ import {categoryLabel,getSiteSettings} from './site-settings.js?v=fest20261114';
 import {productSubcategory,availableSubcategories} from './catalog-subcategories.js?v=fest20261114';
 import {variantFields} from './product-variants.js?v=fest20261114';
 import {salesEnabled,saleUnitPrice,deliveryText,groupedSaleCards,saleColours,saleSwatchColour} from './sales-model.js?v=fest20261114';
-import {renderCatalogCard} from './catalog-card-markup.js?v=sitefirst20261106';
+import {renderCatalogCard} from './catalog-card-markup.js?v=choicesfirst20261119';
 const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=priceMarkup,price=p=>saleUnitPrice(p)===null?'Pris på forespørsel':money(saleUnitPrice(p));
 import {filterCountMarkup,countedSubcategoryButtons as subcategoryButtons} from './catalog-filter-count.js?v=counts20261118';

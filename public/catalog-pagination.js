@@ -1,3 +1,4 @@
+import {syncRentalPeriodSlots} from './rental-period-slots.js?v=choicesfirst20261119';
 const catalogues=new WeakMap();
 const storagePrefix='konsept-catalog-page:v1:';
 let nextCatalogueId=0;
@@ -76,7 +77,7 @@ function createCatalogue(container,initialOptions){
    const desiredKeys=new Set((canReuseCards?[...template.content.children]:[]).map(node=>node.dataset.catalogRender));
    const photos=new Map([...container.querySelectorAll('img')].filter(img=>!desiredKeys.has(img.closest('[data-catalog-render]')?.dataset.catalogRender)).map(img=>[img.getAttribute('src')+'|'+img.getAttribute('class'),img]));
    const nodes=[...template.content.children].map(node=>{
-    const old=existing.get(node.dataset.catalogRender);if(old){existing.delete(node.dataset.catalogRender);return old;}
+    const old=existing.get(node.dataset.catalogRender);if(old){existing.delete(node.dataset.catalogRender);syncRentalPeriodSlots(old,node);return old;}
     for(const img of node.querySelectorAll('img')){const key=img.getAttribute('src')+'|'+img.getAttribute('class'),photo=photos.get(key);if(photo&&photo.getAttribute('srcset')===img.getAttribute('srcset')&&photo.getAttribute('style')===img.getAttribute('style')){for(const attr of [...photo.attributes])if(!img.hasAttribute(attr.name))photo.removeAttribute(attr.name);for(const attr of img.attributes)if(photo.getAttribute(attr.name)!==attr.value)photo.setAttribute(attr.name,attr.value);img.replaceWith(photo);photos.delete(key);}}
     return node;
    });

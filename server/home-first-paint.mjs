@@ -1,5 +1,5 @@
 import {renderProductCopy} from '../public/home-product-copy.js?v=productcopy20261115';
-import {homeProductCards,homeSeasonContent,homeRateGrid} from '../public/home-sections.js?v=vat20261115b';
+import {homeProductCards,homeSeasonContent,homeRateGrid} from '../public/home-sections.js?v=choicesfirst20261119';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
 export function homeFirstPaint(html,products,settings){
  html=renderProductCopy(html,settings.home);

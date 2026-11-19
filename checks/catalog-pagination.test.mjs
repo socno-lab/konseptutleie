@@ -1,14 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mountCatalogPagination,catalogPaginationMarkup} from '../public/catalog-pagination.js';
+import {renderCatalogCard} from '../public/catalog-card-markup.js';
+import {periodPriceMarkup} from '../public/rental-period-display.js';
 
 // A small DOM adapter keeps these behavioural tests independent of browsers.
 // Browser QA separately checks the real card markup and responsive layout.
 class Element{
  constructor(doc,tag){this.ownerDocument=doc;this.tagName=tag.toUpperCase();this.childNodes=[];this.attributes=new Map();this.listeners=new Map();this.hidden=false;this.id='';}
  get nextElementSibling(){return this.parentNode?.childNodes[this.parentNode.childNodes.indexOf(this)+1]||null;}
+ get children(){return this.childNodes;}
+ get lastElementChild(){return this.childNodes.at(-1);}
  matches(selector){return selector.startsWith('.')&&(this.className||'').split(' ').includes(selector.slice(1));}
  querySelector(selector){return this.childNodes.find(child=>child.matches(selector))||null;}
+ querySelectorAll(selector){return this.childNodes.filter(child=>selector==='img'?child.tagName==='IMG':selector==='[data-rental-period]'?child.period:true).flatMap(child=>[child,...child.querySelectorAll(selector)]);}
+ insertBefore(node,before){node.remove();node.parentNode=this;this.childNodes.splice(before?this.childNodes.indexOf(before):this.childNodes.length,0,node);}
  append(...nodes){for(const node of nodes){node.remove();node.parentNode=this;this.childNodes.push(node);}}
  remove(){if(this.parentNode){const siblings=this.parentNode.childNodes;siblings.splice(siblings.indexOf(this),1);this.parentNode=null;}}
  after(node){node.remove();const siblings=this.parentNode.childNodes;node.parentNode=this.parentNode;siblings.splice(siblings.indexOf(this)+1,0,node);}
@@ -24,6 +30,25 @@ function fixture(storage=null){const doc={createElement:tag=>new Element(doc,tag
 function memoryStorage(){const data=new Map();return {getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,value)};}
 const products=Array.from({length:59},(_,index)=>({id:'product-'+index,name:'Produkt '+index}));
 const renderItem=item=>'<article><a href="/leieprodukt.html?produkt='+item.id+'">'+item.name+'</a></article>';
+
+test('saved-period hydration and later date changes retain card and image identity while updating price slots',()=>{
+ const view=fixture(),tariff={id:'chair',name:'Stol',price:30,weekPrice:100,monthPrice:300};
+ const render=days=>renderCatalogCard({product:tariff,render:()=>'<article><img src="/chair.jpg">'+periodPriceMarkup(tariff,{days})+'</article>'},0);
+ const parse=markup=>{
+  const card=new Element(view.doc,'article');card.dataset={catalogRender:markup.match(/data-catalog-render="([^"]*)"/)[1]};
+  const image=new Element(view.doc,'img');image.closest=()=>card;image.getAttribute=name=>name==='src'?'/chair.jpg':null;
+  const slot=new Element(view.doc,'div'),match=markup.match(/<div\b([^>]*data-rental-period="[^"]*"[^>]*)>([\s\S]*?)<\/div>/);slot.period=true;slot.innerHTML=match[2];slot.className=match[1].includes('class="rental-period-price"')?'rental-period-price':'';slot.hidden=match[1].includes(' hidden');
+  card.append(image,slot);return card;
+ };
+ const create=view.doc.createElement;view.doc.createElement=tag=>tag==='template'?{content:{children:[]},set innerHTML(markup){this.content.children=[parse(markup)];}}:create(tag);
+ const original=parse(render(null));view.grid.append(original);const [image,slot]=original.children;
+ let days=5;const options={items:[tariff],key:'rent',renderItem:()=>render(days),preserveInitialCards:true,preserveKey:'same'};
+ const controller=mountCatalogPagination(view.grid,options);
+ assert.equal(view.grid.children[0],original);assert.equal(original.children[0],image);assert.equal(slot.hidden,false);assert.match(slot.innerHTML,/data-price-gross="100"/);
+ days=8;mountCatalogPagination(view.grid,options);assert.equal(view.grid.children[0],original);assert.equal(original.children[0],image);assert.match(slot.innerHTML,/data-price-gross="130"/);
+ days=null;mountCatalogPagination(view.grid,options);assert.equal(slot.hidden,true);assert.equal(slot.className,'');assert.equal(view.grid.children[0],original);
+ assert.equal(controller.visibleCount,1);
+});
 
 test('server pagination contains the final status and bounded button, and mounting preserves both nodes',()=>{
  const markup=catalogPaginationMarkup({id:'products',total:59,visibleCount:23,initialPageSize:23});

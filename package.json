@@ -10,12 +10,16 @@
     "build": "node build.mjs",
     "start": "node server.mjs",
     "dev": "node --watch server.mjs",
-    "test": "node --test checks/*.test.mjs"
+    "test": "node --test checks/*.test.mjs",
+    "generate:product-first": "node --input-type=module -e \"import('./server/product-initial-state-script.mjs').then(m=>m.writeProductInitialStateScript())\""
   },
   "dependencies": {
     "image-size": "^2.0.4",
     "mysql2": "^3.24.6",
     "nodemailer": "^10.2.0",
     "sharp": "0.35.5"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }

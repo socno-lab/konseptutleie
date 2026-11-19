@@ -2,26 +2,29 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {ratePlan,rentalDays,moduleConfiguration} from '../public/catalog-model.js';
-import {productPeriodState} from '../public/product-rental-period.js';
+import {ratePlan} from '../public/catalog-model.js';
 import {packageGroupRates,packageGroupPeriodTotal} from '../public/package-cart-model.js';
 import {rentalUsageState} from '../public/rental-usage-model.js?v=stockmobile20261107';
 import {scopeForOccasion} from '../public/rental-pricing-model.js?v=stockmobile20261107';
-import {packageBuyoutOption} from '../public/buyout-model.js';
-import {packagePurchaseSelectionPrice} from '../public/business-purchase-model.js';
 import {saveSofa} from '../public/sofa-model.js';
+import {rentalModuleView} from '../public/rental-builder-options.js';
+import {rentalProductOptions} from '../public/rental-product-options.js';
+import {priceMarkup} from '../public/price-display-model.js';
 
 const source=fs.readFileSync(new URL('../public/app.js?v=review20261107',import.meta.url),'utf8');
 const functionSource=name=>{const start=source.indexOf('function '+name+'(');assert.ok(start>=0);const firstLine=source.slice(start,source.indexOf('\n',start));return firstLine.endsWith('}')?firstLine:source.slice(start,source.indexOf('\n}',start)+2);};
 const item=(id,extra={})=>({id,name:id,active:true,stock:30,unavailable:0,price:100,weekPrice:500,monthPrice:1000,...extra});
-const end=item('end',{moduleSeries:'Sofa',moduleRole:'end',moduleWidth:100}),middle=item('middle',{moduleSeries:'Sofa',moduleRole:'middle',moduleWidth:80,price:80,weekPrice:300,monthPrice:800}),textile=item('textile',{price:400,weekPrice:400,monthPrice:400,rentalPricingMode:'period',addonOnly:true});
+const end=item('end',{moduleSeries:'Sofa',moduleRole:'end',moduleWidth:100,relatedAddOns:['textile']}),middle=item('middle',{moduleSeries:'Sofa',moduleRole:'middle',moduleWidth:80,price:80,weekPrice:300,monthPrice:800,relatedAddOns:['textile']}),textile=item('textile',{price:400,weekPrice:400,monthPrice:400,rentalPricingMode:'period',addonOnly:true,isService:true});
 const products=[end,middle,textile],selection={end:2,middle:1},money=n=>n+' kr';
-const dateAfter=days=>new Date(Date.UTC(2026,10,days)).toISOString().slice(0,10);
+// Exercise the real price spans, verifying their formatter before normalizing
+// them for the existing amount/label assertions below.
+const plainPrices=markup=>markup.replace(/<span data-price-gross="([^"]+)">[^<]*<\/span>/g,(span,gross)=>{assert.equal(span,priceMarkup(Number(gross)));return money(Number(gross));});
 
 function moduleMarkup(days=null,extra=textile,{chosen=selection,catalog=products}={}){
- const items=catalog.map(p=>p.id===extra?.id?extra:p),context={products:items,moduleSelection:chosen,config:moduleConfiguration('Sofa',chosen,{},items),textile:extra,rentalScopeConfirmed:true,ratePlan,rentalDays,productPeriodState:(start,end)=>productPeriodState(start,end,{today:'2026-10-28'}),packageGroupPeriodTotal,money,priceMarkup:money,priceMarkup:money,html:String,addonPrice:()=>'',el:id=>({value:days?(id==='start'?'2026-11-01':dateAfter(days)):''})};
- const functions=['selectedRentalDays','rateGrid','rentalSelectionSummary','moduleBasePricing','moduleSelectionPricing'].map(functionSource).join('\n');
- return vm.runInNewContext(functions+'\n({base:moduleBasePricing(config),summary:moduleSelectionPricing(config,textile)})',context);
+ const items=catalog.map(p=>p.id===extra?.id?extra:p);
+ const view=rentalModuleView({products:items,rentalScopeConfirmed:true,days},{series:'Sofa',selection:chosen,textile:!!extra,base:{}});
+ assert.equal(view.config.valid,true);
+ return {base:plainPrices(view.basePrices),summary:plainPrices(view.summary)};
 }
 function renderModule(...args){const {base,summary}=moduleMarkup(...args);return base+summary;}
 
@@ -118,7 +121,8 @@ test('explicit incompatible pricing basis clears occasion instead of silently re
 
 test('direct purchase detail summary includes addon purchase values and never hides an unknown extra',()=>{
  const pack=item('pack',{isPackage:true,businessPurchase:true,purchasePrice:30000}),extra={...textile,buyoutUnitPrice:1200},stylist=item('stylist',{category:'Styling',offeringType:'service',priceOnRequest:true}),items=[pack,extra,stylist];
- const render=extras=>vm.runInNewContext(functionSource('businessPurchaseSummary')+'\nbusinessPurchaseSummary(pack,2,extras,false,"buy",true)',{pack,extras,products:items,packageBuyoutOption,packagePurchaseSelectionPrice,money,priceMarkup:money,html:String});
+ const renderer=rentalProductOptions({products:items});
+ const render=extras=>plainPrices(renderer.businessPurchaseSummary(pack,2,extras,false,'buy',true));
  assert.match(render({textile:2}),/Kjøpspris for pakken: 62400 kr/);
  assert.doesNotMatch(render({textile:2}),/60800 kr/);
  assert.match(render({textile:2,stylist:1}),/Kjøpspris for pakken: Pris på forespørsel/);

@@ -1,4 +1,4 @@
-import {homeVisualEditor} from './home-visual-editor.js?v=productcopy20261115';
+import {homeVisualEditor} from './home-visual-editor.js?v=choicesfirst20261119';
 import {pageEditor,pageEditorAction} from './page-editor.js?v=visual20261114';
 import {landingSettings} from './landing-settings.js?v=fest20261114';
 import {validateSiteSettings,configureSiteSettings} from '/site-settings.js?v=fest20261114';

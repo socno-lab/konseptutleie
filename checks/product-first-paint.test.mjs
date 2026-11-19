@@ -9,7 +9,7 @@ test('both product modes deliver public data and preload the exact responsive de
   assert.match(html,/rel="preload" as="image"/);assert.match(html,/imagesrcset=/);assert.match(html,/fetchpriority="high"/);
   assert.ok(html.includes('imagesizes="'+detailImageSizes+'"'));assert.ok(detailImageAttributes(src).includes('sizes="'+detailImageSizes+'"'));
   const raw=html.match(/id="initialProductCatalog">([\s\S]*?)<\/script>/)[1];assert.ok(!raw.includes('<'));
-  assert.deepEqual(readInitialCatalog({getElementById:id=>id==='initialProductCatalog'?{textContent:raw}:null}),{products,settings});
+  assert.deepEqual(readInitialCatalog({getElementById:id=>id==='initialProductCatalog'?{textContent:raw}:null}),{products,settings,occasionChoices:[]});
  }
 });
 test('module compositions and walls receive data without preloading an unrelated product photo',()=>{
@@ -32,7 +32,7 @@ test('product shell is present before modules, moves rental controls once and sa
   assert.equal((html.match(/id="catalogPricingScope"/g)||[]).length,buy?0:1);
   assert.ok(html.indexOf('productPageHost')<html.indexOf('<section>'));
   assert.ok(!html.includes('evil.test'));
-  assert.match(html,/product-shell-bootstrap.js\?v=production20261107/);
+  assert.match(html,/product-shell-bootstrap.js\?v=choicesfirst20261119/);
   assert.equal((html.match(/data-price-location="purchase-product"/g)||[]).length,buy?1:0);
   if(buy){assert.ok(html.indexOf('class="product-breadcrumbs"')<html.indexOf('data-price-location="purchase-product"'));assert.ok(html.indexOf('data-price-location="purchase-product"')<html.indexOf('id="initialProductOverview"'),'picker survives removal of the temporary overview');}
  }

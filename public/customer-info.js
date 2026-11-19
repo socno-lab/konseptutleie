@@ -1,7 +1,7 @@
 import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {customerInformationPages} from './customer-information-content.js?v=privacy20261119';
-import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
+import {readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
 import {mountMobileRentalDates} from './mobile-rental-dates.js?v=period20261028e';
 import {mountStorageNotice} from './storage-notice.js?v=launch20261024';
 mountStorageNotice();

@@ -1,6 +1,6 @@
 import {catalogPositionKey} from './catalog-position.js?v=launch20261024';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
-import {renderRecommendations} from './product-recommendations.js?v=vat20261115b';
+import {renderRecommendations} from './product-recommendations.js?v=choicesfirst20261119';
 import {productPagePaths,productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
 import {mountPageAnchor} from './page-anchor.js?v=scrollrestore20261108b';
 export const isProductPage=Object.values(productPagePaths).includes(location.pathname);
@@ -71,7 +71,7 @@ export function showSurface(node,label=''){
   section.classList.add('product-page-surface');section.append(...node.childNodes);node.replaceWith(section);target.insertBefore(section,target.querySelector('#productRecommendations'));
  }
  for(const other of target.querySelectorAll('.product-page-surface')){other.hidden=other!==section;other.open=other===section;}
- section.hidden=false;section.open=true;
+ section.hidden=false;section.open=true;section.removeAttribute('inert');section.removeAttribute('data-initial-builder');
  for(const button of section.querySelectorAll('[data-close="'+section.id+'"]'))button.hidden=true;
  if(section.id==='saleDetail')arrangeProduct(section.querySelector('#saleDetailContent'),true);
  if(section.id==='detail')arrangeProduct(section.querySelector('#detailContent'),false);

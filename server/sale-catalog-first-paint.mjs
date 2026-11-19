@@ -1,9 +1,9 @@
 import {catalogRefinementsMarkup} from '../public/catalog-refinements.js?v=compactsort20261119b';
-import {saleCatalogView} from '../public/sale-catalog-view.js?v=compactsort20261119b';
+import {saleCatalogView} from '../public/sale-catalog-view.js?v=choicesfirst20261119';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {renderArrowIcons} from './arrow-icons.mjs';
 import {pricePickerContent} from '../public/price-display-markup.js';
-import {catalogPaginationMarkup} from '../public/catalog-pagination.js';
+import {catalogPaginationMarkup} from '../public/catalog-pagination.js?v=choicesfirst20261119';
 import {salesEnabled} from '../public/sales-model.js?v=fest20261114';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function saleCatalogFirstPaint(html,model,products,settings){
