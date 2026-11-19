@@ -1,4 +1,4 @@
-import {normalizeRefinement,matchesColor,sortSaleProducts,writeRefinement} from './catalog-refinement-model.js?v=refine20261119';
+import {normalizeRefinement,matchesColor,sortSaleProducts,writeRefinement} from './catalog-refinement-model.js?v=compactsort20261119b';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {dimensionSearchText} from './product-dimensions.js?v=optionimages20261108';
 import {productPageUrl} from './product-page-model.js?v=launch20261024';

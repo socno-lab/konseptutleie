@@ -21,12 +21,15 @@ test('colour search uses actual named colours and ignores illustration fallback 
  assert.equal(matchesColor(item('f','Naturvitenskap bok'),'natur'),false);
  assert.equal(matchesColor(item('g','Stol brunert'),'brun'),true);
 });
-test('URL refinements are bounded enums, preserve unrelated catalogue state and canonicalize defaults',()=>{
+test('one selector choice uses bounded state, clears the other mode and preserves unrelated URL state',()=>{
  assert.deepEqual(normalizeRefinement({color:'<script>',sort:'constructor',period:'all'}),{color:'',sort:'default',period:'day'});
  const params=new URLSearchParams('bruk=messe&kategori=Stoler&sok=stol&farge=beige&sortering=price-desc&periode=month');
- assert.deepEqual(readRefinement(params),{color:'beige',sort:'price-desc',period:'month'});
+ assert.deepEqual(readRefinement(params),{color:'beige',sort:'default',period:'day'});
  writeRefinement(params,{color:'gronn',sort:'price-asc',period:'week'});
- assert.equal(params.get('bruk'),'messe');assert.equal(params.get('kategori'),'Stoler');assert.equal(params.get('sok'),'stol');assert.equal(params.get('periode'),'week');
+ assert.equal(params.get('bruk'),'messe');assert.equal(params.get('kategori'),'Stoler');assert.equal(params.get('sok'),'stol');
+ assert.equal(params.get('farge'),'gronn');assert.equal(params.has('sortering'),false);assert.equal(params.has('periode'),false);
+ writeRefinement(params,{sort:'price-asc',period:'day'});assert.equal(params.has('farge'),false);assert.equal(params.get('sortering'),'price-asc');
+ const legacy=new URLSearchParams('sortering=price-desc&periode=month');assert.deepEqual(readRefinement(legacy),{color:'',sort:'price-desc',period:'month'});
  writeRefinement(params,normalizeRefinement());assert.equal(params.has('farge'),false);assert.equal(params.has('sortering'),false);assert.equal(params.has('periode'),false);
  writeRefinement(params,{sort:'price-desc',period:'month'},{sale:true});assert.equal(params.has('periode'),false);
 });
@@ -55,7 +58,8 @@ const products=[item('beige','Stol beige',{weekPrice:700}),item('green','Stol gr
 test('colour selects the matching grouped variant and combines with category, search and counts',()=>{
  const refinement={color:'gronn',sort:'price-asc',period:'week'};
  const view=rentalCatalogView({products,settings,filter:'Alle',purpose:'messe',refinement,rentalScopeConfirmed:true});
- assert.deepEqual(ids(view.orderedCards),['green','other','lamp-green']);
+ assert.deepEqual(new Set(ids(view.orderedCards)),new Set(['green','other','lamp-green']));
+ assert.deepEqual(ids(view.orderedCards),ids(rentalCatalogView({products,settings,filter:'Alle',purpose:'messe',refinement:{color:'gronn'},rentalScopeConfirmed:true}).orderedCards));
  assert.equal(view.cards.some(c=>c.product.id==='lamp-white'),false);
  const filtered=rentalCatalogView({products,settings,filter:'Stoler',purpose:'messe',query:'stol',tableFilter:'Spisestoler',refinement,rentalScopeConfirmed:true});
  assert.deepEqual(ids(filtered.orderedCards),['green']);
@@ -65,21 +69,28 @@ test('colour selects the matching grouped variant and combines with category, se
  assert.deepEqual(rentalSubcategoryCounts(products,settings,'messe','Stoler','',['Spisestoler','Loungestoler'],refinement),{'':2,Spisestoler:1,Loungestoler:1});
  const sale=saleCatalogView({products,refinement});
  assert.equal(sale.shown.some(p=>p.id==='lamp-white'),false);assert.equal(sale.shown.some(p=>p.id==='lamp-green'),true);
- assert.match(sale.renderItem(sale.shown[0],0),/farge%3Dgronn/);assert.match(sale.renderItem(sale.shown[0],0),/sortering%3Dprice-asc/);
+ assert.match(sale.renderItem(sale.shown[0],0),/farge%3Dgronn/);assert.doesNotMatch(sale.renderItem(sale.shown[0],0),/sortering%3Dprice-asc/);
 });
-test('SSR rental and sale preserve selected controls and sorted filtered first paint',async()=>{
+test('SSR shows one dropdown with price choices before colours and preserves the selected colour',async()=>{
  for(const path of ['/utvalg.html','/kjop.html']){
   const params=new URLSearchParams({bruk:'messe',prisbruk:'messe',farge:'gronn',sortering:'price-asc',periode:'week',kategori:'Stoler'});
   const model=pageModel(path,params,products),source=await readHtmlTemplate(path.slice(1)),html=renderSeo(source,model,products,true,settings);
-  assert.match(html,/<option value="gronn" selected>Grønn<\/option>/);
-  assert.match(html,/<option value="price-asc" selected>Pris: lav til høy<\/option>/);
+  const markup=html.match(/<div id="(?:rental|sale)Refinements"[\s\S]*?<\/div>/)?.[0]||'';
+  assert.equal((markup.match(/<select\b/g)||[]).length,1);
+  assert.match(markup,/data-refinement="choice"/);assert.doesNotMatch(markup,/data-refinement="(?:color|period|sort)"/);
+  assert.match(markup,/<option value="color:gronn" selected>/);assert.match(markup,/<optgroup label="Farge">/);
+  assert.ok(markup.indexOf('value="price-asc"')<markup.indexOf('value="price-desc"'));
+  assert.ok(markup.indexOf('value="price-desc"')<markup.indexOf('<optgroup label="Farge">'));
   assert.doesNotMatch(html,/data-(?:detail|product)="beige"/);
   assert.equal((html.match(/id="(?:rental|sale)Refinements"/g)||[]).length,1);
-  if(path==='/utvalg.html')assert.match(html,/<option value="week" selected>Uke · 7 døgn<\/option>/);
  }
 });
-test('unconfirmed rental pricing cannot misleadingly sort hidden rates and filters handle unknown colours safely',()=>{
- const markup=catalogRefinementsMarkup({state:{color:'<script>',sort:'price-asc'},products,confirmed:false});
- assert.match(markup,/data-refinement="sort" disabled/);assert.match(markup,/Velg bruksområde/);assert.doesNotMatch(markup,/<script>/);
- const sale=catalogRefinementsMarkup({state:{sort:'price-desc'},products,sale:true});assert.doesNotMatch(sale,/data-refinement="period"/);assert.doesNotMatch(sale,/disabled/);
+test('unconfirmed rental scope disables price choices but leaves colour filtering available',()=>{
+ const markup=catalogRefinementsMarkup({state:{color:'gronn'},products,confirmed:false});
+ assert.doesNotMatch(markup,/<select[^>]*disabled/);
+ assert.match(markup,/<optgroup label="Pris" disabled><option value="price-asc">[^<]*<\/option><option value="price-desc">[^<]*<\/option><\/optgroup>/);
+ assert.doesNotMatch(markup,/<optgroup label="Farge"[^>]*disabled/);
+ assert.match(markup,/<option value="color:gronn" selected>/);
+ assert.doesNotMatch(markup,/<option value="color:gronn"[^>]*disabled/);
+ const sale=catalogRefinementsMarkup({state:{sort:'price-desc'},products,sale:true});assert.equal((sale.match(/<select\b/g)||[]).length,1);assert.doesNotMatch(sale,/disabled/);
 });

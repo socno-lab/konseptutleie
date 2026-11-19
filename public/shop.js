@@ -1,9 +1,9 @@
-import {readRefinement,writeRefinement,normalizeRefinement} from './catalog-refinement-model.js?v=refine20261119';
-import {mountCatalogRefinements} from './catalog-refinements.js?v=refine20261119';
+import {readRefinement,writeRefinement,normalizeRefinement} from './catalog-refinement-model.js?v=compactsort20261119b';
+import {mountCatalogRefinements} from './catalog-refinements.js?v=compactsort20261119b';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {productSummary} from './product-summary.js?v=vat20261115b';
 import {detailImageAttributes,setDetailPhotoSource} from './product-image-loading.js?v=detailfirst20261106';
-import {saleCatalogView,saleColourSwatches} from './sale-catalog-view.js?v=refine20261119';
+import {saleCatalogView,saleColourSwatches} from './sale-catalog-view.js?v=compactsort20261119b';
 import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {mountEnquiryFlow} from './enquiry-flow.js?v=customfirst20261115';
@@ -45,7 +45,7 @@ function renderCatalog(push=false){
  if(!isProductPage){const url=new URL(location.href);for(const [key,value] of Object.entries({kategori:category,underkategori:tableFilter,sok:view.query})){if(value)url.searchParams.set(key,value);else url.searchParams.delete(key);}writeRefinement(url.searchParams,refinement,{sale:true});const next=url.pathname+url.search+url.hash;if(next!==location.pathname+location.search+location.hash)history[push?'pushState':'replaceState'](null,'',next);}
  if(el('saleCategories').innerHTML!==view.categoryHtml)el('saleCategories').innerHTML=view.categoryHtml;
  el('saleTableTypes').hidden=!view.types.length;if(el('saleTableTypes').innerHTML!==view.subcategoryHtml)el('saleTableTypes').innerHTML=view.subcategoryHtml;
- if(!isProductPage)mountCatalogRefinements(el('saleTableTypes'),{state:refinement,products,sale:true},state=>{refinement=state;renderCatalog(true);});
+ if(!isProductPage)mountCatalogRefinements(el('saleStatus'),{state:refinement,products,sale:true},state=>{refinement=state;renderCatalog(true);});
  el('saleStatus').textContent=view.status;
  mountCatalogPagination(el('saleProducts'),{items:view.shown,key:JSON.stringify(['buy',location.pathname,category,tableFilter,view.search,refinement.color,refinement.sort]),renderItem:view.renderItem,tailHtml:view.tailHtml,preserveInitialCards:true});
 }

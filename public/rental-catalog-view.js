@@ -1,4 +1,4 @@
-import {normalizeRefinement,matchesColor,sortRentalCards} from './catalog-refinement-model.js?v=refine20261119';
+import {normalizeRefinement,matchesColor,sortRentalCards} from './catalog-refinement-model.js?v=compactsort20261119b';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {dimensionSearchText} from './product-dimensions.js?v=optionimages20261108';
 import {rentalStockMarkup} from './rental-stock.js?v=stockcount20261108';

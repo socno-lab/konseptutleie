@@ -32,7 +32,11 @@ export function availableColors(products,selected=''){
  const ids=new Set(products.flatMap(productColors));if(colorIds.has(selected))ids.add(selected);
  return catalogColors.filter(c=>ids.has(c.id)).map(({id,label})=>({id,label}));
 }
-export function normalizeRefinement(value={}){return {color:colorIds.has(value?.color)?value.color:'',sort:['price-asc','price-desc'].includes(value?.sort)?value.sort:'default',period:['day','week','month'].includes(value?.period)?value.period:'day'};}
+export function normalizeRefinement(value={}){
+ const color=colorIds.has(value?.color)?value.color:'';
+ // The compact selector represents one choice: a colour OR a price order.
+ return {color,sort:!color&&['price-asc','price-desc'].includes(value?.sort)?value.sort:'default',period:!color&&['day','week','month'].includes(value?.period)?value.period:'day'};
+}
 export function readRefinement(params){return normalizeRefinement({color:params.get('farge'),sort:params.get('sortering'),period:params.get('periode')});}
 export function writeRefinement(params,value,{sale=false}={}){
  const state=normalizeRefinement(value);

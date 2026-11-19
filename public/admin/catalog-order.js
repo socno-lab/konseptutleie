@@ -1,4 +1,4 @@
-import {rentalCatalogView} from '/rental-catalog-view.js?v=refine20261119';
+import {rentalCatalogView} from '/rental-catalog-view.js?v=compactsort20261119b';
 import {configureSiteSettings,sortProducts} from '/site-settings.js?v=fest20261114';
 import {purposes} from '/rental-purpose-model.js?v=fest20261114';
 import {rememberCardOrder,validateCatalogOrder} from '/catalog-manual-order.js';

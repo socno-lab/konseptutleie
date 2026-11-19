@@ -1,5 +1,5 @@
-import {catalogRefinementsMarkup} from '../public/catalog-refinements.js?v=refine20261119';
-import {rentalCatalogView} from '../public/rental-catalog-view.js?v=refine20261119';
+import {catalogRefinementsMarkup} from '../public/catalog-refinements.js?v=compactsort20261119b';
+import {rentalCatalogView} from '../public/rental-catalog-view.js?v=compactsort20261119b';
 import {renderCatalogCard} from '../public/catalog-card-markup.js';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
@@ -18,7 +18,7 @@ export function catalogFirstPaint(html,model,catalogProducts,settings){
   html=html.replace(/(<p id="purposeResults"[^>]*>)[\s\S]*?<\/p>/,(_,open)=>open+escape(view.desktopCount)+'</p>');
   html=html.replace(/(<p id="mobileCatalogResults"[^>]*>)[\s\S]*?<\/p>/,(_,open)=>open+escape(view.mobileCount)+'</p>');
   const subcategories='<div id="rentalTableTypes" class="catalog-subcategories" role="group" aria-label="Underkategorier"'+(view.types.length?'':' hidden')+'>'+subcategoryButtons(view.types,view.tableFilter,filter,rentalSubcategoryCounts(products,settings,model.catalogUsage.purpose,filter,model.catalogQuery,view.types,model.catalogRefinement))+'</div>';
-  html=html.replace('<p id="mobileCatalogResults"',()=>subcategories+catalogRefinementsMarkup({state:model.catalogRefinement,products:view.scoped.filter(p=>!p.addonOnly),confirmed:model.catalogUsage.confirmed})+'<p id="mobileCatalogResults"');
+  html=html.replace(/(<p id="mobileCatalogResults"[^>]*>[\s\S]*?<\/p>)(<p class="sample-note">[\s\S]*?<\/p>)/,(_,count,note)=>subcategories+'<div class="catalog-sort-row">'+count+note+catalogRefinementsMarkup({state:model.catalogRefinement,products:view.scoped.filter(p=>!p.addonOnly),confirmed:model.catalogUsage.confirmed})+'</div>');
   html=html.replace('<aside class="catalog-request"','<aside hidden class="catalog-request"');
   if(filter==='Dekor'){html=html.replace(/(<p id="mobileCatalogResults"[^>]*>)[\s\S]*?<\/p>/,'$1</p>');}
   if(!view.count&&filter!=='Dekor')html=html.replace('id="empty" class="catalog-empty" hidden','id="empty" class="catalog-empty"');

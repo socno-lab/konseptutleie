@@ -1,25 +1,27 @@
-import {normalizeRefinement,availableColors} from './catalog-refinement-model.js?v=refine20261119';
+import {normalizeRefinement,availableColors} from './catalog-refinement-model.js?v=compactsort20261119b';
 const html=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const periods=[['day','Døgn'],['week','Uke · 7 døgn'],['month','Måned · 30 døgn']];
 const option=(value,label,selected)=>'<option value="'+html(value)+'"'+(value===selected?' selected':'')+'>'+html(label)+'</option>';
+const selectedValue=state=>state.color?'color:'+state.color:state.sort;
 export function refinementHint(state,{sale=false,confirmed=true}={}){
+ if(state.color)return 'Viser produkter i valgt farge.';
  if(!sale&&!confirmed)return 'Velg bruksområde for å sammenligne leiepriser.';
  if(state.sort==='default')return '';
  return sale?'Sorterer etter kjøpsprisen som vises på kortet. Pris på forespørsel vises sist.':'Sammenligner '+({day:'døgnpris',week:'ukepris for 7 døgn',month:'månedspris for 30 døgn'}[state.period])+'. Prisene gjelder innholdet på hvert kort. Priser som ikke kan sammenlignes, vises sist.';
 }
-export function catalogRefinementsMarkup({state={},products=[],sale=false,confirmed=true}={}){
- state=normalizeRefinement(state);const id=sale?'saleRefinements':'rentalRefinements',hint=refinementHint(state,{sale,confirmed});
- return '<div id="'+id+'" class="catalog-refinements" role="group" aria-label="Farge og sortering"><label>Farge<select data-refinement="color">'+option('','Alle farger',state.color)+availableColors(products,state.color).map(c=>option(c.id,c.label,state.color)).join('')+'</select></label><label>Sorter etter<select data-refinement="sort"'+(!sale&&!confirmed?' disabled':'')+'>'+[['default','Anbefalt rekkefølge'],['price-asc','Pris: lav til høy'],['price-desc','Pris: høy til lav']].map(([value,label])=>option(value,label,state.sort)).join('')+'</select></label>'+(!sale?'<label data-refinement-period'+(state.sort==='default'?' hidden':'')+'>Sammenlign leieperiode<select data-refinement="period"'+(!confirmed?' disabled':'')+'>'+periods.map(([value,label])=>option(value,label,state.period)).join('')+'</select></label>':'')+'<p class="hint catalog-refinement-hint" role="status"'+(hint?'':' hidden')+'>'+html(hint)+'</p></div>';
+function choicesMarkup(state,{products=[],sale=false,confirmed=true}={}){
+ const selected=selectedValue(state),disabled=!sale&&!confirmed;
+ return option('default','Sorter etter',selected)+'<optgroup label="Pris"'+(disabled?' disabled':'')+'>'+option('price-asc','Pris: lav til høy',selected)+option('price-desc','Pris: høy til lav',selected)+'</optgroup><optgroup label="Farge">'+availableColors(products,state.color).map(c=>option('color:'+c.id,c.label,selected)).join('')+'</optgroup>';
 }
-// Keep the controls themselves mounted so keyboard focus survives filtering.
+export function catalogRefinementsMarkup(options={}){
+ const state=normalizeRefinement(options.state),id=options.sale?'saleRefinements':'rentalRefinements';
+ return '<div id="'+id+'" class="catalog-refinements"><label><span class="sr-only">Sorter etter</span><select data-refinement="choice" aria-describedby="'+id+'Hint">'+choicesMarkup(state,options)+'</select></label><span id="'+id+'Hint" class="sr-only catalog-refinement-hint" role="status">'+html(refinementHint(state,options))+'</span></div>';
+}
+// Keep the control mounted so keyboard focus survives filtering and sorting.
 export function mountCatalogRefinements(anchor,options,onChange){
  if(!anchor)return;const doc=anchor.ownerDocument,id=options.sale?'saleRefinements':'rentalRefinements';let host=doc.getElementById(id);
- if(!host){anchor.insertAdjacentHTML('afterend',catalogRefinementsMarkup(options));host=doc.getElementById(id);}
- const state=normalizeRefinement(options.state),color=host.querySelector('[data-refinement="color"]');
- const choices=option('','Alle farger',state.color)+availableColors(options.products||[],state.color).map(c=>option(c.id,c.label,state.color)).join('');
- if(color.innerHTML!==choices)color.innerHTML=choices;
- for(const field of host.querySelectorAll('[data-refinement]')){field.value=state[field.dataset.refinement];if(field.dataset.refinement!=='color')field.disabled=!options.sale&&!options.confirmed;}
- const period=host.querySelector('[data-refinement-period]');if(period)period.hidden=state.sort==='default';
- const hint=host.querySelector('.catalog-refinement-hint'),text=refinementHint(state,options);hint.textContent=text;hint.hidden=!text;
- host.onchange=event=>{const key=event.target.dataset.refinement;if(!key)return;onChange(normalizeRefinement({...state,[key]:event.target.value}));};
+ if(!host){const row=doc.createElement('div');row.className='catalog-sort-row';anchor.before(row);row.append(anchor);if(!options.sale&&row.nextElementSibling?.matches('.sample-note'))row.append(row.nextElementSibling);row.insertAdjacentHTML('beforeend',catalogRefinementsMarkup(options));host=doc.getElementById(id);}
+ const state=normalizeRefinement(options.state),select=host.querySelector('[data-refinement="choice"]'),choices=choicesMarkup(state,options);
+ if(select.innerHTML!==choices)select.innerHTML=choices;select.value=selectedValue(state);
+ host.querySelector('.catalog-refinement-hint').textContent=refinementHint(state,options);
+ host.onchange=event=>{if(event.target!==select)return;const value=select.value;onChange(normalizeRefinement(value.startsWith('color:')?{color:value.slice(6)}:{sort:value,period:'day'}));};
 }
