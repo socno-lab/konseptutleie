@@ -1,6 +1,7 @@
 import {readInitialCatalog} from './catalog-card-markup.js?v=sitefirst20261106';
 import {mountCardFavorites} from './card-favorites.js?v=hearts20261105';
 import {buildHeaderCatalog,searchHeaderCatalog,searchHeaderCategories,cleanFavoriteIds} from './header-catalog-model.js?v=fest20261114';
+import {parseSharedFavorites,favoriteShareUrl,resolveSharedFavorites,mergeSharedFavorites} from './favorite-sharing.js?v=share20261119';
 import {configureSiteSettings,imageUrl} from './site-settings.js?v=fest20261114';
 
 const header=document.querySelector('body>header.has-header-tools'),layer=document.querySelector('.header-tools-layer');
@@ -8,12 +9,15 @@ if(header&&layer)mount();
 function mount(){
  const key='konsept-favorites-v1',panel=layer.querySelector('#headerToolsPanel'),title=panel.querySelector('h2'),form=panel.querySelector('form'),input=panel.querySelector('input'),status=panel.querySelector('.header-tools-status'),results=panel.querySelector('.header-tools-results'),current=panel.querySelector('.header-tools-current'),notice=panel.querySelector('.header-tools-storage'),browse=panel.querySelector('.header-tools-browse'),buttons=[...header.querySelectorAll('[data-header-tool]')];
  const heart=buttons.find(b=>b.dataset.headerTool==='favorites').querySelector('svg').outerHTML;
+ let shared=parseSharedFavorites(location.hash);
+ const actions=document.createElement('div');actions.className='header-favorite-actions';actions.hidden=true;status.after(actions);
+ const shareBox=document.createElement('div');shareBox.className='header-favorite-share';shareBox.hidden=true;actions.after(shareBox);
  let mode='search',entries=null,loading=null,favorites=[],persistent=true,previousInert=[],returnFocus=null,debounce,visibleResults=8;
  function read(){if(!persistent)return favorites;try{return cleanFavoriteIds(JSON.parse(localStorage.getItem(key)||'[]'));}catch{persistent=false;return favorites;}}
  favorites=read();
  function updateCount(){const b=buttons.find(b=>b.dataset.headerTool==='favorites'),count=b.querySelector('.header-favorites-count');count.textContent=String(favorites.length);count.hidden=!favorites.length;b.setAttribute('aria-label','Favoritter'+(favorites.length?' – '+favorites.length:''));}
  function syncFavoriteButtons(){for(const button of document.querySelectorAll('[data-favorite]'))setFavoriteState(button,button.dataset.favorite);}
- function storageNote(){notice.hidden=mode!=='favorites';notice.textContent=persistent?'Favorittene lagres i denne nettleseren. Fjern dem med hjertet.':'Nettleseren tillater ikke lagring. Favorittene beholdes bare til siden lastes på nytt.';}
+ function storageNote(){notice.hidden=mode==='search';notice.textContent=mode==='shared'?'Dette er et delt utvalg. Trykk på hjertet for å lagre en favoritt i din nettleser.'+(!persistent?' Nettleseren tillater ikke varig lagring. Favorittene beholdes bare til siden lastes på nytt.':''):persistent?'Favorittene lagres i denne nettleseren. Fjern dem med hjertet.':'Nettleseren tillater ikke lagring. Favorittene beholdes bare til siden lastes på nytt.';}
  function close(focus=true){
   if(layer.hidden)return;layer.hidden=true;buttons.forEach(b=>b.setAttribute('aria-expanded','false'));for(const [el,inert] of previousInert)el.inert=inert;previousInert=[];document.body.classList.remove('header-tools-open');if(focus)returnFocus?.focus({preventScroll:true});
  }
@@ -21,7 +25,7 @@ function mount(){
  async function open(next){
   document.dispatchEvent(new CustomEvent('header-tools-opening'));
   if(layer.hidden){returnFocus=document.activeElement;previousInert=[...document.body.children].filter(el=>el!==header&&el!==layer&&!['SCRIPT','STYLE','DIALOG'].includes(el.tagName)).map(el=>[el,el.inert]);for(const [el] of previousInert)el.inert=true;document.body.classList.add('header-tools-open');}
-  mode=next;visibleResults=8;layer.hidden=false;position();buttons.forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.headerTool===mode)));title.textContent=mode==='search'?'Søk':'Favoritter';form.hidden=mode!=='search';browse.hidden=true;favorites=read();updateCount();storageNote();current.replaceChildren();results.replaceChildren();
+  mode=next;visibleResults=8;layer.hidden=false;position();buttons.forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.headerTool===(mode==='shared'?'favorites':mode))));title.textContent=mode==='search'?'Søk':mode==='shared'?'Delt favorittliste':'Favoritter';form.hidden=mode!=='search';browse.hidden=true;favorites=read();updateCount();storageNote();actions.hidden=true;actions.replaceChildren();shareBox.hidden=true;shareBox.replaceChildren();current.replaceChildren();results.replaceChildren();
   if(mode==='search')input.focus({preventScroll:true});else panel.focus({preventScroll:true});
   if(entries){render();return;}status.textContent='Laster utvalget …';
   try{await loadEntries();if(!layer.hidden)render();}
@@ -37,7 +41,7 @@ function mount(){
   favorites=read();const selected=favorites.includes(id);if(!selected&&favorites.length>=100){status.textContent=announcement.textContent='Du kan lagre inntil 100 favoritter. Fjern en før du legger til flere.';return;}
   favorites=selected?favorites.filter(x=>x!==id):[...favorites,id];try{localStorage.setItem(key,JSON.stringify(favorites));persistent=true;}catch{persistent=false;}updateCount();storageNote();syncFavoriteButtons();
   announcement.textContent=selected?'Fjernet fra favoritter.':'Lagret som favoritt.';
-  if(!layer.hidden&&mode==='favorites'){render();panel.focus({preventScroll:true});}else status.textContent=announcement.textContent;
+  if(!layer.hidden&&mode!=='search'){render();panel.focus({preventScroll:true});}else status.textContent=announcement.textContent;
  }
  function setFavoriteState(button,id){const saved=favorites.includes(id);button.setAttribute('aria-pressed',String(saved));button.setAttribute('aria-label',(saved?'Fjern fra favoritter: ':'Lagre som favoritt: ')+(entries?.find(e=>e.id===id)?.title||''));}
  function row(entry){
@@ -45,7 +49,7 @@ function mount(){
   const img=document.createElement('img');img.className='header-result-image';img.alt='';img.width=64;img.height=64;img.loading='lazy';if(entry.image&&imageUrl(entry.image))img.src=entry.image;else img.hidden=true;img.addEventListener('error',()=>{img.removeAttribute('src');img.hidden=true;},{once:true});
   const copy=document.createElement('div'),name=document.createElement('p');name.className='header-result-title';name.textContent=entry.title;copy.append(name);
   const kind=document.createElement('p');kind.className='header-result-kind';kind.textContent=entry.category==='Pakker'?'Pakker og tjenester':entry.category;copy.append(kind);
-  const links=document.createElement('div');links.className='header-result-links';for(const [label,href] of [['Se for leie',entry.rentHref],['Se for kjøp',entry.buyHref]])if(href){const a=document.createElement('a');a.textContent=label;a.href=label==='Se for leie'?rentalHref(href):href;links.append(a);}copy.append(links);
+  const links=document.createElement('div');links.className='header-result-links';for(const [label,href] of [['Se for leie',entry.rentHref],['Se for kjøp',entry.buyHref]])if(href){const a=document.createElement('a');a.textContent=label;a.href=label==='Se for leie'?rentalHref(href):href;if(mode==='shared'&&shared?.valid){const target=new URL(a.href,location.origin);target.searchParams.set('retur','/'+location.hash);a.href=target.pathname+target.search;}links.append(a);}copy.append(links);
   const favorite=document.createElement('button');favorite.type='button';favorite.className='header-favorite-toggle';favorite.dataset.favorite=entry.id;favorite.innerHTML=heart;setFavoriteState(favorite,entry.id);favorite.onclick=()=>toggle(entry.id);
   item.append(img,copy,favorite);return item;
  }
@@ -57,7 +61,7 @@ function mount(){
   item.append(links);return item;
  }
  function render(){
-  if(!entries)return;results.replaceChildren();current.replaceChildren();
+  if(!entries)return;results.replaceChildren();current.replaceChildren();actions.replaceChildren();actions.hidden=mode==='search';shareBox.replaceChildren();shareBox.hidden=true;
   if(mode==='search'){
    const query=input.value.trim(),found=searchHeaderCatalog(entries,query,100),categories=searchHeaderCategories(entries,query);
    status.textContent=!query?'Søk etter produkt, merke eller kategori.':found.length?found.length+' produkttreff'+(found.length>visibleResults?' – viser '+visibleResults+'.':'.'):categories.length?'Se hele kategorien nedenfor.':'Ingen treff. Prøv et annet søkeord, eller fortell oss hva du ser etter.';
@@ -73,19 +77,54 @@ function mount(){
    if(categories.length){const label=document.createElement('p');label.textContent=categories.length===1?'Kategori':'Kategorier';current.append(label,...categories.map(categoryRow));}
    for(const entry of found.slice(0,visibleResults))results.append(row(entry));
    browse.hidden=found.length<=visibleResults;browse.textContent='Vis flere treff';
+  }else if(mode==='shared'){
+   browse.hidden=false;browse.textContent='Finn flere favoritter';
+   const resolved=resolveSharedFavorites(shared,entries),found=resolved.entries;
+   if(!shared?.valid){status.textContent='Denne delingslenken er ugyldig eller ufullstendig. Be om en ny lenke.';}
+   else{
+    status.textContent=found.length?found.length+(found.length===1?' favoritt i det delte utvalget.':' favoritter i det delte utvalget.'):'Produktene i dette utvalget er ikke lenger tilgjengelige.';
+    if(resolved.missing&&found.length)status.textContent+=' '+resolved.missing+(resolved.missing===1?' produkt er ikke lenger i utvalget.':' produkter er ikke lenger i utvalget.');
+    for(const entry of found)results.append(row(entry));
+    if(found.length){
+     const save=action('Lagre alle som favoritter',()=>{
+      const result=mergeSharedFavorites(read(),found.map(entry=>entry.id));favorites=result.ids;
+      try{localStorage.setItem(key,JSON.stringify(favorites));persistent=true;}catch{persistent=false;}
+      updateCount();storageNote();syncFavoriteButtons();render();
+      status.textContent=announcement.textContent=(result.added?result.added+' nye favoritter lagret.':'Favorittene er allerede lagret.')+(result.skipped?' Listen din er full. '+result.skipped+' kunne ikke lagres.':'')+(!persistent?' Nettleseren tillater ikke varig lagring.':'');panel.focus({preventScroll:true});
+     });
+     save.disabled=found.every(entry=>favorites.includes(entry.id));if(save.disabled)save.textContent='Alle er lagret som favoritter';
+    }
+   }
+   action('Mine favoritter',()=>open('favorites'));
   }else{
    browse.hidden=false;browse.textContent='Finn flere favoritter';
+   if(shared)action('Vis delt favorittliste',()=>open('shared'));
    const selected=entries.find(e=>e.productIds.includes(new URL(location.href).searchParams.get('produkt')));
    if(selected&&!favorites.includes(selected.id)){const text=document.createElement('p');text.textContent='Produktet du ser på';current.append(text,row(selected));}
    const found=favorites.map(id=>entries.find(e=>e.id===id)).filter(Boolean);if(found.length<favorites.length){const remove=document.createElement('button');remove.type='button';remove.className='header-tools-browse';remove.textContent='Fjern favoritter som ikke lenger er i utvalget';remove.onclick=()=>{favorites=found.map(e=>e.id);try{localStorage.setItem(key,JSON.stringify(favorites));}catch{persistent=false;}updateCount();syncFavoriteButtons();render();};current.append(remove);}status.textContent=found.length?found.length+(found.length===1?' favoritt':' favoritter')+(found.length<favorites.length?' tilgjengelig i utvalget nå.':'.'):'Du har ingen tilgjengelige favoritter ennå. Trykk på hjertet på produktbildet for å lagre en favoritt.';for(const entry of found)results.append(row(entry));
+   if(found.length)action('Del favorittlisten',()=>share(found));
   }
  }
- buttons.forEach(b=>b.addEventListener('click',()=>!layer.hidden&&mode===b.dataset.headerTool?close():open(b.dataset.headerTool)));
- layer.querySelector('.header-tools-outside').addEventListener('click',()=>close());panel.querySelector('.header-tools-close').addEventListener('click',()=>close());browse.addEventListener('click',()=>{if(mode==='favorites')open('search');else{visibleResults+=8;render();}});
+ function action(text,handler){const button=document.createElement('button');button.type='button';button.className='header-tools-browse';button.textContent=text;button.onclick=handler;actions.append(button);return button;}
+ async function share(found){
+  const url=favoriteShareUrl(found.map(entry=>entry.id),entries,location.origin);if(!url)return;
+  // Always expose a selectable link as a fallback for blocked clipboard access.
+  shareBox.replaceChildren();shareBox.hidden=false;
+  const label=document.createElement('label');label.htmlFor='favoriteShareLink';label.textContent='Lenke til dette utvalget';
+  const field=document.createElement('input');field.id='favoriteShareLink';field.type='text';field.readOnly=true;field.value=url;field.addEventListener('focus',()=>field.select());field.addEventListener('click',()=>field.select());
+  const help=document.createElement('p');help.textContent='Lenken viser utvalget slik det er nå. Senere endringer i favorittene dine endrer ikke denne lenken.';shareBox.append(label,field,help);
+  try{await navigator.clipboard.writeText(url);if(mode==='favorites'&&!layer.hidden)status.textContent=announcement.textContent='Lenken er kopiert. Lim den inn der du vil dele utvalget.';}
+  catch{if(mode==='favorites'&&!layer.hidden){status.textContent='Kopier lenken nedenfor og send den til den du vil dele med.';field.focus();field.select();}}
+ }
+ function openShared(){shared=parseSharedFavorites(location.hash);if(shared)void open('shared');else if(mode==='shared')close(false);}
+ buttons.forEach(b=>b.addEventListener('click',()=>!layer.hidden&&(mode==='shared'?'favorites':mode)===b.dataset.headerTool?close():open(b.dataset.headerTool)));
+ layer.querySelector('.header-tools-outside').addEventListener('click',()=>close());panel.querySelector('.header-tools-close').addEventListener('click',()=>close());browse.addEventListener('click',()=>{if(mode!=='search')open('search');else{visibleResults+=8;render();}});
  form.addEventListener('submit',e=>{e.preventDefault();visibleResults=8;render();});input.addEventListener('input',()=>{clearTimeout(debounce);visibleResults=8;debounce=setTimeout(render,120);});
  header.addEventListener('click',e=>{if(!layer.hidden&&!e.target.closest('[data-header-tool]')&&e.target.closest('a,button'))close(false);},true);
  document.addEventListener('keydown',e=>{if(layer.hidden)return;if(e.key==='Escape'){e.preventDefault();close();return;}if(e.key==='Tab'){const nodes=[...header.querySelectorAll('a,button'),...panel.querySelectorAll('a,button,input')].filter(el=>!el.disabled&&!el.inert&&el.getClientRects().length),index=nodes.indexOf(document.activeElement);if(e.shiftKey&&index<=0){e.preventDefault();nodes.at(-1)?.focus();}else if(!e.shiftKey&&(index<0||index===nodes.length-1)){e.preventDefault();nodes[0]?.focus();}}});
  window.addEventListener('resize',position);window.addEventListener('pagehide',()=>close(false));window.addEventListener('storage',e=>{if(e.key===key||e.key===null){favorites=read();updateCount();syncFavoriteButtons();if(!layer.hidden)render();}});updateCount();
  const announcement=document.createElement('p');announcement.className='sr-only';announcement.setAttribute('role','status');announcement.setAttribute('aria-live','polite');document.body.append(announcement);
  mountCardFavorites({getEntries:loadEntries,heart,setState:setFavoriteState,toggle});
+ window.addEventListener('hashchange',openShared);window.addEventListener('pageshow',event=>{if(event.persisted&&parseSharedFavorites(location.hash))openShared();});
+ if(shared)void open('shared');
 }

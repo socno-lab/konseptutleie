@@ -1,4 +1,5 @@
-import {rentalCatalogView} from '../public/rental-catalog-view.js?v=vat20261115b';
+import {catalogRefinementsMarkup} from '../public/catalog-refinements.js?v=refine20261119';
+import {rentalCatalogView} from '../public/rental-catalog-view.js?v=refine20261119';
 import {renderCatalogCard} from '../public/catalog-card-markup.js';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
@@ -13,11 +14,11 @@ export function catalogFirstPaint(html,model,catalogProducts,settings){
   let filter=model.catalogCategory==='Modulsofaer'?'Sofaer':model.catalogCategory;
   if(!['Alle','Enkeltprodukter'].includes(filter)&&!settings.categories.some(c=>c.id===filter))filter='Alle';
   if(model.catalogUsage.purpose==='boligsalg'&&filter==='Pakker')filter='Enkeltprodukter';
-  const view=rentalCatalogView({products,settings,purpose:model.catalogUsage.purpose,filter,tableFilter:model.catalogCategory==='Modulsofaer'?'Modulsofaer':model.catalogSubcategory,query:model.catalogQuery,rentalScopeConfirmed:model.catalogUsage.confirmed});
+  const view=rentalCatalogView({products,settings,purpose:model.catalogUsage.purpose,filter,tableFilter:model.catalogCategory==='Modulsofaer'?'Modulsofaer':model.catalogSubcategory,query:model.catalogQuery,rentalScopeConfirmed:model.catalogUsage.confirmed,refinement:model.catalogRefinement});
   html=html.replace(/(<p id="purposeResults"[^>]*>)[\s\S]*?<\/p>/,(_,open)=>open+escape(view.desktopCount)+'</p>');
   html=html.replace(/(<p id="mobileCatalogResults"[^>]*>)[\s\S]*?<\/p>/,(_,open)=>open+escape(view.mobileCount)+'</p>');
-  const subcategories='<div id="rentalTableTypes" class="catalog-subcategories" role="group" aria-label="Underkategorier"'+(view.types.length?'':' hidden')+'>'+subcategoryButtons(view.types,view.tableFilter,filter,rentalSubcategoryCounts(products,settings,model.catalogUsage.purpose,filter,model.catalogQuery,view.types))+'</div>';
-  html=html.replace('<p id="mobileCatalogResults"',()=>subcategories+'<p id="mobileCatalogResults"');
+  const subcategories='<div id="rentalTableTypes" class="catalog-subcategories" role="group" aria-label="Underkategorier"'+(view.types.length?'':' hidden')+'>'+subcategoryButtons(view.types,view.tableFilter,filter,rentalSubcategoryCounts(products,settings,model.catalogUsage.purpose,filter,model.catalogQuery,view.types,model.catalogRefinement))+'</div>';
+  html=html.replace('<p id="mobileCatalogResults"',()=>subcategories+catalogRefinementsMarkup({state:model.catalogRefinement,products:view.scoped.filter(p=>!p.addonOnly),confirmed:model.catalogUsage.confirmed})+'<p id="mobileCatalogResults"');
   html=html.replace('<aside class="catalog-request"','<aside hidden class="catalog-request"');
   if(filter==='Dekor'){html=html.replace(/(<p id="mobileCatalogResults"[^>]*>)[\s\S]*?<\/p>/,'$1</p>');}
   if(!view.count&&filter!=='Dekor')html=html.replace('id="empty" class="catalog-empty" hidden','id="empty" class="catalog-empty"');

@@ -64,3 +64,16 @@ body.header-tools-open{overflow:hidden}
 
 /* Keep the basket marked throughout rental and purchase checkout. */
 body[data-enquiry-page]>header.has-header-tools>.bag::after{opacity:1}
+
+/* Sharing lives inside the existing favorites panel; the page and cards keep their layout. */
+.header-favorite-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px 20px;margin:0 0 16px}
+.header-favorite-actions[hidden],.header-favorite-share[hidden]{display:none}
+.header-favorite-actions button{font-size:13px;cursor:pointer;text-align:left}
+.header-favorite-actions button:disabled{color:var(--muted);border-color:var(--line);cursor:default}
+.header-favorite-actions button:focus-visible{outline:2px solid var(--olive);outline-offset:3px}
+.header-favorite-share{margin-bottom:18px;min-width:0}
+.header-favorite-share label{display:block;font-size:12px;margin-bottom:6px}
+.header-favorite-share input{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:10px;border:1px solid var(--line);border-radius:0;background:white;color:var(--ink);font:inherit;font-size:13px}
+.header-favorite-share input:focus-visible{outline:2px solid var(--olive);outline-offset:2px}
+.header-favorite-share p{font-size:12px;line-height:1.6;color:var(--muted);margin:8px 0 0}
+@media(max-width:640px){.header-favorite-share input{font-size:16px}}

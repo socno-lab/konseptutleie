@@ -1,3 +1,4 @@
+import {normalizeRefinement,matchesColor,sortSaleProducts,writeRefinement} from './catalog-refinement-model.js?v=refine20261119';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {dimensionSearchText} from './product-dimensions.js?v=optionimages20261108';
 import {productPageUrl} from './product-page-model.js?v=launch20261024';
@@ -11,17 +12,19 @@ import {renderCatalogCard} from './catalog-card-markup.js?v=sitefirst20261106';
 const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=priceMarkup,price=p=>saleUnitPrice(p)===null?'Pris på forespørsel':money(saleUnitPrice(p));
 import {filterCountMarkup,countedSubcategoryButtons as subcategoryButtons} from './catalog-filter-count.js?v=counts20261118';
-export function saleCatalogView({products,category='',tableFilter='',query=''}={}){
+export function saleCatalogView({products,category='',tableFilter='',query='',refinement={}}={}){
+ const refinements=normalizeRefinement(refinement);
  products=products.filter(p=>p.active&&!p.deletedAt&&salesEnabled(p));
  const categories=getSiteSettings().categories.map(c=>c.id).filter(c=>products.some(p=>p.category===c));
  if(!categories.includes(category))category='';
  const types=availableSubcategories(products,category);if(!types.includes(tableFilter))tableFilter='';
  const search=query.toLocaleLowerCase('nb');
- const searched=products.filter(p=>(p.name+' '+p.material+' '+dimensionSearchText(p)+' '+p.moduleSeries).toLocaleLowerCase('nb').includes(search));
- const choices=(category,tableFilter='')=>groupedSaleCards(searched.filter(p=>(!category||p.category===category)&&(!tableFilter||productSubcategory(p,category)===tableFilter)),products);
- const shown=choices(category,tableFilter);
+ const searched=products.filter(p=>matchesColor(p,refinements.color)&&(p.name+' '+p.material+' '+dimensionSearchText(p)+' '+p.moduleSeries).toLocaleLowerCase('nb').includes(search));
+ const choices=(category,tableFilter='')=>groupedSaleCards(searched.filter(p=>(!category||p.category===category)&&(!tableFilter||productSubcategory(p,category)===tableFilter)),refinements.color?products.filter(p=>matchesColor(p,refinements.color)):products);
+ const shown=sortSaleProducts(choices(category,tableFilter),refinements);
  const counts=Object.fromEntries(['',...types].map(type=>[type,choices(category,type).length]));
  const params=new URLSearchParams();for(const [key,value] of Object.entries({kategori:category,underkategori:tableFilter,sok:query}))if(value)params.set(key,value);
+ writeRefinement(params,refinements,{sale:true});
  const returnTo='/kjop.html'+(params.size?'?'+params:'');
  const categoryHtml=['',...categories].map(c=>`<button type="button"${c===category?' class="active"':''} data-sale-category="${html(c)}" aria-pressed="${c===category}">${c?html(categoryLabel(c)):'Alle'}${filterCountMarkup(choices(c).length)}</button>`).join('');
  return {category,tableFilter,query,search,shown,types,categoryHtml,subcategoryHtml:subcategoryButtons(types,tableFilter,category,counts),status:shown.length+' produkter · nye varer på bestilling',tailHtml:shown.length?'':'<div class="catalog-empty sale-empty"><h3>Fant du ikke det du trenger?</h3><p>Prøv færre filtre, eller fortell oss hva du ser etter. Vi hjelper deg å finne en løsning.</p><div class="catalog-empty-actions"><button type="button" class="button button-outline" data-sale-reset>Nullstill filtre</button><a class="button dark" href="/tilpasset-foresporsel.html">Fortell oss hva du trenger ↗</a></div></div>',renderItem:(p,index)=>renderSaleCard(p,index,products,returnTo)};
