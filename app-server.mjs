@@ -96,8 +96,8 @@ export function createServer(options={}){
     if(!store.enabled||!store.offerAcceptance)return out(503,{error:'Tilbudet er midlertidig utilgjengelig.'});
     if(!['GET','POST'].includes(req.method))return out(405,{error:'Metoden støttes ikke.'});
     if(req.method==='POST'&&req.headers.origin!==origin)return out(403,{error:'Last inn tilbudssiden på nytt.'});
-    const token=req.method==='POST'?(await json(req,1000)).token:url.searchParams.get('token');
-    const result=await store.offerAcceptance(token,req.method==='POST');if(req.method==='POST')void submissions.flush();
+    const input=req.method==='POST'?await json(req,2000):{},token=req.method==='POST'?input.token:url.searchParams.get('token');
+    const result=await store.offerAcceptance(token,req.method==='POST',input);if(req.method==='POST')void submissions.flush();
     return out(200,result,{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});
    }
    if(pathname==='/api/rental-availability'&&req.method==='GET'){
@@ -153,6 +153,7 @@ export function createServer(options={}){
     if(pathname==='/api/admin/availability'&&req.method==='POST'){
      const d=await json(req,2000);if(!/^\d{4}-\d{2}-\d{2}$/.test(d.start||'')||!/^\d{4}-\d{2}-\d{2}$/.test(d.end||'')||d.start>d.end)throw error('Velg gyldige datoer.');const catalog=await readCatalog(),records=await store.workflowRecords();return out(200,{products:catalog.products.map(p=>({id:p.id,available:p.isService?null:Math.max(0,p.stock-p.unavailable-reservedQuantity(records,p.id,d.start,d.end,d.exclude))}))});
     }
+    if(pathname==='/api/admin/pickup-slots'&&req.method==='POST'){const input=await json(req,2000);if(!Array.isArray(input.dates)||input.dates.length>2||!input.dates.every(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))throw error('Velg gyldige datoer.');return out(200,{slots:await store.workflowSlots(input.dates,input.exclude)});}
     if(pathname==='/api/admin/enquiries'&&req.method==='GET')return out(200,{records:await store.workflowRecords(),mail:await store.enquiryMailStatus()});
     const workflow=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/(save|preview|offer|accept|confirmation|cancel|document)$/);
     if(workflow&&req.method==='POST'){
