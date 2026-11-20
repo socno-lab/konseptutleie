@@ -1,5 +1,5 @@
 import {contentPages,newContentPage,cardDestination,pageAreas,pageCategories} from '../page-model.js?v=fest20261114';
-import {renderContentPage} from '../content-page.js?v=seo20261117';
+import {renderContentPage} from '../content-page.js?v=venues20261120';
 import {homeOccasionCards} from '../home-occasions.js?v=fest20261114';
 const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const areaLabels={alle:'Alle bruksområder',boligsalg:'Boligfoto og visning',messe:'Messe, stand og event',bedrift:'Bedrift',fest:'Bryllup og fest',jul:'Fest og sesong',produksjon:'Foto, film og reklame'};

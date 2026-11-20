@@ -1,5 +1,5 @@
 import {homeVisualEditor} from './home-visual-editor.js?v=choicesfirst20261119';
-import {pageEditor,pageEditorAction} from './page-editor.js?v=visual20261114';
+import {pageEditor,pageEditorAction} from './page-editor.js?v=messeheading20261120';
 import {landingSettings} from './landing-settings.js?v=fest20261114';
 import {validateSiteSettings,configureSiteSettings} from '/site-settings.js?v=fest20261114';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
