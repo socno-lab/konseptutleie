@@ -1,0 +1,34 @@
+import {defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {workflowStore} from '../server/workflow-store.mjs';
+import {workflowRecord,documentDigest} from '../server/enquiry-workflow.mjs';
+const product={id:'chair',name:'Stol',active:true,stock:2,unavailable:0,price:100,weekPrice:300,monthPrice:700,rentalPricingMode:'manual'};
+function fixture(){
+ const make=id=>({...workflowRecord({id,email:'test@example.invalid',kind:'rental',receivedAt:'2026-11-20',facts:[['Ønsket leieperiode','2026-12-05 til 2026-12-06']],lines:[{id:'chair',name:'Stol',quantity:2,total:400}],delivery:{total:0}}),status:'accepted',lines:[{key:'0',id:'chair',name:'Stol',originalId:'chair',originalName:'Stol',quantity:2,total:400,review:'ok',image:''}],changeReason:'',history:[{id:'offer-'+id,type:'offer'}]});
+ let state={records:[make('a'),make('b')],jobs:[],enquiries:[]},failQueue=false,tail=Promise.resolve();
+ const execute=async(db,sql,args=[])=>{
+  if(sql==='SELECT body FROM ku_enquiries')return [[]];
+  if(sql==='SELECT body FROM ku_site_settings WHERE id=1')return [[{body:JSON.stringify(defaultSettings)}]];
+  if(sql==='SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE')return [[{body:JSON.stringify([product])}]];
+  if(sql.startsWith('SELECT body FROM ku_workflow'))return [db.records.map(r=>({body:JSON.stringify(r)}))];
+  if(sql.startsWith('INSERT INTO ku_enquiries')){db.enquiries.push({id:args[0],snapshot:JSON.parse(args[2])});return [{}];}
+  if(sql.startsWith('INSERT INTO ku_enquiry_mail')){if(failQueue)throw Error('queue failure');db.jobs.push({id:args[0],status:'pending'});return [{}];}
+  if(sql.startsWith('UPDATE ku_workflow')){db.records=db.records.map(r=>r.id===args[1]?JSON.parse(args[0]):r);return [{}];}
+  if(sql.startsWith('SELECT status FROM ku_enquiry_mail'))return [[db.jobs.find(j=>j.id===args[0])].filter(Boolean)];
+  if(sql.startsWith("UPDATE ku_enquiry_mail SET status='superseded'")){for(const j of db.jobs)if(j.id===args[0]&&j.status==='pending')j.status='superseded';return [{}];}
+  if(sql.startsWith("UPDATE ku_enquiry_mail SET status='cancelled'")){for(const j of db.jobs)if(j.id===args[0]&&j.status==='pending')j.status='cancelled';return [{}];}
+  throw Error('Unexpected SQL: '+sql);
+ };
+ const pool={execute:(...args)=>execute(state,...args),async getConnection(){let local,release;return {async beginTransaction(){const before=tail;tail=new Promise(r=>{release=r;});await before;local=structuredClone(state);},execute:(...args)=>execute(local,...args),async commit(){state=local;},async rollback(){},release(){release();}};}};
+ return {store:workflowStore(async()=>{},pool),get state(){return state;},set failQueue(v){failQueue=v;}};
+}
+async function input(f,id='a',extra={}){const r=(await f.store.workflowRecords()).find(r=>r.id===id),data={...r,...extra};const preview=await f.store.workflowPreview(id,data,[product],'confirmation');return {...data,previewDigest:preview.previewDigest,reserve:true};}
+test('confirmation reserves and queues one immutable document atomically, stale retry cannot double-send',async()=>{const f=fixture(),data=await input(f);const saved=await f.store.changeWorkflow('a',data,'confirmation',[product]);assert.equal(saved.reserved,true);assert.equal(saved.requirements[0].quantity,2);assert.equal(f.state.jobs.length,1);assert.equal(f.state.enquiries[0].snapshot.documentType,'confirmation');await assert.rejects(f.store.changeWorkflow('a',data,'confirmation',[product]),/endret/);assert.equal(f.state.jobs.length,1);});
+test('queue insertion failure rolls back reservation and history together',async()=>{const f=fixture(),data=await input(f);f.failQueue=true;await assert.rejects(f.store.changeWorkflow('a',data,'confirmation',[product]),/queue failure/);assert.equal(f.state.records[0].reserved,false);assert.equal(f.state.enquiries.length,0);});
+test('concurrent confirmations cannot reserve same units twice',async()=>{const f=fixture(),a=await input(f,'a'),b=await input(f,'b');const results=await Promise.allSettled([f.store.changeWorkflow('a',a,'confirmation',[product]),f.store.changeWorkflow('b',b,'confirmation',[product])]);assert.equal(results.filter(r=>r.status==='fulfilled').length,1);assert.equal(f.state.jobs.length,1);assert.equal(f.state.records.filter(r=>r.reserved).length,1);});
+test('draft edits retain confirmed reservation; new confirmation replaces it and increments document version',async()=>{const f=fixture();let r=await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);r=await f.store.changeWorkflow('a',{...r,start:'2027-01-01',end:'2027-01-02',deliveryDate:'2027-01-01',pickupDate:'2027-01-02',changeReason:'Nye datoer'},'save',[product]);assert.equal(r.reservation.start,'2026-12-05');const doc=await input(f);r=await f.store.changeWorkflow('a',doc,'confirmation',[product]);assert.equal(r.reservation.start,'2027-01-01');assert.equal(r.history.at(-1).document.version,2);assert.equal(r.history[1].document.workflow.start,'2026-12-05');});
+test('cancel frees reservation and prevents unsent confirmation from sending',async()=>{const f=fixture();const r=await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const cancelled=await f.store.changeWorkflow('a',r,'cancel',[product]);assert.equal(cancelled.reserved,false);assert.deepEqual(cancelled.requirements,[]);assert.equal(f.state.jobs[0].status,'cancelled');});
+test('preview digest rejects unseen price or text changes',async()=>{const f=fixture(),data=await input(f);data.intro='Changed after preview';await assert.rejects(f.store.changeWorkflow('a',data,'confirmation',[product]),/forhåndsvisningen/);assert.equal(f.state.jobs.length,0);});
+test('updated confirmation supersedes pending predecessor without deleting historical document',async()=>{const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const data=await input(f,'a',{changeReason:'Oppdatert tidsrom'});const saved=await f.store.changeWorkflow('a',data,'confirmation',[product]);assert.equal(f.state.jobs[0].status,'superseded');assert.equal(f.state.jobs[1].status,'pending');assert.equal(saved.history.filter(h=>h.type==='confirmation').length,2);});
+test('a confirmed order cannot accidentally be downgraded to a new offer or accepted state',async()=>{const f=fixture();const r=await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);await assert.rejects(f.store.changeWorkflow('a',r,'accept',[product]),/aksept/);const data=await input(f);await assert.rejects(f.store.changeWorkflow('a',data,'offer',[product]),/bekreftet bestilling/);});

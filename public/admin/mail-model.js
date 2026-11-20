@@ -1,4 +1,4 @@
-export const mailLabels={pending:'Venter / forsøkes igjen',sending:'Sender',sent:'Sendt',uncertain:'Usikkert – avklar først',failed:'Mislyktes etter fem forsøk'};
+export const mailLabels={cancelled:'Stoppet ved avbestilling',superseded:'Erstattet av nyere dokument',pending:'Venter / forsøkes igjen',sending:'Sender',sent:'Sendt',uncertain:'Usikkert – avklar først',failed:'Mislyktes etter fem forsøk'};
 export const needsAttention=row=>['failed','uncertain'].includes(row.status);
 export function groupMail(messages,{query='',status='all'}={}){
  const groups=new Map();
