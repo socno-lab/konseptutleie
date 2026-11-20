@@ -30,6 +30,6 @@ export function workflowStore(init,pool){
  if(action==='cancel')for(const h of current.history){const [[job]]=await c.execute('SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel=\'customer\' FOR UPDATE',[h.id]);if(job?.status==='sending')fail('E-posten sendes nå. Vent til sendestatus er avklart før avbestilling.');await c.execute("UPDATE ku_enquiry_mail SET status='cancelled' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[h.id]);}
  await c.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(next),id]);await c.commit();return next;
  }catch(e){await c.rollback();throw e;}finally{c.release();}},
- async workflowPreview(id,input,products,type){const current=(await records()).find(r=>r.id===id);if(!current)fail('Henvendelsen finnes ikke.',404);const r=editWorkflow(current,input,products);validateSend(r);return {...workflowEmail({workflow:r,lines:r.lines,documentType:type,version:current.history.filter(h=>h.type===type).length+1}),previewDigest:documentDigest(r)};}
+ async workflowPreview(id,input,products,type){const current=(await records()).find(r=>r.id===id);if(!current)fail('Henvendelsen finnes ikke.',404);const r=editWorkflow(current,input,products);let warning='';try{validateSend(r);}catch(error){warning=error.message;}return {canSend:!warning,warning,...workflowEmail({workflow:r,lines:r.lines,documentType:type,version:current.history.filter(h=>h.type===type).length+1}),previewDigest:documentDigest(r)};}
  };
 }
