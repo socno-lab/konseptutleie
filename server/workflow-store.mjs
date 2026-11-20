@@ -1,3 +1,4 @@
+import {rentalTermsSnapshot} from './rental-terms-pdf.mjs';
 import {availableSlots,scheduleAppointments} from './pickup-schedule.mjs';
 import {customerVisits} from '../public/admin/transport-model.js';
 import {configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
@@ -30,9 +31,11 @@ export function workflowStore(init,pool){
  const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');const all=rows.map(r=>JSON.parse(r.body)),current=all.find(r=>r.id===id);if(!current)fail('Henvendelsen finnes ikke.',404);if(input.revision!==current.revision)fail('Henvendelsen er endret. Last inn på nytt.');
  let next=action==='cancel'?{...current,status:'cancelled',appointments:[],closedAt:current.closedAt||new Date().toISOString(),reserved:false,requirements:[]}:action==='accept'?{...current}:editWorkflow(current,input,products);
  if(action==='accept'){if(!['new','offered','accepted'].includes(current.status))fail('Skriftlig aksept kan ikke registreres for et avsluttet eller bekreftet leieforhold.');if(current.status==='accepted'){await c.commit();return current;}next.status='accepted';next.acceptedAt=new Date().toISOString();next.acceptanceSource='admin';next.acceptedOfferId=current.history.filter(h=>h.type==='offer').at(-1)?.id||null;}
+ let preparedTerms;
  if(['offer','confirmation'].includes(action)){
+ preparedTerms=action==='offer'?rentalTermsSnapshot(JSON.parse(site.body)):current.history.filter(h=>h.type==='confirmation').at(-1)?.document?.rentalTerms||current.history.filter(h=>h.type==='offer').at(-1)?.document?.rentalTerms||rentalTermsSnapshot(JSON.parse(site.body));
  for(const h of current.history.filter(h=>h.type===action)){const [[job]]=await c.execute('SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel=\'customer\' FOR UPDATE',[h.id]);if(job?.status==='sending')fail('Forrige dokument sendes nå. Vent til sendingen er ferdig.');await c.execute("UPDATE ku_enquiry_mail SET status='superseded' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[h.id]);}
- validateSend(next);if(input.previewDigest!==documentDigest(next))fail('Tilbudet er endret. Åpne forhåndsvisningen på nytt.');if(action==='confirmation'&&current.status!=='accepted'&&current.status!=='confirmed')fail('Registrer kundens skriftlige aksept først.');
+ validateSend(next);if(input.previewDigest!==documentDigest({...next,rentalTermsSha256:preparedTerms.sha256}))fail('Tilbudet er endret. Åpne forhåndsvisningen på nytt.');if(action==='confirmation'&&current.status!=='accepted'&&current.status!=='confirmed')fail('Registrer kundens skriftlige aksept først.');
  if(action==='offer'&&current.status==='confirmed')fail('En bekreftet bestilling må endres med en ny ordrebekreftelse.');
  next.status=action==='offer'?'offered':'confirmed';if(action==='confirmation')next.reserved=input.reserve===true;
  }
@@ -41,6 +44,7 @@ export function workflowStore(init,pool){
  next.revision++;next.updatedAt=new Date().toISOString();
  if(['offer','confirmation'].includes(action)){
  const version=current.history.filter(h=>h.type===action).length+1;if(action==='confirmation'&&version>1&&!next.changeReason)fail('Beskriv endringen i den oppdaterte ordrebekreftelsen.',400);const messageId=randomUUID(),copy={...next,history:[]},snapshot={id:messageId,email:next.email,kind:'rental',receivedAt:next.updatedAt,documentType:action,version,workflow:copy,lines:copy.lines};
+ snapshot.rentalTerms=preparedTerms;
  if(action==='offer'){const token=randomBytes(32).toString('base64url');next.offerAcceptance={hash:tokenHash(token),offerId:messageId,expiresAt:Date.now()+14*86400000};snapshot.acceptUrl='https://konseptuell.no/aksepter-tilbud.html?token='+token;}
  next.history=[...current.history,{id:messageId,type:action,at:next.updatedAt,document:snapshot}];
  await c.execute('INSERT INTO ku_enquiries(id,fingerprint,body,created_at) VALUES (?,?,?,?)',[messageId,'workflow',JSON.stringify(snapshot),Date.now()]);await c.execute('INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,\'customer\',?)',[messageId,Date.now()]);
@@ -70,9 +74,9 @@ export function workflowStore(init,pool){
  await c.execute("INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,'internal',?)",[id,Date.now()]);
  await c.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(r),r.id]);
  }
- await c.commit();return {accepted:accepted||accept,slots:customerVisits(offered).map(v=>({...v,times:availableSlots(all,v.date,r.id)})),html:workflowEmail({...offer.document,workflow:{...offered,...((accepted||accept)?{pickupTime:r.pickupTime,returnTime:r.returnTime}:{} )},acceptUrl:null}).html};
+ await c.commit();return {accepted:accepted||accept,rentalTerms:offer.document.rentalTerms||null,slots:customerVisits(offered).map(v=>({...v,times:availableSlots(all,v.date,r.id)})),html:workflowEmail({...offer.document,workflow:{...offered,...((accepted||accept)?{pickupTime:r.pickupTime,returnTime:r.returnTime}:{} )},acceptUrl:null}).html};
  }catch(error){await c.rollback();throw error;}finally{c.release();}
  },
- async workflowPreview(id,input,products,type){const all=await records(),current=all.find(r=>r.id===id);if(!current)fail('Henvendelsen finnes ikke.',404);const r=editWorkflow(current,input,products);let warning='';try{validateSend(r);if(type==='confirmation')validateConfirmationTransport(r,all);}catch(error){warning=error.message;}return {canSend:!warning,warning,...workflowEmail({workflow:r,lines:r.lines,documentType:type,version:current.history.filter(h=>h.type===type).length+1}),previewDigest:documentDigest(r)};}
+ async workflowPreview(id,input,products,type){await init();const [[site]]=await pool.execute('SELECT body FROM ku_site_settings WHERE id=1');configureSiteSettings(JSON.parse(site.body));const all=await records(),current=all.find(r=>r.id===id);if(!current)fail('Henvendelsen finnes ikke.',404);const r=editWorkflow(current,input,products);let warning='';try{validateSend(r);if(type==='confirmation')validateConfirmationTransport(r,all);}catch(error){warning=error.message;}const rentalTerms=type==='offer'?rentalTermsSnapshot(JSON.parse(site.body)):current.history.filter(h=>h.type==='confirmation').at(-1)?.document?.rentalTerms||current.history.filter(h=>h.type==='offer').at(-1)?.document?.rentalTerms||rentalTermsSnapshot(JSON.parse(site.body));return {canSend:!warning,warning,rentalTerms,...workflowEmail({workflow:r,lines:r.lines,rentalTerms,documentType:type,version:current.history.filter(h=>h.type===type).length+1}),previewDigest:documentDigest({...r,rentalTermsSha256:rentalTerms.sha256})};}
  };
 }

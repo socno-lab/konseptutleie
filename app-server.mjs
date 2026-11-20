@@ -1,3 +1,4 @@
+import {rentalTermsPdf,rentalTermsFilename} from './server/rental-terms-pdf.mjs';
 import {configureSiteSettings as configureWorkflowPricing} from './public/site-settings.js?v=fest20261114';
 import {workflowEmail,reservedQuantity} from './server/enquiry-workflow.mjs';
 import {randomBytes} from 'node:crypto';
@@ -92,6 +93,11 @@ export function createServer(options={}){
     return out(200,await submissions.submit(input,catalog.products,digest(String(req.socket.remoteAddress||'shared')),{verifyDelivery:(...args)=>delivery.verifyQuote(...args,catalog.products)}));
    }
    if(pathname==='/aksepter-tilbud.html'&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'aksepter-tilbud.html')),'text/html; charset=utf-8',{'Referrer-Policy':'no-referrer'});
+   if(pathname==='/api/offer-terms'&&req.method==='GET'){
+    if(!store.enabled||!store.offerAcceptance)return out(503,{error:'Tilbudet er midlertidig utilgjengelig.'});
+    const result=await store.offerAcceptance(url.searchParams.get('token')),terms=result.rentalTerms;if(!terms)throw error('Dette tilbudet har ikke lagrede leiebetingelser.',404);
+    return send(200,await rentalTermsPdf(terms),'application/pdf',{'Content-Disposition':'attachment; filename="'+rentalTermsFilename(terms)+'"','Referrer-Policy':'no-referrer'});
+   }
    if(pathname==='/api/offer-acceptance'){
     if(!store.enabled||!store.offerAcceptance)return out(503,{error:'Tilbudet er midlertidig utilgjengelig.'});
     if(!['GET','POST'].includes(req.method))return out(405,{error:'Metoden støttes ikke.'});

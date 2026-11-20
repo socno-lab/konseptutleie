@@ -1,7 +1,7 @@
 {
   "sources": {
-    "package-lock.json": "3554ce138c0290b7e9995f087988f5e22f63626ef29a5661da381da1b6401371",
-    "package.json": "96933608c0b4b8f1169f6f31676b4198244e1baff792580294dbf4cf7abb5b8e",
+    "package-lock.json": "82a4385cd51b9a1fb9a1ed094c410a9daef6d310685a9680fbf0f13fbe466319",
+    "package.json": "239d4ec60736fc248c0737b77b141ebdf6b0393ebc5c27a999528b4bc6ea58e0",
     "public/addon-model.js": "d30b905550cb69e3015247adfd7b98e22447f321d5e66b4e77ebef3edaa0c0a4",
     "public/addon-purchase-model.js": "2ad057c7debeb6fe820a8af2d2801b4b9ed17f6fc0b326e4d862f75ab60b6423",
     "public/business-purchase-model.js": "6cb224c04230df8ec682dd7f2b2b1005c313326cbbef9f19f28e7637833fb071",
