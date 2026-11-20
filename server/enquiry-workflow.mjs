@@ -1,3 +1,4 @@
+import {defaultTransportDates} from '../public/admin/transport-dates.js';
 import {createHash} from 'node:crypto';
 import {rentalDayCount,parseDateOnly} from '../public/rental-dates.js';
 import {demand,ratePlan} from '../public/catalog-model.js';
@@ -5,7 +6,7 @@ import {rentalRateSets} from '../public/rental-pricing-model.js';
 const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
 const clean=(v,max=3000)=>typeof v==='string'?v.trim().slice(0,max):'';
 const money=v=>Number.isFinite(v)&&v>=0&&v<=10000000?Math.round(v*100)/100:null;
-export function workflowRecord(s){const period=s.facts?.find(f=>f[0]==='Ønsket leieperiode')?.[1]?.split(' til ')||[];return {id:s.id,email:s.email,receivedAt:s.receivedAt,revision:1,status:'new',kind:s.kind,start:period[0]||'',end:period[1]||'',deliveryDate:period[0]||'',pickupDate:period[1]||'',scope:/Boligfoto/.test(s.facts?.find(f=>f[0]==='Prisgrunnlag')?.[1]||'')?'standard':'messe',intro:'',logistics:'',payment:'Faktura sendes på e-post i forbindelse med levering, med 7 dagers betalingsfrist.',transport:s.delivery?.total??null,discount:s.discount?.discount||0,reserved:false,requirements:[],history:[],lines:(s.lines||[]).filter(l=>l.id!=='custom').map((l,i)=>({key:String(i),id:l.id,name:l.name,image:l.image||'',quantity:l.quantity,total:l.total,originalTotal:l.total,originalQuantity:l.quantity,originalId:l.id,originalName:l.name,review:'pending'}))};}
+export function workflowRecord(s){const period=s.facts?.find(f=>f[0]==='Ønsket leieperiode')?.[1]?.split(' til ')||[];return {id:s.id,email:s.email,receivedAt:s.receivedAt,revision:1,status:'new',kind:s.kind,start:period[0]||'',end:period[1]||'',...defaultTransportDates(period[0],period[1]),scope:/Boligfoto/.test(s.facts?.find(f=>f[0]==='Prisgrunnlag')?.[1]||'')?'standard':'messe',intro:'',logistics:'',payment:'Faktura sendes på e-post i forbindelse med levering, med 7 dagers betalingsfrist.',transport:s.delivery?.total??null,discount:s.discount?.discount||0,reserved:false,requirements:[],history:[],lines:(s.lines||[]).filter(l=>l.id!=='custom').map((l,i)=>({key:String(i),id:l.id,name:l.name,image:l.image||'',quantity:l.quantity,total:l.total,originalTotal:l.total,originalQuantity:l.quantity,originalId:l.id,originalName:l.name,review:'pending'}))};}
 export function editWorkflow(current,input,products){
  if(current.status==='cancelled')fail('Henvendelsen er avsluttet.',409);const next={...current};
  for(const k of ['start','end','deliveryDate','pickupDate']){next[k]=clean(input[k],10);if(next[k]&&parseDateOnly(next[k])===null)fail('Kontroller datoene.');}
