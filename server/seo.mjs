@@ -1,8 +1,9 @@
+import {seasonPageCopy,seasonDescription} from '../public/season-page-copy.js?v=seasoncopy20261120';
 import {messeSeoContent,messeDescription} from '../public/messe-seo-content.js?v=messeheading20261120';
 import {aboutPageHtml} from './about-page.mjs';
 import {contentPages} from '../public/page-model.js?v=fest20261114';
 import {homeFirstPaint} from './home-first-paint.mjs';
-import {occasionLandingView} from '../public/occasion-landing-view.js?v=messeheading20261120';
+import {occasionLandingView} from '../public/occasion-landing-view.js?v=seasoncopy20261120';
 import {initialSiteData} from './initial-site-data.mjs';
 import {customerInformationFirstPaint} from './customer-information-first-paint.mjs';
 import {productFirstPaint} from './product-first-paint.mjs';
@@ -67,9 +68,9 @@ function buildPageModel(path,params,products,settings){
   return {status:200,title:(buy?'Kjøp ':'Lei ')+searchName+' | Konseptuell',h1:p.name,description:[(buy?'Kjøp ':'Lei ')+searchName,p.material,buy?'Send en kjøpsforespørsel. Pris og levering bekreftes.':'Se oppgitte fastpriser og beregn leiesummen på nett for valgt bruk og periode. Større oppdrag prises individuelt; tjenester uten oppgitt pris prises på forespørsel.'].filter(Boolean).join('. '),canonical:url(p,buy),items:[p],product:p,productReturn:params.get('retur'),productPurpose:validPurpose(params.get('bruk')),productCategory:params.get('kategori')||'Alle',productUsage:rentalUsageState({purpose:validPurpose(params.get('bruk')),explicit:params.get('prisbruk')}),buy};
  }
  if(path==='/anledning.html'){
-  let key=params.get('anledning')||Object.keys(occasions).find(k=>occasions[k][1]===params.get('bruk'))||'alle';if(key==='event')key='messe';const managed=contentPages(settings).find(p=>p.id===key);const [defaultTitle,legacyArea,defaultDescription]=occasions[key]||occasions.alle;const area=managed?.area||legacyArea,content=managed||settings.landingContent?.[key],h1=managed?messeSeoContent(managed,products).heading:content?.heading||defaultTitle,description=key==='messe'?messeDescription:content?.intro||defaultDescription;
+  let key=params.get('anledning')||Object.keys(occasions).find(k=>occasions[k][1]===params.get('bruk'))||'alle';if(key==='event')key='messe';const managed=contentPages(settings).find(p=>p.id===key);const [defaultTitle,legacyArea,defaultDescription]=occasions[key]||occasions.alle;const area=managed?.area||legacyArea,content=managed||settings.landingContent?.[key],h1=managed?seasonPageCopy(messeSeoContent(managed,products)).heading:content?.heading||defaultTitle,description=key==='messe'?messeDescription:key==='bryllup'?seasonDescription:content?.intro||defaultDescription;
   const selected=pool.filter(p=>matchesPurpose(p,area));
-  return {status:200,h1,title:({messe:'Møbler til messe, stand og event – leie til fastpris',produksjon:'Møbler og styling til foto, film og reklame',jul:'Julepynt og pyntede juletrær til leie'}[key]||h1)+' | Konseptuell',description,canonical:'/anledning.html?bruk='+area+'&anledning='+(managed||occasions[key]?key:'alle'),items:selected,occasionKey:key,pageContent:managed?messeSeoContent(managed,products):null,buy:false};
+  return {status:200,h1,title:({messe:'Møbler til messe, stand og event – leie til fastpris',produksjon:'Møbler og styling til foto, film og reklame',jul:'Julepynt og pyntede juletrær til leie'}[key]||h1)+' | Konseptuell',description,canonical:'/anledning.html?bruk='+area+'&anledning='+(managed||occasions[key]?key:'alle'),items:selected,occasionKey:key,pageContent:managed?seasonPageCopy(messeSeoContent(managed,products)):null,buy:false};
  }
  if(path==='/midlertidig-moblering.html')return {status:200,h1:'Midlertidig møblering med møbler til leie',title:'Midlertidig møblering – leie møbler | Konseptuell',description:'Trenger du møbler i noen uker eller måneder? Velg sofaer, bord og stoler, og send en forespørsel med ønsket leieperiode.',canonical:path,items:pool.filter(p=>['Sofaer','Stoler','Bord','Hyller'].includes(p.category)),buy:false};
  if(path==='/utvalg.html'||path==='/kjop.html'){
