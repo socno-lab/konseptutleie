@@ -12,3 +12,23 @@
 /* Keep keyboard focus inside the existing button instead of adding an outer frame. */
 .admin-body button:focus,.admin-body button:focus-visible{outline:none!important;box-shadow:none!important}
 .admin-body button:focus-visible{ text-decoration:underline;text-underline-offset:4px; }
+
+/* Product names and captions share one row; every control sits in the next. */
+#editor .replaceLine{height:48px;min-height:48px;margin:0;box-sizing:border-box}
+#editor .enquiry-line .product-info{padding:0;border:0}
+@media(min-width:701px){
+ #editor .enquiry-line{align-items:start;row-gap:8px}
+ #editor .enquiry-line .product-info,#editor .enquiry-line>label{display:contents}
+ #editor .enquiry-line .product-name{grid-column:2;grid-row:1;align-self:end}
+ #editor .enquiry-line .replaceLine{grid-column:2;grid-row:2;justify-self:start}
+ #editor .enquiry-line .product-info .availability{grid-column:2;grid-row:3}
+ #editor .enquiry-line .product-info small:last-child{grid-column:2;grid-row:4}
+ #editor .enquiry-line .line-label{grid-row:1;align-self:end}
+ #editor .enquiry-line>label :is(input,select){grid-row:2;margin:0}
+ #editor .enquiry-line .quantity-field>*{grid-column:3}
+ #editor .enquiry-line .review-field>*{grid-column:4}
+ #editor .enquiry-line .total-field>*{grid-column:5}
+ #editor .enquiry-line>img{grid-column:1;grid-row:1 / span 2;align-self:end}
+ #editor .enquiry-line>.removeLine{grid-row:5;grid-column:2}
+}
+@media(max-width:700px){#editor .enquiry-line .line-label{display:block}#editor .replaceLine{margin:8px 0}}
