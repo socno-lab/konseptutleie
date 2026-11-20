@@ -65,7 +65,8 @@ export function createMysqlStore(env,seed){
    await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(products),updatedAt]);await connection.commit();return {revision:revision+1,products,updatedAt};
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
- return {...workflowStore(init,pool),...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
+ const workflow=workflowStore(init,pool);
+ return {...workflow,...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
   async readEnquiry(id){
    const [[row]]=await query('SELECT fingerprint,body FROM ku_enquiries WHERE id=?',[id]);
    if(row)return {fingerprint:row.fingerprint,snapshot:JSON.parse(row.body)};
@@ -112,6 +113,7 @@ export function createMysqlStore(env,seed){
   async enquiryMailStatus(){const [rows]=await query('SELECT m.submission_id AS reference,m.channel,m.status,m.attempts,e.created_at AS receivedAt FROM ku_enquiry_mail m JOIN ku_enquiries e ON e.id=m.submission_id ORDER BY e.created_at DESC,m.channel');return rows;},
   async retryEnquiryMail(id,channel,acknowledgeUncertain){const [result]=await query("UPDATE ku_enquiry_mail SET status='pending',attempts=0,next_at=0 WHERE submission_id=? AND channel=? AND (status='failed' OR (status='uncertain' AND ?=1))",[id,channel,acknowledgeUncertain?1:0]);return result.affectedRows===1;},
   async pruneEnquiries(now){
+   await workflow.pruneWorkflow(now);
    await query('DELETE m FROM ku_enquiry_mail m JOIN ku_enquiries e ON e.id=m.submission_id WHERE e.created_at<?',[now-30*86400000]);
    await query('DELETE FROM ku_enquiries WHERE created_at<?',[now-30*86400000]);
    await query('DELETE FROM ku_submissions WHERE created_at<? LIMIT 100',[now-30*86400000]);

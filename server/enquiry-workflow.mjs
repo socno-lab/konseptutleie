@@ -61,3 +61,13 @@ export function workflowEmail(s){
 }
 
 export const documentDigest=r=>createHash('sha256').update(JSON.stringify({...r,history:[],revision:0,status:'',reserved:false,requirements:[],reservation:null,updatedAt:''})).digest('hex');
+
+export function workflowClosedAt(r){
+ if(r.status==='cancelled'){const at=Date.parse(r.closedAt||r.updatedAt||'');return Number.isFinite(at)?at:null;}
+ if(r.status!=='confirmed')return null;
+ const last=r.history?.filter(h=>h.type==='confirmation').at(-1)?.document?.workflow;
+ const end=r.reservation?.end||last?.pickupDate||r.pickupDate||r.end;
+ // Start retention after the full return date has passed in Oslo (latest UTC boundary).
+ return parseDateOnly(end)!==null?Date.parse(end+'T00:00:00Z')+86400000:null;
+}
+export const workflowExpired=(r,now)=>{const closed=workflowClosedAt(r);return closed!==null&&now>=closed+30*86400000;};

@@ -1,18 +1,29 @@
 import {configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {randomUUID} from 'node:crypto';
-import {documentDigest,workflowRecord,editWorkflow,checkReservation,validateSend,workflowEmail,reservedQuantity} from './enquiry-workflow.mjs';
+import {documentDigest,workflowRecord,editWorkflow,checkReservation,validateSend,workflowEmail,reservedQuantity,workflowExpired} from './enquiry-workflow.mjs';
 const fail=(message,status=409)=>{throw Object.assign(Error(message),{status});};
 export function workflowStore(init,pool){
  async function sync(){await init();const [rows]=await pool.execute('SELECT body FROM ku_enquiries');for(const row of rows){const s=JSON.parse(row.body);if(s.documentType||s.kind!=='rental'||s.acquisition==='mixed'||s.acquisition==='proposal')continue;const r=workflowRecord(s);await pool.execute('INSERT IGNORE INTO ku_workflow(id,body) VALUES (?,?)',[r.id,JSON.stringify(r)]);}}
  async function records(){await sync();const [rows]=await pool.execute('SELECT body FROM ku_workflow');return rows.map(r=>JSON.parse(r.body));}
  return {
  workflowRecords:records,
+ async pruneWorkflow(now){await init();const c=await pool.getConnection();try{await c.beginTransaction();
+ await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
+ const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');
+ for(const row of rows){const r=JSON.parse(row.body);if(!workflowExpired(r,now))continue;
+ for(const id of new Set([r.id,...(r.history||[]).map(h=>h.id)])){
+ await c.execute('DELETE FROM ku_enquiry_mail WHERE submission_id=?',[id]);
+ await c.execute('DELETE FROM ku_enquiries WHERE id=?',[id]);
+ await c.execute('DELETE FROM ku_submissions WHERE id=?',[id]);
+ }
+ await c.execute('DELETE FROM ku_workflow WHERE id=?',[r.id]);
+ }await c.commit();}catch(error){await c.rollback();throw error;}finally{c.release();}},
  async workflowAvailability(products,start,end){const all=await records();return products.map(p=>({...p,unavailable:(p.unavailable||0)+reservedQuantity(all,p.id,start,end)}));},
  async changeWorkflow(id,input,action,products){await sync();const c=await pool.getConnection();try{await c.beginTransaction();
  // All reservations and catalog stock edits serialize on this row.
  const [[catalog]]=await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');products=JSON.parse(catalog.body);const [[site]]=await c.execute('SELECT body FROM ku_site_settings WHERE id=1');configureSiteSettings(JSON.parse(site.body));
  const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');const all=rows.map(r=>JSON.parse(r.body)),current=all.find(r=>r.id===id);if(!current)fail('Henvendelsen finnes ikke.',404);if(input.revision!==current.revision)fail('Henvendelsen er endret. Last inn på nytt.');
- let next=action==='cancel'?{...current,status:'cancelled',reserved:false,requirements:[]}:editWorkflow(current,input,products);
+ let next=action==='cancel'?{...current,status:'cancelled',closedAt:current.closedAt||new Date().toISOString(),reserved:false,requirements:[]}:editWorkflow(current,input,products);
  if(action==='accept'){if(current.status!=='offered')fail('Kundens aksept kan registreres etter et utsendt tilbud.');if(!current.history.some(h=>h.type==='offer'))fail('Send tilbud før du registrerer aksept.');next.status='accepted';}
  if(['offer','confirmation'].includes(action)){
  for(const h of current.history.filter(h=>h.type===action)){const [[job]]=await c.execute('SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel=\'customer\' FOR UPDATE',[h.id]);if(job?.status==='sending')fail('Forrige dokument sendes nå. Vent til sendingen er ferdig.');await c.execute("UPDATE ku_enquiry_mail SET status='superseded' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[h.id]);}
