@@ -95,7 +95,7 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  if(!labels.includes(deliveryChoice))fail('Velg levering eller henting.');
  const visits=deliveryChoice==='Ønsker levering og henting'?2:1;
  const receipt=hasRental&&!self&&!capacity.manual?verifyDelivery(d.deliveryToken,d.address,rent,value.customRequest,visits):null;
- const delivery={label:included?'Levering og henting inkludert i fastprisen':capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':deliveryChoice,total:included||self?0:receipt?.total??null};
+ const delivery={choice:deliveryChoice,label:included?'Levering og henting inkludert i fastprisen':capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':deliveryChoice,total:included||self?0:receipt?.total??null};
  const tryGroups=groups.filter(g=>businessPurchaseEnabled(g.product)&&(g.custom?g.acquisition==='try':choices[g.packageId]==='try'));
  const purchaseOptions=tryGroups.map(g=>packageBuyoutOption({...g.product,purchasePrice:resolvedPackagePurchasePrice(g.product,products)},products,{quantity:g.quantity,custom:g.custom,extras:g.custom?Object.fromEntries(Object.entries(g.selection).filter(([id])=>isBuyoutAddon(products.find(p=>p.id===id)))):g.extras||{}}));
  // Only a complete buyout can remove the entire pickup; other rental goods keep it.
