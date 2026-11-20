@@ -77,3 +77,13 @@ Eksisterende passordøkter gjelder ikke etter publisering: MFA bruker egen `ku_a
 Ved manglende SMTP eller avvist sending holdes admin stengt; passord alene er aldri reserveinnlogging. Kontroller SMTP-konfigurasjon og postkassens søppelpost ved problemer. Tilgangstap til postkassen krever at eier bekrefter ny mottaker gjennom sikker driftsadgang og en kontrollert serverendring. Ikke be om passord eller engangskoder i chat eller logg. Det finnes ingen offentlig omgåelses-/tilbakestillingsrute. Kundehandlekurv og innsending krever fortsatt ingen adminøkt.
 
 Lokale tester bruker syntetiske administratorer og en fanget e-posttransport. SMTP-aksept er ikke bevis på innbokslevering; eier bekrefter levering ved første ordinære innlogging. I isolerte restoretester må også admintransporten erstattes med en lokal testtransport; produksjons-SMTP skal fortsatt være blokkert.
+
+## Henvendelser og reservasjonsoversikt (arbeid 20. november 2026)
+
+`ku_workflow` er en separat arbeidsoversikt med e-post og avtalte produkt-/datofelter. Automatisk opprettelse skjer i samme transaksjon som mottatt ren leieforespørsel. Gjenværende, rene leieforespørsler i den eksisterende 30-dagerskøen importeres ved åpning. Blandede kjøp/leie og fritekstforespørsler omfattes foreløpig ikke av editoren. Ingen gammel henvendelse sender nytt tilbud automatisk.
+
+Tilbud og ordrebekreftelser oppretter en uforanderlig dokumentkopi og en kundejobb i eksisterende e-postkø. Sendestatus er separat fra reservasjonen. Bekreftelse krever registrert skriftlig aksept, gjennomgåtte linjer, fullstendige priser og en aktuell forhåndsvisning. Oppdaterte bekreftelser krever endringsforklaring. Kladdendringer beholder tidligere lagerreservasjon inntil ny bekreftelse; ny kontroll og erstatning av reservasjonen skjer atomisk med køleggingen. Avbestilling frigir lager og stopper ventende dokumenter. SMTP-jobber som allerede sender må avklares først.
+
+Beholdning beregnes fra høyeste samtidige antall i inkluderende leverings-/returintervaller. Pakker bruker komponentlager, tjenester uten fast beholdning reserverer ikke fysiske enheter. Katalograden låses før reservasjonskontroll, og revisjon hindrer doble eller utdaterte utsendinger. Historiske dokumentkopier i arbeidsoversikten slettes ikke av e-postkøens 30-dagersjobb. Oppfølging av innsyn/sletting må også omfatte ku_workflow og dokumenthistorikken. Ikke kopier navn, telefon eller adresser inn i editorens fritekstfelt.
+
+Foreløpig validering: domenetester og transaksjonstester med syntetiske data / simulert databasetilkobling. E-posttransport testet med fake sender. Reell MySQL-integrasjon, visuell nettleserkontroll og publisering gjenstår. Ingen reelle tilbud eller ordrebekreftelser er sendt under utvikling.

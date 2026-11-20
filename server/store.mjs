@@ -1,3 +1,5 @@
+import {workflowRecord} from './enquiry-workflow.mjs';
+import {workflowStore} from './workflow-store.mjs';
 import {adminCodeStore} from './admin-code-store.mjs';
 import {migrateCatalogDimensions} from './dimensions-migration.mjs';
 import {migrateStylingPricing} from './pricing-migration.mjs';
@@ -16,6 +18,7 @@ export function createMysqlStore(env,seed){
   if(!enabled)throw Error('Database er ikke konfigurert.');
   if(!ready)ready=(async()=>{
    for(const sql of [
+    'CREATE TABLE IF NOT EXISTS ku_workflow (id CHAR(36) PRIMARY KEY, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_site_settings (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_catalog (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL, updated_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_discounts (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL)',
@@ -62,7 +65,7 @@ export function createMysqlStore(env,seed){
    await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(products),updatedAt]);await connection.commit();return {revision:revision+1,products,updatedAt};
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
- return {...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
+ return {...workflowStore(init,pool),...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
   async readEnquiry(id){
    const [[row]]=await query('SELECT fingerprint,body FROM ku_enquiries WHERE id=?',[id]);
    if(row)return {fingerprint:row.fingerprint,snapshot:JSON.parse(row.body)};
@@ -85,6 +88,7 @@ export function createMysqlStore(env,seed){
      await connection.execute('UPDATE ku_submission_limits SET attempts=?,reset_at=? WHERE bucket=?',[count+1,until,bucket]);
     }
     await connection.execute('INSERT INTO ku_enquiries(id,fingerprint,body,created_at) VALUES (?,?,?,?)',[id,fingerprint,JSON.stringify(snapshot),now]);
+    if(snapshot.kind==='rental'&&snapshot.acquisition==='rental')await connection.execute('INSERT IGNORE INTO ku_workflow(id,body) VALUES (?,?)',[id,JSON.stringify(workflowRecord(snapshot))]);
     for(const channel of ['internal','customer'])await connection.execute("INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,?,?)",[id,channel,now]);
     await connection.commit();return {snapshot};
    }catch(error){await connection.rollback();throw error;}finally{connection.release();}

@@ -1,3 +1,5 @@
+import {configureSiteSettings as configureWorkflowPricing} from './public/site-settings.js?v=fest20261114';
+import {workflowEmail,reservedQuantity} from './server/enquiry-workflow.mjs';
 import {randomBytes} from 'node:crypto';
 import {createAdminCodeSender,adminCookie} from './server/admin-email-code.mjs';
 import {initialSiteData} from './server/initial-site-data.mjs';
@@ -89,6 +91,10 @@ export function createServer(options={}){
     const input=await json(req,90000),catalog=store.enabled?await readCatalog():seed;
     return out(200,await submissions.submit(input,catalog.products,digest(String(req.socket.remoteAddress||'shared')),{verifyDelivery:(...args)=>delivery.verifyQuote(...args,catalog.products)}));
    }
+   if(pathname==='/api/rental-availability'&&req.method==='GET'){
+    const start=url.searchParams.get('start'),end=url.searchParams.get('end');if(!/^\d{4}-\d{2}-\d{2}$/.test(start||'')||!/^\d{4}-\d{2}-\d{2}$/.test(end||'')||start>end)throw error('Velg gyldige datoer.');
+    const catalog=await readPublicCatalog(),records=store.enabled&&store.workflowRecords?await store.workflowRecords():[];return out(200,{reserved:Object.fromEntries(catalog.products.map(p=>[p.id,reservedQuantity(records,p.id,start,end)]))});
+   }
    if(pathname==='/api/delivery-estimate'){
     if(req.method==='GET'){if(store.enabled)await readCatalog();return out(200,{enabled:delivery.enabled,rates:deliveryRates,warehouse});}
     if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
@@ -135,6 +141,18 @@ export function createServer(options={}){
     if(['/admin/login.js','/admin/admin.css'].includes(pathname)&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,pathname)),types[path.extname(pathname)]);
     if(!await authenticated())return pathname.startsWith('/api/')?out(401,{error:'Logg inn for å fortsette.'}):redirect('/admin/login');
     if(['/admin','/admin/','/admin/index.html'].includes(pathname)&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'admin/index.html')),'text/html; charset=utf-8');
+    if(pathname==='/api/admin/availability'&&req.method==='POST'){
+     const d=await json(req,2000);if(!/^\d{4}-\d{2}-\d{2}$/.test(d.start||'')||!/^\d{4}-\d{2}-\d{2}$/.test(d.end||'')||d.start>d.end)throw error('Velg gyldige datoer.');const catalog=await readCatalog(),records=await store.workflowRecords();return out(200,{products:catalog.products.map(p=>({id:p.id,available:p.isService?null:Math.max(0,p.stock-p.unavailable-reservedQuantity(records,p.id,d.start,d.end,d.exclude))}))});
+    }
+    if(pathname==='/api/admin/enquiries'&&req.method==='GET')return out(200,{records:await store.workflowRecords(),mail:await store.enquiryMailStatus()});
+    const workflow=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/(save|preview|offer|accept|confirmation|cancel|document)$/);
+    if(workflow&&req.method==='POST'){
+     const input=await json(req,200000),catalog=await readCatalog(),action=workflow[2];configureWorkflowPricing(catalog.settings);
+     if(action==='document'){const r=(await store.workflowRecords()).find(r=>r.id===workflow[1]),doc=r?.history.find(h=>h.id===input.historyId);if(!doc)throw error('Dokumentet finnes ikke.',404);return out(200,workflowEmail(doc.document));}
+     if(action==='preview')return out(200,await store.workflowPreview(workflow[1],input,catalog.products,input.documentType==='confirmation'?'confirmation':'offer'));
+     if(['offer','confirmation'].includes(action)&&!submissions.enabled)throw error('E-postsending er ikke aktivert.',503);
+     const record=await store.changeWorkflow(workflow[1],input,action,catalog.products);void submissions.flush();return out(200,{record});
+    }
     if(pathname==='/api/admin/enquiry-mail-health'&&req.method==='GET')return out(200,enquiryHealth(await store.enquiryMailHealth(Date.now()),submissions.enabled));
     if(pathname==='/api/admin/enquiry-mail'&&req.method==='GET')return out(200,{messages:await store.enquiryMailStatus()});
     if(pathname==='/api/admin/enquiry-mail/retry'&&req.method==='POST'){
