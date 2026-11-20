@@ -18,9 +18,9 @@ const graph=(model,settings)=>JSON.parse(structuredData(model,settings))['@graph
 test('server metadata, hero and sitemap use explicitly supplied admin settings rather than stale module state',()=>{
  const settings=site(),snapshot=JSON.stringify({products,settings}),previous=getSiteSettings();
  const model=pageModel('/anledning.html',new URLSearchParams('bruk=messe&anledning=messe'),products,settings);
- assert.equal(model.h1,'Vår oppdaterte messeside');assert.match(model.description,/konferanse/);
+ assert.equal(model.h1,'Vår oppdaterte messeside');assert.match(model.description,/fastpris på enkeltmøbler og pakker/);
  const html=renderSeo(source,model,products,true,settings);
- assert.match(html,/<h1>Vår oppdaterte messeside<\/h1>/);assert.match(html,/Eiers egen tekst/);assert.match(html,/Oslo og på hele Østlandet/);
+ assert.match(html,/<h1>Vår oppdaterte messeside<\/h1>/);assert.match(html,/Eiers egen tekst/);assert.match(html,/Oslo, Lillestrøm og på hele Østlandet/);
  assert.ok(html.replace(/<svg\b[\s\S]*?<\/svg>/g,'↗').includes(occasionLandingView(model.canonical,settings,products).html));
  const custom=newContentPage('kundemote');custom.area='bedrift';settings.contentPages.push(custom);
  assert.match(sitemap(products,true,settings),/bruk=bedrift&amp;anledning=kundemote/);settings.contentPages.pop();

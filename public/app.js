@@ -8,7 +8,7 @@ let catalogManualOrder=[];
 import {requiredModuleQuantity,moduleStartCandidates} from './module-builder-settings.js';
 import {homeProductCards,homeSeasonContent,homeRateGrid} from './home-sections.js?v=choicesfirst20261119';
 import {setInitialMarkup} from './initial-markup.js?v=sitefirst20261106';
-import {occasionLandingView} from './occasion-landing-view.js?v=seo20261117';
+import {occasionLandingView} from './occasion-landing-view.js?v=messeprice20261120';
 import {productIllustrationText} from './product-illustration.js?v=productcontent20261106';
 import {productSummary} from './product-summary.js?v=vat20261115b';
 import {rentalScopeMarkup} from './rental-scope-markup.js?v=fest20261114';

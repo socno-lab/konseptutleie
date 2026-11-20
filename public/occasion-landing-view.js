@@ -1,4 +1,4 @@
-import {messeSeoContent} from './messe-seo-content.js?v=seo20261117';
+import {messeSeoContent} from './messe-seo-content.js?v=messeprice20261120';
 import {contentPages} from './page-model.js?v=fest20261114';
 import {renderContentPage} from './content-page.js?v=seo20261117';
 import {getSiteSettings} from './site-settings.js?v=fest20261114';

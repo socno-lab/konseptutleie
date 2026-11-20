@@ -31,6 +31,6 @@ test('purchase and occasion pages do not adopt the rental housing introduction',
  assert.equal(buy.catalogIntro,undefined);
  const occasion=pageModel('/anledning.html',new URLSearchParams('anledning=messe'),products);
  assert.equal(occasion.catalogIntro,undefined);
- assert.match(occasion.description,/møbelpakker til messestand, konferanse/);
+ assert.match(occasion.description,/fastpris på enkeltmøbler og pakker/);
  assert.doesNotMatch(occasion.description,/boligfoto/i);
 });
