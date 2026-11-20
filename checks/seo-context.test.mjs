@@ -44,7 +44,7 @@ test('schema distinguishes the legal address and appointment-only warehouse, and
  assert.ok(data.some(x=>x['@type']==='CollectionPage'));assert.ok(data.some(x=>x['@type']==='ItemList'));assert.ok(data.some(x=>x['@type']==='Service'));
  assert.deepEqual(data.find(x=>x['@type']==='ItemList').itemListElement.map(x=>x.name),['Loungepakken','VIP-område']);
  const rental=graph(pageModel('/leieprodukt.html',new URLSearchParams('produkt=lounge'),products,settings),settings).at(-1);
- assert.equal(rental.description,products[0].description);assert.equal(rental.offers,undefined);assert.equal(rental.aggregateRating,undefined);
+ assert.ok(rental.description.startsWith(products[0].description));assert.match(rental.description,/fastpriser.*Leiesummen beregnes på nett/);assert.equal(rental.offers,undefined);assert.equal(rental.aggregateRating,undefined);
 });
 test('messe content links only actual eligible packages and leaves all catalogue and admin values intact',()=>{
  const page=site().contentPages[0],snapshot=JSON.stringify({page,products}),enriched=messeSeoContent(page,products);
