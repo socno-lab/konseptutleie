@@ -91,6 +91,15 @@ export function createServer(options={}){
     const input=await json(req,90000),catalog=store.enabled?await readCatalog():seed;
     return out(200,await submissions.submit(input,catalog.products,digest(String(req.socket.remoteAddress||'shared')),{verifyDelivery:(...args)=>delivery.verifyQuote(...args,catalog.products)}));
    }
+   if(pathname==='/aksepter-tilbud.html'&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'aksepter-tilbud.html')),'text/html; charset=utf-8',{'Referrer-Policy':'no-referrer'});
+   if(pathname==='/api/offer-acceptance'){
+    if(!store.enabled||!store.offerAcceptance)return out(503,{error:'Tilbudet er midlertidig utilgjengelig.'});
+    if(!['GET','POST'].includes(req.method))return out(405,{error:'Metoden støttes ikke.'});
+    if(req.method==='POST'&&req.headers.origin!==origin)return out(403,{error:'Last inn tilbudssiden på nytt.'});
+    const token=req.method==='POST'?(await json(req,1000)).token:url.searchParams.get('token');
+    const result=await store.offerAcceptance(token,req.method==='POST');if(req.method==='POST')void submissions.flush();
+    return out(200,result,{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});
+   }
    if(pathname==='/api/rental-availability'&&req.method==='GET'){
     const start=url.searchParams.get('start'),end=url.searchParams.get('end');if(!/^\d{4}-\d{2}-\d{2}$/.test(start||'')||!/^\d{4}-\d{2}-\d{2}$/.test(end||'')||start>end)throw error('Velg gyldige datoer.');
     const catalog=await readPublicCatalog(),records=store.enabled&&store.workflowRecords?await store.workflowRecords():[];return out(200,{reserved:Object.fromEntries(catalog.products.map(p=>[p.id,reservedQuantity(records,p.id,start,end)]))});
