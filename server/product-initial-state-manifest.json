@@ -45,12 +45,13 @@
     "public/purchase-product-options.js": "1192acc793f6368623b47ed0bfd54d6f99d6c47545d86e6f852456756c13dde5",
     "public/purpose-model.js": "36d5dedc518e6c240e0aa1a6e66e8e2326862b5b64d9218487277fd6f4d0e036",
     "public/recommendation-model.js": "54e5578b7e43ae946169ca40fd06c383a5e038d7ebc196354a766f094b30b0d0",
+    "public/rental-availability-hint.js": "d690b392af053d1c1645b875ea5232b2b2449cc7b380a1e4d9d2c3497f06f1f3",
     "public/rental-builder-options.js": "a3068d784e8712a5fe34401bdb50b93893b70971255b6d189b3308c02e88a845",
     "public/rental-dates.js": "4836a7beec0f45fbdad20995c8f9bd344643f03406307d51b56715279cd306d7",
     "public/rental-period-display.js": "a68b7d4aed8e6f67bd0ad07f6fd00b25148bbec16574966edf974a9b306c0039",
     "public/rental-period-slots.js": "5838e4eaec16d3eda7d456311c5d7fc427024fdcbed246e3cac83093594acd12",
     "public/rental-pricing-model.js": "f3c577e9fd8315ec22493b7efd76ce79d5ff7d011bf570b1053bb610492e9ec6",
-    "public/rental-product-options.js": "28c2460c8620bc5cd9ca5728adeac6c6f79629a3452b8a846436a6f15af25d9a",
+    "public/rental-product-options.js": "6baa7f26640ab609192bd51dc0bee402c903c973c41ab5039bdddf6532565e12",
     "public/rental-purpose-model.js": "8320b14aa16c386b766bc75fe04abac1e475ee32e4d3b2c0805f2c1aaeedc399",
     "public/rental-scope-markup.js": "bc2d8dfe53b7bbc0bdb56102f7611953be1fda17ad5fbe5f4f93f729a10bb6d7",
     "public/rental-selection-summary.js": "b6e9680d5985d00bc0783ac79832c908f07e2ea9ad180f542ff8d780d42b1ea9",
@@ -68,5 +69,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "server/product-initial-state-script.mjs": "814a4cc97c3bbb7e7428ed9560a8a390aadf119816448e6604d850ee92e93e74"
   },
-  "bundleSha256": "390765d6653a27fe26ae1cacd0a9cbc239098dc439b6f28aaedc43d1ef8a35bd"
+  "bundleSha256": "7cc083190874e4889206ae51ac61917c218f47d4704e34a5b5603bfa3bf2dd35"
 }
