@@ -88,3 +88,21 @@ test('unchanged empty product price is recalculated for an enquiry with valid da
 test('missing transport dates default from lease period, while manually specified transport dates persist',()=>{const r=record();const filled=editWorkflow(r,{...r,deliveryDate:'',pickupDate:''},[p]);assert.equal(filled.deliveryDate,'2026-12-04');assert.equal(filled.pickupDate,'2026-12-07');const explicit=editWorkflow(r,{...r,deliveryDate:'2026-12-03',pickupDate:'2026-12-08'},[p]);assert.equal(explicit.deliveryDate,'2026-12-03');assert.equal(explicit.pickupDate,'2026-12-08');const missing=editWorkflow({...r,start:'',end:'',deliveryDate:'',pickupDate:''},{...r,start:'',end:'',deliveryDate:'',pickupDate:''},[p]);assert.equal(missing.deliveryDate,'');assert.equal(missing.pickupDate,'');});
 
 test('manual delivery today survives a weekend whose automatic Friday is already past',async()=>{const {transportDatesAfterPeriodChange}=await import('../public/admin/transport-dates.js');const previous={start:'2026-11-21',end:'2026-11-22'},r=record();const explicit=editWorkflow(r,{...r,...previous,deliveryDate:'2026-11-21',pickupDate:'2026-11-23'},[p]);assert.equal(explicit.deliveryDate,'2026-11-21');assert.equal(explicit.pickupDate,'2026-11-23');assert.equal(explicit.lines[0].total,800);const next={start:'2026-11-22',end:'2026-11-22',deliveryDate:'2026-11-21',pickupDate:'2026-11-23'};assert.deepEqual(transportDatesAfterPeriodChange(previous,next),{deliveryDate:'2026-11-21',pickupDate:'2026-11-23'});const auto={start:'2026-12-12',end:'2026-12-13',deliveryDate:'2026-11-20',pickupDate:'2026-11-23'};assert.deepEqual(transportDatesAfterPeriodChange(previous,auto),{deliveryDate:'2026-12-11',pickupDate:'2026-12-14'});});
+
+
+test('legacy generated shortage introduction refreshes on editing while custom and sent copies remain intact',async()=>{
+ const {workflowCopy,isLegacyGeneratedOfferIntro}=await import('../public/admin/offer-copy.js');
+ const alt={...p,id:'merge',name:'Hübsch Merge nattbord, natur'};
+ const base=record(),ordinary={...base.lines[0],review:'ok'};
+ const replacement={...ordinary,key:'bedside',id:alt.id,name:alt.name,quantity:2,total:760,originalId:'archive',originalName:'Hübsch Archive nattbord, natur',originalQuantity:2,originalTotal:1000,review:'alternative',originalMissing:true};
+ const legacy='Takk for hyggelig forespørsel om leie av møbler i perioden 5.–6. desember.\n\nVi har gått gjennom ønskelisten din. Ett eller flere av produktene er dessverre ikke tilgjengelige i ønsket antall. Vi har foreslått alternativer i oversikten nedenfor.\n\nAv Hübsch Archive nattbord har vi dessverre ikke ønsket antall tilgjengelig. Som alternativ kan vi tilby Hübsch Merge nattbord, natur (2 stk.). Dette alternativet er også 240 kr rimeligere enn det du opprinnelig valgte.';
+ const r={...base,intro:legacy,lines:[ordinary,replacement]};
+ assert.equal(isLegacyGeneratedOfferIntro(r),true);
+ assert.equal(isLegacyGeneratedOfferIntro(r,legacy.replaceAll('\n',' ')),true);
+ assert.equal(isLegacyGeneratedOfferIntro(r,legacy+' Ta kontakt før fredag.'),false);
+ const edited=editWorkflow(r,r,[p,alt]);assert.equal(edited.intro,'');
+ const copy=workflowCopy(edited).intro;assert.match(copy,/alle produktene tilgjengelig, med ett lite unntak/);assert.match(copy,/Hübsch Merge nattbord, natur \(2 stk.\)/);assert.match(copy,/240 kr rimeligere/);
+ const custom=editWorkflow(r,{...r,intro:'Dette er min egen tekst.'},[p,alt]);assert.equal(custom.intro,'Dette er min egen tekst.');
+ const historical=workflowEmail({workflow:r,lines:r.lines,documentType:'offer'});assert.match(historical.text,/Ett eller flere av produktene/);assert.doesNotMatch(historical.text,/med ett lite unntak/);
+ const changed={...r,start:'2026-12-08',end:'2026-12-09',lines:[ordinary],history:[{type:'offer',document:{workflow:r}}]};assert.equal(isLegacyGeneratedOfferIntro(changed),true);
+});
