@@ -1,4 +1,4 @@
-import {informationBoxMarkup,informationBoxStyles} from './information-box.js?v=weekdaynotice20261121';
+import {informationBoxMarkup,informationBoxStyles} from './information-box.js?v=noticetype20261121';
 import {plannedTransportDates,transportWeekdayPolicy} from './transport-weekdays.js?v=weekdays20261121';
 import {scopeForOccasion} from './rental-pricing-model.js?v=fest20261114';
 import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
