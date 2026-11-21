@@ -102,7 +102,7 @@ export function createServer(options={}){
     if(!store.enabled||!store.offerAcceptance)return out(503,{error:'Tilbudet er midlertidig utilgjengelig.'});
     if(!['GET','POST'].includes(req.method))return out(405,{error:'Metoden støttes ikke.'});
     if(req.method==='POST'&&req.headers.origin!==origin)return out(403,{error:'Last inn tilbudssiden på nytt.'});
-    const input=req.method==='POST'?await json(req,2000):{},token=req.method==='POST'?input.token:url.searchParams.get('token');
+    const input=req.method==='POST'?await json(req,15000):{},token=req.method==='POST'?input.token:url.searchParams.get('token');
     const result=await store.offerAcceptance(token,req.method==='POST',input);if(req.method==='POST')void submissions.flush();
     return out(200,result,{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});
    }
