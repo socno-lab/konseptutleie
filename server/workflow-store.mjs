@@ -14,6 +14,7 @@ export function workflowStore(init,pool){
  async function records(){const source=await sync();const [rows]=await pool.execute('SELECT body FROM ku_workflow');return rows.map(row=>{const r=JSON.parse(row.body),original=source.get(r.id);r.customerType=r.customerType||original?.customerType||'consumer';r.lines=r.lines.map(l=>{const old=original?.lines.find(x=>x.id===l.originalId&&x.key===l.key);return {...l,...(l.originalTotal==null&&old?.total!=null?{originalTotal:old.total,originalQuantity:old.quantity}:{})};});return r.deliveryMode?r:{...r,deliveryMode:original?.deliveryMode||'undecided',deliveryAddress:original?.deliveryAddress||'',pickupTime:r.pickupTime||'',returnTime:r.returnTime||''};});}
  return {
  workflowRecords:records,
+ async recordWorkflowMailSent(id,now){await init();const c=await pool.getConnection();try{await c.beginTransaction();await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');for(const row of rows){const r=JSON.parse(row.body),h=r.history.find(h=>h.id===id);if(h&&!h.sentAt){h.sentAt=new Date(now).toISOString();r.revision++;await c.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(r),r.id]);break;}}await c.commit();}catch(error){await c.rollback();throw error;}finally{c.release();}},
  async queueWorkflowReminders(now=Date.now()){
  await init();const c=await pool.getConnection();try{await c.beginTransaction();
  await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
@@ -82,6 +83,7 @@ export function workflowStore(init,pool){
  }
  if(action==='confirmation')next.appointments=validateConfirmationTransport(next,all);
  if(action==='confirmation'&&next.reserved){next.requirements=checkReservation(next,products,all);next.reservation={start:next.deliveryDate,end:next.pickupDate};}else if(!next.reserved){next.requirements=[];next.reservation=null;}
+ if(action==='save'&&!next.offerStartedAt&&!current.history.some(h=>h.type==='offer'||h.type==='confirmation'))next.offerStartedAt=new Date().toISOString();
  next.revision++;next.updatedAt=new Date().toISOString();
  if(['offer','confirmation'].includes(action)){
  const version=current.history.filter(h=>h.type===action).length+1;if(action==='confirmation'&&version>1&&!next.changeReason)fail('Beskriv endringen i den oppdaterte ordrebekreftelsen.',400);const messageId=randomUUID(),copy={...next,history:[]},snapshot={id:messageId,email:next.email,kind:'rental',receivedAt:next.updatedAt,documentType:action,version,workflow:copy,lines:copy.lines};

@@ -141,3 +141,5 @@ test('a queued reminder does not send the next day and a cancelled event can be 
  const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const now=Date.parse('2026-12-03T09:00Z');await f.store.queueWorkflowReminders(now);const h=f.state.records[0].history.find(h=>h.type==='reminder');
  assert.equal(await f.store.claimWorkflowReminder(h.id,h.document,now+86400000),false);assert.equal(await f.store.queueWorkflowReminders(now),1);assert.equal(await f.store.queueWorkflowReminders(now),0);
 });
+
+test('actual mail completion records one send timestamp in existing document history',async()=>{const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const id=f.state.records[0].history.at(-1).id,now=Date.parse('2026-11-21T12:00Z');await f.store.recordWorkflowMailSent(id,now);const h=f.state.records[0].history.at(-1);assert.equal(h.sentAt,'2026-11-21T12:00:00.000Z');const count=f.state.records[0].history.length;await f.store.recordWorkflowMailSent(id,now+1000);assert.equal(f.state.records[0].history.length,count);assert.equal(f.state.records[0].history.at(-1).sentAt,h.sentAt);});

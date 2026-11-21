@@ -107,6 +107,7 @@ export function createMysqlStore(env,seed){
   async finishEnquiryMail(id,channel,status,now){
    // Keep bound status values out of MySQL IF expressions: connection/table collations can differ.
    await query("UPDATE ku_enquiry_mail SET status=?,next_at=?,lease_until=0 WHERE submission_id=? AND channel=? AND status='sending'",[status,now+300000,id,channel]);
+   if(status==='sent')await workflow.recordWorkflowMailSent(id,now);
    if(status==='pending')await query("UPDATE ku_enquiry_mail SET status='failed' WHERE submission_id=? AND channel=? AND status='pending' AND attempts>=5",[id,channel]);
   },
   async enquiryMailHealth(now){
