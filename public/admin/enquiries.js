@@ -1,5 +1,5 @@
 import {transportModes,customerVisits} from './transport-model.js';
-import {workflowCopy} from './offer-copy.js';
+import {workflowCopy} from './offer-copy.js?v=friendlyexceptions20261121';
 import {defaultTransportDates} from './transport-dates.js';
 import {enquiryTabs,enquiryGroup,closedLabel,osloToday} from './enquiries-model.js';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

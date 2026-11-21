@@ -59,3 +59,14 @@ test('missing selected after replacement explains original shortage, and alterna
  const ordinary=editWorkflow(missing,{...missing,lines:[{...missing.lines[0],review:'alternative',originalMissing:false}]},[p,alt]);assert.equal(ordinary.lines[0].originalMissing,false);assert.doesNotMatch(workflowEmail({workflow:ordinary,lines:ordinary.lines,documentType:'offer'}).text,/dessverre/);
  assert.throws(()=>validateSend({...r,lines:[{...r.lines[0],review:'missing'}]}),/Kontroller/);
 });
+
+test('friendly availability introduction counts exceptions and never confirms unchecked products',async()=>{
+ const {workflowCopy}=await import('../public/admin/offer-copy.js');const ready={id:'ready',originalId:'ready',name:'Bord',review:'ok'},shortage={id:'new',originalId:'old',name:'Ny stol',originalName:'Stol',quantity:2,review:'alternative',originalMissing:true};
+ const copy=lines=>workflowCopy({...record(),intro:'',lines}).intro;
+ assert.match(copy([ready,shortage]),/alle produktene tilgjengelig, med ett lite unntak\./);
+ assert.match(copy([ready,shortage,{...shortage,id:'new2',originalId:'old2'}]),/med noen få unntak\./);
+ assert.match(copy([ready,{...shortage,review:'missing'}]),/med ett lite unntak/);
+ for(const review of ['pending','missing'])assert.doesNotMatch(copy([{...ready,review},shortage]),/kan bekrefte at vi har alle/);
+ assert.doesNotMatch(copy([shortage]),/kan bekrefte at vi har alle/);
+ const custom=workflowCopy({...record(),intro:'Min egen innledning',lines:[ready,shortage]}).intro;assert.equal(custom,'Min egen innledning');
+});
