@@ -2,7 +2,7 @@ import {adminDateKeys,adminDateFieldMarkup,bindAdminDateFields,collectAdminDates
 import {enquiryLineTotal} from './enquiry-line-pricing.js?v=adminprices20261121';
 import {configureSiteSettings} from '../site-settings.js?v=fest20261114';
 import {transportModes,customerVisits} from './transport-model.js';
-import {workflowCopy,isLegacyGeneratedOfferIntro} from './offer-copy.js?v=offerintro20261121';
+import {workflowCopy,isLegacyGeneratedOfferIntro} from './offer-copy.js?v=offerdraft20261121';
 import {defaultTransportDates,transportDatesAfterPeriodChange} from './transport-dates.js?v=adminprices20261121';
 import {enquiryTabs,enquiryGroup,closedLabel,osloToday} from './enquiries-model.js?v=returns20261121';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
