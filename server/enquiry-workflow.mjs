@@ -1,3 +1,4 @@
+import {parseAdminDate} from '../public/admin/date-fields.js';
 import {enquiryLineTotal} from '../public/admin/enquiry-line-pricing.js';
 import {rentalReturnEmail} from './rental-return-email.mjs';
 import {osloToday} from '../public/admin/enquiries-model.js';
@@ -22,8 +23,9 @@ export const rentalWorkflowSource=s=>!s.documentType&&s.kind==='rental'&&[undefi
 export function workflowRecord(s){const period=s.facts?.find(f=>f[0]==='Ønsket leieperiode')?.[1]?.split(' til ')||[];return {id:s.id,email:s.email,receivedAt:s.receivedAt,revision:1,status:'new',kind:s.kind,...(s.acquisition==='proposal'?{requestType:'proposal'}:{}),customerType:s.company?'business':'consumer',start:period[0]||'',end:period[1]||'',...defaultTransportDates(period[0],period[1]),deliveryMode:s.acquisition==='proposal'?'undecided':transportMode(s.delivery?.choice||s.delivery?.label),deliveryAddress:(s.delivery?.choice||s.delivery?.label)==='Henter og returnerer selv'?'':clean(s.address,300),pickupTime:'',returnTime:'',scope:/Boligfoto/.test(s.facts?.find(f=>f[0]==='Prisgrunnlag')?.[1]||'')?'standard':'messe',intro:'',logistics:'',payment:'Faktura sendes på e-post i forbindelse med levering, med 7 dagers betalingsfrist.',transport:s.delivery?.total??null,discount:s.discount?.discount||0,reserved:false,requirements:[],history:[],lines:(s.lines||[]).filter(l=>l.id!=='custom').map((source,i)=>{const l=workflowAddonLine(source);return {key:String(i),id:l.id,name:l.name,image:/^decor_/.test(l.id)?'/assets/addon-decor.png':l.image||'',quantity:l.quantity,total:l.total,originalTotal:l.total,originalQuantity:l.quantity,originalId:l.id,originalName:l.name,review:'pending',...(l.isAddon?{isAddon:true}:{})};})};}
 export function editWorkflow(current,input,products){
  if(['cancelled','completed'].includes(current.status))fail('Henvendelsen er avsluttet.',409);const next={...current};
- for(const k of ['start','end'])next[k]=clean(input[k]??current[k],10);
- const defaults=defaultTransportDates(next.start,next.end);for(const k of ['deliveryDate','pickupDate'])next[k]=clean(input[k]??current[k],10)||defaults[k];
+ for(const k of ['start','end']){const value=parseAdminDate(clean(input[k]??current[k],20));if(value===null)fail('Kontroller datoene.');next[k]=value;}
+ if(['accepted','confirmed'].includes(current.status)&&!rentalDayCount(next.start,next.end))fail('Velg Leie fra og Leie til før du lagrer.');
+ const defaults=defaultTransportDates(next.start,next.end);for(const k of ['deliveryDate','pickupDate']){const value=parseAdminDate(clean(input[k]??current[k],20));if(value===null)fail('Kontroller datoene.');next[k]=value||defaults[k];}
  for(const k of ['start','end','deliveryDate','pickupDate'])if(next[k]&&parseDateOnly(next[k])===null)fail('Kontroller datoene.');
  if(next.start&&next.end&&(!rentalDayCount(next.start,next.end)||rentalDayCount(next.start,next.end)>365))fail('Leieperioden må være 1–365 dager.');
  if(!['standard','messe'].includes(input.scope))fail('Velg prisgrunnlag.');next.scope=input.scope;
