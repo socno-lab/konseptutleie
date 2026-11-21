@@ -28,17 +28,20 @@ async function mountedDelivery(){
  const transportInputs=Object.fromEntries(['deliveryDate','pickupDate'].map(name=>[name,{value:'',closest:()=>element()}]));
  const document={activeElement:null,createElement:tag=>tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
  const products=[{id:'chair',name:'Teststol',category:'Stoler'},{id:'sofa',name:'Testsofa',type:'sofa'},{id:'tree',deliveryIncluded:true,isService:true,offeringType:'service'}];
- const context=vm.createContext({plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
+ let quoteGate=null;
+ const context=vm.createContext({plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
  vm.runInContext(getter+'\n'+source.slice(first,last)+'\nmountRentalDelivery(form);\nvar deliverySummaryProvider;',context);
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
  const fire=(name,target)=>{for(const callback of formListeners[name]||[])callback({target});};
- return {summary,requests,events,radios,document,address,postalCode,
+ return {summary,requests,events,radios,document,address,postalCode,prices,
+  period(start,end){fields.start.value=start;fields.end.value=end;fields.start.name="start";fire("change",fields.start);},
   editTransport(name,value){const field=transportInputs[name];field.name=name;field.value=value;fire("change",field);},
   emit(basket,acquisition='rental',customRequest=false){listeners['rental-delivery-selection']({detail:{acquisition,basket,products,customRequest}});},
   choose(index){radios[index].checked=true;fire('change',radios[index]);},
   editAddress(value){address.value=value;fire('input',address);},
   editing(on){mobile=on;document.activeElement=on?address:null;if(!on)fire('focusout',address);},
+  holdQuote(){let release;quoteGate=new Promise(resolve=>release=resolve);return ()=>{quoteGate=null;release();};},
   advance(ms){now+=ms;},setQuote(value){quote=value;},
   async calculate(){const pending=[...timers.values()].find(timer=>timer.delay===1800);assert.ok(pending,'a route calculation must be scheduled');timers.clear();await pending.callback();},
  };
@@ -90,4 +93,18 @@ test('changing a paid visit to a weekend hides the preceding quote immediately a
  const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);await ui.calculate();assert.equal(ui.summary().total,1380);
  ui.editTransport('deliveryDate','2030-11-02');assert.equal(ui.summary().total,null);assert.match(ui.summary().label,/må beregnes/);
  ui.editTransport('deliveryDate','2030-11-01');assert.equal(ui.summary().total,1380);
+});
+
+test('weekend alternatives never display a cached weekday price, even during mobile address editing',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);await ui.calculate();ui.choose(0);
+ ui.editing(true);ui.period('2030-11-02','2030-11-03');
+ assert.equal(ui.prices[1].innerHTML,'Må beregnes');
+ ui.choose(1);assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');
+ ui.editing(false);assert.equal(ui.requests.filter(r=>r.init?.method==='POST').length,1,'no additional Maps call for a weekend');
+});
+
+test('a Maps response already in flight cannot restore a price after the visit becomes a weekend',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);const release=ui.holdQuote(),pending=ui.calculate();
+ ui.editTransport('deliveryDate','2030-11-02');assert.equal(ui.summary().total,null);
+ release();await pending;assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');
 });

@@ -60,9 +60,9 @@ function mountRentalDelivery(form){
  select.closest('label').replaceWith(group);
  const transportFields=document.createElement('div');transportFields.className='rental-transport-dates';transportFields.innerHTML='<label>Ønsket leveringsdato<input type="date" name="deliveryDate"></label><label>Ønsket hentedato<input type="date" name="pickupDate"></label><p class="hint">Fast transportpris gjelder hverdager. Levering eller henting i helgen må beregnes i tilbudet.</p>';group.append(transportFields);
  const transportInput=name=>transportFields.querySelector('[name="'+name+'"]');let previousTransportDefaults={};
- const transportMode=()=>({'Henter og returnerer selv':'pickup','Kun levering – jeg returnerer selv':'deliveryOnly','Kun henting – jeg henter selv':'collectionOnly'})[selected()[0]]||'delivery';
- const dateOptions=()=>({start:form.elements.namedItem('start')?.value||'',end:form.elements.namedItem('end')?.value||'',scope:scopeForOccasion(form.elements.namedItem('occasion')?.value||''),mode:transportMode()});
- const transportPolicy=()=>transportWeekdayPolicy({...dateOptions(),deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value});
+ const transportMode=(value=selected()[0])=>({'Henter og returnerer selv':'pickup','Kun levering – jeg returnerer selv':'deliveryOnly','Kun henting – jeg henter selv':'collectionOnly'})[value]||'delivery';
+ const dateOptions=(mode=transportMode())=>({start:form.elements.namedItem('start')?.value||'',end:form.elements.namedItem('end')?.value||'',scope:scopeForOccasion(form.elements.namedItem('occasion')?.value||''),mode});
+ const transportPolicy=(mode=transportMode())=>{const options=dateOptions(mode);for(const key of ['deliveryDate','pickupDate']){const value=transportInput(key).value;if(value&&value!==previousTransportDefaults[key])options[key]=value;}return transportWeekdayPolicy(options);};
  const syncTransportDates=()=>{const defaults=plannedTransportDates(dateOptions());for(const key of ['deliveryDate','pickupDate']){const field=transportInput(key);if(!field.value||field.value===previousTransportDefaults[key])field.value=defaults[key];}previousTransportDefaults=defaults;transportFields.hidden=purchaseOnly()||capacity().includedOnly||selected()[2]===0||selected()[2]===null;transportInput('deliveryDate').closest('label').hidden=transportMode()==='collectionOnly';transportInput('pickupDate').closest('label').hidden=transportMode()==='deliveryOnly';};
 
  const addressNotice=document.createElement('p');addressNotice.className='hint';addressNotice.textContent='Komplett adresse brukes automatisk til fraktberegning via Google Maps.';addressNotice.id='rentalAddressPrivacy';address.setAttribute('aria-describedby',addressNotice.id);address.closest('label').after(addressNotice);
@@ -94,9 +94,9 @@ function mountRentalDelivery(form){
  };
  const render=()=>{
   try{
-  if(editingContact()){deferredDelivery=true;return;}
-  deferredDelivery=false;
   syncTransportDates();const load=capacity();
+  if(editingContact()&&!choices.some(([value,,visits])=>visits>0&&transportPolicy(transportMode(value)).manual)){deferredDelivery=true;return;}
+  deferredDelivery=false;
   let includedNote=group.querySelector('.rental-included-note');if(!includedNote){includedNote=document.createElement('p');includedNote.className='hint rental-included-note';group.querySelector('legend').after(includedNote);}includedNote.textContent=Object.keys(deliverySelection?.basket||{}).some(id=>deliverySelection.products.find(p=>p.id===id)?.deliveryIncluded)&&!load.includedOnly?'Varer og tjenester merket med inkludert transport leveres og hentes uten ekstra frakt. Transportvalget og eventuell fraktpris nedenfor gjelder bare øvrige produkter.':'';includedNote.hidden=!includedNote.textContent;
   if(purchaseOnly()){
    const choice=selected()[0];if(![choices[0][0],choices[2][0]].includes(choice))group.querySelector('[name=delivery]').checked=true;
@@ -114,7 +114,7 @@ function mountRentalDelivery(form){
   wasLocked=load.manual;
   for(const name of ['address','postalCode','postalCity'])form.querySelector('[name="'+name+'"]').required=true;
   const current=offer?.key===addressKey()&&offer.until>Date.now()?offer:null,crew=requiresTwoPeople(deliverySelection?.basket||{},deliverySelection?.products||[])?2:1;
-  for(const [i,choice] of choices.entries())group.querySelector('[data-delivery-price="'+i+'"]').innerHTML=choice[2]===0?'0 kr':choice[2]===null?'Avklares':load.manual?'Avklares':transportPolicy().manual?'Må beregnes':current&&!current.manual?priceMarkup(current.prices[crew===2?'twoPeople':'onePerson']*choice[2]):current?.manual?'Avklares':ready()?'Avklares':'Adresse kreves';
+  for(const [i,choice] of choices.entries())group.querySelector('[data-delivery-price="'+i+'"]').innerHTML=choice[2]===0?'0 kr':choice[2]===null?'Avklares':load.manual?'Avklares':transportPolicy(transportMode(choice[0])).manual?'Må beregnes':current&&!current.manual?priceMarkup(current.prices[crew===2?'twoPeople':'onePerson']*choice[2]):current?.manual?'Avklares':ready()?'Avklares':'Adresse kreves';
   const choice=selected();deliveryQuote=choice[2]>0&&transportPolicy().manual?{manual:true,reason:transportPolicy().reason}:choice[2]>0&&load.manual?{manual:true,reason:load.reason}:choice[2]>0&&current?{manual:current.manual,receipt:current.receipt,total:current.manual?undefined:current.prices[crew===2?'twoPeople':'onePerson']*choice[2]}:null;
   addressNotice.hidden=load.manual;
   if(load.manual){result.textContent=load.reason==='custom'?'Ved tilpasset forespørsel avklares transport og pris i tilbudet.':load.reason==='capacity'?'Forespørselen krever utvidet transport. Frakt med ekstern transportør prises i tilbudet.':'Transportpris bekreftes i tilbudet.';return;}
@@ -125,16 +125,17 @@ function mountRentalDelivery(form){
   }finally{updated();}
  };
  const schedule=()=>{
-  clearTimeout(timer);
-  if(editingContact()){deferredDelivery=true;updated();return;}const key=addressKey();if(offer?.key!==key)offer=null;
+  clearTimeout(timer);syncTransportDates();
+  if(transportPolicy().manual){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
+  if(editingContact()){deferredDelivery=true;if(choices.some(([value,,visits])=>visits>0&&transportPolicy(transportMode(value)).manual))render();else updated();return;}const key=addressKey();if(offer?.key!==key)offer=null;
   if(pendingKey&&pendingKey!==key){revision++;controller?.abort();pendingKey='';}
   syncTransportDates();if(purchaseOnly()||transportPolicy().manual||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
-  render();if(!enabled||!ready()||!dialog?.open||Date.now()<retryAfter||(offer?.key===key&&offer.until>Date.now())||pendingKey===key)return;
+  render();if(!(selected()[2]>0)||!enabled||!ready()||!dialog?.open||Date.now()<retryAfter||(offer?.key===key&&offer.until>Date.now())||pendingKey===key)return;
   result.textContent='Beregner transportpris …';timer=setTimeout(calculate,1800);
  };
  async function calculate(){
-  if(purchaseOnly()||transportPolicy().manual||!enabled||!ready()||!dialog?.open||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length||Date.now()<retryAfter)return;const key=addressKey(),current=++revision;pendingKey=key;controller=new AbortController();render();
-  try{const response=await fetch('/api/delivery-estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:completeAddress(form),visits:1,...dateOptions(),deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value,basket:deliverySelection.basket,customRequest:deliverySelection.customRequest===true}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(12000)])});const quote=await response.json();if(current!==revision)return;if(!response.ok){retryAfter=Date.now()+(response.status===429?60000:30000);throw Error(quote.error||'Transportpris avklares i tilbudet.');}
+  if(!(selected()[2]>0)||purchaseOnly()||transportPolicy().manual||!enabled||!ready()||!dialog?.open||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length||Date.now()<retryAfter)return;const key=addressKey(),current=++revision;pendingKey=key;controller=new AbortController();render();
+  try{const response=await fetch('/api/delivery-estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:completeAddress(form),visits:1,...dateOptions(),deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value,basket:deliverySelection.basket,customRequest:deliverySelection.customRequest===true}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(12000)])});const quote=await response.json();if(current!==revision||transportPolicy().manual)return;if(!response.ok){retryAfter=Date.now()+(response.status===429?60000:30000);throw Error(quote.error||'Transportpris avklares i tilbudet.');}
    if(!quote.manual&&(!Number.isFinite(quote.prices?.onePerson)||!Number.isFinite(quote.prices?.twoPeople)))throw Error('Transportpris avklares i tilbudet.');
    offer={key,until:Date.now()+300000,manual:quote.manual,prices:quote.prices,receipt:quote.receipt};pendingKey='';render();
   }catch(error){if(current!==revision||error.name==='AbortError')return;pendingKey='';offer=null;retryAfter=Math.max(retryAfter,Date.now()+30000);render();result.textContent=error.name==='TimeoutError'?'Fraktberegningen tok for lang tid. Frakt avklares i tilbudet.':error.message||'Transportpris avklares i tilbudet.';}
