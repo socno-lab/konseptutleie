@@ -1,3 +1,4 @@
+import {informationBoxMarkup} from '../public/information-box.js';
 import {plannedTransportDates,transportWeekdayPolicy} from '../public/transport-weekdays.js';
 import {scopeForOccasion} from '../public/rental-pricing-model.js';
 import {priceMarkup} from '../public/price-display-model.js';
@@ -29,12 +30,12 @@ async function mountedDelivery(){
  const document={activeElement:null,createElement:tag=>tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
  const products=[{id:'chair',name:'Teststol',category:'Stoler'},{id:'sofa',name:'Testsofa',type:'sofa'},{id:'tree',deliveryIncluded:true,isService:true,offeringType:'service'}];
  let quoteGate=null;
- const context=vm.createContext({plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
+ const context=vm.createContext({informationBoxMarkup,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
  vm.runInContext(getter+'\n'+source.slice(first,last)+'\nmountRentalDelivery(form);\nvar deliverySummaryProvider;',context);
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
  const fire=(name,target)=>{for(const callback of formListeners[name]||[])callback({target});};
- return {summary,requests,events,radios,document,address,postalCode,prices,
+ return {summary,requests,events,radios,document,address,postalCode,prices,status,
   period(start,end){fields.start.value=start;fields.end.value=end;fields.start.name="start";fire("change",fields.start);},
   editTransport(name,value){const field=transportInputs[name];field.name=name;field.value=value;fire("change",field);},
   emit(basket,acquisition='rental',customRequest=false){listeners['rental-delivery-selection']({detail:{acquisition,basket,products,customRequest}});},
@@ -112,4 +113,11 @@ test('a Maps response already in flight cannot restore a price after the visit b
 test('switching to self pickup removes hidden transport overrides rather than submitting old delivery dates',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);ui.editTransport('deliveryDate','2030-11-02');ui.choose(0);
  ui.choose(1);await ui.calculate();assert.equal(ui.summary().total,1380);
+});
+
+test('weekend notice uses the requested text and disappears on weekday transport or self pickup',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);ui.editTransport('deliveryDate','2030-11-02');
+ assert.equal(ui.status.className,'information-box');assert.match(ui.status.innerHTML,/Du har valgt levering eller henting i helgen/);
+ ui.editTransport('deliveryDate','2030-11-01');assert.equal(ui.status.className,'');
+ ui.editTransport('deliveryDate','2030-11-02');ui.choose(0);assert.equal(ui.status.className,'');
 });
