@@ -87,7 +87,8 @@ test('proposal imports once without free text and progresses from an empty draft
  await f.store.workflowRecords();assert.equal(f.state.records.filter(r=>r.id===source.id).length,1);
  r=await f.store.changeWorkflow(source.id,r,'save',[product]);assert.equal(r.lines.length,0);
  const empty=await f.store.workflowPreview(source.id,r,[product],'offer');assert.equal(empty.canSend,false);assert.match(empty.warning,/Legg til produkter/);assert.doesNotMatch(empty.text,/NaN/);
- r=await f.store.changeWorkflow(source.id,{...r,start:'2027-01-05',end:'2027-01-06',deliveryDate:'2027-01-05',pickupDate:'2027-01-06',scope:'standard',deliveryMode:'delivery',deliveryAddress:'Testveien 1, 2010 Strømmen',transport:100,lines:[{key:'new-123',id:product.id,quantity:1,review:'ok',total:null}]},'save',[product]);assert.ok(r.lines[0].total>0);
+ r=await f.store.changeWorkflow(source.id,{...r,lines:[{key:'new-123',id:product.id,quantity:1,review:'ok',total:null}]},'save',[product]);assert.equal(r.lines[0].total,null);
+ r=await f.store.changeWorkflow(source.id,{...r,start:'2027-01-05',end:'2027-01-06',deliveryDate:'',pickupDate:'',scope:'standard',deliveryMode:'delivery',deliveryAddress:'Testveien 1, 2010 Strømmen',transport:100},'save',[product]);assert.ok(r.lines[0].total>0);assert.equal(r.deliveryMode,'delivery');assert.equal(r.deliveryDate,'2027-01-05');assert.equal(r.pickupDate,'2027-01-06');
  const preview=await f.store.workflowPreview(source.id,r,[product],'offer');assert.equal(preview.canSend,true);
  r=await f.store.changeWorkflow(source.id,{...r,previewDigest:preview.previewDigest},'offer',[product]);assert.ok(r.history.at(-1).document.rentalTerms);
  const token=new URL(r.history.at(-1).document.acceptUrl).searchParams.get('token');await f.store.offerAcceptance(token,true);

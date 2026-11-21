@@ -1,3 +1,4 @@
+import {enquiryLineTotal} from '../public/admin/enquiry-line-pricing.js';
 import {rentalReturnEmail} from './rental-return-email.mjs';
 import {osloToday} from '../public/admin/enquiries-model.js';
 import {consentSummary} from './early-start-consent.mjs';
@@ -8,8 +9,7 @@ import {workflowCopy} from '../public/admin/offer-copy.js';
 export {workflowCopy} from '../public/admin/offer-copy.js';
 import {createHash} from 'node:crypto';
 import {rentalDayCount,parseDateOnly} from '../public/rental-dates.js';
-import {demand,ratePlan} from '../public/catalog-model.js';
-import {rentalRateSets} from '../public/rental-pricing-model.js';
+import {demand} from '../public/catalog-model.js';
 const fail=(message,status=400)=>{throw Object.assign(Error(message),{status});};
 const clean=(v,max=3000)=>typeof v==='string'?v.trim().slice(0,max):'';
 const money=v=>Number.isFinite(v)&&v>=0&&v<=10000000?Math.round(v*100)/100:null;
@@ -22,7 +22,9 @@ export const rentalWorkflowSource=s=>!s.documentType&&s.kind==='rental'&&[undefi
 export function workflowRecord(s){const period=s.facts?.find(f=>f[0]==='Ønsket leieperiode')?.[1]?.split(' til ')||[];return {id:s.id,email:s.email,receivedAt:s.receivedAt,revision:1,status:'new',kind:s.kind,...(s.acquisition==='proposal'?{requestType:'proposal'}:{}),customerType:s.company?'business':'consumer',start:period[0]||'',end:period[1]||'',...defaultTransportDates(period[0],period[1]),deliveryMode:s.acquisition==='proposal'?'undecided':transportMode(s.delivery?.choice||s.delivery?.label),deliveryAddress:(s.delivery?.choice||s.delivery?.label)==='Henter og returnerer selv'?'':clean(s.address,300),pickupTime:'',returnTime:'',scope:/Boligfoto/.test(s.facts?.find(f=>f[0]==='Prisgrunnlag')?.[1]||'')?'standard':'messe',intro:'',logistics:'',payment:'Faktura sendes på e-post i forbindelse med levering, med 7 dagers betalingsfrist.',transport:s.delivery?.total??null,discount:s.discount?.discount||0,reserved:false,requirements:[],history:[],lines:(s.lines||[]).filter(l=>l.id!=='custom').map((source,i)=>{const l=workflowAddonLine(source);return {key:String(i),id:l.id,name:l.name,image:/^decor_/.test(l.id)?'/assets/addon-decor.png':l.image||'',quantity:l.quantity,total:l.total,originalTotal:l.total,originalQuantity:l.quantity,originalId:l.id,originalName:l.name,review:'pending',...(l.isAddon?{isAddon:true}:{})};})};}
 export function editWorkflow(current,input,products){
  if(['cancelled','completed'].includes(current.status))fail('Henvendelsen er avsluttet.',409);const next={...current};
- for(const k of ['start','end','deliveryDate','pickupDate']){next[k]=clean(input[k],10);if(next[k]&&parseDateOnly(next[k])===null)fail('Kontroller datoene.');}
+ for(const k of ['start','end'])next[k]=clean(input[k]??current[k],10);
+ const defaults=defaultTransportDates(next.start,next.end);for(const k of ['deliveryDate','pickupDate'])next[k]=clean(input[k]??current[k],10)||defaults[k];
+ for(const k of ['start','end','deliveryDate','pickupDate'])if(next[k]&&parseDateOnly(next[k])===null)fail('Kontroller datoene.');
  if(next.start&&next.end&&(!rentalDayCount(next.start,next.end)||rentalDayCount(next.start,next.end)>365))fail('Leieperioden må være 1–365 dager.');
  if(!['standard','messe'].includes(input.scope))fail('Velg prisgrunnlag.');next.scope=input.scope;
  for(const k of ['intro','confirmationIntro','logistics','payment','changeReason'])next[k]=clean(input[k]);next.transport=money(input.transport);next.discount=money(input.discount)||0;
@@ -30,8 +32,8 @@ export function editWorkflow(current,input,products){
  if(!Array.isArray(input.lines)||(!input.lines.length&&current.status!=='new')||input.lines.length>150)fail('Velg produkter.');
  next.lines=input.lines.map(l=>{let previous=current.lines.find(x=>x.key===l.key);const p=products.find(p=>p.id===l.id&&p.active&&!p.deletedAt);if(!previous&&p&&/^new-[a-z0-9-]{1,60}$/.test(l.key||''))previous={key:l.key,id:'',originalId:p.id,originalName:p.name};if(!p||!previous||!Number.isInteger(l.quantity)||l.quantity<1||l.quantity>99||!['pending','ok','missing','alternative'].includes(l.review))fail('Kontroller produktlinjene.');
  const changed=p.id!==previous.id||l.quantity!==previous.quantity||next.start!==current.start||next.end!==current.end||next.scope!==current.scope;
- const priced={...p,...rentalRateSets(p,products)[next.scope]};const plan=changed&&!priced.priceOnRequest&&rentalDayCount(next.start,next.end)?ratePlan(priced,rentalDayCount(next.start,next.end),products.map(x=>({...x,...rentalRateSets(x,products)[next.scope]}))):null;
- return workflowAddonLine({...previous,isAddon:previous.id===p.id?previous.isAddon:false,originalTotal:previous.originalTotal??(previous.id===previous.originalId?previous.total:null),originalQuantity:previous.originalQuantity??(previous.id===previous.originalId?previous.quantity:null),id:p.id,name:p.name,image:/^decor_/.test(p.id)?'/assets/addon-decor.png':p.image||'',quantity:l.quantity,review:p.id!==previous.originalId&&l.review==='missing'?'alternative':l.review,originalMissing:p.id!==previous.originalId&&(l.review==='missing'||(typeof l.originalMissing==='boolean'?l.originalMissing:previous.originalMissing===true||previous.review==='missing')),total:changed?(plan?money(plan.total*l.quantity):null):money(l.total)},products);});
+ const calculate=changed||l.total==null;const calculated=calculate?enquiryLineTotal(p,{quantity:l.quantity,start:next.start,end:next.end,scope:next.scope},products):null;
+ return workflowAddonLine({...previous,isAddon:previous.id===p.id?previous.isAddon:false,originalTotal:previous.originalTotal??(previous.id===previous.originalId?previous.total:null),originalQuantity:previous.originalQuantity??(previous.id===previous.originalId?previous.quantity:null),id:p.id,name:p.name,image:/^decor_/.test(p.id)?'/assets/addon-decor.png':p.image||'',quantity:l.quantity,review:p.id!==previous.originalId&&l.review==='missing'?'alternative':l.review,originalMissing:p.id!==previous.originalId&&(l.review==='missing'||(typeof l.originalMissing==='boolean'?l.originalMissing:previous.originalMissing===true||previous.review==='missing')),total:calculate?calculated:money(l.total)},products);});
  if(new Set(next.lines.map(l=>l.key)).size!==next.lines.length)fail('Dupliserte produktlinjer.');return next;
 }
 export function reservationRequirements(r,products){
