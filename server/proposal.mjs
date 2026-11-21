@@ -6,9 +6,9 @@ export function createProposalSnapshot(value,input,now=new Date()){
  for(const key of ['packageGroups','rentalSofas','purchaseSofas'])if(input[key]&&(!Array.isArray(input[key])||input[key].length))fail('Kontroller forespørselen.');
  const details=input.details;if(!details||typeof details!=='object'||Array.isArray(details))fail('Kontroller forespørselen.');
  const text=(key,max,required=false)=>{const s=details[key]??'';if(typeof s!=='string'||s.length>max||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(s)||required&&!s.trim())fail('Kontroller '+key+' i skjemaet.');return s.trim();};
- const need=text('customRequest',3000,true),place=text('place',300,true),period=text('period',300),budget=text('budget',200),phone=text('phone',40),company=text('company',150),occasion=text('occasion',100);
+ const need=text('customRequest',3000,true),place=text('place',300,true),period=text('period',300),budget=text('budget',200),phone=text('phone',40),company=text('company',150);
  if(phone&&!/[0-9]/.test(phone))fail('Oppgi et gyldig telefonnummer, eller la feltet stå tomt.');
- const facts=[['Hva trenger du?',need],['Dato eller periode',period||'Ikke bestemt ennå'],['Sted',place],['Budsjett',budget],['Anledning',occasion]].filter(([,v])=>v);
+ const facts=[['Hva trenger du?',need],['Dato eller periode',period||'Ikke bestemt ennå'],['Sted',place],['Budsjett',budget]].filter(([,v])=>v);
  return {id:value.id,kind:'rental',acquisition:'proposal',requestType:'proposal',name:value.name,email:value.email,phone,company,terms:'',receivedAt:now.toISOString(),address:'',comment:'',facts,lines:[],delivery:null,discount:null,total:null,vatIncluded:true};
 }
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
