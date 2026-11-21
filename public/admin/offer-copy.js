@@ -15,7 +15,8 @@ export function workflowCopy(r){
  const alternativeText=alternativeParagraphs(alternatives);
  const shortages=alternatives.filter(l=>l.originalMissing);
  const checked=r.lines.length>0&&r.lines.every(l=>['ok','alternative'].includes(l.review)||(l.review==='missing'&&l.originalMissing&&l.originalId&&l.originalId!==l.id));
- const availabilityText=shortages.length?(checked&&r.lines.length>shortages.length?`Vi har gått gjennom ønskelisten din og kan bekrefte at vi har alle produktene tilgjengelig, ${shortages.length===1?'med ett lite unntak':'med noen få unntak'}.`:legacyShortageIntro):checked&&!alternatives.length?'Vi har gått gjennom ønskelisten din og kan bekrefte at vi har alle produktene tilgjengelig.':'';
+ const unresolvedShortage=r.lines.some(l=>l.review==='missing'&&!(l.originalMissing&&l.originalId&&l.originalId!==l.id));
+ const availabilityText=shortages.length?(!unresolvedShortage&&r.lines.length>shortages.length?`Vi har gått gjennom ønskelisten din og kan bekrefte at vi har alle produktene tilgjengelig, ${shortages.length===1?'med ett lite unntak':'med noen få unntak'}.`:legacyShortageIntro):checked&&!alternatives.length?'Vi har gått gjennom ønskelisten din og kan bekrefte at vi har alle produktene tilgjengelig.':'';
 
  const period=offerPeriod(r);
  const intro=!r.intro||r.intro==='Takk for forespørselen. Her er vårt tilbud.'?`Takk for hyggelig forespørsel om leie av møbler i perioden ${period}.`:r.intro;
