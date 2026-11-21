@@ -51,3 +51,6 @@ test('when neither side fits, an overlay sized to the available height stays bel
  assert.ok(result.top+200<=308);
  assert.equal(result.side,'overlap','an overlapping placement must not draw a misleading directional arrow');
 });
+
+test('direct entry explains missing purpose once and suppresses second notice after choosing',async()=>{const {createPricingHintFlow,pricingHintTitle}=await import('../public/pricing-scope-hint.js');const f=createPricingHintFlow();assert.equal(f.shouldShow(false),true);assert.equal(pricingHintTitle(false,''),'Du må velge bruksområde for å se leiepriser');f.shown(false);assert.equal(f.shouldShow(true),false);assert.equal(f.shouldShow(true),false);});
+test('usual homepage selection retains confirmed-purpose notice, and hidden notice does not count as seen',async()=>{const {createPricingHintFlow,pricingHintTitle}=await import('../public/pricing-scope-hint.js');const normal=createPricingHintFlow();assert.equal(normal.shouldShow(true),true);assert.equal(pricingHintTitle(true,'Boligfoto og visning'),'Du ser leiepriser for Boligfoto og visning');const hidden=createPricingHintFlow();hidden.shouldShow(false);assert.equal(hidden.shouldShow(true),true);});

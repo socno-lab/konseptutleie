@@ -1,4 +1,7 @@
 const key='konsept-pricing-explained-v1';let dismissed=false,unmount=null;
+export function createPricingHintFlow(){let explainedBeforeChoice=false;return {shouldShow:confirmed=>!confirmed||!explainedBeforeChoice,shown:confirmed=>{if(!confirmed)explainedBeforeChoice=true;}};}
+const flow=createPricingHintFlow();
+export const pricingHintTitle=(confirmed,label)=>confirmed?'Du ser leiepriser for '+label:'Du må velge bruksområde for å se leiepriser';
 export function pricingHintDismissed(storage,session){try{if(storage?.getItem(key)==='understood')return true;}catch{}try{return session?.getItem(key)==='understood';}catch{return false;}}
 export function rememberPricingHint(storage,session){for(const target of [storage,session])try{target?.setItem(key,'understood');}catch{}}
 
@@ -13,7 +16,7 @@ export function pricingHintPlacement({host,anchor,width,height,left=0,top=0,view
 export function mountPricingScopeHint(catalog,{confirmed,label,enabled,control}){
  unmount?.();document.getElementById('pricingScopeHint')?.remove();
  let storage,session;try{storage=localStorage;}catch{}try{session=sessionStorage;}catch{}
- if(!enabled||!confirmed||dismissed||pricingHintDismissed(storage,session))return;
+ if(!enabled||!flow.shouldShow(confirmed)||dismissed||pricingHintDismissed(storage,session))return;
  const activeAnchor=()=>control||(matchMedia('(max-width:640px)').matches?document.getElementById('mobileChangeUsage'):catalog?.querySelector('summary'));
  if(!catalog||!activeAnchor())return;
  if(!document.getElementById('pricingScopeHintStyle')){
@@ -34,7 +37,7 @@ export function mountPricingScopeHint(catalog,{confirmed,label,enabled,control})
  }
  const box=document.createElement('aside');box.id='pricingScopeHint';box.className='pricing-scope-hint';box.setAttribute('aria-label','Om valgte leiepriser');box.style.visibility='hidden';
  const heading=document.createElement('div');heading.className='pricing-scope-hint-heading';
- const title=document.createElement('strong');title.textContent='Du ser leiepriser for '+label;
+ const title=document.createElement('strong');title.textContent=pricingHintTitle(confirmed,label);
  const close=document.createElement('button');close.type='button';close.className='pricing-scope-hint-close';close.textContent='×';close.setAttribute('aria-label','Lukk prisforklaringen midlertidig');
  const text=document.createElement('p'),actions=document.createElement('div');actions.className='pricing-scope-hint-actions';
  const button=document.createElement('button');button.type='button';button.className='button dark';button.textContent='Forstått';
@@ -53,7 +56,7 @@ export function mountPricingScopeHint(catalog,{confirmed,label,enabled,control})
   if(text.textContent!==explanation)text.textContent=explanation;
   box.style.width=Math.min(520,h.width,viewportWidth-24)+'px';box.style.maxHeight=availableHeight+'px';
   const b=box.getBoundingClientRect(),placement=pricingHintPlacement({host:h,anchor:a,width:b.width,height:b.height,left,top,viewportWidth,viewportHeight,headerBottom});
-  box.style.left=placement.left+'px';box.style.top=placement.top+'px';box.dataset.side=placement.side;box.style.setProperty('--hint-arrow',placement.arrow+'px');box.style.visibility='visible';
+  box.style.left=placement.left+'px';box.style.top=placement.top+'px';box.dataset.side=placement.side;box.style.setProperty('--hint-arrow',placement.arrow+'px');box.style.visibility='visible';flow.shown(confirmed);
  }
  function schedule(){if(!frame)frame=requestAnimationFrame(position);}
  const observer=new MutationObserver(records=>{if(records.some(record=>!box.contains(record.target)))schedule();});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});
