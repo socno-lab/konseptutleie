@@ -7,7 +7,7 @@ export function enquiryActivity(r,mail=[]){
  add('returned','Retur bekreftet',r.returnedAt,'Administrasjon');
  if(r.status==='cancelled')add('closed',r.customerReply?.action==='decline'?'Tilbud avslått':r.history?.some(h=>h.type==='confirmation')?'Leieforhold avbestilt':'Henvendelse avsluttet',r.closedAt,r.customerReply?.action==='decline'?'Kunden':'Administrasjon');
  const statusLabels={pending:'Venter i e-postkø',sending:'Sender',failed:'Sending mislyktes',uncertain:'Usikker sendestatus',superseded:'Erstattet før sending',cancelled:'Sending stoppet'};
- (r.history||[]).forEach((h,index)=>{
+ (r.history||[]).forEach((h,index)=>{if(h.type==='invoice_reminder')return;
  const internal=['acceptance','offer_response'].includes(h.type),job=mail.find(m=>m.reference===h.id&&m.channel===(internal?'internal':'customer'));
  const sent=!!h.sentAt||job?.status==='sent';
  const name=h.type==='offer'?'Tilbud':h.type==='confirmation'?'Ordrebekreftelse':h.type==='return'?'Takke-e-post':h.type==='reminder'?'Påminnelse om '+(h.document?.reminder?.label?.toLowerCase()||'leie'):h.type==='acceptance'?'Varsel om kundens aksept':'Kundens svar';

@@ -1,4 +1,4 @@
-import {activityDate} from './enquiry-activity.js?v=activity20261121';
+import {activityDate} from './enquiry-activity.js?v=invoicehidden20261121';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const date=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'')?v.split('-').reverse().join('.'):'';
 export function enquiryListStatus(r,mail=[],now=Date.now()){

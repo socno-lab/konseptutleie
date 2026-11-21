@@ -1,3 +1,4 @@
+import {invoiceReminderEvents} from './invoice-reminder.mjs';
 import {confirmationChanges,lastSentConfirmation} from './confirmation-changes.mjs';
 import {canConfirmReturn} from '../public/admin/return-eligibility.js';
 import {osloToday} from '../public/admin/enquiries-model.js';
@@ -22,13 +23,13 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  await init();const c=await pool.getConnection();try{await c.beginTransaction();
  await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
  const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');let queued=0;
- for(const row of rows){const r=JSON.parse(row.body),events=rentalReminderEvents(r,now);let changed=false;
- for(const event of events){const previous=r.history.filter(h=>h.type==='reminder'&&h.document?.reminder?.key===event.key).at(-1);if(previous){const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel='customer' FOR UPDATE",[previous.id]);if(!job||!['cancelled','superseded'].includes(job.status))continue;}
+ for(const row of rows){const r=JSON.parse(row.body),events=[...rentalReminderEvents(r,now),...invoiceReminderEvents(r,now)];let changed=false;
+ for(const event of events){const previous=r.history.filter(h=>['reminder','invoice_reminder'].includes(h.type)&&h.document?.reminder?.key===event.key).at(-1);if(previous){const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel=? FOR UPDATE",[previous.id,event.internal?'internal':'customer']);if(!job||!['cancelled','superseded'].includes(job.status))continue;}
  const id=randomUUID(),confirmation=r.history.filter(h=>h.type==='confirmation').at(-1).document;
- const snapshot={id,email:r.email,kind:'rental',documentType:'reminder',receivedAt:new Date(now).toISOString(),workflow:{...confirmation.workflow,history:[]},reminder:event,lines:[]};
+ const snapshot={id,email:r.email,kind:'rental',documentType:event.internal?'invoice_reminder':'reminder',receivedAt:new Date(now).toISOString(),workflow:{...confirmation.workflow,history:[]},reminder:event,lines:[]};
  await c.execute('INSERT INTO ku_enquiries(id,fingerprint,body,created_at) VALUES (?,?,?,?)',[id,'workflow',JSON.stringify(snapshot),now]);
- await c.execute("INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,'customer',?)",[id,now]);
- r.history.push({id,type:'reminder',at:snapshot.receivedAt,document:snapshot});changed=true;queued++;
+ await c.execute("INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,?,?)",[id,event.internal?'internal':'customer',now]);
+ r.history.push({id,type:event.internal?'invoice_reminder':'reminder',at:snapshot.receivedAt,document:snapshot});changed=true;queued++;
  }if(changed){r.revision++;await c.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(r),r.id]);}
  }await c.commit();return queued;
  }catch(error){await c.rollback();throw error;}finally{c.release();}
@@ -38,9 +39,9 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
  const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');
  const r=rows.map(row=>JSON.parse(row.body)).find(r=>r.id===snapshot.workflow.id);
- const valid=r&&r.history.some(h=>h.id===id&&h.type==='reminder')&&rentalReminderEvents(r,now).some(event=>event.key===snapshot.reminder.key);
+ const valid=r&&r.history.some(h=>h.id===id&&['reminder','invoice_reminder'].includes(h.type))&&[...rentalReminderEvents(r,now),...invoiceReminderEvents(r,now)].some(event=>event.key===snapshot.reminder.key&&(!event.internal||event.confirmationId===snapshot.reminder.confirmationId));
  if(!valid){await c.execute("UPDATE ku_enquiry_mail SET status='cancelled' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[id]);await c.commit();return false;}
- const [result]=await c.execute("UPDATE ku_enquiry_mail SET status='sending',attempts=attempts+1,lease_until=? WHERE submission_id=? AND channel=? AND status='pending' AND attempts<5 AND next_at<=?",[now+120000,id,'customer',now]);
+ const [result]=await c.execute("UPDATE ku_enquiry_mail SET status='sending',attempts=attempts+1,lease_until=? WHERE submission_id=? AND channel=? AND status='pending' AND attempts<5 AND next_at<=?",[now+120000,id,snapshot.reminder.internal?'internal':'customer',now]);
  await c.commit();return result.affectedRows===1;
  }catch(error){await c.rollback();throw error;}finally{c.release();}
  },
@@ -68,7 +69,7 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');const all=rows.map(r=>JSON.parse(r.body)),current=all.find(r=>r.id===id);if(!current)fail('Henvendelsen finnes ikke.',404);if(input.revision!==current.revision)fail('Henvendelsen er endret. Last inn på nytt.');
  if(prior)current.lines=current.lines.map(l=>({...l,...(l.originalTotal==null&&prior.lines.find(p=>p.key===l.key)?.originalTotal!=null?{originalTotal:prior.lines.find(p=>p.key===l.key).originalTotal,originalQuantity:prior.lines.find(p=>p.key===l.key).originalQuantity}:{})}));
  current.customerType=current.customerType||prior?.customerType||'consumer';
- if(['confirmation','cancel','complete'].includes(action))for(const h of current.history.filter(h=>h.type==='reminder')){const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel='customer' FOR UPDATE",[h.id]);if(job?.status==='sending')fail('En påminnelse sendes nå. Vent til sendingen er ferdig før du endrer avtalen.');if(action==='complete')await c.execute("UPDATE ku_enquiry_mail SET status='cancelled' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[h.id]);}
+ if(['confirmation','cancel','complete'].includes(action))for(const h of current.history.filter(h=>['reminder','invoice_reminder'].includes(h.type))){const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel=? FOR UPDATE",[h.id,h.type==='invoice_reminder'?'internal':'customer']);if(job?.status==='sending')fail('En påminnelse sendes nå. Vent til sendingen er ferdig før du endrer avtalen.');if(action==='complete')await c.execute("UPDATE ku_enquiry_mail SET status='cancelled' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[h.id]);}
  if(action==='complete'&&current.status==='completed'){await c.commit();return current;}
  if(current.status==='completed')fail('Leieforholdet er avsluttet etter bekreftet retur.');
  if(action==='complete'&&current.status!=='confirmed')fail('Kun et ordrebekreftet leieforhold kan bekreftes returnert.');

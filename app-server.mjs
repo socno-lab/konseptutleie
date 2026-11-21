@@ -62,7 +62,7 @@ export function createServer(options={}){
  const invalidatePublic=()=>publicCache.invalidate();
  let images;const enterRequest=createRequestGuard(options.requestGuard),enterAuth=createRequestGuard({maxActive:2,maxClientActive:2});
  const server=http.createServer(async(req,res)=>{
-  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Konseptuell-Version':'20261121-order-change-labels','Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...transportSecurity,...headers});res.end(req.method==='HEAD'?undefined:body);};
+  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Konseptuell-Version':'20261121-invoice-reminder','Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...transportSecurity,...headers});res.end(req.method==='HEAD'?undefined:body);};
   const out=(status,data,headers)=>send(status,JSON.stringify(data),'application/json; charset=utf-8',headers);
   const redirect=location=>send(302,'','text/plain',{Location:location});
   const authenticated=async()=>{const token=sessionToken(req,cookieName);return token.length===43&&!!(await store.session(digest(token)));};

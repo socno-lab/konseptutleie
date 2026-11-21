@@ -1,3 +1,4 @@
+import {invoiceReminderEmail} from './invoice-reminder.mjs';
 import {parseAdminDate} from '../public/admin/date-fields.js';
 import {enquiryLineTotal} from '../public/admin/enquiry-line-pricing.js';
 import {rentalReturnEmail} from './rental-return-email.mjs';
@@ -58,6 +59,7 @@ const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const kr=n=>n==null?'Avklares':new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK'}).format(n);
 const dt=s=>s?s.split('-').reverse().join('.'):'Ikke avtalt';
 export function workflowEmail(s){
+ if(s.documentType==='invoice_reminder')return invoiceReminderEmail(s);
  if(s.documentType==='return')return rentalReturnEmail(s);
  if(s.documentType==='reminder')return rentalReminderEmail(s);
  if(s.documentType==='acceptance'&&s.channel==='customer'){const r=s.workflow,text=`Hei!\n\nVi har registrert din aksept av tilbudet.\n\n${consentSummary(r.earlyStartConsent)}\n\nDu mottar ordrebekreftelse når bestillingen og tilgjengeligheten er endelig bekreftet.\n\nReferanse: ${r.id}`;return {subject:'Bekreftelse på samtykke til tidlig oppstart · '+r.id,text,html:`<!doctype html><html lang="nb"><body style="margin:0;padding:20px 8px;font:14px/1.65 Arial,sans-serif;color:#50564b;background:#f4f2eb"><table role="presentation" style="max-width:680px;width:100%;margin:auto"><tr><td style="padding:0 0 20px;text-align:center"><img src="${e(s.logoSrc||'https://konseptuell.no/assets/konseptuell-leie-og-kjop-logo.png')}" width="320" alt="Konseptuell" style="width:320px;max-width:85%;height:auto"></td></tr><tr><td style="background:#fff;padding:28px 24px"><h1 style="font:700 26px/1.3 Arial,sans-serif;color:#30352b">Samtykke til tidlig oppstart</h1><p>${e(text).replace(/\n/g,'<br>')}</p></td></tr></table></body></html>`};}
