@@ -52,7 +52,7 @@ export function mountPricingScopeHint(catalog,{confirmed,label,enabled,control})
   const availableHeight=top+viewportHeight-Math.max(top,headerBottom)-24;
   if(availableHeight<180||!a||!h||!a.width||!a.height||a.bottom<=Math.max(top,headerBottom)||a.top>=top+viewportHeight||a.right<=left||a.left>=left+viewportWidth||document.querySelector('.cookie-info,dialog[open]')||pricingHintDismissed(storage,session)){box.hidden=true;return;}
   box.hidden=false;box.style.visibility='hidden';
-  const explanation='Bruksområdet du velger, avgjør hvilke leiepriser som vises. Skal møblene brukes til noe annet? '+(control?'Trykk på feltet med valgt bruksområde.':mobile?'Trykk «Endre».':'Velg «Endre bruk».');
+  const explanation='Bruksområdet du velger, avgjør hvilke leiepriser som vises. Velg bruksområdet som passer. Du kan endre valget senere.';
   if(text.textContent!==explanation)text.textContent=explanation;
   box.style.width=Math.min(520,h.width,viewportWidth-24)+'px';box.style.maxHeight=availableHeight+'px';
   const b=box.getBoundingClientRect(),placement=pricingHintPlacement({host:h,anchor:a,width:b.width,height:b.height,left,top,viewportWidth,viewportHeight,headerBottom});
