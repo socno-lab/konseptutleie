@@ -1,3 +1,4 @@
+import {oakTableId,retiredOakTableId} from './server/oak-table-migration.mjs';
 import {enquiryLineTotal} from './public/admin/enquiry-line-pricing.js';
 import {rentalDayCount} from './public/rental-dates.js?v=launch20261024';
 import {rentalTermsPdf,rentalTermsFilename} from './server/rental-terms-pdf.mjs';
@@ -61,7 +62,7 @@ export function createServer(options={}){
  const invalidatePublic=()=>publicCache.invalidate();
  let images;const enterRequest=createRequestGuard(options.requestGuard),enterAuth=createRequestGuard({maxActive:2,maxClientActive:2});
  const server=http.createServer(async(req,res)=>{
-  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Konseptuell-Version':'20261121-rental-reminders','Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...transportSecurity,...headers});res.end(req.method==='HEAD'?undefined:body);};
+  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Konseptuell-Version':'20261121-oak-merged','Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...transportSecurity,...headers});res.end(req.method==='HEAD'?undefined:body);};
   const out=(status,data,headers)=>send(status,JSON.stringify(data),'application/json; charset=utf-8',headers);
   const redirect=location=>send(302,'','text/plain',{Location:location});
   const authenticated=async()=>{const token=sessionToken(req,cookieName);return token.length===43&&!!(await store.session(digest(token)));};
@@ -261,6 +262,7 @@ export function createServer(options={}){
    if(pathname==='/tilpasset-foresporsel.html'&&['GET','HEAD'].includes(req.method))return send(200,initialSiteData(proposalPageHtml(await readHtmlTemplate('index.html')),await readPublicCatalog()),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});
    if(pathname==='/foresporsel.html'&&['GET','HEAD'].includes(req.method)){const mode=url.searchParams.get('type')==='kjop'?'buy':'rent';return send(200,initialSiteData(enquiryPageHtml(await readHtmlTemplate(mode==='buy'?'kjop.html':'utvalg.html'),mode),await readPublicCatalog()),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});}
    if(pathname==='/om-oss.html'&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/om-oss'});
+   if(pathname==='/leieprodukt.html'&&url.searchParams.get('produkt')===retiredOakTableId){url.searchParams.set('produkt',oakTableId);return send(301,'','text/plain',{Location:url.pathname+url.search});}
    const seoPaths=['/om-oss','/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
    if(seoPaths.includes(pathname)&&['GET','HEAD'].includes(req.method)){
     const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));if(!release)return send(429,'For mange forespørsler. Prøv igjen senere.','text/plain',{'Retry-After':'60'});res.once('finish',release);res.once('close',release);

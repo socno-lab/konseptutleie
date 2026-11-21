@@ -1,3 +1,4 @@
+import {mergeOakTables,mergeOakWorkflow,retiredOakTableId} from './oak-table-migration.mjs';
 import {workflowRecord,rentalWorkflowSource} from './enquiry-workflow.mjs';
 import {workflowStore} from './workflow-store.mjs';
 import {adminCodeStore} from './admin-code-store.mjs';
@@ -46,9 +47,11 @@ export function createMysqlStore(env,seed){
     const currentSettings=JSON.parse(settingsRow.body),nextSettings=migrateStylingPricing(currentSettings);
     if(nextSettings!==currentSettings)await connection.execute('UPDATE ku_site_settings SET revision=revision+1,body=? WHERE id=1',[JSON.stringify(nextSettings)]);
     const [[row]]=await connection.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
-    const products=JSON.parse(row.body),cleaned=migrateCatalogDimensions(removeRetiredCosts(products));
+    const products=JSON.parse(row.body),cleaned=mergeOakTables(migrateCatalogDimensions(removeRetiredCosts(products)));
     if(JSON.stringify(products)!==JSON.stringify(cleaned))
      await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(cleaned),new Date()]);
+    if(products.some(p=>p.id===retiredOakTableId)){const [workflows]=await connection.execute('SELECT body FROM ku_workflow FOR UPDATE');
+    for(const row of workflows){const r=JSON.parse(row.body),next=mergeOakWorkflow(r);if(next!==r)await connection.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(next),r.id]);}}
     await connection.commit();
    }catch(error){await connection.rollback();throw error;}finally{connection.release();}
   })().catch(error=>{ready=null;throw error;});
