@@ -1,3 +1,4 @@
+import {weekendRentalEnd} from '../public/weekend-rental.js';
 import {transportWeekdayPolicy,transportDateError} from '../public/transport-weekdays.js';
 import {transportMode} from '../public/admin/transport-model.js';
 import {packageBuyoutOption,buyoutFacts,isBuyoutAddon} from '../public/buyout-model.js';
@@ -51,11 +52,12 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const purchasedGroups=allGroups.filter(g=>!g.custom&&buy[g.packageId]);
  const groups=allGroups.filter(g=>!purchasedGroups.includes(g));
  const quoteOnly=groups.some(g=>g.custom&&g.product?.packageCustomPricing==='quote');
- const quote=rental?rentalEstimate(rent,priced,d.start,d.end):saleEstimate(input.basket,products);
+ const pricingEnd=weekendRentalEnd({...d,scope,mode:transportMode(d.delivery)});
+ const quote=rental?rentalEstimate(rent,priced,d.start,pricingEnd):saleEstimate(input.basket,products);
  if(!rental){const err=saleModuleError(input.basket,products);if(err)fail(err);}
  let lines=(rental?quote.lines.map(l=>{const p=priced.find(x=>x.id===l.id);return {id:l.id,name:l.name,quantity:l.quantity,basis:l.plan?new Intl.NumberFormat('nb-NO').format(l.plan.total)+' kr per stk. · '+planText(l.plan):'Leie · pris avklares',total:l.plan?Math.round(l.plan.total*l.quantity*100)/100:null,contents:p.offeringType==='service'&&p.serviceContents?[p.serviceContents]:p.isPackage?(p.components||[]).map(c=>c.quantity+' × '+(products.find(x=>x.id===c.id)?.name||'Produkt')):[]};}):quote.lines.map(l=>({...l,basis:l.unitPrice===null?'Kjøp · pris avklares':new Intl.NumberFormat('nb-NO').format(l.unitPrice)+' kr per stk.'}))).map(l=>({...l,...(rental&&quoteOnly?{total:null,basis:'Tilpasset innhold · pris avklares'}:{})}));
  if(value.customRequest){if(!d.customText)fail('Beskriv den tilpassede forespørselen.');lines.push({id:'custom',name:'Tilpasset forespørsel',quantity:1,basis:d.customText,total:null});}
- if(rental)lines=receiptSofaLines(receiptPackageLines(lines,priced,groups,d.start,d.end),input.rentalSofas,priced);
+ if(rental)lines=receiptSofaLines(receiptPackageLines(lines,priced,groups,d.start,pricingEnd),input.rentalSofas,priced);
  const purchaseAddonError=addonRequirementError(buy,products);if(purchaseAddonError)fail(purchaseAddonError);
  for(const [id,q] of Object.entries(buy)){
   const p=products.find(x=>x.id===id);if(!businessPurchaseEnabled(p))continue;
@@ -74,7 +76,7 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
   const parents=eligible.some(p=>p.id===linked)?eligible.filter(p=>p.id===linked):eligible;
   if(parents.length)line.addonFor=parents.map(p=>({id:p.id,name:p.name}));
  }
- const facts=[];
+ const facts=[];if(pricingEnd!==d.end)facts.push(['Helgeleie','Minimum to døgn ved disponering fredag–mandag.']);
  if(!rental&&input.purchaseSofas!==undefined){const setups=input.purchaseSofas;if(!Array.isArray(setups)||setups.length>50||setups.some(s=>!validSaleSetup(s,products))||new Set(setups.map(s=>s.id)).size!==setups.length)fail('Kontroller sofaoppsettene.');if(Object.entries(saleSetupBasket(setups)).some(([id,q])=>q>(input.basket[id]||0)))fail('Kontroller modulene i handlekurven.');for(const [i,s] of setups.entries())facts.push(['Sofa '+(i+1)+' · '+s.series,Object.entries(s.selection).map(([id,q])=>q+' × '+products.find(p=>p.id===id).name).join(' · ')]);}
  if(hasRental&&d.start&&d.end)facts.push(['Ønsket leieperiode',d.start+' til '+d.end]);
  if(hasRental)facts.push(['Prisgrunnlag',rentalUsageLabels[scope]+'\n'+rentalUsageDescriptions[scope]],['Anledning',d.occasion]);if(!rental||Object.keys(buy).length)facts.push(['Leveringstid','2–3 uker. Levering kan skje tidligere. Vi bekrefter leveringsdatoen i ordrebekreftelsen.']);
@@ -88,7 +90,7 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
   if(wishes.length)facts.push(['Ønsker til '+products.find(p=>p.id===id).name,wishes.join('; ')]);
  }
  let discount=null;
- if(d.discountCode&&!quoteOnly&&Object.keys(rent).length){try{discount=discountQuote({mode:rental?'rent':'buy',code:d.discountCode,basket:rental?rent:input.basket,start:d.start,end:d.end,scope},products,codes,now);}catch{facts.push(['Ønsket rabattkode',d.discountCode+' – må avklares i tilbudet']);}}
+ if(d.discountCode&&!quoteOnly&&Object.keys(rent).length){try{discount=discountQuote({mode:rental?'rent':'buy',code:d.discountCode,basket:rental?rent:input.basket,...d,transportMode:transportMode(d.delivery),scope},products,codes,now);}catch{facts.push(['Ønsket rabattkode',d.discountCode+' – må avklares i tilbudet']);}}
  const capacity=hasRental?rentalDeliveryCapacity(rent,products,value.customRequest):{manual:false};
  const included=hasRental&&capacity.includedOnly;
  const purchaseOnly=acquisition==='purchase',deliveryChoice=purchaseOnly?({'Henter og returnerer selv':'Henter selv etter avtale','Ønsker levering og henting':'Ønsker levering','Kun levering – jeg returnerer selv':'Ønsker levering','Kun henting – jeg henter selv':'Henter selv etter avtale','Avklares senere':'Ønsker levering'}[d.delivery]||d.delivery):d.delivery;

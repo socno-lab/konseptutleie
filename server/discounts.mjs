@@ -1,3 +1,4 @@
+import {weekendRentalEnd} from '../public/weekend-rental.js';
 import {saleEstimate,saleModuleError} from '../public/sales-model.js?v=fest20261114';
 import {normalizeBasket,rentalEstimate} from '../public/catalog-model.js';
 import {rentalRateSets} from '../public/rental-pricing-model.js?v=fest20261114';
@@ -31,7 +32,7 @@ export function discountQuote(input,products,codes,now=new Date()){
   const active=products.filter(p=>p.active&&!p.deletedAt).map(p=>({...p,...rentalRateSets(p,products)[input.scope==='messe'?'messe':'standard']})),basket=normalizeBasket(raw,active);
   if(Object.keys(raw).length!==Object.keys(basket).length||Object.keys(raw).some(id=>raw[id]!==basket[id]))fail('Beholdningen er endret. Oppdater utvalget.');
   validateRentalPeriod(input.start,input.end,{now});
-  quote=rentalEstimate(basket,active,input.start,input.end);
+  quote=rentalEstimate(basket,active,input.start,weekendRentalEnd({...input,mode:input.transportMode||'pickup'}));
  }
  if(!Object.keys(raw).length||!quote.knownSubtotal)fail('Legg til prisede produkter og velg eventuell leieperiode først.');
  const subtotal=quote.knownSubtotal,discount=Math.round(subtotal*coupon.percent)/100;

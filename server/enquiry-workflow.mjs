@@ -1,3 +1,4 @@
+import {weekendRentalEnd} from '../public/weekend-rental.js';
 import {invoiceReminderEmail} from './invoice-reminder.mjs';
 import {parseAdminDate} from '../public/admin/date-fields.js';
 import {enquiryLineTotal} from '../public/admin/enquiry-line-pricing.js';
@@ -35,8 +36,8 @@ export function editWorkflow(current,input,products){
  next.deliveryMode=input.deliveryMode??current.deliveryMode??'delivery';if(!transportModes.some(([mode])=>mode===next.deliveryMode))fail('Velg leveringsmåte.');next.deliveryAddress=next.deliveryMode==='pickup'?'':clean(input.deliveryAddress??current.deliveryAddress,300);for(const key of ['pickupTime','returnTime']){next[key]=clean(input[key]??current[key],5);if(next[key]&&!pickupSlots.includes(next[key]))fail('Velg tid mellom 08.00 og 15.45.');}for(const key of ['pickupTime','returnTime'])if(!customerVisits(next).some(v=>v.field===key))next[key]='';if(next.deliveryMode==='pickup')next.transport=0;
  if(!Array.isArray(input.lines)||(!input.lines.length&&current.status!=='new')||input.lines.length>150)fail('Velg produkter.');
  next.lines=input.lines.map(l=>{let previous=current.lines.find(x=>x.key===l.key);const p=products.find(p=>p.id===l.id&&p.active&&!p.deletedAt);if(!previous&&p&&/^new-[a-z0-9-]{1,60}$/.test(l.key||''))previous={key:l.key,id:'',originalId:p.id,originalName:p.name};if(!p||!previous||!Number.isInteger(l.quantity)||l.quantity<1||l.quantity>99||!['pending','ok','missing','alternative'].includes(l.review))fail('Kontroller produktlinjene.');
- const changed=p.id!==previous.id||l.quantity!==previous.quantity||next.start!==current.start||next.end!==current.end||next.scope!==current.scope;
- const calculate=changed||l.total==null;const calculated=calculate?enquiryLineTotal(p,{quantity:l.quantity,start:next.start,end:next.end,scope:next.scope},products):null;
+ const changed=p.id!==previous.id||l.quantity!==previous.quantity||next.start!==current.start||next.end!==current.end||next.scope!==current.scope||weekendRentalEnd({...next,mode:next.deliveryMode})!==weekendRentalEnd({...current,mode:current.deliveryMode});
+ const calculate=changed||l.total==null;const calculated=calculate?enquiryLineTotal(p,{...next,quantity:l.quantity},products):null;
  return workflowAddonLine({...previous,isAddon:previous.id===p.id?previous.isAddon:false,originalTotal:previous.originalTotal??(previous.id===previous.originalId?previous.total:null),originalQuantity:previous.originalQuantity??(previous.id===previous.originalId?previous.quantity:null),id:p.id,name:p.name,image:/^decor_/.test(p.id)?'/assets/addon-decor.png':p.image||'',quantity:l.quantity,review:p.id!==previous.originalId&&l.review==='missing'?'alternative':l.review,originalMissing:p.id!==previous.originalId&&(l.review==='missing'||(typeof l.originalMissing==='boolean'?l.originalMissing:previous.originalMissing===true||previous.review==='missing')),total:calculate?calculated:money(l.total)},products);});
  if(new Set(next.lines.map(l=>l.key)).size!==next.lines.length)fail('Dupliserte produktlinjer.');if(isLegacyGeneratedOfferIntro(current,next.intro)||isLegacyGeneratedOfferIntro(next,next.intro))next.intro='';return next;
 }

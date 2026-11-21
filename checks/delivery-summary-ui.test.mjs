@@ -1,3 +1,4 @@
+import {weekendRentalEnd} from '../public/weekend-rental.js';
 import {informationBoxMarkup} from '../public/information-box.js';
 import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from '../public/transport-weekdays.js';
 import {scopeForOccasion} from '../public/rental-pricing-model.js';
@@ -31,7 +32,7 @@ async function mountedDelivery(){
  const document={activeElement:null,createElement:tag=>tag==='section'?(weekdayNotice=element()):tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
  const products=[{id:'chair',name:'Teststol',category:'Stoler'},{id:'sofa',name:'Testsofa',type:'sofa'},{id:'tree',deliveryIncluded:true,isService:true,offeringType:'service'}];
  let quoteGate=null;
- const context=vm.createContext({informationBoxMarkup,transportDateLimits,transportDateError,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
+ const context=vm.createContext({weekendRentalEnd,informationBoxMarkup,transportDateLimits,transportDateError,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
  vm.runInContext(getter+'\n'+source.slice(first,last)+'\nmountRentalDelivery(form);\nvar deliverySummaryProvider;',context);
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
@@ -132,5 +133,5 @@ test('styling weekend explains Friday/Monday transport and unchanged lease price
 
 test('manual Sunday collection for styling shows agreement notice and hides the automatic weekday explanation',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(1);
- assert.equal(ui.weekdayNotice.hidden,false);ui.editTransport('pickupDate','2030-11-03');assert.equal(ui.weekdayNotice.hidden,true);assert.equal(ui.summary().total,null);assert.match(ui.status.innerHTML,/Transport i helgen må avtales/);assert.match(ui.status.innerHTML,/Vi vurderer muligheten/);
+ assert.equal(ui.weekdayNotice.hidden,false);ui.editTransport('pickupDate','2030-11-03');assert.equal(ui.weekdayNotice.hidden,true);assert.equal(ui.summary().total,null);assert.match(ui.status.innerHTML,/Transport i helgen må avtales/);assert.match(ui.status.innerHTML,/Vi vurderer tilgjengeligheten/);
 });
