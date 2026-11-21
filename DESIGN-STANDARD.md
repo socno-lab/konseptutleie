@@ -267,3 +267,5 @@ Flerlinjefelt får nødvendig høyde for teksten. Avkrysningsbokser, radioknappe
 21. november 2026 – bekreftet retur: Leieperiode utløpt vises som eget trinn før avsluttet. Returbekreftelse og valgfri takke-e-post bruker eksisterende knapper, feltmål, logo og e-postprofil. Takke-e-posten forhåndsvises før retur bekreftes med utsending. Testutsending merkes tydelig og påvirker ingen kundeordre.
 
 21. november 2026 – administrasjonens datofelt: Synlig dato skrives dd.mm.åååå i ett tekstfelt, med kalenderikon og nettleserens kalender ved siden av. Inntasting og kalender bruker samme synlige verdi, som valideres og lagres som ISO-dato. Feltene beholder 48 px høyde og øvrig feltstil, med 16 px tekst på mobil. Godkjente og aktive leieforhold kan ikke lagres med tom leieperiode; åpne utkast kan fortsatt bygges før datoene er avklart. Lagringsbekreftelsen viser datoene fra serversvaret.
+
+21. november 2026 – e-postkvittering: Etter eiers skjermbilde bruker beløp for dekor- og øvrige tilvalg samme 14 px som hovedvarenes beløp. Tilvalgsikon og kompakt produkttekst beholdes. Endringen er avgrenset til prisens skriftstørrelse i e-postmalen.
