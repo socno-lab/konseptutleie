@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {transportWeekdayPolicy} from '../public/transport-weekdays.js';
+import {transportWeekdayPolicy,transportDateError,transportDateLimits} from '../public/transport-weekdays.js';
 import {createEnquirySnapshot} from '../server/enquiry-snapshot.mjs';
 import {createDeliveryEstimator} from '../server/delivery.mjs';
 const period={start:'2030-11-02',end:'2030-11-03',mode:'delivery'};
@@ -18,9 +18,16 @@ test('styling defaults to Friday/Monday, event to actual weekend; explicit weekd
 test('weekend submission ignores a route quote, never invents a grand total, and preserves actual transport dates',()=>{
  const weekend=snapshot(input());assert.equal(weekend.delivery.total,null);assert.equal(weekend.total,null);assert.match(weekend.delivery.label,/må beregnes/);assert.deepEqual(weekend.delivery.dates,{deliveryDate:period.start,pickupDate:period.end});
  const d=input();Object.assign(d.details,{deliveryDate:'2030-11-01',pickupDate:'2030-11-04'});const weekday=snapshot(d);assert.equal(weekday.delivery.total,1380);assert.ok(weekday.total>1380);assert.equal(weekday.delivery.dates.pickupDate,'2030-11-04');
- d.details.deliveryDate='2030-11-04';assert.throws(()=>snapshot(d),/må omfatte/);
+ d.details.deliveryDate='2030-11-04';assert.throws(()=>snapshot(d),/Levering må være/);
 });
 test('weekend estimator returns manual without requesting Google',async()=>{
  let calls=0;const estimator=createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'test'},async()=>{calls++;throw Error('unexpected route request');});
  const result=await estimator.estimate({...period,scope:'messe',address:'Eksempelveien 12, 2010 Strømmen',basket:{chair:1},visits:2},'test',[chair]);assert.equal(result.manual,true);assert.equal(result.reason,'weekend');assert.equal(result.prices,null);assert.equal(calls,0);
+});
+
+test('transport boundaries allow only adjacent business days and reject weekend styling visits',()=>{
+ const event={start:'2030-11-02',end:'2030-11-03',scope:'messe'};
+ assert.deepEqual(transportDateLimits(event),{deliveryDate:{min:'2030-11-01',max:'2030-11-02'},pickupDate:{min:'2030-11-03',max:'2030-11-04'}});
+ assert.equal(transportDateError({...event,deliveryDate:'2030-11-01',pickupDate:'2030-11-04'}),'');
+ assert.ok(transportDateError({...event,deliveryDate:'2030-10-31'}));assert.ok(transportDateError({...event,pickupDate:'2030-11-05'}));assert.ok(transportDateError({...event,scope:'standard',deliveryDate:'2030-11-02'}));
 });

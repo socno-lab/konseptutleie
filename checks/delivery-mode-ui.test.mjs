@@ -1,5 +1,5 @@
 import {informationBoxMarkup} from '../public/information-box.js';
-import {plannedTransportDates,transportWeekdayPolicy} from '../public/transport-weekdays.js';
+import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from '../public/transport-weekdays.js';
 import {scopeForOccasion} from '../public/rental-pricing-model.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -23,9 +23,9 @@ async function mountedDelivery(){
  const address={...element(),value:'Eksempelveien 1',closest:()=>element()},postalCode={...element(),value:'1470'},postalCity={...element(),value:'Eksempelsted'},select={...element(),closest:()=>({replaceWith(){}})};
  const fields={start:{value:'2030-11-04'},end:{value:'2030-11-05'},occasion:{value:'Bedrift'},address,postalCode,postalCity,delivery:select},dialog={open:false,addEventListener(){}};
  const form={elements:{namedItem:name=>fields[name]},querySelector(selector){return fields[selector.match(/name="([^"]+)"/)[1]];},closest:()=>dialog,contains:()=>false,addEventListener(){}};
- const transportInputs=Object.fromEntries(['deliveryDate','pickupDate'].map(name=>[name,{value:'',closest:()=>element()}]));
+ const transportInputs=Object.fromEntries(['deliveryDate','pickupDate'].map(name=>[name,{value:'',setCustomValidity(){},closest:()=>element()}]));
  const document={activeElement:null,createElement:tag=>tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;}};
- const context=vm.createContext({informationBoxMarkup,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,document,form,deliverySelection:{basket:{},products:[]},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>'',matchMedia:()=>({matches:false}),requiresTwoPeople:()=>false,rentalDeliveryCapacity:basket=>({manual:!!basket.capacity,includedOnly:!!basket.tree,reason:basket.capacity?'capacity':''}),getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,clearTimeout,setTimeout,requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});assert.equal(init?.method,undefined,'only the public status GET may be requested');return {ok:true,json:async()=>({enabled:false})};}});
+ const context=vm.createContext({informationBoxMarkup,transportDateLimits,transportDateError,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,document,form,deliverySelection:{basket:{},products:[]},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>'',matchMedia:()=>({matches:false}),requiresTwoPeople:()=>false,rentalDeliveryCapacity:basket=>({manual:!!basket.capacity,includedOnly:!!basket.tree,reason:basket.capacity?'capacity':''}),getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,clearTimeout,setTimeout,requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});assert.equal(init?.method,undefined,'only the public status GET may be requested');return {ok:true,json:async()=>({enabled:false})};}});
  vm.runInContext(source.slice(first,last)+'\nmountRentalDelivery(form);',context);
  await new Promise(resolve=>setImmediate(resolve));
  return {radios,status,labels,requests,emit(acquisition,basket={}){listeners['rental-delivery-selection']({detail:{acquisition,basket,products:[]}});},submitted(){return radios.filter(radio=>radio.checked&&!radio.disabled).map(radio=>radio.value);}};
