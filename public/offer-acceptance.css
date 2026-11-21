@@ -7,3 +7,5 @@
 .acceptance-main{padding-bottom:120px}#acceptanceForm{scroll-margin-top:24px}.reply-jump{position:fixed;right:24px;bottom:24px;z-index:20;box-shadow:0 3px 16px #252a2226;justify-content:center;min-height:48px}.reply-jump:focus:not(:focus-visible){outline:none}.reply-jump-mobile{display:none}@media(max-width:600px){.reply-jump{left:50%;right:auto;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));width:max-content;max-width:calc(100% - 32px);min-height:44px;padding:10px 22px;border-radius:999px;font-size:14px;white-space:nowrap}.reply-jump-desktop{display:none}.reply-jump-mobile{display:inline}}
 
 @media(max-width:600px){.acceptance-main :is(.time-choice,.reply-choice) select,.acceptance-main .reply-choice textarea{font-size:16px}}
+
+#earlyStartLabel{margin:24px 0}#earlyStartLabel input,#agreementLabel input{flex-shrink:0}
