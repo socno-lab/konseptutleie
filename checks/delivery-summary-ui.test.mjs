@@ -27,7 +27,8 @@ async function mountedDelivery(){
  const fields={start:{value:'2030-11-04'},end:{value:'2030-11-05'},occasion:{value:'Bedrift'},address,postalCode,postalCity,delivery:select},dialogListeners={},dialog={open:true,addEventListener(name,callback){dialogListeners[name]=callback;}};
  const form={elements:{namedItem:name=>fields[name]},querySelector(selector){return fields[selector.match(/name="([^"]+)"/)[1]];},closest:()=>dialog,contains:field=>Object.values(fields).includes(field),addEventListener(name,callback){(formListeners[name]??=[]).push(callback);}};
  const transportInputs=Object.fromEntries(['deliveryDate','pickupDate'].map(name=>[name,{value:'',closest:()=>element()}]));
- const document={activeElement:null,createElement:tag=>tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
+ let weekdayNotice;
+ const document={activeElement:null,createElement:tag=>tag==='section'?(weekdayNotice=element()):tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
  const products=[{id:'chair',name:'Teststol',category:'Stoler'},{id:'sofa',name:'Testsofa',type:'sofa'},{id:'tree',deliveryIncluded:true,isService:true,offeringType:'service'}];
  let quoteGate=null;
  const context=vm.createContext({informationBoxMarkup,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
@@ -35,7 +36,8 @@ async function mountedDelivery(){
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
  const fire=(name,target)=>{for(const callback of formListeners[name]||[])callback({target});};
- return {summary,requests,events,radios,document,address,postalCode,prices,status,
+ return {summary,requests,events,radios,document,address,postalCode,prices,status,weekdayNotice,
+  occasion(value){fields.occasion.value=value;fields.occasion.name="occasion";fire("change",fields.occasion);},
   period(start,end){fields.start.value=start;fields.end.value=end;fields.start.name="start";fire("change",fields.start);},
   editTransport(name,value){const field=transportInputs[name];field.name=name;field.value=value;fire("change",field);},
   emit(basket,acquisition='rental',customRequest=false){listeners['rental-delivery-selection']({detail:{acquisition,basket,products,customRequest}});},
@@ -120,4 +122,10 @@ test('weekend notice uses the requested text and disappears on weekday transport
  assert.equal(ui.status.className,'information-box');assert.match(ui.status.innerHTML,/Du har valgt levering eller henting i helgen/);
  ui.editTransport('deliveryDate','2030-11-01');assert.equal(ui.status.className,'');
  ui.editTransport('deliveryDate','2030-11-02');ui.choose(0);assert.equal(ui.status.className,'');
+});
+
+test('styling weekend explains Friday/Monday transport and unchanged lease price; other uses hide it',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(1);
+ assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/fredag 1\. november/);assert.match(ui.weekdayNotice.innerHTML,/mandag 4\. november/);assert.match(ui.weekdayNotice.innerHTML,/08.00–12.00/);assert.match(ui.weekdayNotice.innerHTML,/ingen ekstra leiekostnad/);
+ ui.choose(0);assert.equal(ui.weekdayNotice.hidden,true);ui.choose(1);ui.occasion('Messe og stand');assert.equal(ui.weekdayNotice.hidden,true);
 });
