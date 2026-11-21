@@ -1,3 +1,5 @@
+import {enquiryLineTotal} from './public/admin/enquiry-line-pricing.js';
+import {rentalDayCount} from './public/rental-dates.js?v=launch20261024';
 import {rentalTermsPdf,rentalTermsFilename} from './server/rental-terms-pdf.mjs';
 import {configureSiteSettings as configureWorkflowPricing} from './public/site-settings.js?v=fest20261114';
 import {workflowEmail,reservedQuantity} from './server/enquiry-workflow.mjs';
@@ -59,7 +61,7 @@ export function createServer(options={}){
  const invalidatePublic=()=>publicCache.invalidate();
  let images;const enterRequest=createRequestGuard(options.requestGuard),enterAuth=createRequestGuard({maxActive:2,maxClientActive:2});
  const server=http.createServer(async(req,res)=>{
-  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...transportSecurity,...headers});res.end(req.method==='HEAD'?undefined:body);};
+  const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Konseptuell-Version':'20261121-pricing-diagnostics','Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...transportSecurity,...headers});res.end(req.method==='HEAD'?undefined:body);};
   const out=(status,data,headers)=>send(status,JSON.stringify(data),'application/json; charset=utf-8',headers);
   const redirect=location=>send(302,'','text/plain',{Location:location});
   const authenticated=async()=>{const token=sessionToken(req,cookieName);return token.length===43&&!!(await store.session(digest(token)));};
@@ -167,6 +169,13 @@ export function createServer(options={}){
      const input=await json(req,1000),result=await store.queueRentalReturnTest(input.email);void submissions.flush();return out(200,result);
     }
     if(pathname==='/api/admin/enquiries'&&req.method==='GET')return out(200,{records:await store.workflowRecords(),mail:await store.enquiryMailStatus()});
+    const diagnostic=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/diagnostics$/);
+    if(diagnostic&&req.method==='GET'){
+     const r=(await store.workflowRecords()).find(r=>r.id===diagnostic[1]);if(!r)throw error('Henvendelsen finnes ikke.',404);
+     const catalog=await readCatalog();configureWorkflowPricing(catalog.settings);
+     const requested={start:url.searchParams.get('start')||r.start,end:url.searchParams.get('end')||r.end,scope:r.scope};
+     return out(200,{revision:r.revision,status:r.status,storedDates:{start:r.start,end:r.end,deliveryDate:r.deliveryDate,pickupDate:r.pickupDate},storedDays:rentalDayCount(r.start,r.end),scope:r.scope,comparisonPeriod:requested,lines:r.lines.map(l=>{const p=catalog.products.find(p=>p.id===l.id);return {name:l.name,quantity:l.quantity,storedTotal:l.total,calculatedStoredPeriod:enquiryLineTotal(p,{...r,quantity:l.quantity},catalog.products),calculatedComparisonPeriod:enquiryLineTotal(p,{...requested,quantity:l.quantity},catalog.products)};})});
+    }
     const workflow=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/(save|preview|offer|accept|confirmation|cancel|complete|document)$/);
     if(workflow&&req.method==='POST'){
      const input=await json(req,200000),catalog=await readCatalog(),action=workflow[2];configureWorkflowPricing(catalog.settings);
