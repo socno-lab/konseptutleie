@@ -1,11 +1,11 @@
 import {warehouseAddress,customerVisits} from './transport-model.js';
 import {parseDateOnly} from '../rental-dates.js?v=launch20261024';
-const kr=n=>new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK'}).format(n);
+const kr=n=>new Intl.NumberFormat('nb-NO',{maximumFractionDigits:2}).format(n)+' kr';
 const longDate=(s,weekday=false)=>parseDateOnly(s)!==null?new Intl.DateTimeFormat('nb-NO',{timeZone:'UTC',day:'numeric',month:'long',...(weekday?{weekday:'long'}:{})}).format(new Date(s+'T12:00:00Z')):'Ikke avtalt';
 export function workflowCopy(r){
  const alternatives=r.lines.filter(l=>l.originalId&&l.originalId!==l.id);
- const alternativeText=alternatives.map(l=>{const saving=l.originalQuantity===l.quantity&&l.originalTotal!=null&&l.total!=null?l.originalTotal-l.total:0;return (l.originalMissing?`Av ${l.originalName} har vi dessverre ikke ønsket antall tilgjengelig. Vi kan imidlertid tilby ${l.name}, ${l.quantity} stk., som alternativ.`:`Vi tilbyr ${l.name} (${l.quantity} stk.) som alternativ til ${l.originalName}.`)+(saving>0?` Dette alternativet er også ${kr(saving)} rimeligere enn det du opprinnelig valgte.`:'');});
- const availabilityText=r.lines.every(l=>['ok','alternative'].includes(l.review))?(alternatives.some(l=>l.originalMissing)?`Vi har gått gjennom ønskelisten din og kan bekrefte at vi har de øvrige produktene tilgjengelig, med ${alternatives.filter(l=>l.originalMissing).length===1?'ett unntak':'noen unntak'}.`:alternatives.length?'':'Vi har gått gjennom ønskelisten din og kan bekrefte at vi har alle produktene tilgjengelig.') :'';
+ const alternativeText=alternatives.map(l=>{const saving=l.originalQuantity===l.quantity&&l.originalTotal!=null&&l.total!=null?l.originalTotal-l.total:0;return (l.originalMissing?`Av ${l.originalName.replace(/, natur$/i,'')} har vi dessverre ikke ønsket antall tilgjengelig. Vi kan imidlertid tilby ${/, natur$/i.test(l.name)?'et alternativ i natur':l.name}, ${l.quantity} stk., som alternativ.`:`Vi tilbyr ${l.name} (${l.quantity} stk.) som alternativ til ${l.originalName}.`)+(saving>0?` Dette alternativet er også ${kr(saving)} rimeligere enn det du opprinnelig valgte.`:'');});
+ const availabilityText=alternatives.some(l=>l.originalMissing)?'Vi har gått gjennom ønskelisten din. Ett eller flere av produktene er dessverre ikke tilgjengelige i ønsket antall. Vi har foreslått alternativer i oversikten nedenfor.':r.lines.every(l=>['ok','alternative'].includes(l.review))&&!alternatives.length?'Vi har gått gjennom ønskelisten din og kan bekrefte at vi har alle produktene tilgjengelig.':'';
 
  const period=r.start?.slice(0,7)===r.end?.slice(0,7)?`${Number(r.start?.slice(8))}.–${longDate(r.end)}`:`${longDate(r.start)}–${longDate(r.end)}`;
  const intro=!r.intro||r.intro==='Takk for forespørselen. Her er vårt tilbud.'?`Takk for hyggelig forespørsel om leie av møbler i perioden ${period}.`:r.intro;
