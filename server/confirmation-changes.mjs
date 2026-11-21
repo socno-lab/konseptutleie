@@ -9,7 +9,7 @@ export function confirmationChanges(previous,current){
  if(old.quantity!==line.quantity)changes.push({label:'Endret antall',text:`${old.quantity} → ${line.quantity} stk.`});
  return changes;
  });
- return {rows,removed:(previous.lines||[]).filter((_,i)=>!used.has(i)).map(l=>({name:l.name,quantity:l.quantity}))};
+ return {removalDisplay:'rows',rows,removed:(previous.lines||[]).filter((_,i)=>!used.has(i)).map(l=>({id:l.id,name:l.name,quantity:l.quantity,...(l.image?{image:l.image}:{}),...(l.isAddon?{isAddon:true}:{})}))};
 }
 export async function lastSentConfirmation(record,db){
  for(const h of [...(record.history||[])].reverse().filter(h=>h.type==='confirmation')){

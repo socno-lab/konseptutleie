@@ -42,7 +42,8 @@ export function createSubmissionSender(env,store,sendOverride){
  const assetsRoot=fileURLToPath(new URL('../public/assets/',import.meta.url));
  async function illustrated(snapshot){
   const attachments=[],lines=[];let budget=4*1024*1024;
-  for(const [i,line] of snapshot.lines.entries()){
+  const removed=snapshot.confirmationChanges?.removalDisplay==='rows'?snapshot.confirmationChanges.removed||[]:[];
+  for(const [i,line] of [...snapshot.lines,...removed].entries()){
    const copy={...line};
    try{
     if(line.image&&attachments.length<20){let image;
@@ -60,7 +61,7 @@ export function createSubmissionSender(env,store,sendOverride){
    attachments.push({filename:'transport.png',content:await readFile(path.join(assetsRoot,'transport-truck.png')),contentType:'image/png',cid,contentDisposition:'inline'});
    delivery={...delivery,imageSrc:'cid:'+cid};
   }
-  return {snapshot:{...snapshot,lines,delivery},attachments};
+  return {snapshot:{...snapshot,lines:lines.slice(0,snapshot.lines.length),delivery,...(removed.length?{confirmationChanges:{...snapshot.confirmationChanges,removed:lines.slice(snapshot.lines.length)}}:{})},attachments};
  }
  let logo;const logoBytes=()=>logo??=readFile(new URL('../public/assets/konseptuell-leie-og-kjop-logo.png',import.meta.url));
  async function flush(){
