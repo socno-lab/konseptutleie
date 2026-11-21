@@ -108,3 +108,8 @@ test('a Maps response already in flight cannot restore a price after the visit b
  ui.editTransport('deliveryDate','2030-11-02');assert.equal(ui.summary().total,null);
  release();await pending;assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');
 });
+
+test('switching to self pickup removes hidden transport overrides rather than submitting old delivery dates',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);ui.editTransport('deliveryDate','2030-11-02');ui.choose(0);
+ ui.choose(1);await ui.calculate();assert.equal(ui.summary().total,1380);
+});
