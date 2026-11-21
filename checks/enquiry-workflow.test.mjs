@@ -70,3 +70,5 @@ test('friendly availability introduction counts exceptions and never confirms un
  assert.doesNotMatch(copy([shortage]),/kan bekrefte at vi har alle/);
  const custom=workflowCopy({...record(),intro:'Min egen innledning',lines:[ready,shortage]}).intro;assert.equal(custom,'Min egen innledning');
 });
+
+test('only rental and proposal sources enter rental administration',async()=>{const {rentalWorkflowSource}=await import('../server/enquiry-workflow.mjs');for(const acquisition of ['rental','proposal',undefined])assert.equal(rentalWorkflowSource({kind:'rental',acquisition}),true);for(const acquisition of ['mixed','purchase'])assert.equal(rentalWorkflowSource({kind:'rental',acquisition}),false);assert.equal(rentalWorkflowSource({kind:'purchase'}),false);assert.equal(rentalWorkflowSource({kind:'rental',documentType:'offer'}),false);});

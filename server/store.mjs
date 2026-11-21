@@ -1,4 +1,4 @@
-import {workflowRecord} from './enquiry-workflow.mjs';
+import {workflowRecord,rentalWorkflowSource} from './enquiry-workflow.mjs';
 import {workflowStore} from './workflow-store.mjs';
 import {adminCodeStore} from './admin-code-store.mjs';
 import {migrateCatalogDimensions} from './dimensions-migration.mjs';
@@ -89,7 +89,7 @@ export function createMysqlStore(env,seed){
      await connection.execute('UPDATE ku_submission_limits SET attempts=?,reset_at=? WHERE bucket=?',[count+1,until,bucket]);
     }
     await connection.execute('INSERT INTO ku_enquiries(id,fingerprint,body,created_at) VALUES (?,?,?,?)',[id,fingerprint,JSON.stringify(snapshot),now]);
-    if(snapshot.kind==='rental'&&snapshot.acquisition==='rental')await connection.execute('INSERT IGNORE INTO ku_workflow(id,body) VALUES (?,?)',[id,JSON.stringify(workflowRecord(snapshot))]);
+    if(rentalWorkflowSource(snapshot))await connection.execute('INSERT IGNORE INTO ku_workflow(id,body) VALUES (?,?)',[id,JSON.stringify(workflowRecord(snapshot))]);
     for(const channel of ['internal','customer'])await connection.execute("INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,?,?)",[id,channel,now]);
     await connection.commit();return {snapshot};
    }catch(error){await connection.rollback();throw error;}finally{connection.release();}
