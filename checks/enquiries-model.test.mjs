@@ -6,9 +6,9 @@ test('enquiries and sent offers stay new until accepted; confirmed rentals inclu
  assert.equal(enquiryGroup({status:'accepted'},'2026-11-20'),'accepted');
  assert.equal(enquiryGroup({status:'confirmed',pickupDate:'2026-12-07'},'2026-11-20'),'active');
 });
-test('confirmed rental remains active on return date and uses confirmed dates while draft changes',()=>{
- const r={status:'confirmed',pickupDate:'2027-01-01',reservation:{end:'2026-12-07'}};
- assert.equal(enquiryGroup(r,'2026-12-07'),'active');assert.equal(enquiryGroup(r,'2026-12-08'),'closed');
+test('rental expires after confirmed rental end, ignoring unsent draft dates, and closes only after return',()=>{
+ const r={status:'confirmed',end:'2027-01-01',pickupDate:'2027-01-02',reservation:{end:'2026-12-07'},history:[{type:'confirmation',document:{workflow:{end:'2026-12-06'}}}]};
+ assert.equal(enquiryGroup(r,'2026-12-06'),'active');assert.equal(enquiryGroup(r,'2026-12-07'),'expired');assert.equal(enquiryGroup(r,'2027-03-01'),'expired');assert.equal(enquiryGroup({...r,status:'completed'},'2026-12-07'),'closed');
 });
 test('unsuccessful enquiries remain distinct from cancelled rentals in closed list',()=>{
  assert.equal(enquiryGroup({status:'cancelled'}),'closed');

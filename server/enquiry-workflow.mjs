@@ -1,3 +1,5 @@
+import {rentalReturnEmail} from './rental-return-email.mjs';
+import {osloToday} from '../public/admin/enquiries-model.js';
 import {consentSummary} from './early-start-consent.mjs';
 import {transportMode,transportModes,workflowTransport,customerVisits} from '../public/admin/transport-model.js';
 import {pickupSlots} from './pickup-schedule.mjs';
@@ -19,7 +21,7 @@ export function workflowAddonLine(line,products=[]){
 export const rentalWorkflowSource=s=>!s.documentType&&s.kind==='rental'&&[undefined,'rental','proposal'].includes(s.acquisition);
 export function workflowRecord(s){const period=s.facts?.find(f=>f[0]==='Ønsket leieperiode')?.[1]?.split(' til ')||[];return {id:s.id,email:s.email,receivedAt:s.receivedAt,revision:1,status:'new',kind:s.kind,...(s.acquisition==='proposal'?{requestType:'proposal'}:{}),customerType:s.company?'business':'consumer',start:period[0]||'',end:period[1]||'',...defaultTransportDates(period[0],period[1]),deliveryMode:s.acquisition==='proposal'?'undecided':transportMode(s.delivery?.choice||s.delivery?.label),deliveryAddress:(s.delivery?.choice||s.delivery?.label)==='Henter og returnerer selv'?'':clean(s.address,300),pickupTime:'',returnTime:'',scope:/Boligfoto/.test(s.facts?.find(f=>f[0]==='Prisgrunnlag')?.[1]||'')?'standard':'messe',intro:'',logistics:'',payment:'Faktura sendes på e-post i forbindelse med levering, med 7 dagers betalingsfrist.',transport:s.delivery?.total??null,discount:s.discount?.discount||0,reserved:false,requirements:[],history:[],lines:(s.lines||[]).filter(l=>l.id!=='custom').map((source,i)=>{const l=workflowAddonLine(source);return {key:String(i),id:l.id,name:l.name,image:/^decor_/.test(l.id)?'/assets/addon-decor.png':l.image||'',quantity:l.quantity,total:l.total,originalTotal:l.total,originalQuantity:l.quantity,originalId:l.id,originalName:l.name,review:'pending',...(l.isAddon?{isAddon:true}:{})};})};}
 export function editWorkflow(current,input,products){
- if(current.status==='cancelled')fail('Henvendelsen er avsluttet.',409);const next={...current};
+ if(['cancelled','completed'].includes(current.status))fail('Henvendelsen er avsluttet.',409);const next={...current};
  for(const k of ['start','end','deliveryDate','pickupDate']){next[k]=clean(input[k],10);if(next[k]&&parseDateOnly(next[k])===null)fail('Kontroller datoene.');}
  if(next.start&&next.end&&(!rentalDayCount(next.start,next.end)||rentalDayCount(next.start,next.end)>365))fail('Leieperioden må være 1–365 dager.');
  if(!['standard','messe'].includes(input.scope))fail('Velg prisgrunnlag.');next.scope=input.scope;
@@ -36,8 +38,13 @@ export function reservationRequirements(r,products){
  if(r.kind!=='rental')fail('Reservasjon gjelder leie.');if(!rentalDayCount(r.start,r.end)||rentalDayCount(r.start,r.end)>365||!rentalDayCount(r.deliveryDate,r.pickupDate)||r.deliveryDate>r.start||r.pickupDate<r.end)fail('Levering og henting må omslutte leieperioden.');
  const result={};for(const l of r.lines){const p=products.find(p=>p.id===l.id&&p.active&&!p.deletedAt&&p.rentalEnabled!==false);if(!p)fail('Produktet er ikke tilgjengelig.');for(const d of demand(p,l.quantity)){const item=products.find(p=>p.id===d.id);if(!item)fail('Pakkeinnhold mangler.');if(!item.isService)result[d.id]=(result[d.id]||0)+d.quantity;}}return Object.entries(result).map(([id,quantity])=>({id,quantity}));
 }
-export function reservedQuantity(records,id,start,end,exclude=''){
- const events=new Map();for(const r of records){if(!r.reserved||r.id===exclude||(r.reservation?.start||r.deliveryDate)>end||(r.reservation?.end||r.pickupDate)<start)continue;const q=r.requirements?.find(x=>x.id===id)?.quantity||0;for(const [day,n]of [[Math.max(Date.parse(start),Date.parse(r.reservation?.start||r.deliveryDate)),q],[Math.min(Date.parse(end),Date.parse(r.reservation?.end||r.pickupDate))+86400000,-q]])events.set(day,(events.get(day)||0)+n);}
+export function reservedQuantity(records,id,start,end,exclude='',today=osloToday()){
+ const events=new Map();for(const r of records){
+ const plannedEnd=r.reservation?.end||r.pickupDate,heldEnd=r.status==='confirmed'&&plannedEnd<today?'9999-12-31':plannedEnd;
+ if(!r.reserved||r.id===exclude||(r.reservation?.start||r.deliveryDate)>end||heldEnd<start)continue;
+ const q=r.requirements?.find(x=>x.id===id)?.quantity||0;
+ for(const [at,n]of [[Math.max(Date.parse(start),Date.parse(r.reservation?.start||r.deliveryDate)),q],[Math.min(Date.parse(end),Date.parse(heldEnd))+86400000,-q]])events.set(at,(events.get(at)||0)+n);
+ }
  let used=0,peak=0;for(const [,q]of [...events].sort((a,b)=>a[0]-b[0])){used+=q;peak=Math.max(peak,used);}return peak;
 }
 export function checkReservation(r,products,records){const requirements=reservationRequirements(r,products);for(const d of requirements){const p=products.find(x=>x.id===d.id),free=Math.max(0,p.stock-p.unavailable-reservedQuantity(records,d.id,r.deliveryDate,r.pickupDate,r.id));if(d.quantity>free)fail(`${p.name}: ${free} ledige i perioden, ${d.quantity} ønsket.`,409);}return requirements;}
@@ -46,6 +53,7 @@ const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const kr=n=>n==null?'Avklares':new Intl.NumberFormat('nb-NO',{style:'currency',currency:'NOK'}).format(n);
 const dt=s=>s?s.split('-').reverse().join('.'):'Ikke avtalt';
 export function workflowEmail(s){
+ if(s.documentType==='return')return rentalReturnEmail(s);
  if(s.documentType==='acceptance'&&s.channel==='customer'){const r=s.workflow,text=`Hei!\n\nVi har registrert din aksept av tilbudet.\n\n${consentSummary(r.earlyStartConsent)}\n\nDu mottar ordrebekreftelse når bestillingen og tilgjengeligheten er endelig bekreftet.\n\nReferanse: ${r.id}`;return {subject:'Bekreftelse på samtykke til tidlig oppstart · '+r.id,text,html:`<!doctype html><html lang="nb"><body style="margin:0;padding:20px 8px;font:14px/1.65 Arial,sans-serif;color:#50564b;background:#f4f2eb"><table role="presentation" style="max-width:680px;width:100%;margin:auto"><tr><td style="padding:0 0 20px;text-align:center"><img src="${e(s.logoSrc||'https://konseptuell.no/assets/konseptuell-leie-og-kjop-logo.png')}" width="320" alt="Konseptuell" style="width:320px;max-width:85%;height:auto"></td></tr><tr><td style="background:#fff;padding:28px 24px"><h1 style="font:700 26px/1.3 Arial,sans-serif;color:#30352b">Samtykke til tidlig oppstart</h1><p>${e(text).replace(/\n/g,'<br>')}</p></td></tr></table></body></html>`};}
 
  if(s.documentType==='offer_response'){const r=s.workflow,title=s.responseDecision==='decline'?'Tilbud avslått':'Kunden ber om endring',text=title+' · '+s.email+' · '+r.id+'\n\n'+(s.customerMessage||'Ingen melding.');return {subject:title+' · '+r.id,text,html:`<!doctype html><html lang="nb"><body><h1>${title}</h1><p>${e(text).replace(/\n/g,'<br>')}</p><a href="https://konseptuell.no/admin/enquiries.html?id=${encodeURIComponent(r.id)}">Åpne henvendelsen</a></body></html>`};}
@@ -73,11 +81,7 @@ export function workflowEmail(s){
 export const documentDigest=r=>createHash('sha256').update(JSON.stringify({...r,history:[],revision:0,status:'',reserved:false,requirements:[],reservation:null,updatedAt:''})).digest('hex');
 
 export function workflowClosedAt(r){
- if(r.status==='cancelled'){const at=Date.parse(r.closedAt||r.updatedAt||'');return Number.isFinite(at)?at:null;}
- if(r.status!=='confirmed')return null;
- const last=r.history?.filter(h=>h.type==='confirmation').at(-1)?.document?.workflow;
- const end=r.reservation?.end||last?.pickupDate||r.pickupDate||r.end;
- // Start retention after the full return date has passed in Oslo (latest UTC boundary).
- return parseDateOnly(end)!==null?Date.parse(end+'T00:00:00Z')+86400000:null;
+ if(!['cancelled','completed'].includes(r.status))return null;
+ const at=Date.parse(r.status==='completed'?(r.returnedAt||r.closedAt||''):(r.closedAt||r.updatedAt||''));return Number.isFinite(at)?at:null;
 }
 export const workflowExpired=(r,now)=>{const closed=workflowClosedAt(r);return closed!==null&&now>=closed+30*86400000;};
