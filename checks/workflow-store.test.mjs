@@ -5,7 +5,7 @@ import {workflowStore} from '../server/workflow-store.mjs';
 import {workflowRecord,documentDigest} from '../server/enquiry-workflow.mjs';
 const product={id:'chair',name:'Stol',active:true,stock:2,unavailable:0,price:100,weekPrice:300,monthPrice:700,rentalPricingMode:'manual'};
 function fixture(){
- const make=id=>({...workflowRecord({id,email:'test@example.invalid',kind:'rental',address:'Testveien 1, 2010 Strømmen',receivedAt:'2026-11-20',facts:[['Ønsket leieperiode','2026-12-05 til 2026-12-06']],lines:[{id:'chair',name:'Stol',quantity:2,total:400}],delivery:{total:0}}),status:'accepted',lines:[{key:'0',id:'chair',name:'Stol',originalId:'chair',originalName:'Stol',quantity:2,total:400,review:'ok',image:''}],changeReason:'',history:[{id:'offer-'+id,type:'offer'}]});
+ const make=id=>({...workflowRecord({id,company:'Testbedrift',email:'test@example.invalid',kind:'rental',address:'Testveien 1, 2010 Strømmen',receivedAt:'2026-11-20',facts:[['Ønsket leieperiode','2026-12-05 til 2026-12-06']],lines:[{id:'chair',name:'Stol',quantity:2,total:400}],delivery:{total:0}}),status:'accepted',lines:[{key:'0',id:'chair',name:'Stol',originalId:'chair',originalName:'Stol',quantity:2,total:400,review:'ok',image:''}],changeReason:'',history:[{id:'offer-'+id,type:'offer'}]});
  let state={records:[make('a'),make('b')],settings:structuredClone(defaultSettings),jobs:[],enquiries:[]},failQueue=false,tail=Promise.resolve();
  const execute=async(db,sql,args=[])=>{
   if(sql==='SELECT body FROM ku_enquiries')return [[]];
@@ -13,7 +13,7 @@ function fixture(){
   if(sql==='SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE')return [[{body:JSON.stringify([product])}]];
   if(sql.startsWith('SELECT body FROM ku_workflow'))return [db.records.map(r=>({body:JSON.stringify(r)}))];
   if(sql.startsWith('INSERT INTO ku_enquiries')){db.enquiries.push({id:args[0],snapshot:JSON.parse(args[2])});return [{}];}
-  if(sql.startsWith('INSERT INTO ku_enquiry_mail')){if(failQueue)throw Error('queue failure');db.jobs.push({id:args[0],status:'pending',channel:sql.includes("'internal'")?'internal':'customer'});return [{}];}
+  if(sql.startsWith('INSERT INTO ku_enquiry_mail')){if(failQueue===true||failQueue===(sql.includes("'internal'")?'internal':'customer'))throw Error('queue failure');db.jobs.push({id:args[0],status:'pending',channel:sql.includes("'internal'")?'internal':'customer'});return [{}];}
   if(sql.startsWith('UPDATE ku_workflow')){db.records=db.records.map(r=>r.id===args[1]?JSON.parse(args[0]):r);return [{}];}
   if(sql.startsWith('SELECT status FROM ku_enquiry_mail'))return [[db.jobs.find(j=>j.id===args[0])].filter(Boolean)];
   if(sql.startsWith("UPDATE ku_enquiry_mail SET status='superseded'")){for(const j of db.jobs)if(j.id===args[0]&&j.status==='pending')j.status='superseded';return [{}];}
@@ -50,3 +50,29 @@ test('offer freezes rental terms and confirmation preserves them after tariff up
 test('changing current terms after preview requires a new preview before offer can be sent',async()=>{const f=fixture();f.state.records[0].status='new';f.state.records[0].history=[];const data=await input(f);f.state.settings.delivery.normalSingle+=50;await assert.rejects(f.store.changeWorkflow('a',data,'offer',[product]),/forhåndsvisningen/);assert.equal(f.state.jobs.length,0);});
 test('change request stores follow-up status and sends message once without accepting or retaining message in workflow',async()=>{const f=fixture(),{token}=await offered(f);await assert.rejects(f.store.offerAcceptance(token,true,{decision:'change',message:'  '}),/Beskriv/);const response=await f.store.offerAcceptance(token,true,{decision:'change',message:'Vi ønsker et ekstra bord.'});assert.equal(response.response,'change');assert.equal(response.accepted,false);assert.equal(f.state.records[0].status,'changes_requested');assert.equal(f.state.records[0].reserved,false);assert.ok(!JSON.stringify(f.state.records[0]).includes('ekstra bord'));assert.equal(f.state.enquiries.at(-1).snapshot.customerMessage,'Vi ønsker et ekstra bord.');await f.store.offerAcceptance(token,true,{decision:'change',message:'Vi ønsker et ekstra bord.'});assert.equal(f.state.jobs.length,2);assert.equal((await f.store.offerAcceptance(token)).response,'change');});
 test('decline releases appointments and closes enquiry without requiring pickup times',async()=>{const f=fixture();f.state.records[0].deliveryMode='pickup';const {token}=await offered(f);f.state.records[0].appointments=[{date:'2026-12-04',time:'08:00'}];const response=await f.store.offerAcceptance(token,true,{decision:'decline',message:'Vi trenger ikke møblene likevel.'});assert.equal(response.response,'decline');assert.equal(response.accepted,false);assert.equal(f.state.records[0].status,'cancelled');assert.deepEqual(f.state.records[0].appointments,[]);assert.ok(f.state.records[0].closedAt);assert.equal((await f.store.offerAcceptance(token)).response,'decline');await f.store.offerAcceptance(token,true,{decision:'decline'});assert.equal(f.state.jobs.length,2);});
+
+
+test('early consumer acceptance requires explicit boolean consent and queues a durable receipt exactly once',async t=>{
+ t.mock.timers.enable({apis:['Date'],now:new Date('2026-11-25T10:00:00Z')});
+ const f=fixture();f.state.records[0].customerType='consumer';const {token}=await offered(f);
+ const initial=await f.store.offerAcceptance(token);assert.equal(initial.earlyStart.required,true);const revision=f.state.records[0].revision;
+ for(const earlyStartConsent of [undefined,false,'true'])await assert.rejects(f.store.offerAcceptance(token,true,{earlyStartConsent}),/Godkjenn særskilt/);
+ assert.equal(f.state.records[0].revision,revision);assert.equal(f.state.jobs.length,1);
+ await f.store.offerAcceptance(token,true,{earlyStartConsent:true});
+ const saved=f.state.records[0];assert.equal(saved.earlyStartConsent.text,initial.earlyStart.text);assert.equal(saved.earlyStartConsent.deliveryDate,'2026-12-04');assert.equal(saved.earlyStartConsent.offerId,saved.acceptedOfferId);
+ assert.deepEqual(f.state.jobs.map(j=>j.channel),['customer','internal','customer']);
+ const snapshot=f.state.enquiries.at(-1).snapshot;const {workflowEmail}=await import('../server/enquiry-workflow.mjs');
+ for(const channel of ['internal','customer']){const mail=workflowEmail({...snapshot,channel});assert.ok(mail.text.includes(initial.earlyStart.text));assert.ok(mail.html.includes(initial.earlyStart.text));}
+ const confirmed=await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);assert.ok(workflowEmail(confirmed.history.at(-1).document).text.includes(initial.earlyStart.text));
+ await f.store.offerAcceptance(token,true,{earlyStartConsent:true});assert.equal(f.state.jobs.length,4);
+});
+test('consumer can request changes without early-start consent and business acceptance does not require it',async t=>{
+ t.mock.timers.enable({apis:['Date'],now:new Date('2026-11-25T10:00:00Z')});
+ const f=fixture();f.state.records[0].customerType='consumer';const {token}=await offered(f);await f.store.offerAcceptance(token,true,{decision:'change',message:'Ny dato takk'});assert.equal(f.state.records[0].earlyStartConsent,undefined);
+ const g=fixture(),offer=await offered(g);assert.equal((await g.store.offerAcceptance(offer.token)).earlyStart.required,false);await g.store.offerAcceptance(offer.token,true);assert.equal(g.state.jobs.length,2);
+});
+
+test('customer consent receipt queue failure rolls back acceptance and internal notification',async t=>{
+ t.mock.timers.enable({apis:['Date'],now:new Date('2026-11-25T10:00:00Z')});const f=fixture();f.state.records[0].customerType='consumer';const {token}=await offered(f);f.failQueue='customer';
+ await assert.rejects(f.store.offerAcceptance(token,true,{earlyStartConsent:true}),/queue failure/);assert.equal(f.state.records[0].status,'offered');assert.equal(f.state.records[0].earlyStartConsent,undefined);assert.equal(f.state.jobs.length,1);
+});
