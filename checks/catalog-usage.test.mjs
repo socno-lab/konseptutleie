@@ -26,7 +26,7 @@ test('Vis alle retains either confirmed basis and keeps it visible',()=>{
   assert.equal(proposal.confirmed,true);
   assert.equal(proposal.scopeChanged,false);
   assert.equal(proposal.requiresConfirmation,false);
-  assert.match(catalogUsageLabel(proposal),scope==='standard'?/^Vis alle · Leiepriser: Boligfoto og visning$/:/^Vis alle · Leiepriser: Arrangementer og annen bruk$/);
+  assert.match(catalogUsageLabel(proposal),scope==='standard'?/^Boligfoto og visning$/:/^Arrangementer og annen bruk$/);
  }
 });
 
@@ -37,8 +37,8 @@ test('Vis alle without a chosen basis remains unpriced, even with an unconfirmed
   assert.equal(proposal.scope,null);
   assert.equal(proposal.confirmed,false);
   assert.equal(proposal.requiresConfirmation,false);
-  assert.equal(catalogUsageLabel(proposal),'Vis alle · Leiepriser: Velg prisgrunnlag');
-  assert.match(proposal.messages.join(' '),/Velg prisgrunnlag/);
+  assert.equal(catalogUsageLabel(proposal),'Velg bruksområde');
+  assert.match(proposal.messages.join(' '),/Velg bruksområde/);
  }
  assert.equal(proposedCatalogUsage({purpose:'alle',occasion:'Bedrift'}).scope,null);
 });
@@ -105,7 +105,7 @@ test('all rental purposes and categories receive their complete usage field befo
   const usage=html.match(/<section id="catalogUsage"[^>]*>([\s\S]*?)<\/section>/)?.[1];
   assert.equal((usage.match(/class="price-display-picker"/g)||[]).length,1,'the initial HTML already has exactly one VAT picker');
   assert.equal((usage.match(/class="mobile-price-switch"/g)||[]).length,1,'the initial HTML already has exactly one mobile VAT switch');
-  const expected=purpose.id==='alle'?scope==='standard'?'Boligfoto og visning':scope==='messe'?'Arrangementer og annen bruk':'Velg prisgrunnlag':purpose.label;
+  const expected=purpose.id==='alle'?scope==='standard'?'Boligfoto og visning':scope==='messe'?'Arrangementer og annen bruk':'Velg bruksområde':purpose.label;
   assert.ok(catalogUsageLabel(model.catalogUsage).includes(expected));
   assert.ok(html.indexOf('id="catalogUsageButton"')<html.indexOf('class="catalog-tools"'));
  }

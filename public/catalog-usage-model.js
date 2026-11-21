@@ -16,7 +16,7 @@ export function proposedCatalogUsage({purpose='alle',scope,currentScope,confirme
  const scopeChanged=nextConfirmed&&previousScope!==null&&nextScope!==previousScope;
  const occasionConflict=nextConfirmed&&Boolean(occasion)&&scopeForOccasion(occasion)!==nextScope;
  const messages=[];
- if(!nextConfirmed)messages.push('Velg prisgrunnlag før leieprisene vises.');
+ if(!nextConfirmed)messages.push('Velg bruksområde før leieprisene vises.');
  if(hasItems&&scopeChanged)messages.push(`Leieprisene for varene i forespørselen beregnes på nytt for ${rentalUsageLabels[nextScope].toLocaleLowerCase('nb-NO')}.`);
  if(hasItems)messages.push('Produkter, antall, tilvalg og leieperiode i forespørselen beholdes. Noen av varene kan være utenfor utvalget du velger å se.');
  if(occasionConflict)messages.push('Anledningen i forespørselen samsvarer ikke med det nye prisgrunnlaget. Den tømmes, slik at du kan velge en passende anledning.');
@@ -27,6 +27,6 @@ export function catalogUsageLabel({purpose='alle',scope,confirmed=false}={}){
  const normalized=validPurpose(purpose);
  const label=purposes.find(item=>item.id===normalized).label;
  if(normalized!=='alle'&&confirmed&&scope===scopeForPurpose(normalized))return label;
- const basis=confirmed&&validScope(scope)?rentalUsageLabels[scope]:'Velg prisgrunnlag';
- return `${label} · Leiepriser: ${basis}`;
+ if(!confirmed||!validScope(scope))return 'Velg bruksområde';
+ return rentalUsageLabels[scope];
 }
