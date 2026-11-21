@@ -38,7 +38,7 @@ export function createSubmissionSender(env,store,sendOverride){
  const host=env.SMTP_HOST||'smtp.hostinger.com',port=Number(env.SMTP_PORT||465),user=env.SMTP_USER||mailbox;
  const enabled=Boolean(store.enabled&&env.SMTP_PASS&&user===mailbox&&[465,587].includes(port));
  const transport=enabled&&!sendOverride?nodemailer.createTransport({host,port,secure:port===465,requireTLS:true,auth:{user,pass:env.SMTP_PASS},tls:{minVersion:'TLSv1.2',rejectUnauthorized:true},connectionTimeout:8000,greetingTimeout:8000,socketTimeout:15000,disableFileAccess:true,disableUrlAccess:true}):null;
- const send=sendOverride||((message)=>transport.sendMail(message));let active=0,draining=false,lastPruned=0;
+ const send=sendOverride||((message)=>transport.sendMail(message));let active=0,draining=false,flushAgain=false,lastPruned=0;
  const assetsRoot=fileURLToPath(new URL('../public/assets/',import.meta.url));
  async function illustrated(snapshot){
   const attachments=[],lines=[];let budget=4*1024*1024;
@@ -65,21 +65,23 @@ export function createSubmissionSender(env,store,sendOverride){
  let logo;const logoBytes=()=>logo??=readFile(new URL('../public/assets/konseptuell-leie-og-kjop-logo.png',import.meta.url));
  async function flush(){
   // Retention is independent of SMTP: disabling mail must not retain customer data.
-  if(!store.enabled||draining)return;draining=true;
+  if(!store.enabled)return;if(draining){flushAgain=true;return;}draining=true;
   try{
    if(typeof store.pruneEnquiries==='function'&&Date.now()-lastPruned>3600000){await store.pruneEnquiries(Date.now());lastPruned=Date.now();}
    if(!enabled)return;
-   for(const job of await store.pendingEnquiryMail(Date.now())){
+   let passes=0;do{flushAgain=false;const jobs=await store.pendingEnquiryMail(Date.now());if(jobs.length===10)flushAgain=true;
+   for(const job of jobs){
     if(!await store.claimEnquiryMail(job.id,job.channel,Date.now()))continue;
     const internal=job.channel==='internal',to=internal?mailbox:job.snapshot.email;
     let status='uncertain';
     try{
      const terms=job.snapshot.rentalTerms,termsAttachment=terms&&['offer','confirmation'].includes(job.snapshot.documentType)?[{filename:rentalTermsFilename(terms),content:await rentalTermsPdf(terms),contentType:'application/pdf',contentDisposition:'attachment'}]:[];
-     const snapshot=job.snapshot.documentType?{...job.snapshot,lines:job.snapshot.lines.map(l=>workflowAddonLine(l))}:job.snapshot;const pictures=await illustrated(snapshot),message=job.snapshot.documentType?workflowEmail({...pictures.snapshot,logoSrc:'cid:konseptuell-logo'}):job.snapshot.acquisition==='proposal'?proposalEmail(pictures.snapshot,job.channel):enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments,...termsAttachment],disableFileAccess:true,disableUrlAccess:true});
+     const snapshot=['acceptance','offer_response'].includes(job.snapshot.documentType)?{...job.snapshot,lines:[]}:job.snapshot.documentType?{...job.snapshot,lines:job.snapshot.lines.map(l=>workflowAddonLine(l))}:job.snapshot;const pictures=await illustrated(snapshot),message=job.snapshot.documentType?workflowEmail({...pictures.snapshot,logoSrc:'cid:konseptuell-logo'}):job.snapshot.acquisition==='proposal'?proposalEmail(pictures.snapshot,job.channel):enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments,...termsAttachment],disableFileAccess:true,disableUrlAccess:true});
      status=result.accepted?.some(address=>String(address).toLowerCase()===to.toLowerCase())?'sent':'pending';
     }catch(error){status=retryableMailError(error)?'pending':'uncertain';console.error('E-post '+job.channel+' '+job.id+': '+String(error.code||'SMTP').replace(/[^A-Z0-9_]/gi,''));}
     await store.finishEnquiryMail(job.id,job.channel,status,Date.now());
    }
+   }while(flushAgain&&++passes<10);
   }catch(error){console.error('E-postkø: '+String(error.code||'STORE').replace(/[^A-Z0-9_]/gi,''));}finally{draining=false;}
  }
  return {enabled,flush,async submit(input,products,client,context={}){
