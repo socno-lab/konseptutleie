@@ -1,3 +1,5 @@
+import {transportWeekdayPolicy} from '../public/transport-weekdays.js';
+import {transportMode} from '../public/admin/transport-model.js';
 import {packageBuyoutOption,buyoutFacts,isBuyoutAddon} from '../public/buyout-model.js';
 import {receiptPackageLines} from './receipt-packages.mjs';
 import {receiptSofaLines} from './receipt-sofas.mjs';
@@ -19,7 +21,7 @@ const date=(value,label)=>{if(!value)return '';if(parseDateOnly(value)===null)fa
 export function requestDetails(input){
  const d=input.details;if(!d||typeof d!=='object'||Array.isArray(d))fail('Last inn siden på nytt før du sender forespørselen.');
  const text=(key,max=300)=>{const v=d[key]??'';if(typeof v!=='string'||v.length>max||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(v))fail('Kontroller '+key+'.');return v.trim();};
- return {phone:text('phone',40),company:text('company',150),address:text('address',300),comment:text('notes',3000),occasion:text('occasion',100),delivery:text('delivery',100),start:date(d.start,'fra-dato'),end:date(d.end,'til-dato'),customText:text('customRequest',3000),stylingNotes:text('stylingNotes',2000),stylist:d.stylist==='yes',discountCode:text('discountCode',40),deliveryToken:text('deliveryToken',6000)};
+ return {phone:text('phone',40),company:text('company',150),address:text('address',300),comment:text('notes',3000),occasion:text('occasion',100),delivery:text('delivery',100),start:date(d.start,'fra-dato'),end:date(d.end,'til-dato'),deliveryDate:date(d.deliveryDate,'leveringsdato'),pickupDate:date(d.pickupDate,'hentedato'),customText:text('customRequest',3000),stylingNotes:text('stylingNotes',2000),stylist:d.stylist==='yes',discountCode:text('discountCode',40),deliveryToken:text('deliveryToken',6000)};
 }
 export function createEnquirySnapshot(value,input,products,{codes=[],verifyDelivery=()=>null,now=new Date()}={}){
  products=withPackageAddons(products);
@@ -94,8 +96,11 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const labels=purchaseOnly?['Ønsker levering','Henter selv etter avtale']:['Henter og returnerer selv','Ønsker levering og henting','Kun levering – jeg returnerer selv','Kun henting – jeg henter selv','Avklares senere'];
  if(!labels.includes(deliveryChoice))fail('Velg levering eller henting.');
  const visits=deliveryChoice==='Ønsker levering og henting'?2:1;
- const receipt=hasRental&&!self&&!capacity.manual?verifyDelivery(d.deliveryToken,d.address,rent,value.customRequest,visits):null;
- const delivery={choice:deliveryChoice,label:included?'Levering og henting inkludert i fastprisen':capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':deliveryChoice,total:included||self?0:receipt?.total??null};
+ const transportDates=transportWeekdayPolicy({...d,scope,mode:transportMode(deliveryChoice)});
+ if(hasRental&&((transportDates.deliveryDate&&transportDates.deliveryDate>d.start)||(transportDates.pickupDate&&transportDates.pickupDate<d.end)))fail('Transportdatoene må omfatte leieperioden.');
+ if(hasRental&&!self){const display=v=>v?v.split('-').reverse().join('.'):'';if(['Ønsker levering og henting','Kun levering – jeg returnerer selv'].includes(deliveryChoice))facts.push(['Ønsket levering',display(transportDates.deliveryDate)]);if(['Ønsker levering og henting','Kun henting – jeg henter selv'].includes(deliveryChoice))facts.push(['Ønsket henting',display(transportDates.pickupDate)]);}
+ const receipt=hasRental&&!transportDates.manual&&!self&&!capacity.manual?verifyDelivery(d.deliveryToken,d.address,rent,value.customRequest,visits):null;
+ const delivery={choice:deliveryChoice,label:included?'Levering og henting inkludert i fastprisen':capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':hasRental&&transportDates.manual&&!self?'Transport må beregnes i tilbudet':deliveryChoice,...(hasRental?{dates:{deliveryDate:transportDates.deliveryDate,pickupDate:transportDates.pickupDate}}:{}),total:included||self?0:receipt?.total??null};
  const tryGroups=groups.filter(g=>businessPurchaseEnabled(g.product)&&(g.custom?g.acquisition==='try':choices[g.packageId]==='try'));
  const purchaseOptions=tryGroups.map(g=>packageBuyoutOption({...g.product,purchasePrice:resolvedPackagePurchasePrice(g.product,products)},products,{quantity:g.quantity,custom:g.custom,extras:g.custom?Object.fromEntries(Object.entries(g.selection).filter(([id])=>isBuyoutAddon(products.find(p=>p.id===id)))):g.extras||{}}));
  // Only a complete buyout can remove the entire pickup; other rental goods keep it.

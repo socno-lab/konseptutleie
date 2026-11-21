@@ -1,4 +1,4 @@
-const allowed=new Set(['start','end','occasion','name','email','phone','company','address','postalCode','postalCity','notes','delivery','shipping','stylist','stylingNotes','customRequest']);
+const allowed=new Set(['start','end','deliveryDate','pickupDate','occasion','name','email','phone','company','address','postalCode','postalCity','notes','delivery','shipping','stylist','stylingNotes','customRequest']);
 export function mountEnquiryFlow({cartId,formId,mode}){
  const cart=document.getElementById(cartId),form=document.getElementById(formId),page=location.pathname==='/foresporsel.html',key='konsept-enquiry-draft-'+mode;
  if(!cart||!form)return {open(){},update(){},clearDraft(){},restoredField:()=>false};

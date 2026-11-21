@@ -1,5 +1,5 @@
 import {proposalInitialValues} from './proposal-draft.js';
-import {submitEnquiry} from './submission-ui.js?v=review20261107';
+import {submitEnquiry} from './submission-ui.js?v=weekdays20261121';
 const form=document.getElementById('proposalForm'),main=document.getElementById('proposalMain'),status=document.getElementById('proposalStatus');
 const draftKey='konsept-proposal-draft-v1',fields=['customRequest','period','place','budget','name','email','phone','company'];
 const read=(storage,key,fallback)=>{try{return JSON.parse(storage.getItem(key)||'null')||fallback;}catch{return fallback;}};

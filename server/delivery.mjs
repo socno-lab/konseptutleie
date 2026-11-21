@@ -1,3 +1,4 @@
+import {transportWeekdayPolicy} from '../public/transport-weekdays.js';
 import {getSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {createHmac,randomBytes,timingSafeEqual} from 'node:crypto';
 import {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity} from '../public/delivery-model.js?v=fest20261114';
@@ -51,6 +52,8 @@ export function createDeliveryEstimator(env,fetcher=fetch,options={}){
   const capacity=rentalDeliveryCapacity(basket,products,input.customRequest===true);
   if(capacity.includedOnly)return {manual:false,included:true,total:0,perVisit:0,prices:{onePerson:0,twoPeople:0},visits:input.visits,vatIncluded:true};
   if(capacity.manual)return {manual:true,reason:capacity.reason,capacity,prices:null,crew:requiresTwoPeople(basket,products)?2:1,visits:input.visits,estimated:true,vatIncluded:true};
+  const weekdayPolicy=transportWeekdayPolicy(input);
+  if((input.start||input.deliveryDate||input.pickupDate)&&weekdayPolicy.manual)return {manual:true,reason:weekdayPolicy.reason,prices:null,visits:input.visits,vatIncluded:true};
   if(!key)fail('Frakt beregnes i tilbudet. Du kan sende forespørselen uten fraktestimat.',503);
   const address=input.address.normalize('NFKC').trim().replace(/[\s,]+/g,' '),id=createHmac('sha256',salt).update(address.toLocaleLowerCase('nb-NO')+'|'+JSON.stringify(getSiteSettings().delivery)).digest('hex');
   const offer=await tariff(address,id,client),crew=requiresTwoPeople(basket,products)?2:1,perVisit=offer.manual?undefined:offer.prices[crew===2?'twoPeople':'onePerson'];

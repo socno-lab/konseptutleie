@@ -6,12 +6,12 @@ import {detailImageAttributes,setDetailPhotoSource} from './product-image-loadin
 import {saleCatalogView} from './sale-catalog-view.js?v=choicesfirst20261119';
 import {saleQuantityControl as quantityControl,purchaseInitialSelection,purchaseModuleState,purchaseProductOptionsMarkup} from './purchase-product-options.js?v=choicesfirst20261119';
 import {readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
-import {mountEnquiryFlow} from './enquiry-flow.js?v=customfirst20261115';
-import './customer-info.js?v=choicesfirst20261119';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=weekdays20261121';
+import './customer-info.js?v=weekdays20261121';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=vat20261115b';
 import {mountCatalogPagination} from './catalog-pagination.js?v=choicesfirst20261119';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
-import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=review20261107';
+import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=weekdays20261121';
 import {configureSiteSettings} from './site-settings.js?v=fest20261114';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError} from './product-pages.js?v=choicesfirst20261119';
 import {sofaLayoutError} from './sofa-layout.js?v=launch20261024';

@@ -1,12 +1,14 @@
+import {plannedTransportDates,transportWeekdayPolicy} from './transport-weekdays.js?v=weekdays20261121';
+import {scopeForOccasion} from './rental-pricing-model.js?v=fest20261114';
 import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
-import {customerInformationPages} from './customer-information-content.js?v=reminders20261121';
+import {customerInformationPages} from './customer-information-content.js?v=weekdays20261121';
 import {readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
 import {mountMobileRentalDates} from './mobile-rental-dates.js?v=period20261028e';
 import {mountStorageNotice} from './storage-notice.js?v=launch20261024';
 mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js?v=fest20261114';
-import {getTermsVersions} from './terms-versions.js?v=reminders20261121';
+import {getTermsVersions} from './terms-versions.js?v=weekdays20261121';
 const initialSettings=readInitialCatalog(document)?.settings;
 if(initialSettings)configureSiteSettings(initialSettings);else try{const response=await fetch('/api/site-settings',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(response.ok)configureSiteSettings((await response.json()).settings);}catch{}
 import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=fest20261114';
@@ -56,6 +58,13 @@ function mountRentalDelivery(form){
  select.innerHTML=choices.map(([value,label])=>'<option>'+value+'</option>').join('');mountAddressFields(form);
  const group=document.createElement('fieldset');group.className='rental-options';group.innerHTML='<legend>Levering eller henting *</legend><div class="addon-choices">'+choices.map(([value,label,visits],i)=>'<label class="addon-choice"><input type="radio" name="delivery" value="'+value+'" '+(i===0?'checked':'')+'><span style="flex:1">'+label+'</span><strong data-delivery-price="'+i+'" style="white-space:nowrap;font-size:12px">'+(visits===0?'0 kr':visits===null?'Avklares':'Adresse kreves')+'</strong></label>').join('')+'</div><p class="hint">Prisene inkluderer mva.</p><div role="status" aria-live="polite"></div>';
  select.closest('label').replaceWith(group);
+ const transportFields=document.createElement('div');transportFields.className='rental-transport-dates';transportFields.innerHTML='<label>Ønsket leveringsdato<input type="date" name="deliveryDate"></label><label>Ønsket hentedato<input type="date" name="pickupDate"></label><p class="hint">Fast transportpris gjelder hverdager. Levering eller henting i helgen må beregnes i tilbudet.</p>';group.append(transportFields);
+ const transportInput=name=>transportFields.querySelector('[name="'+name+'"]');let previousTransportDefaults={};
+ const transportMode=()=>({'Henter og returnerer selv':'pickup','Kun levering – jeg returnerer selv':'deliveryOnly','Kun henting – jeg henter selv':'collectionOnly'})[selected()[0]]||'delivery';
+ const dateOptions=()=>({start:form.elements.namedItem('start')?.value||'',end:form.elements.namedItem('end')?.value||'',scope:scopeForOccasion(form.elements.namedItem('occasion')?.value||''),mode:transportMode()});
+ const transportPolicy=()=>transportWeekdayPolicy({...dateOptions(),deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value});
+ const syncTransportDates=()=>{const defaults=plannedTransportDates(dateOptions());for(const key of ['deliveryDate','pickupDate']){const field=transportInput(key);if(!field.value||field.value===previousTransportDefaults[key])field.value=defaults[key];}previousTransportDefaults=defaults;transportFields.hidden=purchaseOnly()||capacity().includedOnly||selected()[2]===0||selected()[2]===null;transportInput('deliveryDate').closest('label').hidden=transportMode()==='collectionOnly';transportInput('pickupDate').closest('label').hidden=transportMode()==='deliveryOnly';};
+
  const addressNotice=document.createElement('p');addressNotice.className='hint';addressNotice.textContent='Komplett adresse brukes automatisk til fraktberegning via Google Maps.';addressNotice.id='rentalAddressPrivacy';address.setAttribute('aria-describedby',addressNotice.id);address.closest('label').after(addressNotice);
  const result=group.querySelector('[role="status"]'),dialog=form.closest('dialog');let enabled=false,revision=0,timer,controller,offer=null,pendingKey='',wasLocked=false,previousChoice=choices[0][0],retryAfter=0;
  // Autofill can update the whole address while the customer is still editing their name.
@@ -78,6 +87,7 @@ function mountRentalDelivery(form){
   const currentChoice=wasLocked?(choices.find(([value])=>value===previousChoice)||choices[0]):choice;
   if(currentChoice[2]===0)return {total:0,included:false,label:currentChoice[1]};
   if(currentChoice[2]===null)return unknown(currentChoice[1]);
+  if(transportPolicy().manual)return unknown('Transport må beregnes i tilbudet');
   if(!ready()||offer?.key!==addressKey()||!(offer.until>Date.now())||offer.manual)return unknown(currentChoice[1]);
   const crew=requiresTwoPeople(deliverySelection?.basket||{},deliverySelection?.products||[])?'twoPeople':'onePerson',rate=offer.prices?.[crew],total=rate*currentChoice[2];
   return Number.isFinite(rate)&&rate>=0&&Number.isFinite(total)?{total,included:false,label:currentChoice[1]}:unknown(currentChoice[1]);
@@ -86,7 +96,7 @@ function mountRentalDelivery(form){
   try{
   if(editingContact()){deferredDelivery=true;return;}
   deferredDelivery=false;
-  const load=capacity();
+  syncTransportDates();const load=capacity();
   let includedNote=group.querySelector('.rental-included-note');if(!includedNote){includedNote=document.createElement('p');includedNote.className='hint rental-included-note';group.querySelector('legend').after(includedNote);}includedNote.textContent=Object.keys(deliverySelection?.basket||{}).some(id=>deliverySelection.products.find(p=>p.id===id)?.deliveryIncluded)&&!load.includedOnly?'Varer og tjenester merket med inkludert transport leveres og hentes uten ekstra frakt. Transportvalget og eventuell fraktpris nedenfor gjelder bare øvrige produkter.':'';includedNote.hidden=!includedNote.textContent;
   if(purchaseOnly()){
    const choice=selected()[0];if(![choices[0][0],choices[2][0]].includes(choice))group.querySelector('[name=delivery]').checked=true;
@@ -104,10 +114,11 @@ function mountRentalDelivery(form){
   wasLocked=load.manual;
   for(const name of ['address','postalCode','postalCity'])form.querySelector('[name="'+name+'"]').required=true;
   const current=offer?.key===addressKey()&&offer.until>Date.now()?offer:null,crew=requiresTwoPeople(deliverySelection?.basket||{},deliverySelection?.products||[])?2:1;
-  for(const [i,choice] of choices.entries())group.querySelector('[data-delivery-price="'+i+'"]').innerHTML=choice[2]===0?'0 kr':choice[2]===null?'Avklares':load.manual?'Avklares':current&&!current.manual?priceMarkup(current.prices[crew===2?'twoPeople':'onePerson']*choice[2]):current?.manual?'Avklares':ready()?'Avklares':'Adresse kreves';
-  const choice=selected();deliveryQuote=choice[2]>0&&load.manual?{manual:true,reason:load.reason}:choice[2]>0&&current?{manual:current.manual,receipt:current.receipt,total:current.manual?undefined:current.prices[crew===2?'twoPeople':'onePerson']*choice[2]}:null;
+  for(const [i,choice] of choices.entries())group.querySelector('[data-delivery-price="'+i+'"]').innerHTML=choice[2]===0?'0 kr':choice[2]===null?'Avklares':load.manual?'Avklares':transportPolicy().manual?'Må beregnes':current&&!current.manual?priceMarkup(current.prices[crew===2?'twoPeople':'onePerson']*choice[2]):current?.manual?'Avklares':ready()?'Avklares':'Adresse kreves';
+  const choice=selected();deliveryQuote=choice[2]>0&&transportPolicy().manual?{manual:true,reason:transportPolicy().reason}:choice[2]>0&&load.manual?{manual:true,reason:load.reason}:choice[2]>0&&current?{manual:current.manual,receipt:current.receipt,total:current.manual?undefined:current.prices[crew===2?'twoPeople':'onePerson']*choice[2]}:null;
   addressNotice.hidden=load.manual;
   if(load.manual){result.textContent=load.reason==='custom'?'Ved tilpasset forespørsel avklares transport og pris i tilbudet.':load.reason==='capacity'?'Forespørselen krever utvidet transport. Frakt med ekstern transportør prises i tilbudet.':'Transportpris bekreftes i tilbudet.';return;}
+  if(choice[2]>0&&transportPolicy().manual){result.textContent=transportPolicy().weekend?'Transport i helgen må beregnes. Pris bekreftes i tilbudet.':'Velg transportdatoer for å se pris. Fast transportpris gjelder hverdager.';return;}
   if(!ready()){result.textContent='Fyll inn komplett adresse for transportpris. Egen henting og retur er gratis.';return;}
   if(current){result.innerHTML=(current.manual?'Transport over '+getSiteSettings().delivery.maxMinutes+' minutter fra lageret avtales særskilt. ':'')+'<span class="hint">Kjøretid beregnet med <span translate="no" style="font:400 13px sans-serif;color:#1f1f1f;white-space:nowrap">Google Maps</span></span>';return;}
   result.textContent=pendingKey===addressKey()?'Beregner transportpris …':'Transportpris avklares i tilbudet.';
@@ -117,20 +128,20 @@ function mountRentalDelivery(form){
   clearTimeout(timer);
   if(editingContact()){deferredDelivery=true;updated();return;}const key=addressKey();if(offer?.key!==key)offer=null;
   if(pendingKey&&pendingKey!==key){revision++;controller?.abort();pendingKey='';}
-  if(purchaseOnly()||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
+  syncTransportDates();if(purchaseOnly()||transportPolicy().manual||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
   render();if(!enabled||!ready()||!dialog?.open||Date.now()<retryAfter||(offer?.key===key&&offer.until>Date.now())||pendingKey===key)return;
   result.textContent='Beregner transportpris …';timer=setTimeout(calculate,1800);
  };
  async function calculate(){
-  if(purchaseOnly()||!enabled||!ready()||!dialog?.open||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length||Date.now()<retryAfter)return;const key=addressKey(),current=++revision;pendingKey=key;controller=new AbortController();render();
-  try{const response=await fetch('/api/delivery-estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:completeAddress(form),visits:1,basket:deliverySelection.basket,customRequest:deliverySelection.customRequest===true}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(12000)])});const quote=await response.json();if(current!==revision)return;if(!response.ok){retryAfter=Date.now()+(response.status===429?60000:30000);throw Error(quote.error||'Transportpris avklares i tilbudet.');}
+  if(purchaseOnly()||transportPolicy().manual||!enabled||!ready()||!dialog?.open||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length||Date.now()<retryAfter)return;const key=addressKey(),current=++revision;pendingKey=key;controller=new AbortController();render();
+  try{const response=await fetch('/api/delivery-estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:completeAddress(form),visits:1,...dateOptions(),deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value,basket:deliverySelection.basket,customRequest:deliverySelection.customRequest===true}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(12000)])});const quote=await response.json();if(current!==revision)return;if(!response.ok){retryAfter=Date.now()+(response.status===429?60000:30000);throw Error(quote.error||'Transportpris avklares i tilbudet.');}
    if(!quote.manual&&(!Number.isFinite(quote.prices?.onePerson)||!Number.isFinite(quote.prices?.twoPeople)))throw Error('Transportpris avklares i tilbudet.');
    offer={key,until:Date.now()+300000,manual:quote.manual,prices:quote.prices,receipt:quote.receipt};pendingKey='';render();
   }catch(error){if(current!==revision||error.name==='AbortError')return;pendingKey='';offer=null;retryAfter=Math.max(retryAfter,Date.now()+30000);render();result.textContent=error.name==='TimeoutError'?'Fraktberegningen tok for lang tid. Frakt avklares i tilbudet.':error.message||'Transportpris avklares i tilbudet.';}
  }
  form.addEventListener('focusout',()=>{if(deferredDelivery)requestAnimationFrame(()=>{if(!editingContact())schedule();});});
  document.addEventListener('rental-delivery-selection',event=>{deliverySelection=event.detail;schedule();});
- form.addEventListener('input',event=>{if(['address','postalCode','postalCity'].includes(event.target.name))schedule();});form.addEventListener('change',event=>{if(['delivery','address','postalCode','postalCity'].includes(event.target.name))schedule();});
+ form.addEventListener('input',event=>{if(['address','postalCode','postalCity','start','end','occasion','deliveryDate','pickupDate'].includes(event.target.name))schedule();});form.addEventListener('change',event=>{if(['delivery','address','postalCode','postalCity','start','end','occasion','deliveryDate','pickupDate'].includes(event.target.name))schedule();});
  dialog?.addEventListener('close',()=>{clearTimeout(timer);controller?.abort();revision++;pendingKey='';deliveryQuote=null;updated();});if(dialog)new MutationObserver(()=>{if(dialog.open)schedule();}).observe(dialog,{attributes:true,attributeFilter:['open']});
  render();fetch('/api/delivery-estimate',{signal:AbortSignal.timeout(8000)}).then(r=>r.ok?r.json():null).then(data=>{enabled=data?.enabled===true;schedule();}).catch(()=>render());
 }
@@ -169,3 +180,5 @@ if(rentalForm||saleForm){const style=document.createElement('style');style.textC
 
 // Package rows must allocate the same width as the shared thumbnail component.
 if(rentalForm){const style=document.createElement('style');style.textContent='#cart .package-cart-line{grid-template-columns:var(--cart-image-size) minmax(0,1fr) auto;column-gap:var(--cart-image-gap);align-items:start}#cart .package-cart-copy{min-width:0;overflow-wrap:anywhere}#cart .package-cart-line>.cart-thumbnail{grid-column:1;grid-row:1}#cart .package-cart-line>.package-cart-copy{grid-column:2;grid-row:1}#cart .package-cart-line>.quantity{grid-column:3;grid-row:1}#cart .package-cart-addon>.cart-thumbnail{display:none}#cart .package-cart-addon{grid-template-columns:minmax(0,1fr) auto}#cart .package-cart-addon>.package-cart-copy{grid-column:1}#cart .package-cart-addon>.quantity{grid-column:2}@media(max-width:640px){#cart .package-cart-line{grid-template-columns:var(--cart-image-size) minmax(0,1fr);row-gap:10px}#cart .package-cart-line>.cart-thumbnail{grid-row:1 / span 2}#cart .package-cart-line>.quantity{grid-column:2;grid-row:2;justify-self:start;margin-top:0}#cart .package-cart-addon{grid-template-columns:minmax(0,1fr)}#cart .package-cart-addon>.package-cart-copy,#cart .package-cart-addon>.quantity{grid-column:1}#cart .package-cart-copy h4{overflow-wrap:anywhere}}';document.head.append(style);}
+
+if(rentalForm){const style=document.createElement('style');style.textContent='#requestForm .rental-transport-dates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}#requestForm .rental-transport-dates[hidden]{display:none}#requestForm .rental-transport-dates input{box-sizing:border-box;width:100%;height:48px;padding:10px 12px}#requestForm .rental-transport-dates .hint{grid-column:1 / -1;margin:0}@media(max-width:640px){#requestForm .rental-transport-dates{grid-template-columns:1fr}#requestForm .rental-transport-dates input{font-size:16px}}';document.head.append(style);}

@@ -3,7 +3,7 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {customerInformationPages} from '../public/customer-information-content.js';
 import {getSiteSettings} from '../public/site-settings.js?v=fest20261114';
-import {getTermsVersions} from '../public/terms-versions.js?v=reminders20261121';
+import {getTermsVersions} from '../public/terms-versions.js?v=weekdays20261121';
 export function rentalTermsSnapshot(settings=getSiteSettings()){
  const html=customerInformationPages(settings).leiebetingelser[1],version=getTermsVersions(settings.delivery).rental;
  return {version,html,sha256:createHash('sha256').update(html).digest('hex')};

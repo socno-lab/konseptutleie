@@ -1,3 +1,5 @@
+import {plannedTransportDates,transportWeekdayPolicy} from '../public/transport-weekdays.js';
+import {scopeForOccasion} from '../public/rental-pricing-model.js';
 import {priceMarkup} from '../public/price-display-model.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,7 +14,7 @@ async function mountedDelivery(){
  const getter=source.match(/export function rentalDeliverySummary\(\)\{[^\n]+/)[0].replace('export ','');
  const values=['Henter og returnerer selv','Ønsker levering og henting','Kun levering – jeg returnerer selv','Kun henting – jeg henter selv','Avklares senere'];
  const listeners={},formListeners={},requests=[],events=[],timers=new Map();let now=1_000_000,timerId=0,mobile=false,quote={manual:false,prices:{onePerson:690,twoPeople:1190},receipt:'isolated-test-receipt'};
- const element=()=>({hidden:false,disabled:false,textContent:'',innerHTML:'',style:{},setAttribute(){},after(){}});
+ const element=()=>({hidden:false,disabled:false,textContent:'',innerHTML:'',style:{},setAttribute(){},after(){},append(){}});
  let includedNote=null;const status=element(),legend={after(note){includedNote=note;}},prices=values.map(element),labels=values.map(element),radios=[];
  for(const [i,value] of values.entries()){
   const caption=element(),label=labels[i];label.querySelector=selector=>selector==='span'?caption:null;
@@ -21,16 +23,18 @@ async function mountedDelivery(){
  }
  const group={...element(),querySelector(selector){if(selector==='[role="status"]')return status;if(selector==='legend')return legend;if(selector==='.rental-included-note')return includedNote;if(selector.includes(':checked'))return radios.find(radio=>radio.checked)||null;if(selector.startsWith('[name='))return radios[0];const match=selector.match(/data-delivery-price="(\d+)"/);if(match)return prices[Number(match[1])];throw Error('Unimplemented fixture selector: '+selector);},querySelectorAll(){return radios;}};
  const address={...element(),name:'address',value:'Testveien 1',closest:()=>element()},postalCode={...element(),name:'postalCode',value:'1470'},postalCity={...element(),name:'postalCity',value:'Teststed'},select={...element(),closest:()=>({replaceWith(){}})};
- const fields={address,postalCode,postalCity,delivery:select},dialogListeners={},dialog={open:true,addEventListener(name,callback){dialogListeners[name]=callback;}};
- const form={querySelector(selector){return fields[selector.match(/name="([^"]+)"/)[1]];},closest:()=>dialog,contains:field=>Object.values(fields).includes(field),addEventListener(name,callback){(formListeners[name]??=[]).push(callback);}};
- const document={activeElement:null,createElement:tag=>tag==='fieldset'?group:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
+ const fields={start:{value:'2030-11-04'},end:{value:'2030-11-05'},occasion:{value:'Bedrift'},address,postalCode,postalCity,delivery:select},dialogListeners={},dialog={open:true,addEventListener(name,callback){dialogListeners[name]=callback;}};
+ const form={elements:{namedItem:name=>fields[name]},querySelector(selector){return fields[selector.match(/name="([^"]+)"/)[1]];},closest:()=>dialog,contains:field=>Object.values(fields).includes(field),addEventListener(name,callback){(formListeners[name]??=[]).push(callback);}};
+ const transportInputs=Object.fromEntries(['deliveryDate','pickupDate'].map(name=>[name,{value:'',closest:()=>element()}]));
+ const document={activeElement:null,createElement:tag=>tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
  const products=[{id:'chair',name:'Teststol',category:'Stoler'},{id:'sofa',name:'Testsofa',type:'sofa'},{id:'tree',deliveryIncluded:true,isService:true,offeringType:'service'}];
- const context=vm.createContext({priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
+ const context=vm.createContext({plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
  vm.runInContext(getter+'\n'+source.slice(first,last)+'\nmountRentalDelivery(form);\nvar deliverySummaryProvider;',context);
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
  const fire=(name,target)=>{for(const callback of formListeners[name]||[])callback({target});};
  return {summary,requests,events,radios,document,address,postalCode,
+  editTransport(name,value){const field=transportInputs[name];field.name=name;field.value=value;fire("change",field);},
   emit(basket,acquisition='rental',customRequest=false){listeners['rental-delivery-selection']({detail:{acquisition,basket,products,customRequest}});},
   choose(index){radios[index].checked=true;fire('change',radios[index]);},
   editAddress(value){address.value=value;fire('input',address);},
@@ -80,4 +84,10 @@ test('canonical mode and capacity changes remain accurate while mobile rendering
  ui.emit({tree:1});assert.equal(ui.summary().included,true);assert.equal(ui.summary().total,0);
  ui.emit({chair:1},'purchase');assert.equal(ui.summary().total,0,'rental return choice is reset to pickup in purchase mode');
  assert.equal(ui.document.activeElement,ui.address);
+});
+
+test('changing a paid visit to a weekend hides the preceding quote immediately and restores it for weekday visits',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);await ui.calculate();assert.equal(ui.summary().total,1380);
+ ui.editTransport('deliveryDate','2030-11-02');assert.equal(ui.summary().total,null);assert.match(ui.summary().label,/må beregnes/);
+ ui.editTransport('deliveryDate','2030-11-01');assert.equal(ui.summary().total,1380);
 });
