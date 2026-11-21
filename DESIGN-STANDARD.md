@@ -263,3 +263,5 @@ Etter eiers uttrykkelige bestilling gjelder dette på alle sider, inkludert admi
 Flerlinjefelt får nødvendig høyde for teksten. Avkrysningsbokser, radioknapper og antallssteppere beholder sine funksjonstilpassede mål. Tidligere uttrykkelig godkjente kompakte katalogfiltre beholder sine mål som én samlet, konsistent verktøylinje. Dette gir ikke grunnlag for tilfeldige høydeforskjeller mellom vanlige skjemafelter.
 
 21. november 2026 – tilbudssvar: Desktop viser «Svar på tilbudet» fra start når tilbudet er klart. Mobil viser snarveien først etter litt scrolling. Knappen skjules når svarområdet er synlig. Særskilt samtykke til tidlig oppstart er en egen, aldri forhåndsavkrysset avkrysningsboks, med samme typografi og plassering som øvrige akseptfelt.
+
+21. november 2026 – bekreftet retur: Leieperiode utløpt vises som eget trinn før avsluttet. Returbekreftelse og valgfri takke-e-post bruker eksisterende knapper, feltmål, logo og e-postprofil. Takke-e-posten forhåndsvises før retur bekreftes med utsending. Testutsending merkes tydelig og påvirker ingen kundeordre.

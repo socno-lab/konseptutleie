@@ -160,13 +160,19 @@ export function createServer(options={}){
      const d=await json(req,2000);if(!/^\d{4}-\d{2}-\d{2}$/.test(d.start||'')||!/^\d{4}-\d{2}-\d{2}$/.test(d.end||'')||d.start>d.end)throw error('Velg gyldige datoer.');const catalog=await readCatalog(),records=await store.workflowRecords();return out(200,{products:catalog.products.map(p=>({id:p.id,available:p.isService?null:Math.max(0,p.stock-p.unavailable-reservedQuantity(records,p.id,d.start,d.end,d.exclude))}))});
     }
     if(pathname==='/api/admin/pickup-slots'&&req.method==='POST'){const input=await json(req,2000);if(!Array.isArray(input.dates)||input.dates.length>2||!input.dates.every(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))throw error('Velg gyldige datoer.');return out(200,{slots:await store.workflowSlots(input.dates,input.exclude)});}
+    if(pathname==='/api/admin/return-email-test'){
+     if(req.method==='GET')return out(200,workflowEmail({documentType:'return',test:true,workflow:{id:'TEST – ingen kundeordre'}}));
+     if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
+     if(!submissions.enabled)throw error('E-postsending er ikke aktivert.',503);
+     const input=await json(req,1000),result=await store.queueRentalReturnTest(input.email);void submissions.flush();return out(200,result);
+    }
     if(pathname==='/api/admin/enquiries'&&req.method==='GET')return out(200,{records:await store.workflowRecords(),mail:await store.enquiryMailStatus()});
-    const workflow=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/(save|preview|offer|accept|confirmation|cancel|document)$/);
+    const workflow=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/(save|preview|offer|accept|confirmation|cancel|complete|document)$/);
     if(workflow&&req.method==='POST'){
      const input=await json(req,200000),catalog=await readCatalog(),action=workflow[2];configureWorkflowPricing(catalog.settings);
      if(action==='document'){const r=(await store.workflowRecords()).find(r=>r.id===workflow[1]),doc=r?.history.find(h=>h.id===input.historyId);if(!doc)throw error('Dokumentet finnes ikke.',404);return out(200,workflowEmail(doc.document));}
-     if(action==='preview')return out(200,await store.workflowPreview(workflow[1],input,catalog.products,input.documentType==='confirmation'?'confirmation':'offer'));
-     if(['offer','confirmation'].includes(action)&&!submissions.enabled)throw error('E-postsending er ikke aktivert.',503);
+     if(action==='preview')return out(200,await store.workflowPreview(workflow[1],input,catalog.products,input.documentType==='return'?'return':input.documentType==='confirmation'?'confirmation':'offer'));
+     if((['offer','confirmation'].includes(action)||(action==='complete'&&input.sendThanks===true))&&!submissions.enabled)throw error('E-postsending er ikke aktivert.',503);
      const record=await store.changeWorkflow(workflow[1],input,action,catalog.products);void submissions.flush();return out(200,{record});
     }
     if(pathname==='/api/admin/enquiry-mail-health'&&req.method==='GET')return out(200,enquiryHealth(await store.enquiryMailHealth(Date.now()),submissions.enabled));
