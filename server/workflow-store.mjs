@@ -91,7 +91,7 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  if(action==='save'&&!next.offerStartedAt&&!current.history.some(h=>h.type==='offer'||h.type==='confirmation'))next.offerStartedAt=new Date().toISOString();
  next.revision++;next.updatedAt=new Date().toISOString();
  if(['offer','confirmation'].includes(action)){
- const version=current.history.filter(h=>h.type===action).length+1;if(action==='confirmation'&&version>1&&!next.changeReason)fail('Beskriv endringen i den oppdaterte ordrebekreftelsen.',400);const messageId=randomUUID(),copy={...next,history:[]},snapshot={id:messageId,email:next.email,kind:'rental',receivedAt:next.updatedAt,documentType:action,version,workflow:copy,lines:copy.lines};
+ const version=current.history.filter(h=>h.type===action).length+1;const messageId=randomUUID(),copy={...next,history:[]},snapshot={id:messageId,email:next.email,kind:'rental',receivedAt:next.updatedAt,documentType:action,version,workflow:copy,lines:copy.lines};
  snapshot.rentalTerms=preparedTerms;
  if(action==='confirmation')snapshot.confirmationChanges=confirmationChanges(await lastSentConfirmation(current,c),next);
  if(action==='offer'){const token=randomBytes(32).toString('base64url');next.offerAcceptance={hash:tokenHash(token),offerId:messageId,expiresAt:Date.now()+14*86400000};snapshot.acceptUrl='https://konseptuell.no/aksepter-tilbud.html?token='+token;}
