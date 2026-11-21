@@ -10,12 +10,11 @@ const isWeekend=value=>[0,6].includes(new Date(parseDateOnly(value)).getUTCDay()
 export function transportDateLimits({start,end,scope='standard'}){
  if(parseDateOnly(start)===null||parseDateOnly(end)===null)return null;
  let first=addDateDays(start,-1),last=addDateDays(end,1);while(isWeekend(first))first=addDateDays(first,-1);while(isWeekend(last))last=addDateDays(last,1);
- const defaults=defaultTransportDates(start,end);
- return {deliveryDate:{min:first,max:scope==='standard'?defaults.deliveryDate:start},pickupDate:{min:scope==='standard'?defaults.pickupDate:end,max:last}};
+ return {deliveryDate:{min:first,max:start},pickupDate:{min:end,max:last}};
 }
 export function transportDateError(options){
  const limits=transportDateLimits(options);if(!limits)return '';
  const dates=plannedTransportDates(options);
- for(const key of ['deliveryDate','pickupDate']){const value=dates[key];if(parseDateOnly(value)===null)return 'Velg gyldige transportdatoer.';if(value<limits[key].min||value>limits[key].max)return 'Levering må være mellom nærmeste virkedag før leieperioden og første leiedag. Henting må være mellom siste leiedag og nærmeste virkedag etter. Større avvik avtales i kommentarfeltet.';if(options.scope==='standard'&&isWeekend(value))return 'For boligfoto og visning må levering og henting være på hverdager.';}
+ for(const key of ['deliveryDate','pickupDate']){const value=dates[key];if(parseDateOnly(value)===null)return 'Velg gyldige transportdatoer.';if(value<limits[key].min||value>limits[key].max)return 'Levering må være mellom nærmeste virkedag før leieperioden og første leiedag. Henting må være mellom siste leiedag og nærmeste virkedag etter. Større avvik avtales i kommentarfeltet.';}
  return '';
 }

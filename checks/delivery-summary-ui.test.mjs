@@ -129,3 +129,8 @@ test('styling weekend explains Friday/Monday transport and unchanged lease price
  assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/fredag 1\. november/);assert.match(ui.weekdayNotice.innerHTML,/mandag 4\. november/);assert.match(ui.weekdayNotice.innerHTML,/08.00–12.00/);assert.match(ui.weekdayNotice.innerHTML,/ingen ekstra leiekostnad/);
  ui.choose(0);assert.equal(ui.weekdayNotice.hidden,true);ui.choose(1);ui.occasion('Messe og stand');assert.equal(ui.weekdayNotice.hidden,true);
 });
+
+test('manual Sunday collection for styling shows agreement notice and hides the automatic weekday explanation',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(1);
+ assert.equal(ui.weekdayNotice.hidden,false);ui.editTransport('pickupDate','2030-11-03');assert.equal(ui.weekdayNotice.hidden,true);assert.equal(ui.summary().total,null);assert.match(ui.status.innerHTML,/Transport i helgen må avtales/);assert.match(ui.status.innerHTML,/Vi vurderer muligheten/);
+});

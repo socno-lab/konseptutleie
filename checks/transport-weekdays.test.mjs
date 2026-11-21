@@ -25,9 +25,14 @@ test('weekend estimator returns manual without requesting Google',async()=>{
  const result=await estimator.estimate({...period,scope:'messe',address:'Eksempelveien 12, 2010 Strømmen',basket:{chair:1},visits:2},'test',[chair]);assert.equal(result.manual,true);assert.equal(result.reason,'weekend');assert.equal(result.prices,null);assert.equal(calls,0);
 });
 
-test('transport boundaries allow only adjacent business days and reject weekend styling visits',()=>{
+test('transport boundaries allow only adjacent business days and allow manually requested weekend styling visits',()=>{
  const event={start:'2030-11-02',end:'2030-11-03',scope:'messe'};
  assert.deepEqual(transportDateLimits(event),{deliveryDate:{min:'2030-11-01',max:'2030-11-02'},pickupDate:{min:'2030-11-03',max:'2030-11-04'}});
  assert.equal(transportDateError({...event,deliveryDate:'2030-11-01',pickupDate:'2030-11-04'}),'');
- assert.ok(transportDateError({...event,deliveryDate:'2030-10-31'}));assert.ok(transportDateError({...event,pickupDate:'2030-11-05'}));assert.ok(transportDateError({...event,scope:'standard',deliveryDate:'2030-11-02'}));
+ assert.ok(transportDateError({...event,deliveryDate:'2030-10-31'}));assert.ok(transportDateError({...event,pickupDate:'2030-11-05'}));assert.equal(transportDateError({...event,scope:'standard',deliveryDate:'2030-11-02'}),'');assert.equal(transportWeekdayPolicy({...event,scope:'standard',deliveryDate:'2030-11-02'}).manual,true);
+});
+
+test('styling keeps Friday/Monday defaults but accepts requested Sunday collection without fixed transport price',()=>{
+ const d=input();d.details.occasion='Boligfoto og visning';const normal=snapshot(d);assert.equal(normal.delivery.total,1380);assert.equal(normal.delivery.dates.pickupDate,'2030-11-04');
+ d.details.pickupDate='2030-11-03';const requested=snapshot(d);assert.equal(requested.delivery.dates.pickupDate,'2030-11-03');assert.equal(requested.delivery.total,null);assert.equal(requested.total,null);
 });
