@@ -27,7 +27,7 @@ function fixture(){
   throw Error('Unexpected SQL: '+sql);
  };
  const pool={execute:(...args)=>execute(state,...args),async getConnection(){let local,release;return {async beginTransaction(){const before=tail;tail=new Promise(r=>{release=r;});await before;local=structuredClone(state);},execute:(...args)=>execute(local,...args),async commit(){state=local;},async rollback(){},release(){release();}};}};
- return {store:workflowStore(async()=>{},pool),get state(){return state;},set failQueue(v){failQueue=v;}};
+ return {store:workflowStore(async()=>{},pool,{today:()=>'2026-12-05'}),get state(){return state;},set failQueue(v){failQueue=v;}};
 }
 async function input(f,id='a',extra={}){const r=(await f.store.workflowRecords()).find(r=>r.id===id),data={...r,...extra};const preview=await f.store.workflowPreview(id,data,[product],'confirmation');return {...data,previewDigest:preview.previewDigest,reserve:true};}
 test('confirmation reserves and queues one immutable document atomically, stale retry cannot double-send',async()=>{const f=fixture(),data=await input(f);const saved=await f.store.changeWorkflow('a',data,'confirmation',[product]);assert.equal(saved.reserved,true);assert.equal(saved.requirements[0].quantity,2);assert.equal(f.state.jobs.length,1);assert.equal(f.state.enquiries[0].snapshot.documentType,'confirmation');await assert.rejects(f.store.changeWorkflow('a',data,'confirmation',[product]),/endret/);assert.equal(f.state.jobs.length,1);});
@@ -143,3 +143,5 @@ test('a queued reminder does not send the next day and a cancelled event can be 
 });
 
 test('actual mail completion records one send timestamp in existing document history',async()=>{const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const id=f.state.records[0].history.at(-1).id,now=Date.parse('2026-11-21T12:00Z');await f.store.recordWorkflowMailSent(id,now);const h=f.state.records[0].history.at(-1);assert.equal(h.sentAt,'2026-11-21T12:00:00.000Z');const count=f.state.records[0].history.length;await f.store.recordWorkflowMailSent(id,now+1000);assert.equal(f.state.records[0].history.length,count);assert.equal(f.state.records[0].history.at(-1).sentAt,h.sentAt);});
+
+test('server rejects premature return and return preview without releasing reservation or sending thanks',async()=>{const f=fixture();await f.store.changeWorkflow('a',await input(f,'a',{start:'2026-12-08',end:'2026-12-09',deliveryDate:'2026-12-08',pickupDate:'2026-12-09'}),'confirmation',[product]);const r=f.state.records[0],count=f.state.jobs.length;await assert.rejects(f.store.changeWorkflow('a',{...r,sendThanks:false},'complete',[product]),/før den bekreftede leieperioden/);await assert.rejects(f.store.workflowPreview('a',r,[product],'return'),/før den bekreftede leieperioden/);assert.equal(f.state.records[0].reserved,true);assert.equal(f.state.jobs.length,count);});

@@ -36,3 +36,6 @@
 #objectList .admin-item-copy>span{margin-top:4px}
 #stockOnlyLabel{display:flex;align-items:center;gap:8px;font-size:13px;margin:14px 0}
 .admin-sidebar #stockOnly{width:18px;height:18px;flex:0 0 18px;margin:0;accent-color:var(--olive)}
+
+/* Underlines follow text rather than the bottom edge of tall click targets. */
+.admin-body .text-button{border-bottom:0;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-skip-ink:auto}.admin-body .text-button:disabled{cursor:default;opacity:.5}.admin-body .text-button:hover{text-underline-offset:3px}
