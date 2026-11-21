@@ -1,5 +1,5 @@
 import {rentalTermsPdf,rentalTermsFilename} from './rental-terms-pdf.mjs';
-import {workflowEmail} from './enquiry-workflow.mjs';
+import {workflowEmail,workflowAddonLine} from './enquiry-workflow.mjs';
 import {createProposalSnapshot,proposalEmail} from './proposal.mjs';
 const customerReceipt=s=>({acquisition:s.acquisition,lines:s.lines,facts:s.facts,delivery:s.delivery,discount:s.discount,total:s.total,vatIncluded:s.vatIncluded,address:s.address,comment:s.comment});
 import {salesEnabled} from '../public/sales-model.js?v=fest20261114';
@@ -75,7 +75,7 @@ export function createSubmissionSender(env,store,sendOverride){
     let status='uncertain';
     try{
      const terms=job.snapshot.rentalTerms,termsAttachment=terms&&['offer','confirmation'].includes(job.snapshot.documentType)?[{filename:rentalTermsFilename(terms),content:await rentalTermsPdf(terms),contentType:'application/pdf',contentDisposition:'attachment'}]:[];
-     const pictures=await illustrated(job.snapshot),message=job.snapshot.documentType?workflowEmail({...pictures.snapshot,logoSrc:'cid:konseptuell-logo'}):job.snapshot.acquisition==='proposal'?proposalEmail(pictures.snapshot,job.channel):enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments,...termsAttachment],disableFileAccess:true,disableUrlAccess:true});
+     const snapshot=job.snapshot.documentType?{...job.snapshot,lines:job.snapshot.lines.map(l=>workflowAddonLine(l))}:job.snapshot;const pictures=await illustrated(snapshot),message=job.snapshot.documentType?workflowEmail({...pictures.snapshot,logoSrc:'cid:konseptuell-logo'}):job.snapshot.acquisition==='proposal'?proposalEmail(pictures.snapshot,job.channel):enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments,...termsAttachment],disableFileAccess:true,disableUrlAccess:true});
      status=result.accepted?.some(address=>String(address).toLowerCase()===to.toLowerCase())?'sent':'pending';
     }catch(error){status=retryableMailError(error)?'pending':'uncertain';console.error('E-post '+job.channel+' '+job.id+': '+String(error.code||'SMTP').replace(/[^A-Z0-9_]/gi,''));}
     await store.finishEnquiryMail(job.id,job.channel,status,Date.now());
