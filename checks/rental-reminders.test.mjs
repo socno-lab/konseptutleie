@@ -39,3 +39,5 @@ test('same-day rental has distinct outbound and return reminders; purchases and 
  const r=record();r.history[0].document.workflow.pickupDate='2026-12-04';const events=rentalReminderEvents(r,Date.parse(time));assert.equal(events.length,2);assert.notEqual(events[0].key,events[1].key);
  assert.deepEqual(rentalReminderEvents({...r,kind:'purchase'},Date.parse(time)),[]);r.history[0].document.workflow.deliveryAddress='';assert.deepEqual(rentalReminderEvents(r,Date.parse(time)),[]);
 });
+
+test('delivery and collection reminders only describe the relevant visit and omit generic two-visit logistics',()=>{const x=record();for(const [now,expected,other]of [[time,'leveringsadressen','henteadressen'],['2026-12-06T09:00Z','henteadressen','leveringsadressen']]){const event=rentalReminderEvents(x,Date.parse(now))[0],mail=rentalReminderEmail({workflow:x.history[0].document.workflow,reminder:event});assert.match(mail.text,new RegExp(expected));assert.doesNotMatch(mail.text,new RegExp(other));assert.doesNotMatch(mail.text,/Vi utfører levering og henting|tilgang til boligen for både/);}});
