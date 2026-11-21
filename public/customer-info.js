@@ -1,12 +1,12 @@
 import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
-import {customerInformationPages} from './customer-information-content.js?v=privacyrights20261121';
+import {customerInformationPages} from './customer-information-content.js?v=reminders20261121';
 import {readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
 import {mountMobileRentalDates} from './mobile-rental-dates.js?v=period20261028e';
 import {mountStorageNotice} from './storage-notice.js?v=launch20261024';
 mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js?v=fest20261114';
-import {getTermsVersions} from './terms-versions.js?v=fest20261114';
+import {getTermsVersions} from './terms-versions.js?v=reminders20261121';
 const initialSettings=readInitialCatalog(document)?.settings;
 if(initialSettings)configureSiteSettings(initialSettings);else try{const response=await fetch('/api/site-settings',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(response.ok)configureSiteSettings((await response.json()).settings);}catch{}
 import {requiresTwoPeople,rentalDeliveryCapacity} from './delivery-model.js?v=fest20261114';

@@ -2,6 +2,7 @@ import {earlyStartRequirement} from './early-start-consent.mjs';
 import {rentalTermsSnapshot} from './rental-terms-pdf.mjs';
 import {availableSlots,scheduleAppointments} from './pickup-schedule.mjs';
 import {customerVisits} from '../public/admin/transport-model.js';
+import {rentalReminderEvents} from './rental-reminders.mjs';
 import {configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {createHash,randomBytes,randomUUID} from 'node:crypto';
 import {documentDigest,workflowRecord,rentalWorkflowSource,editWorkflow,checkReservation,validateSend,workflowEmail,reservedQuantity,workflowExpired} from './enquiry-workflow.mjs';
@@ -13,6 +14,32 @@ export function workflowStore(init,pool){
  async function records(){const source=await sync();const [rows]=await pool.execute('SELECT body FROM ku_workflow');return rows.map(row=>{const r=JSON.parse(row.body),original=source.get(r.id);r.customerType=r.customerType||original?.customerType||'consumer';r.lines=r.lines.map(l=>{const old=original?.lines.find(x=>x.id===l.originalId&&x.key===l.key);return {...l,...(l.originalTotal==null&&old?.total!=null?{originalTotal:old.total,originalQuantity:old.quantity}:{})};});return r.deliveryMode?r:{...r,deliveryMode:original?.deliveryMode||'undecided',deliveryAddress:original?.deliveryAddress||'',pickupTime:r.pickupTime||'',returnTime:r.returnTime||''};});}
  return {
  workflowRecords:records,
+ async queueWorkflowReminders(now=Date.now()){
+ await init();const c=await pool.getConnection();try{await c.beginTransaction();
+ await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
+ const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');let queued=0;
+ for(const row of rows){const r=JSON.parse(row.body),events=rentalReminderEvents(r,now);let changed=false;
+ for(const event of events){const previous=r.history.filter(h=>h.type==='reminder'&&h.document?.reminder?.key===event.key).at(-1);if(previous){const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel='customer' FOR UPDATE",[previous.id]);if(!job||!['cancelled','superseded'].includes(job.status))continue;}
+ const id=randomUUID(),confirmation=r.history.filter(h=>h.type==='confirmation').at(-1).document;
+ const snapshot={id,email:r.email,kind:'rental',documentType:'reminder',receivedAt:new Date(now).toISOString(),workflow:{...confirmation.workflow,history:[]},reminder:event,lines:[]};
+ await c.execute('INSERT INTO ku_enquiries(id,fingerprint,body,created_at) VALUES (?,?,?,?)',[id,'workflow',JSON.stringify(snapshot),now]);
+ await c.execute("INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,'customer',?)",[id,now]);
+ r.history.push({id,type:'reminder',at:snapshot.receivedAt,document:snapshot});changed=true;queued++;
+ }if(changed){r.revision++;await c.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(r),r.id]);}
+ }await c.commit();return queued;
+ }catch(error){await c.rollback();throw error;}finally{c.release();}
+ },
+ async claimWorkflowReminder(id,snapshot,now){
+ await init();const c=await pool.getConnection();try{await c.beginTransaction();
+ await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
+ const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');
+ const r=rows.map(row=>JSON.parse(row.body)).find(r=>r.id===snapshot.workflow.id);
+ const valid=r&&r.history.some(h=>h.id===id&&h.type==='reminder')&&rentalReminderEvents(r,now).some(event=>event.key===snapshot.reminder.key);
+ if(!valid){await c.execute("UPDATE ku_enquiry_mail SET status='cancelled' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[id]);await c.commit();return false;}
+ const [result]=await c.execute("UPDATE ku_enquiry_mail SET status='sending',attempts=attempts+1,lease_until=? WHERE submission_id=? AND channel=? AND status='pending' AND attempts<5 AND next_at<=?",[now+120000,id,'customer',now]);
+ await c.commit();return result.affectedRows===1;
+ }catch(error){await c.rollback();throw error;}finally{c.release();}
+ },
  async queueRentalReturnTest(email){
  if(typeof email!=='string'||email.length>200||!/^([^\s<>,;:"\\@]+)@([a-z0-9.-]+)\.([a-z]{2,})$/i.test(email))fail('Oppgi en gyldig testadresse.',400);
  await init();const c=await pool.getConnection();try{await c.beginTransaction();const id=randomUUID(),snapshot={id,email,kind:'rental',documentType:'return',test:true,receivedAt:new Date().toISOString(),workflow:{id:'TEST – ingen kundeordre'},lines:[]};
@@ -37,6 +64,7 @@ export function workflowStore(init,pool){
  const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');const all=rows.map(r=>JSON.parse(r.body)),current=all.find(r=>r.id===id);if(!current)fail('Henvendelsen finnes ikke.',404);if(input.revision!==current.revision)fail('Henvendelsen er endret. Last inn på nytt.');
  if(prior)current.lines=current.lines.map(l=>({...l,...(l.originalTotal==null&&prior.lines.find(p=>p.key===l.key)?.originalTotal!=null?{originalTotal:prior.lines.find(p=>p.key===l.key).originalTotal,originalQuantity:prior.lines.find(p=>p.key===l.key).originalQuantity}:{})}));
  current.customerType=current.customerType||prior?.customerType||'consumer';
+ if(['confirmation','cancel','complete'].includes(action))for(const h of current.history.filter(h=>h.type==='reminder')){const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel='customer' FOR UPDATE",[h.id]);if(job?.status==='sending')fail('En påminnelse sendes nå. Vent til sendingen er ferdig før du endrer avtalen.');if(action==='complete')await c.execute("UPDATE ku_enquiry_mail SET status='cancelled' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[h.id]);}
  if(action==='complete'&&current.status==='completed'){await c.commit();return current;}
  if(current.status==='completed')fail('Leieforholdet er avsluttet etter bekreftet retur.');
  if(action==='complete'&&current.status!=='confirmed')fail('Kun et ordrebekreftet leieforhold kan bekreftes returnert.');

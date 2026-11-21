@@ -105,3 +105,13 @@ test('email highlights Norwegian rental dates and keeps each linked add-on direc
  const input={...sample(),basket:{chair:1,table:1,decor:1},cartLinks:{decor:{parentId:'table'}}};const snap=createEnquirySnapshot(validateSubmission(input,linked),input,linked);assert.deepEqual(snap.lines.find(l=>l.id==='decor').addonFor,[{id:'table',name:'Bord'}]);
 });
 test('mail queued during a running flush is sent immediately without waiting for the timer',async()=>{const store=memory(),input=sample(),snapshot=createEnquirySnapshot(validateSubmission(input,products),input,products);let release,started;const blocked=new Promise(r=>{release=r;}),ready=new Promise(r=>{started=r;}),calls=[];store.jobs.push({id:'first',channel:'internal',snapshot,status:'pending',next:0});const sender=createSubmissionSender(env,store,async message=>{calls.push(message.to);if(calls.length===1){started();await blocked;}return {accepted:[message.to]};});const draining=sender.flush();await ready;store.jobs.push({id:'second',channel:'customer',snapshot,status:'pending',next:0});await sender.flush();release();await draining;sender.close();assert.deepEqual(calls,['post@konseptuell.no',snapshot.email]);assert.ok(store.jobs.every(j=>j.status==='sent'));});
+
+test('automatic reminders use the regular sender, fresh eligibility claim and customer mailbox without manual approval',async()=>{
+ const store=memory(),messages=[];let ticks=0,claims=0,allow=false;
+ const snapshot={id:'reminder-id',email:'customer@example.invalid',kind:'rental',documentType:'reminder',workflow:{id:'rental-ref'},lines:[],reminder:{key:'key',date:'2026-12-04',label:'Levering',time:'14.00–16.00',address:'Testveien 1',phase:'outbound',self:false,logistics:'Levering mellom 14.00 og 16.00.'}};
+ store.queueWorkflowReminders=async()=>{ticks++;if(!store.jobs.length)store.jobs.push({id:snapshot.id,channel:'customer',snapshot,status:'pending',next:0});};
+ store.claimWorkflowReminder=async()=>{claims++;if(!allow)return false;store.jobs[0].status='sending';return true;};
+ const sender=createSubmissionSender(env,store,async m=>{messages.push(m);return {accepted:[m.to]};});
+ await sender.flush();assert.equal(messages.length,0);allow=true;await sender.flush();await sender.flush();
+ assert.equal(ticks,3);assert.equal(claims,2);assert.equal(messages.length,1);assert.equal(messages[0].to,snapshot.email);assert.equal(messages[0].from.address,'post@konseptuell.no');assert.match(messages[0].text,/14.00–16.00/);assert.equal(messages[0].attachments.length,1);assert.match(messages[0].html,/cid:konseptuell-logo/);assert.equal(store.jobs[0].status,'sent');
+});

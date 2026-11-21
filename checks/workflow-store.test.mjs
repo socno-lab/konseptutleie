@@ -17,6 +17,7 @@ function fixture(){
   if(sql.startsWith('INSERT INTO ku_enquiry_mail')){if(failQueue===true||failQueue===(sql.includes("'internal'")?'internal':'customer'))throw Error('queue failure');db.jobs.push({id:args[0],status:'pending',channel:sql.includes("'internal'")?'internal':'customer'});return [{}];}
   if(sql.startsWith('UPDATE ku_workflow')){db.records=db.records.map(r=>r.id===args[1]?JSON.parse(args[0]):r);return [{}];}
   if(sql.startsWith('SELECT status FROM ku_enquiry_mail'))return [[db.jobs.find(j=>j.id===args[0])].filter(Boolean)];
+  if(sql.startsWith("UPDATE ku_enquiry_mail SET status='sending'")){const job=db.jobs.find(j=>j.id===args[1]&&j.channel===args[2]&&j.status==='pending');if(job)job.status='sending';return [{affectedRows:job?1:0}];}
   if(sql.startsWith("UPDATE ku_enquiry_mail SET status='superseded'")){for(const j of db.jobs)if(j.id===args[0]&&j.status==='pending')j.status='superseded';return [{}];}
   if(sql.startsWith("UPDATE ku_enquiry_mail SET status='cancelled'")){for(const j of db.jobs)if(j.id===args[0]&&j.status==='pending')j.status='cancelled';return [{}];}
   if(sql==='DELETE FROM ku_enquiry_mail WHERE submission_id=?'){db.jobs=db.jobs.filter(j=>j.id!==args[0]);return [{}];}
@@ -113,3 +114,30 @@ test('return without thank-you queues nothing and failure to queue selected than
 });
 test('stale thank-you preview cannot close an edited rental',async()=>{const f=fixture();let r=await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const preview=await f.store.workflowPreview('a',{revision:r.revision},[product],'return');r=await f.store.changeWorkflow('a',{...r,changeReason:'Dato avklares'},'save',[product]);await assert.rejects(f.store.changeWorkflow('a',{revision:r.revision,sendThanks:true,previewDigest:preview.previewDigest},'complete',[product]),/forhåndsvisningen/);assert.equal(f.state.records[0].status,'confirmed');});
 test('test thank-you queues a marked standalone message without changing rentals',async()=>{const f=fixture(),before=structuredClone(f.state.records);for(const email of ['bad','andreas@example.invalid\r\nBcc:a@b.no'])await assert.rejects(f.store.queueRentalReturnTest(email),/testadresse/);const sent=await f.store.queueRentalReturnTest('test@example.invalid');assert.ok(sent.reference);assert.deepEqual(f.state.records,before);assert.equal(f.state.jobs.length,1);assert.equal(f.state.enquiries[0].snapshot.test,true);assert.equal(f.state.enquiries[0].snapshot.email,'test@example.invalid');});
+
+
+test('automatic reminder queue is atomic and deduplicated across concurrent ticks and restarts',async()=>{
+ const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const now=Date.parse('2026-12-03T09:00:00Z');
+ const counts=await Promise.all([f.store.queueWorkflowReminders(now),f.store.queueWorkflowReminders(now)]);assert.equal(counts.reduce((a,b)=>a+b,0),1);assert.equal(await f.store.queueWorkflowReminders(now+60000),0);
+ const r=f.state.records[0],h=r.history.find(h=>h.type==='reminder');assert.ok(h);assert.equal(h.document.workflow.deliveryDate,'2026-12-04');assert.equal(h.document.lines.length,0);
+ assert.equal(await f.store.claimWorkflowReminder(h.id,h.document,now),true);assert.equal(await f.store.claimWorkflowReminder(h.id,h.document,now),false);
+});
+test('reminder queue failure rolls back both history and mail and the next tick can retry',async()=>{
+ const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);f.failQueue=true;const now=Date.parse('2026-12-03T09:00Z');await assert.rejects(f.store.queueWorkflowReminders(now),/queue failure/);assert.equal(f.state.records[0].history.filter(h=>h.type==='reminder').length,0);f.failQueue=false;assert.equal(await f.store.queueWorkflowReminders(now),1);
+});
+test('latest confirmation supersedes queued reminder; saved draft alone does not',async()=>{
+ const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const now=Date.parse('2026-12-03T09:00Z');await f.store.queueWorkflowReminders(now);
+ const h=f.state.records[0].history.find(h=>h.type==='reminder');await f.store.changeWorkflow('a',{...f.state.records[0],deliveryDate:'2026-12-05',changeReason:'Ny levering'},'save',[product]);
+ assert.equal(await f.store.queueWorkflowReminders(now),0);const data=await input(f);await f.store.changeWorkflow('a',data,'confirmation',[product]);
+ assert.equal(await f.store.claimWorkflowReminder(h.id,h.document,now),false);assert.equal(f.state.jobs.find(j=>j.id===h.id).status,'cancelled');assert.equal(await f.store.queueWorkflowReminders(Date.parse('2026-12-04T09:00Z')),1);
+});
+test('cancellation and confirmed return prevent reminders, including queued mail; in-flight reminders serialize changes',async()=>{
+ for(const action of ['cancel','complete']){const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const now=Date.parse('2026-12-03T09:00Z');await f.store.queueWorkflowReminders(now);const h=f.state.records[0].history.find(h=>h.type==='reminder');
+ await f.store.changeWorkflow('a',f.state.records[0],action,[product]);assert.equal(await f.store.claimWorkflowReminder(h.id,h.document,now),false);assert.equal(await f.store.queueWorkflowReminders(now),0);}
+ const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const now=Date.parse('2026-12-03T09:00Z');await f.store.queueWorkflowReminders(now);const h=f.state.records[0].history.find(h=>h.type==='reminder');assert.equal(await f.store.claimWorkflowReminder(h.id,h.document,now),true);await assert.rejects(f.store.changeWorkflow('a',f.state.records[0],'cancel',[product]),/påminnelse sendes/);
+});
+
+test('a queued reminder does not send the next day and a cancelled event can be restored without duplicates',async()=>{
+ const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const now=Date.parse('2026-12-03T09:00Z');await f.store.queueWorkflowReminders(now);const h=f.state.records[0].history.find(h=>h.type==='reminder');
+ assert.equal(await f.store.claimWorkflowReminder(h.id,h.document,now+86400000),false);assert.equal(await f.store.queueWorkflowReminders(now),1);assert.equal(await f.store.queueWorkflowReminders(now),0);
+});
