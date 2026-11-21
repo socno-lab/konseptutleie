@@ -6,7 +6,7 @@ import {consentSummary} from './early-start-consent.mjs';
 import {transportMode,transportModes,workflowTransport,customerVisits} from '../public/admin/transport-model.js';
 import {pickupSlots} from './pickup-schedule.mjs';
 import {defaultTransportDates} from '../public/admin/transport-dates.js';
-import {workflowCopy} from '../public/admin/offer-copy.js';
+import {workflowCopy,isLegacyGeneratedOfferIntro} from '../public/admin/offer-copy.js';
 export {workflowCopy} from '../public/admin/offer-copy.js';
 import {createHash} from 'node:crypto';
 import {rentalDayCount,parseDateOnly} from '../public/rental-dates.js';
@@ -36,7 +36,7 @@ export function editWorkflow(current,input,products){
  const changed=p.id!==previous.id||l.quantity!==previous.quantity||next.start!==current.start||next.end!==current.end||next.scope!==current.scope;
  const calculate=changed||l.total==null;const calculated=calculate?enquiryLineTotal(p,{quantity:l.quantity,start:next.start,end:next.end,scope:next.scope},products):null;
  return workflowAddonLine({...previous,isAddon:previous.id===p.id?previous.isAddon:false,originalTotal:previous.originalTotal??(previous.id===previous.originalId?previous.total:null),originalQuantity:previous.originalQuantity??(previous.id===previous.originalId?previous.quantity:null),id:p.id,name:p.name,image:/^decor_/.test(p.id)?'/assets/addon-decor.png':p.image||'',quantity:l.quantity,review:p.id!==previous.originalId&&l.review==='missing'?'alternative':l.review,originalMissing:p.id!==previous.originalId&&(l.review==='missing'||(typeof l.originalMissing==='boolean'?l.originalMissing:previous.originalMissing===true||previous.review==='missing')),total:calculate?calculated:money(l.total)},products);});
- if(new Set(next.lines.map(l=>l.key)).size!==next.lines.length)fail('Dupliserte produktlinjer.');return next;
+ if(new Set(next.lines.map(l=>l.key)).size!==next.lines.length)fail('Dupliserte produktlinjer.');if(isLegacyGeneratedOfferIntro(current,next.intro)||isLegacyGeneratedOfferIntro(next,next.intro))next.intro='';return next;
 }
 export function reservationRequirements(r,products){
  if(r.kind!=='rental')fail('Reservasjon gjelder leie.');if(!rentalDayCount(r.start,r.end)||rentalDayCount(r.start,r.end)>365||!rentalDayCount(r.deliveryDate,r.pickupDate)||r.deliveryDate>r.start||r.pickupDate<r.end)fail('Levering og henting må omslutte leieperioden.');
