@@ -32,3 +32,9 @@ test('short form page reuses the shell and server origin checks, without checkou
  const store=Object.assign(await memoryStore(),outbox()),messages=[],server=createServer({store,env:{SMTP_PASS:'test-only'},origin:'http://localhost',secureCookies:false,sendMail:async m=>{messages.push(m);return {accepted:[m.to]};}});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
  try{const page=await fetch(base+'/tilpasset-foresporsel.html');assert.equal(page.status,200);assert.match(page.headers.get('x-robots-tag'),/noindex/);const input=sample();assert.equal((await fetch(base+'/api/submissions',{method:'POST',headers:{origin:'https://evil.invalid','content-type':'application/json'},body:JSON.stringify(input)})).status,403);const response=await fetch(base+'/api/submissions',{method:'POST',headers:{origin:'http://localhost','content-type':'application/json'},body:JSON.stringify(input)});assert.equal(response.status,200);assert.equal((await response.json()).receipt.acquisition,'proposal');await settle(store);assert.equal(messages.length,2);}finally{await new Promise(r=>server.close(r));}
 });
+
+test('standalone proposals ignore occasion inherited by older clients without changing customer description',()=>{
+ const input=sample();input.details.occasion='Boligfoto og visning';const snapshot=createProposalSnapshot(validateSubmission(input,[]),input);
+ assert.ok(!snapshot.facts.some(([label])=>label==='Anledning'));assert.equal(snapshot.facts.find(([label])=>label==='Hva trenger du?')[1],input.details.customRequest);assert.doesNotMatch(JSON.stringify(snapshot),/Boligfoto og visning/);
+ for(const channel of ['customer','internal']){const mail=proposalEmail(snapshot,channel);assert.doesNotMatch(mail.text,/Anledning:|Boligfoto og visning/);assert.doesNotMatch(mail.html,/Boligfoto og visning/);}
+});
