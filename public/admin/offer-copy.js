@@ -9,7 +9,7 @@ export function workflowCopy(r){
  const checked=r.lines.length>0&&r.lines.every(l=>['ok','alternative'].includes(l.review)||(l.review==='missing'&&l.originalMissing&&l.originalId&&l.originalId!==l.id));
  const availabilityText=shortages.length?(checked&&r.lines.length>shortages.length?`Vi har gått gjennom ønskelisten din og kan bekrefte at vi har alle produktene tilgjengelig, ${shortages.length===1?'med ett lite unntak':'med noen få unntak'}.`:'Vi har gått gjennom ønskelisten din. Ett eller flere av produktene er dessverre ikke tilgjengelige i ønsket antall. Vi har foreslått alternativer i oversikten nedenfor.'):checked&&!alternatives.length?'Vi har gått gjennom ønskelisten din og kan bekrefte at vi har alle produktene tilgjengelig.':'';
 
- const period=r.start?.slice(0,7)===r.end?.slice(0,7)?`${Number(r.start?.slice(8))}.–${longDate(r.end)}`:`${longDate(r.start)}–${longDate(r.end)}`;
+ const period=parseDateOnly(r.start)===null||parseDateOnly(r.end)===null?'som avtales':r.start?.slice(0,7)===r.end?.slice(0,7)?`${Number(r.start?.slice(8))}.–${longDate(r.end)}`:`${longDate(r.start)}–${longDate(r.end)}`;
  const intro=!r.intro||r.intro==='Takk for forespørselen. Her er vårt tilbud.'?`Takk for hyggelig forespørsel om leie av møbler i perioden ${period}.`:r.intro;
  const day=s=>new Date(s+'T12:00:00Z').getUTCDay(),diff=(a,b)=>(Date.parse(b)-Date.parse(a))/86400000;
  const weekend=day(r.start)===6&&day(r.end)===0&&diff(r.start,r.end)===1&&day(r.deliveryDate)===5&&diff(r.deliveryDate,r.start)===1&&day(r.pickupDate)===1&&diff(r.end,r.pickupDate)===1;

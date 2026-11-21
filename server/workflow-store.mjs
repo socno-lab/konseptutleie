@@ -4,12 +4,12 @@ import {availableSlots,scheduleAppointments} from './pickup-schedule.mjs';
 import {customerVisits} from '../public/admin/transport-model.js';
 import {configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {createHash,randomBytes,randomUUID} from 'node:crypto';
-import {documentDigest,workflowRecord,editWorkflow,checkReservation,validateSend,workflowEmail,reservedQuantity,workflowExpired} from './enquiry-workflow.mjs';
+import {documentDigest,workflowRecord,rentalWorkflowSource,editWorkflow,checkReservation,validateSend,workflowEmail,reservedQuantity,workflowExpired} from './enquiry-workflow.mjs';
 const tokenHash=token=>createHash('sha256').update(token).digest('hex');
 function validateConfirmationTransport(r,all){if(r.deliveryMode&&r.deliveryMode!=='pickup'&&!r.deliveryAddress)fail('Fyll inn leverings-/henteadresse før ordrebekreftelse.',400);if(r.deliveryMode==='undecided')fail('Velg leveringsmåte før ordrebekreftelse.',400);return scheduleAppointments(r,all);}
 const fail=(message,status=409)=>{throw Object.assign(Error(message),{status});};
 export function workflowStore(init,pool){
- async function sync(){await init();const source=new Map();const [rows]=await pool.execute('SELECT body FROM ku_enquiries');for(const row of rows){const s=JSON.parse(row.body);if(s.documentType||s.kind!=='rental'||s.acquisition==='mixed'||s.acquisition==='proposal')continue;const r=workflowRecord(s);source.set(r.id,r);await pool.execute('INSERT IGNORE INTO ku_workflow(id,body) VALUES (?,?)',[r.id,JSON.stringify(r)]);}return source;}
+ async function sync(){await init();const source=new Map();const [rows]=await pool.execute('SELECT body FROM ku_enquiries');for(const row of rows){const s=JSON.parse(row.body);if(!rentalWorkflowSource(s))continue;const r=workflowRecord(s);source.set(r.id,r);await pool.execute('INSERT IGNORE INTO ku_workflow(id,body) VALUES (?,?)',[r.id,JSON.stringify(r)]);}return source;}
  async function records(){const source=await sync();const [rows]=await pool.execute('SELECT body FROM ku_workflow');return rows.map(row=>{const r=JSON.parse(row.body),original=source.get(r.id);r.customerType=r.customerType||original?.customerType||'consumer';r.lines=r.lines.map(l=>{const old=original?.lines.find(x=>x.id===l.originalId&&x.key===l.key);return {...l,...(l.originalTotal==null&&old?.total!=null?{originalTotal:old.total,originalQuantity:old.quantity}:{})};});return r.deliveryMode?r:{...r,deliveryMode:original?.deliveryMode||'undecided',deliveryAddress:original?.deliveryAddress||'',pickupTime:r.pickupTime||'',returnTime:r.returnTime||''};});}
  return {
  workflowRecords:records,

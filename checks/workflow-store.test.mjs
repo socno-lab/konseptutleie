@@ -8,7 +8,8 @@ function fixture(){
  const make=id=>({...workflowRecord({id,company:'Testbedrift',email:'test@example.invalid',kind:'rental',address:'Testveien 1, 2010 Strømmen',receivedAt:'2026-11-20',facts:[['Ønsket leieperiode','2026-12-05 til 2026-12-06']],lines:[{id:'chair',name:'Stol',quantity:2,total:400}],delivery:{total:0}}),status:'accepted',lines:[{key:'0',id:'chair',name:'Stol',originalId:'chair',originalName:'Stol',quantity:2,total:400,review:'ok',image:''}],changeReason:'',history:[{id:'offer-'+id,type:'offer'}]});
  let state={records:[make('a'),make('b')],settings:structuredClone(defaultSettings),jobs:[],enquiries:[]},failQueue=false,tail=Promise.resolve();
  const execute=async(db,sql,args=[])=>{
-  if(sql==='SELECT body FROM ku_enquiries')return [[]];
+  if(sql==='SELECT body FROM ku_enquiries')return [db.enquiries.map(e=>({body:JSON.stringify(e.snapshot)}))];
+  if(sql.startsWith('INSERT IGNORE INTO ku_workflow')){if(!db.records.some(r=>r.id===args[0]))db.records.push(JSON.parse(args[1]));return [{}];}
   if(sql==='SELECT body FROM ku_site_settings WHERE id=1')return [[{body:JSON.stringify(db.settings)}]];
   if(sql==='SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE')return [[{body:JSON.stringify([product])}]];
   if(sql.startsWith('SELECT body FROM ku_workflow'))return [db.records.map(r=>({body:JSON.stringify(r)}))];
@@ -75,4 +76,21 @@ test('consumer can request changes without early-start consent and business acce
 test('customer consent receipt queue failure rolls back acceptance and internal notification',async t=>{
  t.mock.timers.enable({apis:['Date'],now:new Date('2026-11-25T10:00:00Z')});const f=fixture();f.state.records[0].customerType='consumer';const {token}=await offered(f);f.failQueue='customer';
  await assert.rejects(f.store.offerAcceptance(token,true,{earlyStartConsent:true}),/queue failure/);assert.equal(f.state.records[0].status,'offered');assert.equal(f.state.records[0].earlyStartConsent,undefined);assert.equal(f.state.jobs.length,1);
+});
+
+test('proposal imports once without free text and progresses from an empty draft to a reserved rental',async t=>{
+ t.mock.timers.enable({apis:['Date'],now:new Date('2026-11-20T10:00:00Z')});const f=fixture();
+ const source={id:'proposal',kind:'rental',acquisition:'proposal',email:'proposal@example.invalid',name:'Private name',phone:'98765432',receivedAt:'2026-11-20T09:00:00Z',facts:[['Hva trenger du?','Secret request'],['Dato eller periode','En helg i januar'],['Sted','Private venue'],['Budsjett','Private budget']],lines:[],delivery:null};
+ f.state.enquiries.push({id:source.id,snapshot:source});
+ let r=(await f.store.workflowRecords()).find(r=>r.id===source.id);assert.equal(r.requestType,'proposal');assert.equal(r.status,'new');assert.equal(r.start,'');assert.equal(r.deliveryMode,'undecided');assert.equal(r.transport,null);assert.equal(r.lines.length,0);
+ assert.doesNotMatch(JSON.stringify(r),/Private name|98765432|Secret request|Private venue|Private budget|En helg i januar/);
+ await f.store.workflowRecords();assert.equal(f.state.records.filter(r=>r.id===source.id).length,1);
+ r=await f.store.changeWorkflow(source.id,r,'save',[product]);assert.equal(r.lines.length,0);
+ const empty=await f.store.workflowPreview(source.id,r,[product],'offer');assert.equal(empty.canSend,false);assert.match(empty.warning,/Legg til produkter/);assert.doesNotMatch(empty.text,/NaN/);
+ r=await f.store.changeWorkflow(source.id,{...r,start:'2027-01-05',end:'2027-01-06',deliveryDate:'2027-01-05',pickupDate:'2027-01-06',scope:'standard',deliveryMode:'delivery',deliveryAddress:'Testveien 1, 2010 Strømmen',transport:100,lines:[{key:'new-123',id:product.id,quantity:1,review:'ok',total:null}]},'save',[product]);assert.ok(r.lines[0].total>0);
+ const preview=await f.store.workflowPreview(source.id,r,[product],'offer');assert.equal(preview.canSend,true);
+ r=await f.store.changeWorkflow(source.id,{...r,previewDigest:preview.previewDigest},'offer',[product]);assert.ok(r.history.at(-1).document.rentalTerms);
+ const token=new URL(r.history.at(-1).document.acceptUrl).searchParams.get('token');await f.store.offerAcceptance(token,true);
+ const confirmed=await f.store.changeWorkflow(source.id,await input(f,source.id),'confirmation',[product]);assert.equal(confirmed.reserved,true);assert.equal(confirmed.requirements[0].id,product.id);
+ const closed=await f.store.changeWorkflow(source.id,{revision:confirmed.revision},'cancel',[product]);assert.equal(closed.reserved,false);assert.deepEqual(closed.requirements,[]);
 });
