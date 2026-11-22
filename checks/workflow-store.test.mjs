@@ -4,14 +4,14 @@ import assert from 'node:assert/strict';
 import {workflowStore} from '../server/workflow-store.mjs';
 import {workflowRecord,documentDigest} from '../server/enquiry-workflow.mjs';
 const product={id:'chair',name:'Stol',active:true,stock:2,unavailable:0,price:100,weekPrice:300,monthPrice:700,rentalPricingMode:'manual'};
-function fixture(){
+function fixture(catalog=[product]){
  const make=id=>({...workflowRecord({id,company:'Testbedrift',email:'test@example.invalid',kind:'rental',address:'Testveien 1, 2010 Strømmen',receivedAt:'2026-11-20',facts:[['Ønsket leieperiode','2026-12-05 til 2026-12-06']],lines:[{id:'chair',name:'Stol',quantity:2,total:400}],delivery:{total:0}}),status:'accepted',lines:[{key:'0',id:'chair',name:'Stol',originalId:'chair',originalName:'Stol',quantity:2,total:400,review:'ok',image:''}],changeReason:'',history:[{id:'offer-'+id,type:'offer'}]});
  let state={records:[make('a'),make('b')],settings:structuredClone(defaultSettings),jobs:[],enquiries:[]},failQueue=false,tail=Promise.resolve();
  const execute=async(db,sql,args=[])=>{
   if(sql==='SELECT body FROM ku_enquiries')return [db.enquiries.map(e=>({body:JSON.stringify(e.snapshot)}))];
   if(sql.startsWith('INSERT IGNORE INTO ku_workflow')){if(!db.records.some(r=>r.id===args[0]))db.records.push(JSON.parse(args[1]));return [{}];}
   if(sql==='SELECT body FROM ku_site_settings WHERE id=1')return [[{body:JSON.stringify(db.settings)}]];
-  if(sql==='SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE')return [[{body:JSON.stringify([product])}]];
+  if(sql==='SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE')return [[{body:JSON.stringify(catalog)}]];
   if(sql.startsWith('SELECT body FROM ku_workflow'))return [db.records.map(r=>({body:JSON.stringify(r)}))];
   if(sql.startsWith('INSERT INTO ku_enquiries')){db.enquiries.push({id:args[0],snapshot:JSON.parse(args[2])});return [{}];}
   if(sql.startsWith('INSERT INTO ku_enquiry_mail')){if(failQueue===true||failQueue===(sql.includes("'internal'")?'internal':'customer'))throw Error('queue failure');db.jobs.push({id:args[0],status:'pending',channel:sql.includes('(?,?,?)')?args[1]:sql.includes("'internal'")?'internal':'customer'});return [{}];}
@@ -151,3 +151,12 @@ test('updated confirmation freezes differences from the last actually sent order
 test('invoice reminders use internal channel once per delivery day and cancel when latest confirmation changes',async()=>{const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);const now=Date.parse('2026-12-04T07:00Z');assert.equal(await f.store.queueWorkflowReminders(now),1);assert.equal(await f.store.queueWorkflowReminders(now),0);const h=f.state.records[0].history.find(h=>h.type==='invoice_reminder');assert.equal(f.state.jobs.find(j=>j.id===h.id).channel,'internal');await f.store.changeWorkflow('a',await input(f,'a',{changeReason:'Ny pris',transport:100}),'confirmation',[product]);assert.equal(await f.store.claimWorkflowReminder(h.id,h.document,now),false);assert.equal(await f.store.queueWorkflowReminders(now),1);const latest=f.state.records[0].history.filter(h=>h.type==='invoice_reminder').at(-1);assert.equal(latest.document.workflow.transport,100);assert.equal(await f.store.claimWorkflowReminder(latest.id,latest.document,now),true);f.state.jobs.find(j=>j.id===latest.id).status='sent';assert.equal(await f.store.queueWorkflowReminders(now),0);});
 
 test('updated confirmation can send automatic change explanation without mandatory free text',async()=>{const f=fixture();await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);f.state.jobs[0].status='sent';const r=f.state.records[0],data={...r,changeReason:'',lines:r.lines.map(l=>({...l,quantity:1}))};const preview=await f.store.workflowPreview('a',data,[product],'confirmation');assert.match(preview.text,/Antallet av Stol er endret fra 2 til 1/);const saved=await f.store.changeWorkflow('a',{...data,reserve:true,previewDigest:preview.previewDigest},'confirmation',[product]);assert.equal(saved.history.at(-1).document.workflow.changeReason,'');assert.match(saved.history.at(-1).document.confirmationChanges.summary,/Antallet av Stol/);});
+
+test('first confirmation previews and freezes a missing-item replacement made after accepting the offer',async()=>{
+ const replacement={...product,id:'replacement',name:'Alternativ stol'};const catalog=[product,replacement],f=fixture(catalog),r=f.state.records[0];
+ r.acceptedOfferId='accepted-offer';r.history=[{id:'accepted-offer',type:'offer',sentAt:'2026-11-21T12:00Z',document:{workflow:structuredClone({...r,history:[]})}}];
+ const data={...r,lines:r.lines.map(l=>({...l,id:replacement.id,review:'missing',originalMissing:true}))};
+ const preview=await f.store.workflowPreview('a',data,catalog,'confirmation');assert.equal(preview.canSend,true);assert.match(preview.html,/Byttet vare/);assert.match(preview.html,/Erstatter Stol/);assert.match(preview.text,/Vi har byttet Stol med Alternativ stol/);
+ const saved=await f.store.changeWorkflow('a',{...data,reserve:true,previewDigest:preview.previewDigest},'confirmation',catalog);
+ assert.equal(saved.history.at(-1).document.confirmationChanges.rows[0][0].label,'Byttet vare');assert.equal(saved.requirements[0].id,replacement.id);
+});

@@ -34,3 +34,14 @@ export async function lastSentConfirmation(record,db){
  if(job?.status==='sent')return h.document?.workflow||null;
  }return null;
 }
+
+// The first confirmation may differ from the accepted offer. Subsequent
+// confirmations always compare against the last actually sent confirmation.
+export async function confirmationBaseline(record,db){
+ const confirmed=await lastSentConfirmation(record,db);if(confirmed)return confirmed;
+ const offer=(record.history||[]).find(h=>h.type==='offer'&&h.id===record.acceptedOfferId);
+ if(!offer?.document?.workflow)return null;
+ if(offer.sentAt)return offer.document.workflow;
+ const [[job]]=await db.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel='customer' FOR UPDATE",[offer.id]);
+ return job?.status==='sent'?offer.document.workflow:null;
+}
