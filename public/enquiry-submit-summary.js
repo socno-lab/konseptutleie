@@ -43,9 +43,7 @@ export function mountSubmitSummary(form){
  const doc=form.ownerDocument||document,section=doc.createElement('section');
  section.className='enquiry-submit-summary';section.hidden=true;
  section.setAttribute('aria-label','Prisoppsummering');section.setAttribute('aria-live','polite');
- const priceColumn=form.querySelector('.enquiry-final-price');
- if(priceColumn)priceColumn.append(section);
- else button.parentNode.insertBefore(section,button);
+ button.parentNode.insertBefore(section,button);
  function row(label,value,total=false,fixed=''){
   const line=doc.createElement('div'),name=doc.createElement('span'),price=doc.createElement('span');
   line.className=total?'enquiry-submit-summary-total':'enquiry-submit-summary-row';

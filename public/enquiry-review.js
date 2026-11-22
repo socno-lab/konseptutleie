@@ -6,11 +6,7 @@ if(page==='/foresporsel.html'||page==='/tilpasset-foresporsel.html'){
   const sale=form.id==='saleRequestForm',proposal=form.id==='proposalForm';
   const submit=form.querySelector('[type=submit],#saleExport');
   const review=document.createElement('section');review.className='enquiry-review';review.setAttribute('aria-label','Kontroller før du sender');
-  if(!proposal){
-   const slot=form.querySelector('.enquiry-review-slot');
-   if(slot)slot.append(review);
-   else submit.before(review);
-  }
+  if(!proposal)submit.before(review);
   const errors=new Map();let errorId=0;
   function clear(field){const node=errors.get(field);if(!node)return;field.removeAttribute('aria-invalid');const described=(field.getAttribute('aria-describedby')||'').split(' ').filter(id=>id&&id!==node.id);if(described.length)field.setAttribute('aria-describedby',described.join(' '));else field.removeAttribute('aria-describedby');node.remove();errors.delete(field);}
   function mark(field){if(!field.willValidate||field.validity.valid)return;let node=errors.get(field);if(!node){node=document.createElement('span');node.className='enquiry-field-error';node.id='enquiry-field-error-'+(++errorId);field.after(node);errors.set(field,node);field.setAttribute('aria-describedby',[field.getAttribute('aria-describedby'),node.id].filter(Boolean).join(' '));}field.setAttribute('aria-invalid','true');node.textContent=field.validity.valueMissing?(field.type==='checkbox'?'Du må krysse av her før du sender.':'Fyll ut dette feltet.'):(field.type==='email'&&field.validity.typeMismatch?'Skriv en gyldig e-postadresse, for eksempel navn@firma.no.':field.validationMessage);}
