@@ -1,7 +1,7 @@
 import {customerTransportPlan} from './customer-transport-plan.js?v=transportaudit20261122';
 import {weekendRentalEnd,weekendDayDeliveryRequired,weekendCollectionRequired,weekendPeriodDeliveryRequired} from './weekend-rental.js?v=weekendboth20261122';
 import {informationBoxMarkup,informationBoxStyles} from './information-box.js?v=purposemodal20261122';
-import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from './transport-weekdays.js?v=purposemodal20261122';
+import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from './transport-weekdays.js?v=transportgroup20261122';
 import {scopeForOccasion} from './rental-pricing-model.js?v=fest20261114';
 import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
@@ -59,7 +59,7 @@ function mountRentalDelivery(form){
  const select=form.querySelector('[name="delivery"]'),address=form.querySelector('[name="address"]');
  const choices=[['Henter og returnerer selv','Jeg henter og returnerer selv',0],['Ønsker levering og henting','Levering og henting etter leieperioden',2],['Kun levering – jeg returnerer selv','Kun levering – jeg returnerer selv',1],['Kun henting – jeg henter selv','Jeg henter selv – dere henter ved leieslutt',1],['Avklares senere','Transport avklares i tilbudet',null]];
  select.innerHTML=choices.map(([value,label])=>'<option>'+value+'</option>').join('');mountAddressFields(form);
- const group=document.createElement('fieldset');group.className='rental-options';group.innerHTML='<legend>Levering eller henting *</legend><div class="addon-choices">'+choices.map(([value,label,visits],i)=>'<label class="addon-choice"><input type="radio" name="delivery" value="'+value+'" '+(i===0?'checked':'')+'><span style="flex:1">'+label+'</span><strong data-delivery-price="'+i+'" style="white-space:nowrap;font-size:12px">'+(visits===0?'0 kr':visits===null?'Avklares':'Adresse kreves')+'</strong></label>').join('')+'</div><p class="hint">Prisene inkluderer mva.</p><div role="status" aria-live="polite"></div>';
+ const group=document.createElement('fieldset');group.className='rental-options';group.innerHTML='<legend>Levering eller henting *</legend><div class="addon-choices">'+choices.map(([value,label,visits],i)=>'<div class="rental-delivery-choice"><label class="addon-choice"><input type="radio" name="delivery" value="'+value+'" '+(i===0?'checked':'')+'><span style="flex:1">'+label+'</span><strong data-delivery-price="'+i+'" style="white-space:nowrap;font-size:12px">'+(visits===0?'0 kr':visits===null?'Avklares':'Adresse kreves')+'</strong></label></div>').join('')+'</div><p class="hint">Prisene inkluderer mva.</p><div role="status" aria-live="polite"></div>';
  select.closest('label').replaceWith(group);
  const transportFields=document.createElement('div');transportFields.className='rental-transport-dates';transportFields.innerHTML='<p class="transport-date-heading">Foreløpige datoer</p><label><span data-transport-label="deliveryDate">Ønsket leveringsdato</span><strong data-transport-value="deliveryDate"></strong><input hidden type="date" name="deliveryDate"></label><label><span data-transport-label="pickupDate">Ønsket hentedato</span><strong data-transport-value="pickupDate"></strong><input hidden type="date" name="pickupDate"></label>';group.append(transportFields);
  const pickupTimeNote=document.createElement('p');pickupTimeNote.className='hint';pickupTimeNote.textContent='Tidspunkt for uthenting på lageret avtales i tilbudet.';pickupTimeNote.hidden=true;transportFields.after(pickupTimeNote);
@@ -88,7 +88,7 @@ function mountRentalDelivery(form){
  const capacity=()=>rentalDeliveryCapacity(deliverySelection?.basket||{},deliverySelection?.products||[],deliverySelection?.customRequest===true);
  const updated=()=>document.dispatchEvent?.(new Event('rental-delivery-updated'));
  const preserveChoiceHeight=()=>{const labels=[...group.querySelectorAll('[name=delivery]')].map(radio=>radio.closest('label'));const height=Math.max(0,...labels.filter(label=>!label.hidden&&!String(label.className).includes('has-route-credit')).map(label=>label.getBoundingClientRect?.().height||0));if(height)for(const label of labels)label.style.minHeight=height+'px';};
- const choiceDetails=document.createElement('div');choiceDetails.className='rental-delivery-details';choiceDetails.append(result,weekdayNotice,transportFields,pickupTimeNote);let detailsAnchor=null;
+ const choiceDetails=document.createElement('div');choiceDetails.className='rental-delivery-details';choiceDetails.append(transportFields,pickupTimeNote,result,weekdayNotice);let detailsAnchor=null;
  const placeChoiceDetails=()=>{const anchor=group.querySelector('[name="delivery"]:checked')?.closest('label');if(anchor&&anchor!==detailsAnchor){anchor.after(choiceDetails);detailsAnchor=anchor;}};
  deliverySummaryProvider=()=>{
   const load=capacity(),choice=selected(),unknown=label=>({total:null,included:false,label});
@@ -190,4 +190,43 @@ if(rentalForm||saleForm){const style=document.createElement('style');style.textC
 // Package rows must allocate the same width as the shared thumbnail component.
 if(rentalForm){const style=document.createElement('style');style.textContent='#cart .package-cart-line{grid-template-columns:var(--cart-image-size) minmax(0,1fr) auto;column-gap:var(--cart-image-gap);align-items:start}#cart .package-cart-copy{min-width:0;overflow-wrap:anywhere}#cart .package-cart-line>.cart-thumbnail{grid-column:1;grid-row:1}#cart .package-cart-line>.package-cart-copy{grid-column:2;grid-row:1}#cart .package-cart-line>.quantity{grid-column:3;grid-row:1}#cart .package-cart-addon>.cart-thumbnail{display:none}#cart .package-cart-addon{grid-template-columns:minmax(0,1fr) auto}#cart .package-cart-addon>.package-cart-copy{grid-column:1}#cart .package-cart-addon>.quantity{grid-column:2}@media(max-width:640px){#cart .package-cart-line{grid-template-columns:var(--cart-image-size) minmax(0,1fr);row-gap:10px}#cart .package-cart-line>.cart-thumbnail{grid-row:1 / span 2}#cart .package-cart-line>.quantity{grid-column:2;grid-row:2;justify-self:start;margin-top:0}#cart .package-cart-addon{grid-template-columns:minmax(0,1fr)}#cart .package-cart-addon>.package-cart-copy,#cart .package-cart-addon>.quantity{grid-column:1}#cart .package-cart-copy h4{overflow-wrap:anywhere}}';document.head.append(style);}
 
-if(rentalForm){const noticeStyle=document.createElement('style');noticeStyle.textContent=informationBoxStyles+'#requestForm .addon-choice{box-sizing:border-box}#requestForm .addon-choice.has-route-credit{padding-top:4px;padding-bottom:4px}#requestForm .addon-choice.has-route-credit:has(input:checked){padding-top:3px;padding-bottom:3px}#requestForm .route-credit{display:block;font-size:10px;line-height:12px;font-weight:400;margin:0}#requestForm .route-credit span{display:inline}@media(max-width:640px){#requestForm .addon-choice{box-sizing:border-box}#requestForm .addon-choice.has-route-credit{padding-top:1px;padding-bottom:1px}#requestForm .addon-choice.has-route-credit:has(input:checked){padding-top:0;padding-bottom:0}}.rental-options .addon-choice.is-unavailable{opacity:.45;cursor:not-allowed}.rental-options .addon-choice.is-unavailable input{cursor:not-allowed}.rental-delivery-details{display:contents;min-width:0;margin:0;font:400 13px/1.5 \"DM Sans\",sans-serif}.rental-delivery-details>[role=status]:empty{display:none}#requestForm .rental-delivery-details>.information-box{margin:0}#requestForm .rental-delivery-details>.rental-transport-dates{margin:0}#requestForm .rental-transport-dates>label{margin:0}.rental-delivery-details .information-box[hidden]{display:none}';document.head.append(noticeStyle);const style=document.createElement('style');style.textContent='#requestForm .rental-transport-dates{display:block;min-width:0;padding:14px 16px;border:1px solid var(--line);background:#fff}#requestForm .rental-transport-dates[hidden]{display:none}#requestForm .rental-transport-dates .transport-date-heading{margin:0 0 6px;color:var(--muted);font-size:12px;font-weight:400}#requestForm .rental-transport-dates>label{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:10px 0;font-size:13px;line-height:1.5}#requestForm .rental-transport-dates>label+label{border-top:1px solid var(--line)}#requestForm .rental-transport-dates>label>span{min-width:0}#requestForm .rental-transport-dates strong{flex-shrink:0;font-size:13px;font-weight:600;white-space:nowrap}#requestForm .rental-transport-dates input[hidden]{display:none!important}#requestForm .rental-delivery-details>.hint{margin:0;font-size:12px;line-height:1.6}@media(max-width:360px){#requestForm .rental-transport-dates>label{flex-wrap:wrap;gap:4px 12px}}';document.head.append(style);}
+if(rentalForm){const noticeStyle=document.createElement('style');noticeStyle.textContent=informationBoxStyles+'#requestForm .addon-choice{box-sizing:border-box}#requestForm .addon-choice.has-route-credit{padding-top:4px;padding-bottom:4px}#requestForm .addon-choice.has-route-credit:has(input:checked){padding-top:3px;padding-bottom:3px}#requestForm .route-credit{display:block;font-size:10px;line-height:12px;font-weight:400;margin:0}#requestForm .route-credit span{display:inline}@media(max-width:640px){#requestForm .addon-choice{box-sizing:border-box}#requestForm .addon-choice.has-route-credit{padding-top:1px;padding-bottom:1px}#requestForm .addon-choice.has-route-credit:has(input:checked){padding-top:0;padding-bottom:0}}.rental-options .addon-choice.is-unavailable{opacity:.45;cursor:not-allowed}.rental-options .addon-choice.is-unavailable input{cursor:not-allowed}.rental-delivery-details{display:contents;min-width:0;margin:0;font:400 13px/1.5 \"DM Sans\",sans-serif}.rental-delivery-details>[role=status]:empty{display:none}#requestForm .rental-delivery-details>.information-box{margin:0}#requestForm .rental-delivery-details>.rental-transport-dates{margin:0}#requestForm .rental-transport-dates>label{margin:0}.rental-delivery-details .information-box[hidden]{display:none}';document.head.append(noticeStyle);}
+
+if(rentalForm){
+ const style=document.createElement('style');
+ style.textContent=`
+  #requestForm .rental-delivery-choice{margin-bottom:16px}
+  #requestForm .rental-delivery-choice > .addon-choice{margin:0}
+  #requestForm .rental-delivery-choice:has(> .addon-choice[hidden]){display:none}
+  #requestForm .rental-delivery-choice:has(> .addon-choice input:checked){
+   background:#eef0e7;
+   box-shadow:inset 0 0 0 2px var(--olive);
+  }
+  #requestForm .rental-delivery-choice > .addon-choice:has(input:checked){
+   border-color:transparent;
+   background:transparent;
+  }
+  #requestForm .rental-delivery-details{
+   display:grid;
+   gap:8px;
+   min-width:0;
+   margin:0 2px;
+   padding:12px 14px 14px;
+   border-top:1px solid var(--line);
+   font:400 13px/1.5 "DM Sans",sans-serif;
+  }
+  #requestForm .rental-delivery-details:not(:has(> :not([hidden], :empty))),
+  #requestForm .rental-delivery-details > [hidden],
+  #requestForm .rental-delivery-details > [role=status]:empty{display:none}
+  #requestForm .rental-delivery-details > .information-box{margin:0}
+  #requestForm .rental-transport-dates .transport-date-heading{margin:0 0 6px;color:var(--muted);font-size:12px;font-weight:400}
+  #requestForm .rental-transport-dates > label{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0;padding:10px 0;font-size:13px;line-height:1.5}
+  #requestForm .rental-transport-dates > label + label{border-top:1px solid var(--line)}
+  #requestForm .rental-transport-dates > label > span{min-width:0}
+  #requestForm .rental-transport-dates strong{flex-shrink:0;font-size:13px;font-weight:600;white-space:nowrap}
+  #requestForm .rental-transport-dates input[hidden]{display:none!important}
+  #requestForm .rental-delivery-details > .hint{margin:0;font-size:12px;line-height:1.6}
+  @media(max-width:360px){#requestForm .rental-transport-dates > label{flex-wrap:wrap;gap:4px 12px}}
+ `;
+ document.head.append(style);
+}

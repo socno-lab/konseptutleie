@@ -270,7 +270,7 @@ Flerlinjefelt får nødvendig høyde for teksten. Avkrysningsbokser, radioknappe
 
 21. november 2026 – e-postkvittering: Etter eiers skjermbilde bruker beløp for dekor- og øvrige tilvalg samme 14 px som hovedvarenes beløp. Tilvalgsikon og kompakt produkttekst beholdes. Endringen er avgrenset til prisens skriftstørrelse i e-postmalen.
 
-22. november 2026 – felles transportdatoer: Alle konkrete leievalg viser begge tentative datoer, uavhengig av formål. Merk hvert felt med lager eller kundens adresse. Uthenting og egen retur på lager følger foreslåtte virkedager; tidspunkt velges ved aksept av tilbudet. Feltene følger eksisterende 48 px standard og hvit bakgrunn. «Transport avklares i tilbudet» beholder sin avklaringsflyt.
+22. november 2026 – felles transportdatoer: Alle konkrete leievalg viser begge datoer under «Foreløpige datoer» i samme grønne kort som det valgte alternativet. Datoradene angir lager eller kundens adresse, og relevante varsler vises i gul infoboks nederst i kortet. De øvrige kortene har hvit bakgrunn og samme avstand. Uthenting og egen retur på lager følger foreslåtte virkedager. Kunden velger tidspunkt ved aksept av tilbudet. «Transport avklares i tilbudet» beholder sin avklaringsflyt.
 
 22. november 2026 – samordnet transportstandard: Kundens tentative transportdatoer følger ett felles regelsett i skjema og server og er låst. Avvik og helligdager avtales i tilbudet; admin kan fortsatt overstyre avtalte datoer. Messe-prismodellen krever vår levering ved helgestart og vår henting ved helgeslutt. Stor last sperrer automatisk transportpris, men ikke selvhenting på tillatte lagerdatoer. Bruk «Transport i helgen prises individuelt» og «Foreløpig hentedato hos deg».
 
