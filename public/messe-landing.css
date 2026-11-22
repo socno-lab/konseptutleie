@@ -71,7 +71,7 @@
 #konsept-messe-preview .km-back{min-height:48px;display:inline-flex;align-items:center;margin-bottom:24px}
 #konsept-messe-preview .messe-play{font-size:28px}
 #konsept-messe-preview .km-gallery button{cursor:pointer}
-#konsept-messe-preview .km-gallery button:focus-visible{outline:3px solid #b87e49;outline-offset:5px}
+#konsept-messe-preview .km-gallery button:focus-visible{outline:3px solid var(--olive);outline-offset:5px}
 #konsept-messe-preview .km-case-photo{object-position:center 60%}
 #konsept-messe-preview .km-gallery img{object-position:center 65%}
 #konsept-messe-preview section[id]{scroll-margin-top:140px}

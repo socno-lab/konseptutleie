@@ -273,3 +273,5 @@ Flerlinjefelt får nødvendig høyde for teksten. Avkrysningsbokser, radioknappe
 22. november 2026 – felles transportdatoer: Alle konkrete leievalg viser begge tentative datoer, uavhengig av formål. Merk hvert felt med lager eller kundens adresse. Uthenting og egen retur på lager følger foreslåtte virkedager; tidspunkt velges ved aksept av tilbudet. Feltene følger eksisterende 48 px standard og hvit bakgrunn. «Transport avklares i tilbudet» beholder sin avklaringsflyt.
 
 22. november 2026 – samordnet transportstandard: Kundens tentative transportdatoer følger ett felles regelsett i skjema og server og er låst. Avvik og helligdager avtales i tilbudet; admin kan fortsatt overstyre avtalte datoer. Messe-prismodellen krever vår levering ved helgestart og vår henting ved helgeslutt. Stor last sperrer automatisk transportpris, men ikke selvhenting på tillatte lagerdatoer. Bruk «Transport i helgen prises individuelt» og «Foreløpig hentedato hos deg».
+
+Fokusrammer bruker profilens grønne `--olive`, også i gallerier og admin. Brun fokusfarge er fjernet etter eiers tilbakemelding 22. november 2026. Tastaturfokus skal fortsatt være synlig.

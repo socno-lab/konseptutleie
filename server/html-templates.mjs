@@ -23,6 +23,7 @@ async function styleVersion(base){
 export async function readHtmlTemplate(name,base=root){
  if(!publicHtmlNames.includes(name))throw Error('Ukjent HTML-mal.');
  let html;try{html=await readFile(path.join(base,'server','templates',name),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;html=await readFile(path.join(base,'public',name),'utf8');}
+ html=html.replace(/(href=["']\/(?:production-landing|messe-landing)\.css)(?:\?[^"']*)?(["'])/g,'$1?v=greenfocus20261122$2');
  html=html.replace('</head>','<link rel="stylesheet" href="/product-image-adjustments.css?v=verticus20261109b"></head>');
  html=html.replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/,footer=>{
   const brand=footer.match(/<a class="brand"[\s\S]*?<\/a>/)?.[0]||'<a class="footer-name" href="/">KONSEPTUELL</a>';
