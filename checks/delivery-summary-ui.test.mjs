@@ -140,3 +140,9 @@ test('one details panel follows the currently selected transport option',async()
  const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);const panel=ui.labels[1].following;
  assert.equal(panel.className,'rental-delivery-details');ui.choose(2);assert.equal(ui.labels[2].following,panel);ui.choose(0);assert.equal(ui.labels[0].following,panel);
 });
+
+test('route attribution cannot shrink a selected transport choice below the other choices',async()=>{
+ const ui=await mountedDelivery();for(const label of ui.labels)label.getBoundingClientRect=()=>({height:44});ui.emit({chair:1});ui.choose(1);await ui.calculate();
+ ui.labels[1].getBoundingClientRect=()=>({height:40});ui.choose(1);
+ assert.ok(ui.labels.every(label=>label.style.minHeight==='44px'));
+});
