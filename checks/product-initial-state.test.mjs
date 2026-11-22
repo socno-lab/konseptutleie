@@ -157,3 +157,8 @@ test('DOMContentLoaded final projection includes the last parser nodes and yield
   assert.equal(Boolean(view.options.innerHTML),!clientReady);assert.equal(observer.disconnected,true);
  }
 });
+
+
+test('a reopened product restores purpose and prices from the same persistent storage as its basket',()=>{
+ const state=initialProductState(data,rent+'&bruk=alle',storage({'konsept-purpose-v1':'boligsalg','konsept-cart-v1':{chair:1}},{}));assert.equal(state.context.purpose,'boligsalg');assert.equal(state.context.rentalScopeConfirmed,true);assert.equal(state.context.rentalScope,'standard');assert.equal(state.product.price,100);assert.equal(state.context.cart.chair,1);
+});

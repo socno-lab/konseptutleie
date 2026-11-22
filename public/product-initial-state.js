@@ -1,3 +1,4 @@
+import {rememberedPurposeState} from './rental-purpose-memory.js?v=weekendday20261122';
 import {configureSiteSettings} from './site-settings.js?v=fest20261114';
 import {normalizeBasket} from './catalog-model.js?v=longrent20261026';
 import {restoreSofas,migrateSofas} from './sofa-model.js?v=longrent20261026';
@@ -33,7 +34,7 @@ export function initialProductState(data,href,{localStorage,sessionStorage}={}){
   const setups=restoreSaleSetups(basket,savedJSON(localStorage,'konsept-sale-sofas-v1',[]),products),product=products.find(p=>p.id===id);
   return {buy,product,products,period,editingId,selection:product?purchaseInitialSelection(product,products,editingId?(setups.find(s=>s.id===editingId)?.selection||{}):null):{}};
  }
- const purposeState=readPurposeState(href,savedText(sessionStorage,'konsept-purpose-v1')||'alle');
+ const purposeState=rememberedPurposeState(href,{localStorage,sessionStorage},{hasItems:Object.values(record(savedJSON(localStorage,'konsept-cart-v1',{}))).some(q=>Number(q)>0)});
  const draft=record(savedJSON(sessionStorage,'konsept-enquiry-draft-rent',{}));
  const occasion=draft.occasionConfirmed===true&&data.occasionChoices?.includes(draft.occasion)?draft.occasion:'';
  const usage=occasion?{scope:scopeForOccasion(occasion),confirmed:true}:rentalUsageState({purpose:purposeState.purpose,explicit:url.searchParams.get('prisbruk'),saved:savedText(localStorage,'konsept-rental-scope-v1')});

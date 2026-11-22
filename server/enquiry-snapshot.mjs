@@ -1,4 +1,4 @@
-import {weekendRentalEnd} from '../public/weekend-rental.js';
+import {weekendRentalEnd,weekendDayDeliveryRequired} from '../public/weekend-rental.js';
 import {transportWeekdayPolicy,transportDateError} from '../public/transport-weekdays.js';
 import {transportMode} from '../public/admin/transport-model.js';
 import {packageBuyoutOption,buyoutFacts,isBuyoutAddon} from '../public/buyout-model.js';
@@ -100,6 +100,7 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const visits=deliveryChoice==='Ønsker levering og henting'?2:1;
  const transportError=hasRental?transportDateError({...d,scope,mode:transportMode(deliveryChoice)}):'';if(transportError)fail(transportError);
  const transportDates=transportWeekdayPolicy({...d,scope,mode:transportMode(deliveryChoice)});
+ if(hasRental&&!capacity.manual&&!included&&weekendDayDeliveryRequired({...d,scope})&&(deliveryChoice!=='Ønsker levering og henting'||transportDates.deliveryDate!==d.start||transportDates.pickupDate!==d.end))fail('Éndagsleie i helgen krever levering og henting samme dag. Transport avtales og prises i tilbudet.');
  if(hasRental&&((transportDates.deliveryDate&&transportDates.deliveryDate>d.start)||(transportDates.pickupDate&&transportDates.pickupDate<d.end)))fail('Transportdatoene må omfatte leieperioden.');
  if(hasRental&&!self){const display=v=>v?v.split('-').reverse().join('.'):'';if(['Ønsker levering og henting','Kun levering – jeg returnerer selv'].includes(deliveryChoice))facts.push(['Ønsket levering',display(transportDates.deliveryDate)]);if(['Ønsker levering og henting','Kun henting – jeg henter selv'].includes(deliveryChoice))facts.push(['Ønsket henting',display(transportDates.pickupDate)]);}
  const receipt=hasRental&&!transportDates.manual&&!self&&!capacity.manual?verifyDelivery(d.deliveryToken,d.address,rent,value.customRequest,visits):null;

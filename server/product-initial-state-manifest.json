@@ -35,7 +35,7 @@
     "public/price-display-model.js": "2aa77aa3a58c3ac1d88cc0c645fc9c29b353ccc20e5308d29b41dd6d3b975ffb",
     "public/product-dimensions.js": "b9b1b7d38cef163be063506d643fd39cfa6089c26763a426ebcbf25779216234",
     "public/product-illustration.js": "4b0e248efd605cea3f1646aa785f6f004d96815665fb7f40663e720d2193adfb",
-    "public/product-initial-state.js": "d05d88202e9b765b4b0a5abaed9e01fa533d1e10d03ffeac1bb8fc547a2a14eb",
+    "public/product-initial-state.js": "9631f06be3403724a18f909a9921cbcffbdd39af8ec74eba120716ae08f0de1f",
     "public/product-page-model.js": "01d129d98c2235d3b5335aaf385931759bcc729864662f1b20db29ca9d4fcea0",
     "public/product-period-markup.js": "9cda691907f1a6124bc982c193776999a4a27b2f59b97e6316c92a5a452e7643",
     "public/product-recommendations.js": "19b8ffce1c88e5cf512fbbc10a8346032f1a860a8ed7dc37cc229e4730696d30",
@@ -52,6 +52,7 @@
     "public/rental-period-slots.js": "5838e4eaec16d3eda7d456311c5d7fc427024fdcbed246e3cac83093594acd12",
     "public/rental-pricing-model.js": "f3c577e9fd8315ec22493b7efd76ce79d5ff7d011bf570b1053bb610492e9ec6",
     "public/rental-product-options.js": "bb3d5f5159f5e5f7ff1ca63ad53a9b13664adfeac8b03da45f5276221fbae396",
+    "public/rental-purpose-memory.js": "6e63adf7bc8f243ed14ddb727beb4b9d7be7cd73303e59b14b3771596b146706",
     "public/rental-purpose-model.js": "8320b14aa16c386b766bc75fe04abac1e475ee32e4d3b2c0805f2c1aaeedc399",
     "public/rental-scope-markup.js": "6c1bcad91856d93bbc3ae75f5c6fbc950368c858836570d46b53d38cd071dcfc",
     "public/rental-selection-summary.js": "b6e9680d5985d00bc0783ac79832c908f07e2ea9ad180f542ff8d780d42b1ea9",
@@ -69,5 +70,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "server/product-initial-state-script.mjs": "814a4cc97c3bbb7e7428ed9560a8a390aadf119816448e6604d850ee92e93e74"
   },
-  "bundleSha256": "185ddaa101a71b260b81233d18c0f9d40209e997653c02bd45bb4c2fa2f7c198"
+  "bundleSha256": "e9cbbf9316912333323bfc73b556a922474d76a4a66cd735eff8c089c6d1b2c9"
 }

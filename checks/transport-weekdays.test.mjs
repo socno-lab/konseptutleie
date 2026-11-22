@@ -36,3 +36,12 @@ test('styling keeps Friday/Monday defaults but accepts requested Sunday collecti
  const d=input();d.details.occasion='Boligfoto og visning';const normal=snapshot(d);assert.equal(normal.delivery.total,1380);assert.equal(normal.delivery.dates.pickupDate,'2030-11-04');
  d.details.pickupDate='2030-11-03';const requested=snapshot(d);assert.equal(requested.delivery.dates.pickupDate,'2030-11-03');assert.equal(requested.delivery.total,null);assert.equal(requested.total,null);
 });
+
+
+test('event one-day weekend orders require both paid visits the same day on the server',()=>{
+ const d=input();d.details.end=d.details.start;
+ const result=snapshot(d);assert.equal(result.lines.find(line=>line.id==='chair').total,150,'same-day hire keeps one day at the event rate');assert.equal(result.delivery.total,null);assert.deepEqual(result.delivery.dates,{deliveryDate:d.details.start,pickupDate:d.details.start});
+ for(const delivery of ['Henter og returnerer selv','Kun levering – jeg returnerer selv','Kun henting – jeg henter selv','Avklares senere']){d.details.delivery=delivery;assert.throws(()=>snapshot(d),/Éndagsleie i helgen krever/);}
+ d.details.delivery='Ønsker levering og henting';d.details.pickupDate='2030-11-04';assert.throws(()=>snapshot(d),/Éndagsleie i helgen krever/);
+ d.details.occasion='Boligfoto og visning';d.details.delivery='Henter og returnerer selv';delete d.details.pickupDate;assert.equal(snapshot(d).delivery.total,0);
+});

@@ -1,4 +1,4 @@
-import {weekendRentalEnd} from '../public/weekend-rental.js';
+import {weekendRentalEnd,weekendDayDeliveryRequired} from '../public/weekend-rental.js';
 import {informationBoxMarkup} from '../public/information-box.js';
 import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from '../public/transport-weekdays.js';
 import {scopeForOccasion} from '../public/rental-pricing-model.js';
@@ -32,7 +32,7 @@ async function mountedDelivery(){
  const document={activeElement:null,createElement:tag=>tag==='section'?(weekdayNotice=element()):tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
  const products=[{id:'chair',name:'Teststol',category:'Stoler'},{id:'sofa',name:'Testsofa',type:'sofa'},{id:'tree',deliveryIncluded:true,isService:true,offeringType:'service'}];
  let quoteGate=null;
- const context=vm.createContext({weekendRentalEnd,informationBoxMarkup,transportDateLimits,transportDateError,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
+ const context=vm.createContext({weekendRentalEnd,weekendDayDeliveryRequired,informationBoxMarkup,transportDateLimits,transportDateError,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
  vm.runInContext(getter+'\n'+source.slice(first,last)+'\nmountRentalDelivery(form);\nvar deliverySummaryProvider;',context);
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
@@ -129,7 +129,7 @@ test('weekend notice uses the requested text and disappears on weekday transport
 test('styling weekend explains Friday/Monday transport and unchanged lease price; other uses hide it',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(1);
  assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/fredag 1\. november/);assert.match(ui.weekdayNotice.innerHTML,/mandag 4\. november/);assert.match(ui.weekdayNotice.innerHTML,/08.00–12.00/);assert.match(ui.weekdayNotice.innerHTML,/ingen ekstra leiekostnad/);
- ui.choose(0);assert.equal(ui.weekdayNotice.hidden,true);ui.choose(1);ui.occasion('Messe og stand');assert.equal(ui.weekdayNotice.hidden,true);
+ ui.choose(0);assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/Retur på hverdager/);ui.choose(1);ui.occasion('Messe og stand');assert.equal(ui.weekdayNotice.hidden,true);
 });
 
 test('manual Sunday collection for styling shows agreement notice and hides the automatic weekday explanation',async()=>{
@@ -187,4 +187,19 @@ test('mobile address debounce can prefetch without changing focus or selected tr
 test('prefetching a weekday leg preserves the selected weekend transport notice',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');ui.choose(1);
  assert.equal(ui.status.className,'information-box');assert.match(ui.status.innerHTML,/Transport i helgen må avtales/);assert.notEqual(ui.status.textContent,'Beregner transportpris …');await ui.calculate();assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.match(ui.prices[2].innerHTML,/690/);
+});
+
+
+test('event one-day weekend hire locks only delivery and collection on the same day',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(2);ui.period('2030-11-02','2030-11-02');
+ assert.equal(ui.radios[1].checked,true);assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,true,true]);assert.ok(ui.labels.every(l=>!l.hidden));assert.match(ui.status.innerHTML,/Transport i helgen må avtales/);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.transportInputs.deliveryDate.value,'2030-11-02');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-02');assert.equal(ui.scheduled(),false);
+ ui.editTransport('pickupDate','2030-11-04');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-02');
+ ui.period('2030-11-04','2030-11-05');assert.ok(ui.radios.every(r=>!r.disabled));assert.equal(ui.radios[2].checked,true);assert.equal(ui.transportInputs.pickupDate.readOnly,false);
+});
+
+test('styling self pickup explains Monday return without changing the requested period or price basis',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-01','2030-11-03');
+ assert.equal(ui.radios[0].checked,true);assert.ok(ui.radios.every(r=>!r.disabled));assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/mandag 4\. november/);assert.match(ui.weekdayNotice.innerHTML,/08.00–15.45/);assert.match(ui.weekdayNotice.innerHTML,/ingen ekstra leiekostnad/);assert.equal(ui.transportInputs.pickupDate.value,'2030-11-04');assert.equal(ui.summary().total,0);
+ ui.period('2030-11-04','2030-11-05');assert.equal(ui.weekdayNotice.hidden,true);
+ ui.period('2030-11-02','2030-11-02');assert.equal(ui.radios[0].checked,true);assert.ok(ui.radios.every(r=>!r.disabled));assert.match(ui.weekdayNotice.innerHTML,/minimum to døgn/);
 });
