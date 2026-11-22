@@ -218,7 +218,7 @@ test('single-day styling weekend explains weekday logistics under minimum hire h
 test('weekend collection copy explains own-return restriction for multiple days and retains day-hire explanation only for one day',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');
  for(const choice of [1,3]){ui.choose(choice);assert.match(ui.status.innerHTML,/møblene må derfor hentes hos deg/);assert.match(ui.status.innerHTML,/Egen retur til lageret er kun mulig på hverdager/);assert.match(ui.status.innerHTML,/Transportprisen beregnes individuelt/);assert.doesNotMatch(ui.status.innerHTML,/éndagsleie/);}
- ui.period('2030-11-02','2030-11-02');assert.match(ui.status.innerHTML,/éndagsleie i helgen/);assert.match(ui.status.innerHTML,/levering og henting samme dag/);
+ ui.period('2030-11-02','2030-11-02');assert.match(ui.status.innerHTML,/Éndagsleie i helgen/);assert.match(ui.status.innerHTML,/levering og henting samme dag/);
 });
 
 
