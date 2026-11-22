@@ -13,3 +13,5 @@ export function weekendDayDeliveryRequired({start,end,scope}={}){
 }
 
 export function weekendCollectionRequired({end,scope}={}){const day=parseDateOnly(end);return scope==='messe'&&day!==null&&[0,6].includes(new Date(day).getUTCDay());}
+
+export function weekendPeriodDeliveryRequired({start,end,scope}={}){const first=parseDateOnly(start),last=parseDateOnly(end);return scope==='messe'&&first!==null&&last!==null&&[0,6].includes(new Date(first).getUTCDay())&&[0,6].includes(new Date(last).getUTCDay());}

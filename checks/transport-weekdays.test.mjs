@@ -17,7 +17,7 @@ test('styling defaults to Friday/Monday, event to actual weekend; explicit weekd
 });
 test('weekend submission ignores a route quote, never invents a grand total, and preserves actual transport dates',()=>{
  const weekend=snapshot(input());assert.equal(weekend.delivery.total,null);assert.equal(weekend.total,null);assert.match(weekend.delivery.label,/må beregnes/);assert.deepEqual(weekend.delivery.dates,{deliveryDate:period.start,pickupDate:period.end});
- const d=input();Object.assign(d.details,{deliveryDate:'2030-11-01',pickupDate:'2030-11-04'});assert.throws(()=>snapshot(d),/Leie som slutter i helgen krever/);d.details.end='2030-11-04';const weekday=snapshot(d);assert.equal(weekday.delivery.total,1380);assert.ok(weekday.total>1380);assert.equal(weekday.delivery.dates.pickupDate,'2030-11-04');
+ const d=input();Object.assign(d.details,{deliveryDate:'2030-11-01',pickupDate:'2030-11-04'});assert.throws(()=>snapshot(d),/Helgeleie krever levering og henting/);d.details.end='2030-11-04';const weekday=snapshot(d);assert.equal(weekday.delivery.total,1380);assert.ok(weekday.total>1380);assert.equal(weekday.delivery.dates.pickupDate,'2030-11-04');
  d.details.deliveryDate='2030-11-04';assert.throws(()=>snapshot(d),/Levering må være/);
 });
 test('weekend estimator returns manual without requesting Google',async()=>{
@@ -53,4 +53,11 @@ test('event Friday to Sunday accepts both collection options and rejects own ret
  for(const delivery of ['Henter og returnerer selv','Kun levering – jeg returnerer selv','Avklares senere']){d.details.delivery=delivery;assert.throws(()=>snapshot(d),/krever henting hos kunden/);}
  d.details.delivery='Kun henting – jeg henter selv';d.details.pickupDate='2030-11-04';assert.throws(()=>snapshot(d),/krever henting hos kunden/);
  d.details.occasion='Boligfoto og visning';d.details.delivery='Henter og returnerer selv';assert.equal(snapshot(d).delivery.total,0);
+});
+
+
+test('Saturday to Sunday event submission rejects warehouse pickup and shifted transport dates',()=>{
+ const d=input();for(const choice of ['Henter og returnerer selv','Kun henting – jeg henter selv','Kun levering – jeg returnerer selv','Avklares senere']){d.details.delivery=choice;assert.throws(()=>snapshot(d),/Helgeleie krever/);}
+ d.details.delivery='Ønsker levering og henting';assert.equal(snapshot(d).delivery.total,null);d.details.deliveryDate='2030-11-01';assert.throws(()=>snapshot(d),/Helgeleie krever/);
+ d.details.occasion='Boligfoto og visning';d.details.delivery='Henter og returnerer selv';delete d.details.deliveryDate;assert.equal(snapshot(d).delivery.total,0);
 });
