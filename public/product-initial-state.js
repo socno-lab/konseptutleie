@@ -1,4 +1,4 @@
-import {rememberedPurposeState} from './rental-purpose-memory.js?v=periodsave20261122';
+import {rememberedPurposeState} from './rental-purpose-memory.js?v=focusstable20261122';
 import {configureSiteSettings} from './site-settings.js?v=fest20261114';
 import {normalizeBasket} from './catalog-model.js?v=longrent20261026';
 import {restoreSofas,migrateSofas} from './sofa-model.js?v=longrent20261026';

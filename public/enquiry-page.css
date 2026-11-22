@@ -39,3 +39,6 @@ body.enquiry-page #cart.enquiry-full[hidden],body.enquiry-page #saleCart.enquiry
 #enquiryPage .custom-request-heading span{min-width:0}
 #enquiryPage .custom-request-heading .remove{flex-shrink:0}
 @media(max-width:640px){#enquiryPage #customRequestItem{padding:16px}#enquiryPage .custom-request-heading{gap:12px;font-size:16px}}
+
+/* The checkout container is not an interactive focus target. */
+#enquiryPage #cart:focus,#enquiryPage #saleCart:focus{outline:none}

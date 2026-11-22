@@ -1,12 +1,12 @@
-import {weekendRentalEnd,weekendDayDeliveryRequired} from './weekend-rental.js?v=periodsave20261122';
+import {weekendRentalEnd,weekendDayDeliveryRequired} from './weekend-rental.js?v=focusstable20261122';
 import {informationBoxMarkup,informationBoxStyles} from './information-box.js?v=purposemodal20261122';
 import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from './transport-weekdays.js?v=purposemodal20261122';
 import {scopeForOccasion} from './rental-pricing-model.js?v=fest20261114';
 import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
-import {customerInformationPages} from './customer-information-content.js?v=periodsave20261122';
+import {customerInformationPages} from './customer-information-content.js?v=focusstable20261122';
 import {readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
-import {mountMobileRentalDates} from './mobile-rental-dates.js?v=period20261028e';
+import {mountMobileRentalDates} from './mobile-rental-dates.js?v=focusstable20261122';
 import {mountStorageNotice} from './storage-notice.js?v=launch20261024';
 mountStorageNotice();
 import {configureSiteSettings,getSiteSettings} from './site-settings.js?v=fest20261114';

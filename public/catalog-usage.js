@@ -1,3 +1,4 @@
+import {stableFormUpdate} from './stable-form-update.js?v=focusstable20261122';
 import {catalogUsageMarkup} from './catalog-usage-markup.js?v=mobilefirst20261119';
 import {purposes} from './rental-purpose-model.js?v=fest20261114';
 import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from './rental-usage-model.js?v=fest20261114';
@@ -34,7 +35,7 @@ export function mountCatalogUsage(host,{state,apply,impact=()=>''}){
   if(event.target.closest('[data-usage-close]')){dialog.close();return;}
   const purpose=event.target.closest('[data-catalog-purpose]');if(purpose){draft.purpose=purpose.dataset.catalogPurpose;renderDraft();return;}
   const scope=event.target.closest('[data-catalog-scope]');if(scope){draft.scope=scope.dataset.catalogScope;renderDraft();return;}
-  if(event.target.closest('[data-usage-apply]')){const next=proposed();if(!next.confirmed||draft.purpose==='alle')return;const callback=afterApply;apply(next);dialog.close();callback?.();}
+  if(event.target.closest('[data-usage-apply]')){const next=proposed();if(!next.confirmed||draft.purpose==='alle')return;const callback=afterApply;stableFormUpdate(()=>{dialog.close();apply(next);callback?.();});}
  });
  dialog.addEventListener('close',()=>{afterApply=null;button.focus({preventScroll:true});});
  const render=()=>{const current=state();button.querySelector('[data-usage-label]').textContent=catalogUsageLabel({purpose:current.currentPurpose,scope:current.currentScope,confirmed:current.confirmed});};

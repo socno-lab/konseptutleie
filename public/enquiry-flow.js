@@ -2,7 +2,7 @@ const allowed=new Set(['start','end','deliveryDate','pickupDate','occasion','nam
 export function mountEnquiryFlow({cartId,formId,mode}){
  const cart=document.getElementById(cartId),form=document.getElementById(formId),page=location.pathname==='/foresporsel.html',key='konsept-enquiry-draft-'+mode;
  if(!cart||!form)return {open(){},update(){},clearDraft(){},restoredField:()=>false};
- const css=document.createElement('link');css.rel='stylesheet';css.href='/enquiry-page.css?v=customfirst20261115';if(!document.querySelector('link[href="'+css.href.replace(location.origin,'')+'"]'))document.head.append(css);
+ const css=document.createElement('link');css.rel='stylesheet';css.href='/enquiry-page.css?v=focusstable20261122';if(!document.querySelector('link[href="'+css.href.replace(location.origin,'')+'"]'))document.head.append(css);
  let saved={};try{const value=JSON.parse(sessionStorage.getItem(key)||'{}');if(value&&typeof value==='object'&&!Array.isArray(value))saved=value;}catch{}
  if(mode==='rent')try{const period=JSON.parse(localStorage.getItem('konsept-rental-period-v1')||'{}');for(const name of ['start','end'])if(!saved[name]&&typeof period[name]==='string')saved[name]=period[name];}catch{}
  let confirmedOccasion=mode==='rent'&&saved.occasionConfirmed===true&&typeof saved.occasion==='string'&&saved.occasion.trim()?saved.occasion:'';
@@ -20,7 +20,7 @@ export function mountEnquiryFlow({cartId,formId,mode}){
   const back=document.createElement('a');back.href=mode==='buy'?'/kjop.html':'/utvalg.html';back.className='text-button enquiry-back';back.textContent='← Fortsett å se produkter';host.append(back,cart);cart.classList.add('enquiry-full');
   const heading=cart.querySelector('h2');if(heading){const h1=document.createElement('h1');h1.id=heading.id;h1.textContent=mode==='buy'?'Din kjøpsforespørsel':heading.textContent;heading.replaceWith(h1);}
   for(const close of cart.querySelectorAll('[data-close="'+cartId+'"]'))close.hidden=true;
-  cart.addEventListener('cancel',event=>event.preventDefault());cart.show();cart.tabIndex=-1;cart.focus({preventScroll:true});if(performance.getEntriesByType('navigation')[0]?.type==='navigate')requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));
+  cart.addEventListener('cancel',event=>event.preventDefault());cart.show();cart.tabIndex=-1;if(performance.getEntriesByType('navigation')[0]?.type==='navigate')requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));
   if(mode==='rent'){period=document.createElement('button');period.type='button';period.className='enquiry-period-link text-button';period.addEventListener('click',()=>{document.getElementById('rentalDates')?.scrollIntoView({behavior:'smooth',block:'start'});const target=document.querySelector('#rentalDates .rental-date-trigger,#rentalDates input:not([type=hidden])');target?.focus({preventScroll:true});});cart.querySelector('.drawer-head')?.after(period);}
  }else{cart.classList.add('enquiry-preview');cart.append(preview);}
  let pending=false;
