@@ -1,6 +1,6 @@
 import {customerTransportPlan} from './customer-transport-plan.js?v=transportaudit20261122';
 import {weekendRentalEnd,weekendDayDeliveryRequired,weekendCollectionRequired,weekendPeriodDeliveryRequired} from './weekend-rental.js?v=weekendboth20261122';
-import {informationBoxMarkup,informationBoxStyles} from './information-box.js?v=purposemodal20261122';
+import {informationBoxMarkup} from './information-box.js?v=transportnote20261122';
 import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from './transport-weekdays.js?v=transportgroup20261122';
 import {scopeForOccasion} from './rental-pricing-model.js?v=fest20261114';
 import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
@@ -57,13 +57,30 @@ export function rentalDeliveryExport(){
 }
 function mountRentalDelivery(form){
  const select=form.querySelector('[name="delivery"]'),address=form.querySelector('[name="address"]');
- const choices=[['Henter og returnerer selv','Jeg henter og returnerer selv',0],['Ønsker levering og henting','Levering og henting etter leieperioden',2],['Kun levering – jeg returnerer selv','Kun levering – jeg returnerer selv',1],['Kun henting – jeg henter selv','Jeg henter selv – dere henter ved leieslutt',1],['Avklares senere','Transport avklares i tilbudet',null]];
- select.innerHTML=choices.map(([value,label])=>'<option>'+value+'</option>').join('');mountAddressFields(form);
- const group=document.createElement('fieldset');group.className='rental-options';group.innerHTML='<legend>Levering eller henting *</legend><div class="addon-choices">'+choices.map(([value,label,visits],i)=>'<div class="rental-delivery-choice"><label class="addon-choice"><input type="radio" name="delivery" value="'+value+'" '+(i===0?'checked':'')+'><span style="flex:1">'+label+'</span><strong data-delivery-price="'+i+'" style="white-space:nowrap;font-size:12px">'+(visits===0?'0 kr':visits===null?'Avklares':'Adresse kreves')+'</strong></label></div>').join('')+'</div><p class="hint">Prisene inkluderer mva.</p><div role="status" aria-live="polite"></div>';
+ const choices=[
+  ['Henter og returnerer selv','Jeg henter og returnerer selv',0,'Du henter og returnerer møblene på lageret vårt.'],
+  ['Ønsker levering og henting','Levering og henting',2,'Vi leverer møblene og henter dem hos deg ved leieslutt.'],
+  ['Kun levering – jeg returnerer selv','Kun levering',1,'Vi leverer møblene hos deg. Du returnerer dem på lageret.'],
+  ['Kun henting – jeg henter selv','Vi henter ved leieslutt',1,'Du henter på lageret. Vi henter møblene hos deg ved leieslutt.'],
+  ['Avklares senere','Transport avklares i tilbudet',null,'Vi avklarer transportløsning og pris i tilbudet.'],
+ ];
+ const routeCredit='<small class="route-credit">Kjøretid beregnet med <span translate="no">Google Maps</span></small>';
+ const caption=(title,description='',hasRoute=false)=>
+  '<span class="transport-choice-name">'+title+'</span>'+
+  (description?'<span class="transport-choice-description">'+description+'</span>':'')+
+  (hasRoute?routeCredit:'');
+ select.innerHTML=choices.map(([value])=>'<option>'+value+'</option>').join('');mountAddressFields(form);
+ const group=document.createElement('fieldset');
+ group.className='rental-options';
+ group.innerHTML='<legend>Levering eller henting *</legend><div class="addon-choices">'+choices.map(([value,title,visits,description],i)=>
+  '<div class="rental-delivery-choice"><label class="addon-choice"><input type="radio" name="delivery" value="'+value+'" '+(i===0?'checked':'')+'>'+
+  '<span class="transport-choice-copy">'+caption(title,description)+'</span>'+
+  '<strong data-delivery-price="'+i+'">'+(visits===0?'0 kr':visits===null?'Avklares':'Adresse kreves')+'</strong></label></div>'
+ ).join('')+'</div><p class="hint">Prisene inkluderer mva.</p><div role="status" aria-live="polite"></div>';
  select.closest('label').replaceWith(group);
  const transportFields=document.createElement('div');transportFields.className='rental-transport-dates';transportFields.innerHTML='<p class="transport-date-heading">Foreløpige datoer</p><label><span data-transport-label="deliveryDate">Ønsket leveringsdato</span><strong data-transport-value="deliveryDate"></strong><input hidden type="date" name="deliveryDate"></label><label><span data-transport-label="pickupDate">Ønsket hentedato</span><strong data-transport-value="pickupDate"></strong><input hidden type="date" name="pickupDate"></label>';group.append(transportFields);
  const pickupTimeNote=document.createElement('p');pickupTimeNote.className='hint';pickupTimeNote.textContent='Tidspunkt for uthenting på lageret avtales i tilbudet.';pickupTimeNote.hidden=true;transportFields.after(pickupTimeNote);
- const weekdayNotice=document.createElement('section');weekdayNotice.className='information-box';weekdayNotice.hidden=true;transportFields.after(weekdayNotice);
+ const weekdayNotice=document.createElement('section');weekdayNotice.className='transport-note';weekdayNotice.hidden=true;transportFields.after(weekdayNotice);
  const transportInput=name=>transportFields.querySelector('[name="'+name+'"]');let previousTransportDefaults={},previousTransportMode;
  const transportMode=(value=selected()[0])=>({'Henter og returnerer selv':'pickup','Kun levering – jeg returnerer selv':'deliveryOnly','Kun henting – jeg henter selv':'collectionOnly','Avklares senere':'undecided'})[value]||'delivery';
  const dateOptions=(mode=transportMode())=>({start:form.elements.namedItem('start')?.value||'',end:form.elements.namedItem('end')?.value||'',scope:scopeForOccasion(form.elements.namedItem('occasion')?.value||''),mode});
@@ -72,7 +89,29 @@ function mountRentalDelivery(form){
  const routeOptions=()=>{const plan=customerTransportPlan(dateOptions());for(const mode of plan.allowedModes){if(!['delivery','deliveryOnly','collectionOnly'].includes(mode))continue;const policy=transportPolicy(mode);if(!policy.manual)return {...dateOptions(mode),deliveryDate:policy.deliveryDate,pickupDate:policy.pickupDate};}return null;};
  let previousDayChoice=null;
  const syncWeekendChoice=()=>{if(purchaseOnly()||capacity().includedOnly)return false;const plan=customerTransportPlan(dateOptions());const restricted=plan.deliveryRequired||plan.collectionRequired;if(restricted){if(previousDayChoice===null)previousDayChoice=selected()[0];if(!plan.allowedModes.includes(transportMode())){const next=plan.allowedModes.includes('collectionOnly')&&transportMode()==='pickup'?'collectionOnly':plan.allowedModes.includes('deliveryOnly')&&transportMode()==='pickup'?'deliveryOnly':'delivery';for(const radio of group.querySelectorAll('[name=delivery]'))radio.checked=transportMode(radio.value)===next;}}else if(previousDayChoice!==null){for(const radio of group.querySelectorAll('[name=delivery]'))radio.checked=radio.value===previousDayChoice;previousDayChoice=null;}return restricted;};
- const syncTransportDates=()=>{const dayHire=syncWeekendChoice(),mode=transportMode(),selfCollection=mode==='collectionOnly',selfPickup=mode==='pickup',defaults=plannedTransportDates(dateOptions());for(const key of ['deliveryDate','pickupDate']){const field=transportInput(key);const hiddenEndpoint=mode==='pickup'||mode==='collectionOnly'&&key==='deliveryDate'||mode==='deliveryOnly'&&key==='pickupDate';field.value=defaults[key];field.readOnly=true;const value=transportFields.querySelector('[data-transport-value="'+key+'"]');if(value)value.textContent=field.value?new Intl.DateTimeFormat('nb-NO',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'}).format(new Date(field.value+'T12:00:00Z')):'Avklares i tilbudet';}previousTransportDefaults=defaults;previousTransportMode=mode;const limits=transportDateLimits(dateOptions()),error=transportDateError({...dateOptions(),deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value});for(const key of ['deliveryDate','pickupDate']){const field=transportInput(key);field.min=limits?.[key].min||'';field.max=limits?.[key].max||'';field.setCustomValidity(error);}transportFields.hidden=purchaseOnly()||selected()[2]===null;transportInput('deliveryDate').closest('label').hidden=false;for(const key of ['deliveryDate','pickupDate']){const label=transportFields.querySelector('[data-transport-label="'+key+'"]');if(label)label.textContent=key==='deliveryDate'?((selfCollection||selfPickup)?'Henting på vårt lager':'Levering hos deg'):((selfPickup||mode==='deliveryOnly')?'Retur på vårt lager':'Henting hos deg');}pickupTimeNote.hidden=transportFields.hidden;pickupTimeNote.textContent=selfPickup?'Tidspunkt for henting og retur velger du når du aksepterer tilbudet.':selfCollection?'Tidspunkt for uthenting på lageret velger du når du aksepterer tilbudet.':mode==='deliveryOnly'?'Tidspunkt for retur på lageret velger du når du aksepterer tilbudet.':'Levering og henting skjer normalt kl. 08.00–12.00 på hverdager. Helgetransport avtales i tilbudet.';pickupTimeNote.textContent+=' Helligdager og ønskede avvik avtales i tilbudet.';transportInput('pickupDate').closest('label').hidden=false;const options=dateOptions(),paid=selected()[2]>0&&!transportPolicy().weekend,shifted=options.scope==='standard'&&paid&&!transportFields.hidden&&(['delivery','deliveryOnly'].includes(mode)&&defaults.deliveryDate!==options.start&&transportInput('deliveryDate').value===defaults.deliveryDate||['delivery','collectionOnly','deliveryOnly'].includes(mode)&&defaults.pickupDate!==options.end&&transportInput('pickupDate').value===defaults.pickupDate);const selfReturn=options.scope==='standard'&&mode==='pickup'&&options.end&&defaults.pickupDate!==options.end;const minimum=weekendRentalEnd({...options,deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value})!==options.end;weekdayNotice.hidden=!(shifted||minimum||selfReturn);if(selfReturn&&!minimum){const day=new Intl.DateTimeFormat('nb-NO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(defaults.pickupDate+'T12:00:00Z'));weekdayNotice.innerHTML=informationBoxMarkup('Retur på hverdager','Henting og retur på lageret skjer på hverdager kl. 08.00–15.45. Siden leieperioden slutter i helgen, blir retur '+day+'. Dette gir ingen ekstra leiekostnad; leieprisen beregnes fortsatt for ønsket leieperiode.');}if(minimum){if(options.scope==='standard'){const format=value=>new Intl.DateTimeFormat('nb-NO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));const self=mode==='pickup',visits=[];if(['delivery','deliveryOnly'].includes(mode))visits.push('levering '+format(transportInput('deliveryDate').value));if(['delivery','collectionOnly'].includes(mode))visits.push('henting '+format(transportInput('pickupDate').value));const explanation=self?'Henting og retur på lageret skjer på hverdager kl. 08.00–15.45. For din leieperiode er det foreslått uthenting '+format(defaults.deliveryDate)+' og retur '+format(defaults.pickupDate)+'.':'Vi leverer og henter på hverdager kl. 08.00–12.00. For din leieperiode er det foreslått '+visits.join(' og ')+'.';weekdayNotice.innerHTML=informationBoxMarkup('Helgeleie – minimum to døgn',explanation+' Siden leiedagen faller i helgen, disponerer du møblene fra fredag til mandag. Det beregnes minimum to døgns leie, uten ekstra leiekostnad for tilpasningen til hverdager. Endelig avtale bekreftes i tilbudet.');}else weekdayNotice.innerHTML=informationBoxMarkup('Helgeleie – minimum to døgn','Når du disponerer møblene fra fredag til mandag, beregnes minimum to døgns leie. Vi tilbyr også éndagsleie i helgen med levering og henting samme dag. Da vurderer vi tilgjengeligheten og beregner transportprisen individuelt i tilbudet.');}else if(shifted){const format=value=>new Intl.DateTimeFormat('nb-NO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));const visits=[];if(['delivery','deliveryOnly'].includes(mode))visits.push('levering '+format(transportInput('deliveryDate').value));if(['delivery','collectionOnly'].includes(mode))visits.push('henting '+format(transportInput('pickupDate').value));weekdayNotice.innerHTML=mode==='deliveryOnly'?informationBoxMarkup('Levering og retur på hverdager','Vi leverer på hverdager kl. 08.00–12.00. For din leieperiode er det foreslått levering '+format(transportInput('deliveryDate').value)+' og egen retur til lageret '+format(transportInput('pickupDate').value)+'. Tidspunkt for retur velger du når du aksepterer tilbudet. Disse tilpasningene gir ingen ekstra leiekostnad; leieprisen beregnes fortsatt for ønsket leieperiode. Endelig avtale bekreftes i tilbudet.'):informationBoxMarkup('Levering og henting på hverdager','Vi leverer og henter på hverdager kl. 08.00–12.00. For din leieperiode er det foreslått '+visits.join(' og ')+'. Denne tilpasningen gir ingen ekstra leiekostnad; leieprisen beregnes fortsatt for ønsket leieperiode. Endelig avtale bekreftes i tilbudet.');}};
+ const syncTransportDates=()=>{const dayHire=syncWeekendChoice(),mode=transportMode(),selfCollection=mode==='collectionOnly',selfPickup=mode==='pickup',defaults=plannedTransportDates(dateOptions());for(const key of ['deliveryDate','pickupDate']){const field=transportInput(key);const hiddenEndpoint=mode==='pickup'||mode==='collectionOnly'&&key==='deliveryDate'||mode==='deliveryOnly'&&key==='pickupDate';field.value=defaults[key];field.readOnly=true;const value=transportFields.querySelector('[data-transport-value="'+key+'"]');if(value)value.textContent=field.value?new Intl.DateTimeFormat('nb-NO',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'}).format(new Date(field.value+'T12:00:00Z')):'Avklares i tilbudet';}previousTransportDefaults=defaults;previousTransportMode=mode;const limits=transportDateLimits(dateOptions()),error=transportDateError({...dateOptions(),deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value});for(const key of ['deliveryDate','pickupDate']){const field=transportInput(key);field.min=limits?.[key].min||'';field.max=limits?.[key].max||'';field.setCustomValidity(error);}transportFields.hidden=purchaseOnly()||selected()[2]===null;transportInput('deliveryDate').closest('label').hidden=false;for(const key of ['deliveryDate','pickupDate']){const label=transportFields.querySelector('[data-transport-label="'+key+'"]');if(label)label.textContent=key==='deliveryDate'?((selfCollection||selfPickup)?'Henting på vårt lager':'Levering hos deg'):((selfPickup||mode==='deliveryOnly')?'Retur på vårt lager':'Henting hos deg');}pickupTimeNote.hidden=transportFields.hidden;pickupTimeNote.textContent=selfPickup?'Tidspunkt for henting og retur velger du når du aksepterer tilbudet.':selfCollection?'Tidspunkt for uthenting på lageret velger du når du aksepterer tilbudet.':mode==='deliveryOnly'?'Tidspunkt for retur på lageret velger du når du aksepterer tilbudet.':'Levering og henting skjer normalt kl. 08.00–12.00 på hverdager. Helgetransport avtales i tilbudet.';pickupTimeNote.textContent+=' Helligdager og ønskede avvik avtales i tilbudet.';transportInput('pickupDate').closest('label').hidden=false;
+  const options=dateOptions(),paid=selected()[2]>0&&!transportPolicy().weekend;
+  const shifted=options.scope==='standard'&&paid&&!transportFields.hidden&&(['delivery','deliveryOnly'].includes(mode)&&defaults.deliveryDate!==options.start&&transportInput('deliveryDate').value===defaults.deliveryDate||['delivery','collectionOnly','deliveryOnly'].includes(mode)&&defaults.pickupDate!==options.end&&transportInput('pickupDate').value===defaults.pickupDate);
+  const selfReturn=options.scope==='standard'&&mode==='pickup'&&options.end&&defaults.pickupDate!==options.end;
+  const minimum=weekendRentalEnd({...options,deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value})!==options.end;
+  weekdayNotice.hidden=!(shifted||minimum||selfReturn);
+  if(selfPickup&&!weekdayNotice.hidden)pickupTimeNote.textContent='Henting og retur på lageret skjer kl. 08.00–15.45 på hverdager. '+pickupTimeNote.textContent;
+  if(minimum){
+   const standard=options.scope==='standard';
+   weekdayNotice.innerHTML=informationBoxMarkup('Helgeleie – minimum to døgn',standard
+    ?'Henting og retur følger hverdagsdatoene over. Du disponerer møblene fra fredag til mandag og betaler for minimum to døgn.'
+    :'Når du disponerer møblene fra fredag til mandag, beregnes minimum to døgns leie. Éndagsleie i helgen med levering og henting samme dag avtales og prises individuelt.','i');
+  }else if(selfReturn||shifted){
+   const startShifted=defaults.deliveryDate!==options.start;
+   const endShifted=defaults.pickupDate!==options.end;
+   const startLabel=selfPickup||selfCollection?'Henting på lageret':'Levering';
+   const endLabel=selfPickup||mode==='deliveryOnly'?'retur på lageret':'henting hos deg';
+   const subject=startShifted&&endShifted?(selfPickup?'Henting og retur på lageret':startLabel+' og '+endLabel):startShifted?startLabel:endLabel[0].toUpperCase()+endLabel.slice(1);
+   const formatDay=value=>new Intl.DateTimeFormat('nb-NO',{weekday:'long',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));
+   const days=[...(startShifted?[formatDay(defaults.deliveryDate)]:[]),...(endShifted?[formatDay(defaults.pickupDate)]:[])];
+   weekdayNotice.innerHTML=informationBoxMarkup('',subject+' flyttes til '+days.join(' og ')+' uten ekstra leiekostnad.','i');
+  }
+ };
 
  const addressNotice=document.createElement('p');addressNotice.className='hint';addressNotice.textContent='Komplett adresse brukes automatisk til fraktberegning via Google Maps.';addressNotice.id='rentalAddressPrivacy';address.setAttribute('aria-describedby',addressNotice.id);address.closest('label').after(addressNotice);
  const result=group.querySelector('[role="status"]'),dialog=form.closest('dialog');let enabled=null,revision=0,timer,controller,offer=null,pendingKey='',wasLocked=false,previousChoice=choices[0][0],retryAfter=0;
@@ -88,7 +127,7 @@ function mountRentalDelivery(form){
  const capacity=()=>rentalDeliveryCapacity(deliverySelection?.basket||{},deliverySelection?.products||[],deliverySelection?.customRequest===true);
  const updated=()=>document.dispatchEvent?.(new Event('rental-delivery-updated'));
  const preserveChoiceHeight=()=>{const labels=[...group.querySelectorAll('[name=delivery]')].map(radio=>radio.closest('label'));const height=Math.max(0,...labels.filter(label=>!label.hidden&&!String(label.className).includes('has-route-credit')).map(label=>label.getBoundingClientRect?.().height||0));if(height)for(const label of labels)label.style.minHeight=height+'px';};
- const choiceDetails=document.createElement('div');choiceDetails.className='rental-delivery-details';choiceDetails.append(transportFields,pickupTimeNote,result,weekdayNotice);let detailsAnchor=null;
+ const choiceDetails=document.createElement('div');choiceDetails.className='rental-delivery-details';choiceDetails.append(transportFields,weekdayNotice,result,pickupTimeNote);let detailsAnchor=null;
  const placeChoiceDetails=()=>{const anchor=group.querySelector('[name="delivery"]:checked')?.closest('label');if(anchor&&anchor!==detailsAnchor){anchor.after(choiceDetails);detailsAnchor=anchor;}};
  deliverySummaryProvider=()=>{
   const load=capacity(),choice=selected(),unknown=label=>({total:null,included:false,label});
@@ -112,10 +151,10 @@ function mountRentalDelivery(form){
   let includedNote=group.querySelector('.rental-included-note');if(!includedNote){includedNote=document.createElement('p');includedNote.className='hint rental-included-note';group.querySelector('legend').after(includedNote);}includedNote.textContent=Object.keys(deliverySelection?.basket||{}).some(id=>deliverySelection.products.find(p=>p.id===id)?.deliveryIncluded)&&!load.includedOnly?'Varer og tjenester merket med inkludert transport leveres og hentes uten ekstra frakt. Transportvalget og eventuell fraktpris nedenfor gjelder bare øvrige produkter.':'';includedNote.hidden=!includedNote.textContent;
   if(purchaseOnly()){
    const choice=selected()[0];if(![choices[0][0],choices[2][0]].includes(choice))group.querySelector('[name=delivery]').checked=true;
-   for(const [i,[value]] of choices.entries()){const radio=group.querySelectorAll('[name=delivery]')[i],label=radio.closest('label'),visible=i===0||i===2;radio.disabled=!visible;label.hidden=!visible;label.style.display=visible?'':'none';label.querySelector('span').textContent=i===0?'Henter selv etter avtale':i===2?'Ønsker levering':choices[i][1];group.querySelector('[data-delivery-price="'+i+'"]').innerHTML=i===0?'0 kr':'Avklares';}
+   for(const [i,[value]] of choices.entries()){const radio=group.querySelectorAll('[name=delivery]')[i],label=radio.closest('label'),visible=i===0||i===2;radio.disabled=!visible;label.hidden=!visible;label.style.display=visible?'':'none';label.querySelector('span').innerHTML=caption(i===0?'Henter selv etter avtale':i===2?'Ønsker levering':choices[i][1]);group.querySelector('[data-delivery-price="'+i+'"]').innerHTML=i===0?'0 kr':'Avklares';}
    wasLocked=false;deliveryQuote=selected()[2]===0?null:{manual:true};includedNote.hidden=true;addressNotice.hidden=true;result.textContent='Leveringsdato og eventuell fraktpris bekreftes i ordrebekreftelsen.';return;
   }
-  for(const [i,choice] of choices.entries()){const radio=group.querySelectorAll('[name=delivery]')[i];radio.disabled=false;radio.closest('label').querySelector('span').textContent=choice[1];}
+  for(const [i,choice] of choices.entries()){const radio=group.querySelectorAll('[name=delivery]')[i];radio.disabled=false;radio.closest('label').querySelector('span').innerHTML=caption(choice[1],choice[3]);}
   if(load.includedOnly){for(const radio of group.querySelectorAll('[name=delivery]')){radio.checked=radio.value==='Ønsker levering og henting';radio.closest('label').hidden=!radio.checked;radio.closest('label').style.display=radio.checked?'':'none';}syncTransportDates();group.querySelector('[data-delivery-price="1"]').textContent='Inkludert';deliveryQuote={manual:false,total:0,included:true};addressNotice.hidden=true;result.textContent='Levering og henting er inkludert i prisen.';return;}
   wasLocked=false;
   if(!load.includedOnly){const plan=customerTransportPlan(dateOptions());for(const radio of group.querySelectorAll('[name=delivery]')){radio.disabled=!plan.allowedModes.includes(transportMode(radio.value));const label=radio.closest('label');label.hidden=false;label.style.display='';if(radio.disabled)label.className='addon-choice is-unavailable';}}
@@ -124,12 +163,12 @@ function mountRentalDelivery(form){
   for(const [i,choice] of choices.entries())group.querySelector('[data-delivery-price="'+i+'"]').innerHTML=choice[2]===0?'0 kr':choice[2]===null?'Avklares':load.manual?'Avklares':transportPolicy(transportMode(choice[0])).manual?'Må beregnes':current&&!current.manual?priceMarkup(current.prices[crew===2?'twoPeople':'onePerson']*choice[2]):current?.manual?'Må beregnes':ready()?(enabled===false||Date.now()<retryAfter?'Avklares i tilbudet':'Beregner …'):'Adresse kreves';
   const choice=selected();deliveryQuote=choice[2]>0&&transportPolicy().manual?{manual:true,reason:transportPolicy().reason}:choice[2]>0&&load.manual?{manual:true,reason:load.reason}:choice[2]>0&&current?{manual:current.manual,receipt:current.receipt,total:current.manual?undefined:current.prices[crew===2?'twoPeople':'onePerson']*choice[2]}:null;
   addressNotice.hidden=load.manual;
-  if(load.manual&&selected()[2]===0){result.className='information-box';result.innerHTML=informationBoxMarkup('Selvhenting og retur','Du henter og returnerer selv. Sørg for egnet kjøretøy og tilstrekkelig kapasitet til hele utvalget. Datoer og praktiske forhold bekreftes i tilbudet.');return;}
-  if(load.manual){result.className='information-box';result.innerHTML=informationBoxMarkup('Transportprisen må beregnes',load.reason==='custom'?'Ved tilpasset forespørsel avklares transport og pris i tilbudet.':load.reason==='capacity'?'Forespørselen krever utvidet transport. Frakt med ekstern transportør prises i tilbudet.':'Transportpris bekreftes i tilbudet.');return;}
-  if(choice[2]>0&&transportPolicy().manual){if(transportPolicy().weekend){result.className='information-box';result.innerHTML=informationBoxMarkup('Transport i helgen prises individuelt',weekendCollectionRequired(dateOptions())&&!weekendPeriodDeliveryRequired(dateOptions())?'Leieperioden slutter i helgen. Henting hos deg utføres av oss eller vår transportør på siste leiedag, siden lageret ikke tar imot egen retur i helgen. Transportprisen for valgt alternativ beregnes individuelt og bekreftes i tilbudet.':weekendDayDeliveryRequired(dateOptions())?'Éndagsleie i helgen tilbys kun med levering og henting samme dag, utført av oss eller vår transportør. Egen henting og retur på lageret er ikke tilgjengelig for dette alternativet. Vi vurderer tilgjengeligheten og beregner transportprisen individuelt i tilbudet.':weekendPeriodDeliveryRequired(dateOptions())?'Leie i helgen tilbys kun med levering og henting utført av oss eller vår transportør. Egen henting og retur på lageret er ikke tilgjengelig for dette alternativet. Vi vurderer tilgjengeligheten og beregner transportprisen individuelt i tilbudet.':customerTransportPlan(dateOptions()).deliveryRequired?'Leieperioden starter i helgen. Levering på første leiedag utføres av oss eller vår transportør. Egen uthenting på lageret er kun mulig på hverdager. Transportprisen for valgt alternativ beregnes individuelt og bekreftes i tilbudet.':'Du har valgt levering eller henting i helgen. Vi vurderer tilgjengeligheten og beregner transportprisen individuelt i tilbudet.');}else result.textContent='Velg transportdatoer for å se pris. Fast transportpris gjelder hverdager.';return;}
-  if(choice[2]>0&&current?.manual){result.className='information-box';result.innerHTML=informationBoxMarkup('Transportprisen må beregnes','Transport til denne adressen beregnes individuelt og bekreftes i tilbudet.');return;}
+  if(load.manual&&selected()[2]===0){result.className='transport-note';result.innerHTML=informationBoxMarkup('Selvhenting og retur','Du henter og returnerer selv. Sørg for egnet kjøretøy og tilstrekkelig kapasitet til hele utvalget. Datoer og praktiske forhold bekreftes i tilbudet.','i');return;}
+  if(load.manual){result.className='transport-note transport-note-warning';result.innerHTML=informationBoxMarkup('Transportprisen må beregnes',load.reason==='custom'?'Ved tilpasset forespørsel avklares transport og pris i tilbudet.':load.reason==='capacity'?'Forespørselen krever utvidet transport. Frakt med ekstern transportør prises i tilbudet.':'Transportpris bekreftes i tilbudet.');return;}
+  if(choice[2]>0&&transportPolicy().manual){if(transportPolicy().weekend){result.className='transport-note transport-note-warning';result.innerHTML=informationBoxMarkup('Transport i helgen prises individuelt',weekendCollectionRequired(dateOptions())&&!weekendPeriodDeliveryRequired(dateOptions())?'Vi eller vår transportør henter hos deg på siste leiedag. Lageret tar kun imot egen retur på hverdager. Prisen bekreftes i tilbudet.':weekendDayDeliveryRequired(dateOptions())?'Éndagsleie i helgen krever levering og henting samme dag, utført av oss eller vår transportør. Vi bekrefter tilgjengelighet og pris i tilbudet.':weekendPeriodDeliveryRequired(dateOptions())?'Vi eller vår transportør både leverer og henter. Lageret er stengt i helgen. Vi bekrefter tilgjengelighet og pris i tilbudet.':customerTransportPlan(dateOptions()).deliveryRequired?'Vi eller vår transportør leverer på første leiedag. Egen henting på lageret skjer på hverdager. Prisen bekreftes i tilbudet.':'Du har valgt levering eller henting i helgen. Vi vurderer tilgjengeligheten og beregner transportprisen individuelt i tilbudet.');}else result.textContent='Velg transportdatoer for å se pris. Fast transportpris gjelder hverdager.';return;}
+  if(choice[2]>0&&current?.manual){result.className='transport-note transport-note-warning';result.innerHTML=informationBoxMarkup('Transportprisen må beregnes','Transport til denne adressen beregnes individuelt og bekreftes i tilbudet.');return;}
   if(!ready()){result.textContent='';return;}
-  if(current){result.textContent='';if(choice[2]>0){const radio=group.querySelector('[name="delivery"]:checked'),label=radio.closest('label');label.className='addon-choice has-route-credit';label.querySelector('span').innerHTML='<span class="transport-choice-name">'+choice[1]+'</span><small class="route-credit">Kjøretid beregnet med <span translate="no" style="font:400 13px/12px sans-serif;color:#1f1f1f;white-space:nowrap">Google Maps</span></small>';}return;}
+  if(current){result.textContent='';if(choice[2]>0){const radio=group.querySelector('[name="delivery"]:checked'),label=radio.closest('label');label.className='addon-choice has-route-credit';label.querySelector('span').innerHTML=caption(choice[1],choice[3],true);}return;}
   result.textContent=selected()[2]>0&&ready()&&enabled!==false&&Date.now()>=retryAfter?'Beregner transportpris …':selected()[2]===0?'':'Transportpris avklares i tilbudet.';
   }finally{placeChoiceDetails();updated();}
  };
@@ -190,30 +229,36 @@ if(rentalForm||saleForm){const style=document.createElement('style');style.textC
 // Package rows must allocate the same width as the shared thumbnail component.
 if(rentalForm){const style=document.createElement('style');style.textContent='#cart .package-cart-line{grid-template-columns:var(--cart-image-size) minmax(0,1fr) auto;column-gap:var(--cart-image-gap);align-items:start}#cart .package-cart-copy{min-width:0;overflow-wrap:anywhere}#cart .package-cart-line>.cart-thumbnail{grid-column:1;grid-row:1}#cart .package-cart-line>.package-cart-copy{grid-column:2;grid-row:1}#cart .package-cart-line>.quantity{grid-column:3;grid-row:1}#cart .package-cart-addon>.cart-thumbnail{display:none}#cart .package-cart-addon{grid-template-columns:minmax(0,1fr) auto}#cart .package-cart-addon>.package-cart-copy{grid-column:1}#cart .package-cart-addon>.quantity{grid-column:2}@media(max-width:640px){#cart .package-cart-line{grid-template-columns:var(--cart-image-size) minmax(0,1fr);row-gap:10px}#cart .package-cart-line>.cart-thumbnail{grid-row:1 / span 2}#cart .package-cart-line>.quantity{grid-column:2;grid-row:2;justify-self:start;margin-top:0}#cart .package-cart-addon{grid-template-columns:minmax(0,1fr)}#cart .package-cart-addon>.package-cart-copy,#cart .package-cart-addon>.quantity{grid-column:1}#cart .package-cart-copy h4{overflow-wrap:anywhere}}';document.head.append(style);}
 
-if(rentalForm){const noticeStyle=document.createElement('style');noticeStyle.textContent=informationBoxStyles+'#requestForm .addon-choice{box-sizing:border-box}#requestForm .addon-choice.has-route-credit{padding-top:4px;padding-bottom:4px}#requestForm .addon-choice.has-route-credit:has(input:checked){padding-top:3px;padding-bottom:3px}#requestForm .route-credit{display:block;font-size:10px;line-height:12px;font-weight:400;margin:0}#requestForm .route-credit span{display:inline}@media(max-width:640px){#requestForm .addon-choice{box-sizing:border-box}#requestForm .addon-choice.has-route-credit{padding-top:1px;padding-bottom:1px}#requestForm .addon-choice.has-route-credit:has(input:checked){padding-top:0;padding-bottom:0}}.rental-options .addon-choice.is-unavailable{opacity:.45;cursor:not-allowed}.rental-options .addon-choice.is-unavailable input{cursor:not-allowed}.rental-delivery-details{display:contents;min-width:0;margin:0;font:400 13px/1.5 \"DM Sans\",sans-serif}.rental-delivery-details>[role=status]:empty{display:none}#requestForm .rental-delivery-details>.information-box{margin:0}#requestForm .rental-delivery-details>.rental-transport-dates{margin:0}#requestForm .rental-transport-dates>label{margin:0}.rental-delivery-details .information-box[hidden]{display:none}';document.head.append(noticeStyle);}
-
 if(rentalForm){
  const style=document.createElement('style');
  style.textContent=`
-  #requestForm .rental-delivery-choice{margin-bottom:16px}
-  #requestForm .rental-delivery-choice > .addon-choice{margin:0;min-height:76px}
+  #requestForm .rental-delivery-choice{margin-bottom:12px}
+  #requestForm .rental-delivery-choice > .addon-choice{
+   display:grid;
+   grid-template-columns:18px minmax(0,1fr) auto;
+   align-content:center;
+   gap:3px 10px;
+   box-sizing:border-box;
+   margin:0;
+   min-height:76px;
+   padding:11px 12px;
+  }
   #requestForm .rental-delivery-choice > .addon-choice > input[type=radio]{
+   grid-column:1;
+   grid-row:1;
+   width:18px;
    height:18px;
    padding:0;
    margin:0;
   }
-  #requestForm .rental-delivery-choice > .addon-choice.has-route-credit{
-   display:grid;
-   grid-template-columns:18px minmax(0,1fr) auto;
-   grid-template-areas:"radio name price" ". credit credit";
-   align-content:center;
-   gap:2px 10px;
-  }
-  #requestForm .has-route-credit > span{display:contents}
-  #requestForm .has-route-credit > input{grid-area:radio}
-  #requestForm .has-route-credit > strong{grid-area:price}
-  #requestForm .transport-choice-name{grid-area:name}
-  #requestForm .has-route-credit .route-credit{grid-area:credit}
+  #requestForm .transport-choice-copy{display:contents}
+  #requestForm .transport-choice-name{grid-column:2;grid-row:1;font-size:14px;font-weight:600}
+  #requestForm [data-delivery-price]{grid-column:3;grid-row:1;font-size:14px;text-align:right}
+  #requestForm .transport-choice-description{grid-column:2/-1;color:var(--muted);font-size:12px;line-height:1.45}
+  #requestForm .route-credit{grid-column:2/-1;display:block;font-size:10px;line-height:1.4;font-weight:400;margin:0}
+  #requestForm .route-credit span{display:inline;font:400 13px/1 sans-serif;color:#1f1f1f;white-space:nowrap}
+  #requestForm .rental-options .addon-choice.is-unavailable{opacity:.45;cursor:not-allowed}
+  #requestForm .rental-options .addon-choice.is-unavailable input{cursor:not-allowed}
   #requestForm .rental-delivery-choice:has(> .addon-choice[hidden]){display:none}
   #requestForm .rental-delivery-choice:has(> .addon-choice input:checked){
    background:#eef0e7;
@@ -235,7 +280,36 @@ if(rentalForm){
   #requestForm .rental-delivery-details:not(:has(> :not([hidden], :empty))),
   #requestForm .rental-delivery-details > [hidden],
   #requestForm .rental-delivery-details > [role=status]:empty{display:none}
-  #requestForm .rental-delivery-details > .information-box{margin:0}
+  #requestForm .rental-delivery-details > .transport-note{
+   display:grid;
+   grid-template-columns:15px minmax(0,1fr);
+   align-items:start;
+   gap:8px;
+   padding-top:8px;
+   border-top:1px solid var(--line);
+   color:var(--muted);
+   font-size:12px;
+   overflow-wrap:anywhere;
+  }
+  #requestForm .transport-note .information-box-icon{
+   display:grid;
+   place-items:center;
+   width:14px;
+   height:14px;
+   margin-top:2px;
+   border:1px solid currentColor;
+   border-radius:50%;
+   line-height:1;
+   font-weight:600;
+   font-size:10px;
+  }
+  #requestForm .transport-note-warning .information-box-icon{color:#78621f}
+  #requestForm .transport-note strong{color:var(--ink);font-weight:600}
+  #requestForm .transport-note p{margin:0}
+  #requestForm .transport-note strong + p{margin-top:2px}
+  #requestForm .transport-note-warning{row-gap:2px}
+  #requestForm .transport-note-warning > div{display:contents}
+  #requestForm .transport-note-warning p{grid-column:1/-1;margin-top:0}
   #requestForm .rental-transport-dates .transport-date-heading{margin:0 0 6px;color:var(--muted);font-size:12px;font-weight:400}
   #requestForm .rental-transport-dates > label{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0;padding:10px 0;font-size:13px;line-height:1.5}
   #requestForm .rental-transport-dates > label + label{border-top:1px solid var(--line)}
@@ -243,7 +317,10 @@ if(rentalForm){
   #requestForm .rental-transport-dates strong{flex-shrink:0;font-size:13px;font-weight:600;white-space:nowrap}
   #requestForm .rental-transport-dates input[hidden]{display:none!important}
   #requestForm .rental-delivery-details > .hint{margin:0;font-size:12px;line-height:1.6}
-  @media(max-width:640px){#requestForm .rental-delivery-choice > .addon-choice{min-height:70px}}
+  @media(max-width:640px){
+   #requestForm .rental-delivery-choice > .addon-choice{min-height:70px;padding:10px}
+   #requestForm [data-delivery-price]{font-size:13px}
+  }
   @media(max-width:360px){#requestForm .rental-transport-dates > label{flex-wrap:wrap;gap:4px 12px}}
  `;
  document.head.append(style);

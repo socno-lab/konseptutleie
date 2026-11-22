@@ -34,11 +34,11 @@ async function mountedDelivery(){
 }
 test('purchase, included delivery, ordinary rental and capacity switches keep the selected radio submittable',async()=>{
  const ui=await mountedDelivery();
- ui.emit('purchase');assert.deepEqual(ui.submitted(),['Henter og returnerer selv']);assert.equal(ui.labels[0].querySelector('span').textContent,'Henter selv etter avtale');assert.deepEqual(ui.radios.map(radio=>radio.disabled),[false,true,false,true,true]);
- ui.radios[2].checked=true;ui.emit('purchase');assert.deepEqual(ui.submitted(),['Kun levering – jeg returnerer selv']);assert.equal(ui.labels[2].querySelector('span').textContent,'Ønsker levering');
+ ui.emit('purchase');assert.deepEqual(ui.submitted(),['Henter og returnerer selv']);assert.match(ui.labels[0].querySelector('span').innerHTML,/>Henter selv etter avtale</);assert.deepEqual(ui.radios.map(radio=>radio.disabled),[false,true,false,true,true]);
+ ui.radios[2].checked=true;ui.emit('purchase');assert.deepEqual(ui.submitted(),['Kun levering – jeg returnerer selv']);assert.match(ui.labels[2].querySelector('span').innerHTML,/>Ønsker levering</);
  ui.emit('rental',{tree:1});assert.deepEqual(ui.submitted(),['Ønsker levering og henting']);assert.equal(ui.radios[1].disabled,false,'included transport must not inherit the purchase-only disabled state');assert.match(ui.status.textContent,/inkludert/);
  ui.emit('rental',{chair:1});assert.ok(ui.radios.every(radio=>!radio.disabled));assert.ok(ui.labels.every(label=>!label.hidden&&label.style.display!=='none'));assert.deepEqual(ui.submitted(),['Ønsker levering og henting']);
  ui.emit('rental',{capacity:1});assert.deepEqual(ui.submitted(),['Ønsker levering og henting']);assert.ok(ui.radios.every(radio=>!radio.disabled));
- ui.emit('purchase');assert.deepEqual(ui.submitted(),['Henter og returnerer selv']);assert.equal(ui.labels[0].querySelector('span').textContent,'Henter selv etter avtale');
- ui.emit('mixed',{chair:1});assert.ok(ui.radios.every(radio=>!radio.disabled));assert.equal(ui.labels[0].querySelector('span').textContent,'Jeg henter og returnerer selv');assert.equal(ui.requests.length,1,'mode switches must not start paid routing when no quote is enabled');
+ ui.emit('purchase');assert.deepEqual(ui.submitted(),['Henter og returnerer selv']);assert.match(ui.labels[0].querySelector('span').innerHTML,/>Henter selv etter avtale</);
+ ui.emit('mixed',{chair:1});assert.ok(ui.radios.every(radio=>!radio.disabled));assert.match(ui.labels[0].querySelector('span').innerHTML,/>Jeg henter og returnerer selv</);assert.equal(ui.requests.length,1,'mode switches must not start paid routing when no quote is enabled');
 });

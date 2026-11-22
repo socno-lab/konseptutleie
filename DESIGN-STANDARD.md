@@ -281,3 +281,7 @@ Fokusrammer bruker profilens grønne `--olive`, også i gallerier og admin. Brun
 22. november 2026 – leieforespørselen. Leieperiode og formål vises i to hvite, klikkbare felt. Feltene står ved siden av hverandre på desktop og under hverandre på mobil. Mva.-velgeren ligger på produktoverskriftens linje og markerer valgt visning med understrek. Datoene tilhører fortsatt innsendingsskjemaet. Kontrollert ved 320, 390 og 1280 px.
 
 22. november 2026 – oppsettet i PDF-en «Din leieforespørsel» er gjeninnført etter eiers ønske. Prisberegningen vises under produktene, og kontrollen før innsending vises åpen. Endre leieperiode i kontrollen peker til datovelgeren øverst. Feilmeldingen ved manglende avkrysning ligger under vilkårsteksten.
+
+22. november 2026 – transportkort i leieforespørselen. Hvert valg viser navn og pris eller prisstatus på første linje, med en kort forklaring under. «Kun levering» forklarer egen retur på lageret. «Vi henter ved leieslutt» forklarer at kunden henter på lageret ved leiestart. Foreløpige datoer og relevante varsler ligger i samme grønne kort som det valgte alternativet. Kontrollert lokalt ved 320, 390 og 1280 px.
+
+22. november 2026 – transportmerknad i leieforespørselen. Merknaden står rett under de foreløpige datoene i det valgte grønne kortet, med en tynn skillelinje og samme bakgrunn som kortet. Tilpassede hverdagsdatoer merkes med «i», mens individuell prisberegning merkes med «!» og en overskrift. Kontrollert lokalt ved 320, 390 og 1280 px.
