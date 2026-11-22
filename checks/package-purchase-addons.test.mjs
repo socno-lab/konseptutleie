@@ -23,7 +23,7 @@ function input({basket={lounge:1,[textile]:2,[decor]:1},businessChoices={lounge:
  return {id:'da00a2ed-899c-4514-9ca2-f545fa16171c',kind:'rental',name:'Isolert test',email:'test@example.invalid',terms:versions.purchase,basket,businessChoices,cartLinks,details:{phone:'00000000',address:'Eksempelveien 1, 2010 Strømmen',occasion:'Bedrift',start:'',end:'',delivery:'Henter og returnerer selv'},...rest};
 }
 const snapshot=(data,items=products)=>createEnquirySnapshot(validateSubmission(data,items),data,items,{now:new Date('2030-01-01T12:00:00Z'),verifyDelivery(){assert.fail('Pure purchases must not request a rental transport quote');}});
-function rentalDetails(data){return {...data,terms:requiredEnquiryTerms(data,products).join(' | '),details:{...data.details,start:'2030-02-01',end:'2030-02-02'}};}
+function rentalDetails(data){return {...data,terms:requiredEnquiryTerms(data,products).join(' | '),details:{...data.details,start:'2030-01-30',end:'2030-01-31'}};}
 
 test('buying a package moves precisely its selected addon quantities and needs only purchase terms and no dates',()=>{
  const data=input(),before=structuredClone(data),split=splitAcquisitionBasket(data.basket,data.businessChoices,products,data.cartLinks);

@@ -1,4 +1,4 @@
-import {weekendRentalEnd,weekendDayDeliveryRequired} from '../public/weekend-rental.js';
+import {weekendRentalEnd,weekendDayDeliveryRequired,weekendCollectionRequired} from '../public/weekend-rental.js';
 import {informationBoxMarkup} from '../public/information-box.js';
 import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from '../public/transport-weekdays.js';
 import {scopeForOccasion} from '../public/rental-pricing-model.js';
@@ -32,7 +32,7 @@ async function mountedDelivery(){
  const document={activeElement:null,createElement:tag=>tag==='section'?(weekdayNotice=element()):tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
  const products=[{id:'chair',name:'Teststol',category:'Stoler'},{id:'sofa',name:'Testsofa',type:'sofa'},{id:'tree',deliveryIncluded:true,isService:true,offeringType:'service'}];
  let quoteGate=null;
- const context=vm.createContext({weekendRentalEnd,weekendDayDeliveryRequired,informationBoxMarkup,transportDateLimits,transportDateError,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
+ const context=vm.createContext({weekendRentalEnd,weekendDayDeliveryRequired,weekendCollectionRequired,informationBoxMarkup,transportDateLimits,transportDateError,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
  vm.runInContext(getter+'\n'+source.slice(first,last)+'\nmountRentalDelivery(form);\nvar deliverySummaryProvider;',context);
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
@@ -173,9 +173,10 @@ test('event weekend never prefetches a misleading weekday tariff from self picku
  const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-02','2030-11-03');assert.equal(ui.scheduled(),false);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.prices[2].innerHTML,'Må beregnes');assert.equal(ui.requests.filter(r=>r.init?.method==='POST').length,0);
 });
 
-test('mixed weekday/weekend event prefetches only the eligible weekday alternative',async()=>{
- const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');await ui.calculate();
- const request=JSON.parse(ui.requests.find(r=>r.init?.method==='POST').init.body);assert.equal(request.mode,'deliveryOnly');assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.prices[3].innerHTML,'Må beregnes');assert.match(ui.prices[2].innerHTML,/690/);
+test('Friday to Sunday event allows self pickup Friday but requires collection Sunday',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');assert.equal(ui.radios[3].checked,true);assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,false,true]);assert.equal(ui.scheduled(),false);assert.equal(ui.transportInputs.pickupDate.value,'2030-11-03');assert.equal(ui.transportInputs.pickupDate.readOnly,true);
+ ui.editTransport('pickupDate','2030-11-04');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-03');ui.choose(1);assert.equal(ui.radios[1].checked,true);assert.equal(ui.summary().total,null);
+ ui.period('2030-11-04','2030-11-05');assert.ok(ui.radios.every(r=>!r.disabled));assert.equal(ui.transportInputs.pickupDate.readOnly,false);
 });
 
 test('mobile address debounce can prefetch without changing focus or selected transport',async()=>{
@@ -186,7 +187,7 @@ test('mobile address debounce can prefetch without changing focus or selected tr
 
 test('prefetching a weekday leg preserves the selected weekend transport notice',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');ui.choose(1);
- assert.equal(ui.status.className,'information-box');assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.notEqual(ui.status.textContent,'Beregner transportpris …');await ui.calculate();assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.match(ui.prices[2].innerHTML,/690/);
+ assert.equal(ui.status.className,'information-box');assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.notEqual(ui.status.textContent,'Beregner transportpris …');assert.equal(ui.scheduled(),false);assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.radios[2].disabled,true);
 });
 
 
@@ -205,7 +206,7 @@ test('styling self pickup explains Monday return without changing the requested 
 });
 
 test('Friday to Sunday event hire shows weekend manual pricing notice',async()=>{
- const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');ui.choose(1);assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.ok(ui.radios.every(r=>!r.disabled));
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');ui.choose(1);assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,false,true]);
 });
 
 test('single-day styling weekend explains weekday logistics under minimum hire heading',async()=>{

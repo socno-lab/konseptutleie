@@ -17,7 +17,7 @@ test('styling defaults to Friday/Monday, event to actual weekend; explicit weekd
 });
 test('weekend submission ignores a route quote, never invents a grand total, and preserves actual transport dates',()=>{
  const weekend=snapshot(input());assert.equal(weekend.delivery.total,null);assert.equal(weekend.total,null);assert.match(weekend.delivery.label,/må beregnes/);assert.deepEqual(weekend.delivery.dates,{deliveryDate:period.start,pickupDate:period.end});
- const d=input();Object.assign(d.details,{deliveryDate:'2030-11-01',pickupDate:'2030-11-04'});const weekday=snapshot(d);assert.equal(weekday.delivery.total,1380);assert.ok(weekday.total>1380);assert.equal(weekday.delivery.dates.pickupDate,'2030-11-04');
+ const d=input();Object.assign(d.details,{deliveryDate:'2030-11-01',pickupDate:'2030-11-04'});assert.throws(()=>snapshot(d),/Leie som slutter i helgen krever/);d.details.end='2030-11-04';const weekday=snapshot(d);assert.equal(weekday.delivery.total,1380);assert.ok(weekday.total>1380);assert.equal(weekday.delivery.dates.pickupDate,'2030-11-04');
  d.details.deliveryDate='2030-11-04';assert.throws(()=>snapshot(d),/Levering må være/);
 });
 test('weekend estimator returns manual without requesting Google',async()=>{
@@ -44,4 +44,13 @@ test('event one-day weekend orders require both paid visits the same day on the 
  for(const delivery of ['Henter og returnerer selv','Kun levering – jeg returnerer selv','Kun henting – jeg henter selv','Avklares senere']){d.details.delivery=delivery;assert.throws(()=>snapshot(d),/Éndagsleie i helgen krever/);}
  d.details.delivery='Ønsker levering og henting';d.details.pickupDate='2030-11-04';assert.throws(()=>snapshot(d),/Éndagsleie i helgen krever/);
  d.details.occasion='Boligfoto og visning';d.details.delivery='Henter og returnerer selv';delete d.details.pickupDate;assert.equal(snapshot(d).delivery.total,0);
+});
+
+
+test('event Friday to Sunday accepts both collection options and rejects own return or Monday override',()=>{
+ const d=input();d.details.start='2030-11-01';
+ for(const delivery of ['Ønsker levering og henting','Kun henting – jeg henter selv']){d.details.delivery=delivery;const result=snapshot(d);assert.equal(result.delivery.dates.pickupDate,'2030-11-03');assert.equal(result.delivery.total,null);}
+ for(const delivery of ['Henter og returnerer selv','Kun levering – jeg returnerer selv','Avklares senere']){d.details.delivery=delivery;assert.throws(()=>snapshot(d),/krever henting hos kunden/);}
+ d.details.delivery='Kun henting – jeg henter selv';d.details.pickupDate='2030-11-04';assert.throws(()=>snapshot(d),/krever henting hos kunden/);
+ d.details.occasion='Boligfoto og visning';d.details.delivery='Henter og returnerer selv';assert.equal(snapshot(d).delivery.total,0);
 });

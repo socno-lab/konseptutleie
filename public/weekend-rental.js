@@ -11,3 +11,5 @@ export function weekendRentalEnd(options){
 export function weekendDayDeliveryRequired({start,end,scope}={}){
  const day=parseDateOnly(start);return scope==='messe'&&start===end&&day!==null&&[0,6].includes(new Date(day).getUTCDay());
 }
+
+export function weekendCollectionRequired({end,scope}={}){const day=parseDateOnly(end);return scope==='messe'&&day!==null&&[0,6].includes(new Date(day).getUTCDay());}
