@@ -28,7 +28,9 @@ function layoutRentalEnquiry(cart,form,overview){
  productsHeading.classList.add('enquiry-section-title');
  const estimate=make('details','enquiry-disclosure enquiry-estimate');
  estimate.append(make('summary','','Slik er leien beregnet'),form.querySelector('#priceEstimate'));
- toolbar.after(products,document.getElementById('cartItems'),document.getElementById('wallCartActions'),document.getElementById('cartSuggestion'),estimate);
+ const rentalTotal=make('div','enquiry-rental-total');
+ rentalTotal.setAttribute('aria-live','polite');
+ toolbar.after(products,document.getElementById('cartItems'),document.getElementById('wallCartActions'),document.getElementById('cartSuggestion'),rentalTotal,estimate);
 
  const contact=form.querySelector('[name="name"]').closest('fieldset');
  const transport=form.querySelector('.rental-options');

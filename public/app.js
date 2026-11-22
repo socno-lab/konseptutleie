@@ -27,7 +27,7 @@ import {catalogIntroHtml} from './catalog-intro.js?v=usage20261028a';
 import {mountProductRentalPeriod,productPeriodState,periodChangeNotice} from './product-rental-period.js?v=choicesfirst20261119';
 import {setRentalPeriodImpact} from './mobile-rental-dates.js?v=enquiryoverview20261122';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
-import {mountEnquiryFlow} from './enquiry-flow.js?v=openenquiry20261122';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=enquiryrentalprice20261122';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=openenquiry20261122';
 import {packageLineRentalPrice} from './enquiry-price-model.js?v=longrent20261026';
 import {detailSelectionPrices} from './detail-price-model.js?v=longrent20261026';
@@ -346,6 +346,11 @@ function renderEstimate(){
  if(hasQuotedPackage()){quote.hasUnpriced=true;quote.total=null;}if(customRequest.active){quote.hasUnpriced=true;quote.lines.push({quantity:1,name:'Tilpasset forespørsel',plan:null});}
  const purchaseLines=products.filter(p=>purchases[p.id]).map(p=>`<div class="estimate-line"><span>${purchases[p.id]} × ${html(p.name)}<small>Kjøp · pris, tilstand og levering avklares</small></span><strong>${acquisitionPurchasePrice(p,purchases[p.id])===null?'Pris på forespørsel':priceMarkup(acquisitionPurchasePrice(p,purchases[p.id]))}</strong></div>`).join('');
  el('priceEstimate').innerHTML=`${rental?`<div><span>Beregnede leiedøgn</span><strong>${quote.days===null?'Velg datoer':quote.days+' døgn'}</strong></div>`:''}${quote.lines.map(line=>`<div class="estimate-line"><span>${line.quantity} × ${html(line.name)}<small>${line.plan?html(planText(line.plan))+' per enhet':'Pris avklares i tilbudet'}</small></span><strong>${line.plan?priceMarkup(line.plan.total*line.quantity):'Pris på forespørsel'}</strong></div>`).join('')}${purchaseLines}${quote.hasUnpriced&&quote.lines.some(l=>l.plan)?`<div><span>Delpris for prisede leieobjekter</span><strong>${priceMarkup(quote.knownSubtotal)}</strong></div>`:''}<div class="estimate-total"><span>${hasPurchases?'Samlet pris for forespørselen':'Veiledende leiesum'}</span><strong>${hasPurchases?'Avklares i tilbud':quote.days===null?'–':quote.hasUnpriced?'Avklares i tilbud':priceMarkup(quote.total)}</strong></div>${quote.saving>0?`<div class="rate-saving"><span>Du sparer mot døgnpris på leieobjektene</span><strong>${priceMarkup(quote.saving)}</strong></div>`:''}<p>${rental?'Leie beregnes for begge valgte datoer. En uke = 7 døgn, en måned = 30 døgn. Tilvalg prises per påbegynte 30 dager. Vi bruker den rimeligste kombinasjonen for objekter med oppgitt leiepris. ':''}${hasPurchases?'Kjøpspris beregnes ikke ut fra leiepris. Hvilke varer som kan selges, tilstand og kjøpsvilkår avklares i tilbudet. ':''}Transport, oppsett og øvrige kostnader avklares i tilbudet. Forespørselen er uforpliktende.</p>`;
+ const visibleTotal=el('cart').querySelector('.enquiry-rental-total');
+ if(visibleTotal){
+  visibleTotal.hidden=empty;
+  visibleTotal.replaceChildren(el('priceEstimate').querySelector('.estimate-total'));
+ }
  renderSubmitSummary();
 }
 
