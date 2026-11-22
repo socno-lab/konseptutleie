@@ -4,5 +4,5 @@ export function rentalPurposeLabel(purpose,scope){return purposes.find(p=>p.id==
 export function purposeButtons(purpose){return '<div class="rental-usage-options" role="group" aria-label="Velg formål">'+purposes.filter(p=>p.id!=='alle').map(p=>`<button type="button" data-rental-purpose-choice="${p.id}" aria-pressed="${purpose===p.id}"><strong>${p.label}</strong></button>`).join('')+'</div>';}
 export function rentalScopeMarkup(scope,confirmed,purpose=scope==='standard'?'boligsalg':'alle'){
  const buttons=purposeButtons(purpose);
- return confirmed?`<div class="rental-purpose-inline"><p class="rental-selected-usage">Formål: <strong>${rentalPurposeLabel(purpose,scope)}</strong></p><details><summary>Endre formål</summary>${buttons}</details></div>`:`<h3>Hva skal du bruke møblene til?</h3><p>Velg formål for å se leiepriser.</p>${buttons}`;
+ return confirmed?`<div class="rental-purpose-inline"><p class="rental-selected-usage">Formål: <strong>${rentalPurposeLabel(purpose,scope)}</strong></p><button type="button" class="text-button" data-change-rental-purpose aria-haspopup="dialog">Endre formål</button></div>`:`<h3>Hva skal du bruke møblene til?</h3><p>Velg formål for å se leiepriser.</p>${buttons}`;
 }

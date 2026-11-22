@@ -1,4 +1,4 @@
-import {weekendRentalEnd} from './weekend-rental.js?v=purposeinline20261122';
+import {weekendRentalEnd} from './weekend-rental.js?v=purposemodal20261122';
 import {rentalProductAvailabilityHint} from './rental-availability-hint.js';
 import {rentalModuleView,rentalModuleInitialState,rentalWallView} from './rental-builder-options.js?v=choicesfirst20261119';
 import {rentalProductOptions} from './rental-product-options.js?v=choicesfirst20261119';
@@ -13,14 +13,14 @@ import {setInitialMarkup} from './initial-markup.js?v=sitefirst20261106';
 import {occasionLandingView} from './occasion-landing-view.js?v=seasoncopy20261120';
 import {productIllustrationText} from './product-illustration.js?v=productcontent20261106';
 import {productSummary} from './product-summary.js?v=vat20261115b';
-import {rentalScopeMarkup,purposeButtons,rentalPurposeLabel,purposeForOccasion} from './rental-scope-markup.js?v=purposeinline20261122';
+import {rentalScopeMarkup,purposeButtons,rentalPurposeLabel,purposeForOccasion} from './rental-scope-markup.js?v=purposemodal20261122';
 import {detailImageMarkup,setDetailPhotoSource} from './product-image-loading.js?v=detailfirst20261106';
 import {renderCatalogCard,readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
 import {rentalCatalogView} from './rental-catalog-view.js?v=choicesfirst20261119';
 import {catalogFilters,rentalSubcategoryCounts} from './catalog-filters.js?v=choicesfirst20261119';
 import {renderMesseLanding} from './messe-landing.js?v=fest20261114';
 import {isRentedOut,rentalGroupRentedOut,rentalSeriesRentedOut,rentalStatusBadge,rentalStatusNotice} from './rental-status.js?v=rented20261029b';
-import {mountCatalogUsage} from './catalog-usage.js?v=purposeinline20261122';
+import {mountCatalogUsage} from './catalog-usage.js?v=purposemodal20261122';
 import {catalogIntroHtml} from './catalog-intro.js?v=usage20261028a';
 import {mountProductRentalPeriod,productPeriodState,periodChangeNotice} from './product-rental-period.js?v=choicesfirst20261119';
 import {setRentalPeriodImpact} from './mobile-rental-dates.js?v=period20261028e';
@@ -46,7 +46,7 @@ import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=weekda
 import {decorExamples} from './decor-examples.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js?v=fest20261114';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=longrent20261026';
-import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=transportheight20261122';
+import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=purposemodal20261122';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=choicesfirst20261119';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
@@ -369,7 +369,7 @@ function renderPricingScope(){
 
  const catalog=el('catalogPricingScope');if(catalog)catalog.innerHTML=rentalScopeMarkup(rentalScope,rentalScopeConfirmed,purpose);
  if(isProductPage&&catalog){const desktop=document.createElement('div');desktop.className='product-pricing-desktop';desktop.append(...catalog.childNodes);catalog.replaceChildren(desktop);if(productMobileControl)catalog.prepend(productMobileControl);catalog.classList.add('product-pricing-scope');}
- const cartScope=el('cartPricingScope');if(cartScope)cartScope.innerHTML=`<p class="rental-selected-usage">Leieformål: <strong>${rentalScopeConfirmed?rentalPurposeLabel(purpose,rentalScope):'Velg formål'}</strong></p><details><summary>Endre formål</summary>${usageButtons()}</details>`;
+ const cartScope=el('cartPricingScope');if(cartScope)cartScope.innerHTML=`<p class="rental-selected-usage">Leieformål: <strong>${rentalScopeConfirmed?rentalPurposeLabel(purpose,rentalScope):'Velg formål'}</strong></p><button type="button" class="text-button" data-change-rental-purpose aria-haspopup="dialog">Endre formål</button>`;
  el('occasion').closest('label').hidden=true;
  el('pricingChoiceOptions').innerHTML=usageButtons();syncMobileCatalog();catalogUsage?.render();mountPricingScopeHint(catalogUsage?.host||catalog,{confirmed:rentalScopeConfirmed,label:pricingScopeLabel(),enabled:isCatalogPage||isProductPage,control:catalogUsage?.button});
 }
@@ -392,7 +392,7 @@ function syncRentalPurpose(){
 }
 function applyOccasionChoice(){const occasion=el('occasion').value;if(!occasion)return;const next=purposeForOccasion(occasion);if(next!=='alle'){purpose=next;lastPricingPurpose=next;rememberPurpose();}setRentalScope(scopeForOccasion(occasion));}
 
-document.addEventListener('click',event=>{const choice=event.target.closest('[data-rental-purpose-choice]');if(!choice)return;purpose=validPurpose(choice.dataset.rentalPurposeChoice);lastPricingPurpose=purpose;rememberPurpose();syncPurposeField();setRentalScope(scopeForPurpose(purpose));if(isCatalogPage)writePurpose(false);if(el('pricingChoice').open)el('pricingChoice').close();if(el('mobileUsageDialog')?.open)el('mobileUsageDialog').close();const action=pendingUsageAction;pendingUsageAction=null;action?.();});
+document.addEventListener('click',event=>{if(event.target.closest('[data-change-rental-purpose]')){if(isProductPage){syncMobileCatalog();el('mobileUsageDialog').showModal();}else{el('pricingChoiceTitle').textContent='Velg formål';el('pricingChoice').showModal();}return;}const choice=event.target.closest('[data-rental-purpose-choice]');if(!choice)return;purpose=validPurpose(choice.dataset.rentalPurposeChoice);lastPricingPurpose=purpose;rememberPurpose();syncPurposeField();setRentalScope(scopeForPurpose(purpose));if(isCatalogPage)writePurpose(false);if(el('pricingChoice').open)el('pricingChoice').close();if(el('mobileUsageDialog')?.open)el('mobileUsageDialog').close();const action=pendingUsageAction;pendingUsageAction=null;action?.();});
 document.addEventListener('change',event=>{if(event.target.id==='occasion')applyOccasionChoice();});
 
 function syncMobileCatalog(){

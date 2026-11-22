@@ -1,7 +1,7 @@
 import {catalogUsageMarkup} from './catalog-usage-markup.js?v=mobilefirst20261119';
 import {purposes} from './rental-purpose-model.js?v=fest20261114';
 import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from './rental-usage-model.js?v=fest20261114';
-import {proposedCatalogUsage,catalogUsageLabel} from './catalog-usage-model.js?v=purposeinline20261122';
+import {proposedCatalogUsage,catalogUsageLabel} from './catalog-usage-model.js?v=purposemodal20261122';
 
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 

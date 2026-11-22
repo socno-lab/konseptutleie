@@ -1,6 +1,6 @@
 import {productRecommendationsFirstPaint} from './product-recommendations-first-paint.mjs';
 import {productOverview} from './product-overview.mjs';
-import {rentalScopeMarkup,rentalPurposeLabel} from '../public/rental-scope-markup.js?v=purposeinline20261122';
+import {rentalScopeMarkup,rentalPurposeLabel} from '../public/rental-scope-markup.js?v=purposemodal20261122';
 import {rentalUsageLabels} from '../public/rental-usage-model.js?v=fest20261114';
 import {safeCatalogReturn} from '../public/product-page-model.js';
 import {responsiveImageAttributes} from '../public/media-image.js';

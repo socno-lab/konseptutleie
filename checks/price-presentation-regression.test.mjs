@@ -95,9 +95,9 @@ test('custom package separates multiple period addons while actual duration stil
 });
 
 test('customer purpose choices show all purposes while pricing tiers remain internal',async()=>{
- const {purposeForOccasion,rentalScopeMarkup}=await import('../public/rental-scope-markup.js');
+ const {purposeForOccasion,rentalScopeMarkup,purposeButtons}=await import('../public/rental-scope-markup.js');
  assert.equal(purposeForOccasion('Boligsalg'),'boligsalg');assert.equal(purposeForOccasion('Messe og stand'),'messe');
- const markup=rentalScopeMarkup('messe',true,'messe');assert.match(markup,/Formål:.*Messe, stand og event/);assert.match(markup,/Endre formål/);assert.match(markup,/data-rental-purpose-choice="fest"/);assert.doesNotMatch(markup,/Arrangementer og annen bruk|data-rental-scope-choice/);
+ const markup=rentalScopeMarkup('messe',true,'messe');assert.match(markup,/Formål:.*Messe, stand og event/);assert.match(markup,/Endre formål/);assert.match(purposeButtons("messe"),/data-rental-purpose-choice="fest"/);assert.match(markup,/data-change-rental-purpose/);assert.doesNotMatch(markup,/<details|data-rental-purpose-choice/);assert.doesNotMatch(markup,/Arrangementer og annen bruk|data-rental-scope-choice/);
 });
 
 test('direct purchase detail summary includes addon purchase values and never hides an unknown extra',()=>{

@@ -1,4 +1,4 @@
-import {catalogUsageLabel} from './catalog-usage-model.js?v=purposeinline20261122';
+import {catalogUsageLabel} from './catalog-usage-model.js?v=purposemodal20261122';
 import {defaultPriceMode} from './price-display-model.js?v=vatdefault20261116';
 import {pricePickerContent} from './price-display-markup.js?v=picker20261119';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

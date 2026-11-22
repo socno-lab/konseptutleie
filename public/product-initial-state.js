@@ -4,7 +4,7 @@ import {restoreSofas,migrateSofas} from './sofa-model.js?v=longrent20261026';
 import {readPurposeState} from './rental-purpose-model.js?v=fest20261114';
 import {rentalUsageState,rentalUsageLabels} from './rental-usage-model.js?v=fest20261114';
 import {applyRentalScope,scopeForOccasion} from './rental-pricing-model.js?v=fest20261114';
-import {rentalScopeMarkup,rentalPurposeLabel} from './rental-scope-markup.js?v=purposeinline20261122';
+import {rentalScopeMarkup,rentalPurposeLabel} from './rental-scope-markup.js?v=purposemodal20261122';
 import {configureBusinessPackages,cleanBusinessChoices} from './business-purchase-model.js';
 import {salesEnabled,cleanSaleBasket} from './sales-model.js?v=fest20261114';
 import {restoreSaleSetups} from './sale-sofa-model.js?v=fest20261114';

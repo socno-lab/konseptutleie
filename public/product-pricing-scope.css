@@ -9,3 +9,5 @@
 @media(min-width:641px){.product-page .rental-purpose-inline{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}.product-page .rental-purpose-inline>.rental-selected-usage{margin:0}.product-page .rental-purpose-inline>details{margin:0}.product-page .rental-purpose-inline>details>summary{white-space:nowrap}}
 
 @media(min-width:641px){.product-page #catalogPricingScope>.price-display-picker{margin-left:auto;flex-shrink:0}}
+
+.product-page .rental-purpose-inline>[data-change-rental-purpose]{appearance:none;border:0;background:transparent;color:inherit;font:inherit;padding:0;min-height:44px;text-decoration:underline;text-underline-offset:3px;white-space:nowrap;cursor:pointer}
