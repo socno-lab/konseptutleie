@@ -1,5 +1,5 @@
-import {rememberedRentalPurpose,rememberRentalPurpose,rememberedPurposeState} from './rental-purpose-memory.js?v=weekendday20261122';
-import {weekendRentalEnd} from './weekend-rental.js?v=weekendday20261122';
+import {rememberedRentalPurpose,rememberRentalPurpose,rememberedPurposeState} from './rental-purpose-memory.js?v=periodsave20261122';
+import {weekendRentalEnd} from './weekend-rental.js?v=periodsave20261122';
 import {rentalProductAvailabilityHint} from './rental-availability-hint.js';
 import {rentalModuleView,rentalModuleInitialState,rentalWallView} from './rental-builder-options.js?v=choicesfirst20261119';
 import {rentalProductOptions} from './rental-product-options.js?v=choicesfirst20261119';
@@ -26,7 +26,7 @@ import {catalogIntroHtml} from './catalog-intro.js?v=usage20261028a';
 import {mountProductRentalPeriod,productPeriodState,periodChangeNotice} from './product-rental-period.js?v=choicesfirst20261119';
 import {setRentalPeriodImpact} from './mobile-rental-dates.js?v=period20261028e';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
-import {mountEnquiryFlow} from './enquiry-flow.js?v=weekendday20261122';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=periodsave20261122';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=vat20261115b';
 import {packageLineRentalPrice} from './enquiry-price-model.js?v=longrent20261026';
 import {detailSelectionPrices} from './detail-price-model.js?v=longrent20261026';
@@ -47,7 +47,7 @@ import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=weekda
 import {decorExamples} from './decor-examples.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js?v=fest20261114';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=longrent20261026';
-import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=weekendday20261122';
+import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=periodsave20261122';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=choicesfirst20261119';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';

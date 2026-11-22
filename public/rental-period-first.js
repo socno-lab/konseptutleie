@@ -94,6 +94,7 @@ function taxDisplayText(text,mode){
 const escapePeriod=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function readSavedRentalPeriod(storage,options={}){
  let draft={};try{const value=JSON.parse(storage?.getItem('konsept-enquiry-draft-rent')||'{}');if(value&&typeof value==='object'&&!Array.isArray(value))draft=value;}catch{}
+ try{const saved=JSON.parse(globalThis.localStorage?.getItem('konsept-rental-period-v1')||'{}');for(const name of ['start','end'])if(!draft[name]&&typeof saved[name]==='string')draft[name]=saved[name];}catch{}
  // Restoring into the live <input type="date"> clears invalid calendar values.
  const start=parseDateOnly(draft.start)!==null?draft.start:'',end=parseDateOnly(draft.end)!==null?draft.end:'';
  if(!start&&!end)return {start,end,days:null,message:'Velg leieperiode for å se beregnet leiesum.'};

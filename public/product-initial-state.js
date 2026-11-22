@@ -1,4 +1,4 @@
-import {rememberedPurposeState} from './rental-purpose-memory.js?v=weekendday20261122';
+import {rememberedPurposeState} from './rental-purpose-memory.js?v=periodsave20261122';
 import {configureSiteSettings} from './site-settings.js?v=fest20261114';
 import {normalizeBasket} from './catalog-model.js?v=longrent20261026';
 import {restoreSofas,migrateSofas} from './sofa-model.js?v=longrent20261026';
@@ -27,7 +27,7 @@ const record=value=>value&&typeof value==='object'&&!Array.isArray(value)?value:
 export function initialProductState(data,href,{localStorage,sessionStorage}={}){
  configureSiteSettings(data.settings);
  const url=new URL(href),buy=url.pathname==='/kjopsprodukt.html',id=url.searchParams.get('produkt'),editingId=url.searchParams.get('oppsett')||'';
- const period=readSavedRentalPeriod(sessionStorage);
+ const period=readSavedRentalPeriod({getItem:key=>savedText(sessionStorage,key)||savedText(localStorage,'konsept-rental-period-v1')});
  if(buy){
   const products=data.products.filter(p=>p.active&&!p.deletedAt&&salesEnabled(p));
   const basket=cleanSaleBasket(record(savedJSON(localStorage,'konsept-sale-cart-v1',{})),products);

@@ -162,3 +162,7 @@ test('DOMContentLoaded final projection includes the last parser nodes and yield
 test('a reopened product restores purpose and prices from the same persistent storage as its basket',()=>{
  const state=initialProductState(data,rent+'&bruk=alle',storage({'konsept-purpose-v1':'boligsalg','konsept-cart-v1':{chair:1}},{}));assert.equal(state.context.purpose,'boligsalg');assert.equal(state.context.rentalScopeConfirmed,true);assert.equal(state.context.rentalScope,'standard');assert.equal(state.product.price,100);assert.equal(state.context.cart.chair,1);
 });
+
+test('reopened browser restores only saved period dates with its persistent basket',()=>{
+ const period=nextPeriod(),state=initialProductState(data,rent,storage({'konsept-rental-period-v1':period,'konsept-purpose-v1':'boligsalg','konsept-cart-v1':{chair:1}},{}));assert.equal(state.period.start,period.start);assert.equal(state.period.end,period.end);assert.equal(state.context.days,8);
+});

@@ -1,10 +1,10 @@
-import {weekendRentalEnd,weekendDayDeliveryRequired} from './weekend-rental.js?v=weekendday20261122';
+import {weekendRentalEnd,weekendDayDeliveryRequired} from './weekend-rental.js?v=periodsave20261122';
 import {informationBoxMarkup,informationBoxStyles} from './information-box.js?v=purposemodal20261122';
 import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from './transport-weekdays.js?v=purposemodal20261122';
 import {scopeForOccasion} from './rental-pricing-model.js?v=fest20261114';
 import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
-import {customerInformationPages} from './customer-information-content.js?v=weekendday20261122';
+import {customerInformationPages} from './customer-information-content.js?v=periodsave20261122';
 import {readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
 import {mountMobileRentalDates} from './mobile-rental-dates.js?v=period20261028e';
 import {mountStorageNotice} from './storage-notice.js?v=launch20261024';
@@ -129,7 +129,7 @@ function mountRentalDelivery(form){
   const choice=selected();deliveryQuote=choice[2]>0&&transportPolicy().manual?{manual:true,reason:transportPolicy().reason}:choice[2]>0&&load.manual?{manual:true,reason:load.reason}:choice[2]>0&&current?{manual:current.manual,receipt:current.receipt,total:current.manual?undefined:current.prices[crew===2?'twoPeople':'onePerson']*choice[2]}:null;
   addressNotice.hidden=load.manual;
   if(load.manual){result.className='information-box';result.innerHTML=informationBoxMarkup('Transportprisen må beregnes',load.reason==='custom'?'Ved tilpasset forespørsel avklares transport og pris i tilbudet.':load.reason==='capacity'?'Forespørselen krever utvidet transport. Frakt med ekstern transportør prises i tilbudet.':'Transportpris bekreftes i tilbudet.');return;}
-  if(choice[2]>0&&transportPolicy().manual){if(transportPolicy().weekend){result.className='information-box';result.innerHTML=informationBoxMarkup('Transport i helgen må avtales','Du har valgt levering eller henting i helgen. Vi tilbyr også éndagsleie i helgen med levering og henting samme dag. Vi vurderer tilgjengeligheten og beregner transportprisen individuelt i tilbudet.');}else result.textContent='Velg transportdatoer for å se pris. Fast transportpris gjelder hverdager.';return;}
+  if(choice[2]>0&&transportPolicy().manual){if(transportPolicy().weekend){result.className='information-box';result.innerHTML=informationBoxMarkup('Transport i helgen må manuelt beregnes','Du har valgt levering eller henting i helgen. Vi tilbyr også éndagsleie i helgen med levering og henting samme dag. Vi vurderer tilgjengeligheten og beregner transportprisen individuelt i tilbudet.');}else result.textContent='Velg transportdatoer for å se pris. Fast transportpris gjelder hverdager.';return;}
   if(choice[2]>0&&current?.manual){result.className='information-box';result.innerHTML=informationBoxMarkup('Transportprisen må beregnes','Transport til denne adressen beregnes individuelt og bekreftes i tilbudet.');return;}
   if(!ready()){result.textContent='Fyll inn komplett adresse for transportpris. Egen henting og retur er gratis.';return;}
   if(current){result.textContent='';if(choice[2]>0){const radio=group.querySelector('[name="delivery"]:checked'),label=radio.closest('label');label.className='addon-choice has-route-credit';label.querySelector('span').innerHTML=choice[1]+'<small class="route-credit">Kjøretid beregnet med <span translate="no" style="font:400 13px/12px sans-serif;color:#1f1f1f;white-space:nowrap">Google Maps</span></small>';}return;}

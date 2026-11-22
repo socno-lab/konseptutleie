@@ -1,4 +1,4 @@
-import {weekendRentalEnd} from '../weekend-rental.js?v=weekendday20261122';
+import {weekendRentalEnd} from '../weekend-rental.js?v=periodsave20261122';
 import {ratePlan} from '../catalog-model.js?v=longrent20261026';
 import {rentalDayCount} from '../rental-dates.js?v=launch20261024';
 import {rentalRateSets} from '../rental-pricing-model.js?v=fest20261114';
