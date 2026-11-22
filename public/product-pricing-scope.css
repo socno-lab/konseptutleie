@@ -5,3 +5,5 @@
  .product-page .product-pricing-scope>.mobile-catalog-only{display:flex;width:100%}
  .product-page .product-pricing-desktop{display:none}
 }
+
+@media(min-width:641px){.product-page .rental-purpose-inline{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}.product-page .rental-purpose-inline>.rental-selected-usage{margin:0}.product-page .rental-purpose-inline>details{margin:0}.product-page .rental-purpose-inline>details>summary{white-space:nowrap}}

@@ -3,7 +3,7 @@ import {workflowEmail,workflowAddonLine} from './enquiry-workflow.mjs';
 import {createProposalSnapshot,proposalEmail} from './proposal.mjs';
 const customerReceipt=s=>({acquisition:s.acquisition,lines:s.lines,facts:s.facts,delivery:s.delivery,discount:s.discount,total:s.total,vatIncluded:s.vatIncluded,address:s.address,comment:s.comment});
 import {salesEnabled} from '../public/sales-model.js?v=fest20261114';
-import {validateEnquiryTerms} from '../public/terms-versions.js?v=purpose20261122';
+import {validateEnquiryTerms} from '../public/terms-versions.js?v=purposeinline20261122';
 import {createEnquirySnapshot,requestDetails} from './enquiry-snapshot.mjs';
 import {enquiryEmail} from './enquiry-email.mjs';
 import {readFile} from 'node:fs/promises';
