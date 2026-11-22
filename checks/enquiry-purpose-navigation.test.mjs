@@ -7,11 +7,16 @@ import {readPurposeState} from '../public/rental-purpose-model.js';
 
 // Mount the real checkout navigation without opening a browser or submitting a request.
 function checkout(mode){
- const node=()=>({children:[],classList:{add(){},remove(){}},append(...children){this.children.push(...children);},setAttribute(){},querySelector(){return null;},querySelectorAll(){return [];},addEventListener(){},show(){},focus(){}});
- const cart=node(),form={elements:Object.assign([],{namedItem:()=>null})},host=node(),nodes={cart,requestForm:form,enquiryPage:host};
+ const node=()=>({children:[],classList:{add(){},remove(){}},append(...children){this.children.push(...children);},setAttribute(){},querySelector(selector){return this.innerHTML?.includes('<'+selector)?node():null;},querySelectorAll(){return [];},addEventListener(){},show(){},focus(){}});
+ const cart=node(),form={elements:Object.assign([],{namedItem:()=>null})},host=node(),nodes={cart,requestForm:form,enquiryPage:host,cartPricingScope:node()};
+ const intro={after(overview){cart.append(overview);}};
+ cart.querySelector=selector=>selector==='.quote-cart-note'?intro:null;
  const context=vm.createContext({document:{getElementById:id=>nodes[id],createElement:node,querySelector:()=>null,head:node(),body:node(),addEventListener(){}},location:{pathname:'/foresporsel.html',origin:'https://konseptuell.no'},sessionStorage:{getItem:()=>null},window:{addEventListener(){}},performance:{getEntriesByType:()=>[{type:'back_forward'}]},MutationObserver:class{observe(){}},mode});
  const source=fs.readFileSync(new URL('../public/enquiry-flow.js',import.meta.url),'utf8');
  vm.runInContext(source.replace('export function mountEnquiryFlow','function mountEnquiryFlow')+"\nmountEnquiryFlow({cartId:'cart',formId:'requestForm',mode});",context);
+ const overview=cart.children.find(child=>child.className==='enquiry-overview');
+ if(mode==='rent')assert.equal(overview.children[1],nodes.cartPricingScope);
+ else assert.equal(overview,undefined);
  return host.children.find(child=>child.className==='text-button enquiry-back').href;
 }
 

@@ -14,18 +14,42 @@ export function mountEnquiryFlow({cartId,formId,mode}){
  const checkoutUrl='/foresporsel.html'+(mode==='buy'?'?type=kjop':'');
  const preview=document.createElement('section');preview.className='enquiry-preview-content';preview.setAttribute('aria-label','Kort oversikt over forespørselen');
  const list=document.createElement('div'),note=document.createElement('p'),next=document.createElement('a');note.className='hint';note.textContent='Se hele innholdet, tilpass valgene og fyll inn opplysningene på neste side.';next.className='button dark';next.href=checkoutUrl;next.textContent='Se og fullfør forespørselen ↗';preview.append(list,note,next);
- let period;
+ let period,periodValue,periodButton;
  if(page){
   document.body.classList.remove('catalog-page','home-page','occasion-page','buy-page');document.body.classList.add('enquiry-page');const host=document.getElementById('enquiryPage');cart.hidden=true;
   const back=document.createElement('a');back.href=mode==='buy'?'/kjop.html':'/utvalg.html';back.className='text-button enquiry-back';back.textContent='← Fortsett å se produkter';host.append(back,cart);cart.classList.add('enquiry-full');
   const heading=cart.querySelector('h2');if(heading){const h1=document.createElement('h1');h1.id=heading.id;h1.textContent=mode==='buy'?'Din kjøpsforespørsel':heading.textContent;heading.replaceWith(h1);}
   for(const close of cart.querySelectorAll('[data-close="'+cartId+'"]'))close.hidden=true;
   cart.addEventListener('cancel',event=>event.preventDefault());cart.show();cart.tabIndex=-1;if(performance.getEntriesByType('navigation')[0]?.type==='navigate')requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));
-  if(mode==='rent'){period=document.createElement('button');period.type='button';period.className='enquiry-period-link text-button';period.addEventListener('click',()=>{document.getElementById('rentalDates')?.scrollIntoView({behavior:'smooth',block:'start'});const target=document.querySelector('#rentalDates .rental-date-trigger,#rentalDates input:not([type=hidden])');target?.focus({preventScroll:true});});cart.querySelector('.drawer-head')?.after(period);}
+  if(mode==='rent'){
+   const overview=document.createElement('section');
+   overview.className='enquiry-overview';
+   overview.setAttribute('aria-label','Leieperiode, formål og prisvisning');
+   period=document.createElement('div');
+   period.className='enquiry-overview-period';
+   period.innerHTML='<div><span class="enquiry-overview-label">Leieperiode</span><strong aria-live="polite"></strong></div><button type="button" class="text-button" aria-label="Endre leieperiode" aria-haspopup="dialog">Endre</button>';
+   periodValue=period.querySelector('strong');
+   periodButton=period.querySelector('button');
+   periodButton.addEventListener('click',event=>form.dispatchEvent(new CustomEvent('rental-period-edit',{detail:{opener:periodButton,pointer:event.detail>0}})));
+   const intro=cart.querySelector('.quote-cart-note');
+   intro.textContent='Forespørselen er uforpliktende. Du får et samlet tilbud med pris, innhold og tilgjengelighet før du bestemmer deg.';
+   intro.after(overview);
+   overview.append(period,document.getElementById('cartPricingScope'));
+   cart.querySelector('.drawer-head .eyebrow')?.remove();
+  }
  }else{cart.classList.add('enquiry-preview');cart.append(preview);}
  let pending=false;
+ const periodFormat=new Intl.DateTimeFormat('nb-NO',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
  function update(){
-  if(period){const start=form.elements.namedItem('start')?.value,end=form.elements.namedItem('end')?.value,dates=start&&end?start.split('-').reverse().join('.')+' – '+end.split('-').reverse().join('.'):'Velg datoer';period.textContent='Leieperiode: '+dates+(start&&end?' · Endre':'');period.hidden=document.getElementById('rentalDates')?.hidden??true;}
+  if(period){
+   const start=new Date(form.elements.namedItem('start')?.value),end=new Date(form.elements.namedItem('end')?.value);
+   const selected=Number.isFinite(+start)&&Number.isFinite(+end)&&start<=end;
+   const dates=selected?periodFormat.formatRange(start,end):'Ingen datoer valgt';
+   if(periodValue.textContent!==dates)periodValue.textContent=dates;
+   periodButton.textContent=selected?'Endre':'Velg datoer';
+   periodButton.setAttribute('aria-label',selected?'Endre leieperiode':'Velg leieperiode');
+   period.hidden=document.getElementById('rentalDates')?.hidden??true;
+  }
   if(page)return;
   const rows=[];
   for(const group of cart.querySelectorAll('.package-cart-card')){const name=group.querySelector('h3')?.textContent,quantity=group.querySelector('.package-cart-count output')?.textContent||'1';if(name)rows.push({name,quantity});}

@@ -277,3 +277,5 @@ Flerlinjefelt får nødvendig høyde for teksten. Avkrysningsbokser, radioknappe
 Fokusrammer bruker profilens grønne `--olive`, også i gallerier og admin. Brun fokusfarge er fjernet etter eiers tilbakemelding 22. november 2026. Tastaturfokus skal fortsatt være synlig.
 
 22. november 2026 – leieforespørsel og kvittering. Leieformålet og «Endre formål» er sentrert loddrett mellom skillelinjene. Transportvalgets radioknapp flukter med hovedteksten når valget har en ekstra linje om Google Maps. Kvitteringen på nett og e-post viser begge foreløpige datoer for konkrete valg, også for henting og retur på lageret. Ved manuell beregning står «Må beregnes» i transportens prisfelt. Oppsettet er kontrollert på mobil og desktop.
+
+22. november 2026 – samlet oversikt i leieforespørselen. Leieperiode, formål og prisvisning samles i en lysegrønn boks over produktene. På desktop står valgene ved siden av hverandre. På mobil stables de i samme rekkefølge. Dato- og formålsvelgeren åpnes fra oversikten. Datoene tilhører fortsatt det samme innsendingsskjemaet. Kontrollert ved 320, 390 og 1280 px.

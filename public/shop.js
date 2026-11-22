@@ -6,8 +6,8 @@ import {detailImageAttributes,setDetailPhotoSource} from './product-image-loadin
 import {saleCatalogView} from './sale-catalog-view.js?v=choicesfirst20261119';
 import {saleQuantityControl as quantityControl,purchaseInitialSelection,purchaseModuleState,purchaseProductOptionsMarkup} from './purchase-product-options.js?v=choicesfirst20261119';
 import {readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
-import {mountEnquiryFlow} from './enquiry-flow.js?v=focusstable20261122';
-import './customer-info.js?v=transportreceipt20261122';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=enquiryoverview20261122';
+import './customer-info.js?v=enquiryoverview20261122';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=transportreceipt20261122';
 import {mountCatalogPagination} from './catalog-pagination.js?v=choicesfirst20261119';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';

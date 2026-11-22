@@ -1,16 +1,57 @@
 .cart-usage-explanation{display:none}
-body.enquiry-page #cart #cartPricingScope:not([hidden]):has(>[data-change-rental-purpose]){
- display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px clamp(10px,3vw,24px)
+
+.enquiry-page #cart:has(>.enquiry-overview) .drawer-head{margin-bottom:0}
+.enquiry-page #cart:has(>.enquiry-overview) .drawer-head h1{margin:0 0 8px}
+.enquiry-page #cart:has(>.enquiry-overview) #rentalDates{display:none}
+.enquiry-page #cart:has(>.enquiry-overview) > .quote-cart-note{
+ margin:0 0 22px;
+ padding:0;
+ border:0;
+ color:var(--muted);
 }
-body.enquiry-page #cart #cartPricingScope>.rental-selected-usage{margin:0}
-body.enquiry-page #cart #cartPricingScope>[data-change-rental-purpose]{margin:0}
-@media(min-width:761px){
- body.enquiry-page #cart #cartPricingScope{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 24px;padding:13px 0;margin:18px 0;border:0;border-block:1px solid var(--line);background:transparent}
- body.enquiry-page #cart #cartPricingScope:has(>details)>.rental-selected-usage{grid-column:1;grid-row:1;align-self:center;padding-right:120px;pointer-events:none}
- body.enquiry-page #cart #cartPricingScope>p:not(.rental-selected-usage){display:none}
- body.enquiry-page #cart #cartPricingScope>details{grid-column:1/-1;grid-row:1;min-width:0;margin:0}
- body.enquiry-page #cart #cartPricingScope>details>summary{display:block;width:max-content;margin-left:auto;list-style:none;text-underline-offset:4px}
- body.enquiry-page #cart #cartPricingScope>details>summary::-webkit-details-marker{display:none}
- body.enquiry-page #cart #cartPricingScope>details>summary::marker{content:''}
- body.enquiry-page #cart #cartPricingScope .cart-usage-explanation{display:block;margin:16px 0 8px;font-size:13px}
+.enquiry-page #cart .enquiry-overview{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+ align-items:stretch;
+ margin:0 0 22px;
+ border:1px solid var(--line);
+ background:#e8ecdf;
+}
+.enquiry-page #cart .enquiry-overview > :is(.enquiry-overview-period,#cartPricingScope,.price-display-picker){
+ box-sizing:border-box;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ min-width:0;
+ gap:10px;
+ margin:0;
+ padding:12px 14px;
+}
+.enquiry-page #cart .enquiry-overview > * + *{border-left:1px solid var(--line)}
+.enquiry-page #cart .enquiry-overview > #cartPricingScope{border:0;border-left:1px solid var(--line);background:transparent}
+.enquiry-page #cart .enquiry-overview > [hidden]{display:none}
+.enquiry-page #cart .enquiry-overview:has(> #cartPricingScope[hidden]){grid-template-columns:minmax(0,1fr)}
+.enquiry-page #cart .enquiry-overview:has(> #cartPricingScope[hidden]) > .price-display-picker{border:0;justify-self:end}
+.enquiry-page #cart .enquiry-overview .rental-selected-usage{margin:0}
+.enquiry-page #cart .enquiry-overview .enquiry-overview-label,
+.enquiry-page #cart .enquiry-overview .price-display-picker > span{
+ display:block;
+ margin:0 0 3px;
+ color:var(--muted);
+ font-size:12px;
+ font-weight:400;
+}
+.enquiry-page #cart .enquiry-overview .text-button{flex-shrink:0;margin:0;padding:8px 0;font-size:13px;white-space:nowrap}
+.enquiry-page #cart .enquiry-overview > .price-display-picker{align-items:flex-start;flex-direction:column;justify-content:center;gap:0}
+.enquiry-page #cart .enquiry-overview > .price-display-picker > span{align-self:flex-start}
+.enquiry-page #cart .enquiry-overview .price-display-options button{padding:8px 10px}
+
+@media(max-width:760px){
+ .enquiry-page #cart .enquiry-overview{grid-template-columns:minmax(0,1fr)}
+ .enquiry-page #cart .enquiry-overview > * + *,
+ .enquiry-page #cart .enquiry-overview > #cartPricingScope{border:0;border-top:1px solid var(--line)}
+ .enquiry-page #cart .enquiry-overview > :is(.enquiry-overview-period,#cartPricingScope,.price-display-picker){padding:8px 12px}
+ .enquiry-page #cart .enquiry-overview > .price-display-picker{align-items:center;flex-direction:row;justify-content:space-between;gap:8px}
+ .enquiry-page #cart .enquiry-overview > .price-display-picker > span{align-self:center}
+ .enquiry-page #cart .enquiry-overview .text-button{min-height:44px}
 }
