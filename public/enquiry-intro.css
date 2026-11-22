@@ -134,3 +134,77 @@ body.enquiry-page #cart.enquiry-full .drawer-head h1 {
  .enquiry-page #cart.enquiry-full .enquiry-setting-icon {width:23px;height:23px}
  .enquiry-page #cart.enquiry-full .enquiry-offer-note {margin-bottom:18px}
 }
+
+#enquiryPage #cart.enquiry-full .cart-product-group > .cart-item.cart-textile {
+ grid-template-columns:var(--cart-image-size) minmax(0,1fr) auto;
+ gap:8px var(--cart-image-gap);
+ align-items:start;
+ margin:0 0 10px;
+ padding:12px;
+ border:1px solid var(--line);
+ border-radius:8px;
+ background:#fff;
+}
+#enquiryPage #cart.enquiry-full .cart-item.cart-textile > .thumb {
+ grid-column:1;
+ grid-row:1 / span 2;
+ align-self:start;
+}
+#enquiryPage #cart.enquiry-full .cart-textile .cart-thumbnail,
+#enquiryPage #cart.enquiry-full .package-cart-line.cart-textile > .cart-thumbnail {
+ display:flex;
+ grid-column:1;
+ grid-row:1 / span 2;
+ align-self:start;
+ height:var(--cart-image-size);
+ padding:0;
+ background:#fff;
+}
+#enquiryPage #cart.enquiry-full .cart-textile .cart-thumbnail img,
+#enquiryPage #cart.enquiry-full .package-cart-line.cart-textile > .cart-thumbnail img {
+ width:100%;
+ height:100%;
+}
+#enquiryPage #cart.enquiry-full .cart-textile .cart-thumbnail svg,
+#enquiryPage #cart.enquiry-full .package-cart-line.cart-textile > .cart-thumbnail svg {
+ width:40px;
+ height:40px;
+}
+#enquiryPage #cart.enquiry-full .cart-textile > :is(.item-copy,.package-cart-copy) {grid-column:2;grid-row:1}
+#enquiryPage #cart.enquiry-full .cart-item.cart-textile .item-copy > h3 {
+ margin:0;
+ font-size:16px;
+ font-weight:600;
+ line-height:1.45;
+}
+#enquiryPage #cart.enquiry-full .cart-textile :is(h3,h4)::before {content:none}
+#enquiryPage #cart.enquiry-full .cart-textile .cart-period-price,
+#enquiryPage #cart.enquiry-full .cart-textile .cart-period-price :is(strong,span) {
+ font-size:12px;
+ font-weight:400;
+ line-height:1.6;
+ color:var(--muted);
+}
+#enquiryPage #cart.enquiry-full .cart-textile .cart-period-price > strong > [data-price-gross] {
+ font-size:14px;
+ font-weight:600;
+ color:var(--ink);
+}
+#enquiryPage #cart.enquiry-full .package-cart-line.cart-textile .package-cart-copy > h4 {
+ font-size:14px;
+ font-weight:600;
+}
+@media(max-width:640px){
+ #enquiryPage #cart.enquiry-full .cart-product-group > .cart-item.cart-textile {
+  grid-template-columns:var(--cart-image-size) minmax(0,1fr);
+ }
+ #enquiryPage #cart.enquiry-full .cart-textile > .quantity {
+  grid-column:2;
+  grid-row:2;
+  justify-self:start;
+  margin:0;
+ }
+ #enquiryPage #cart.enquiry-full .package-cart-line.cart-textile {
+  grid-template-columns:var(--cart-image-size) minmax(0,1fr);
+ }
+}
