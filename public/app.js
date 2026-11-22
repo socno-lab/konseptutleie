@@ -1,3 +1,4 @@
+import {enquiryThumbnails} from './enquiry-thumbnails.js?v=checkout20261122';
 import {stableFormUpdate} from './stable-form-update.js?v=focusstable20261122';
 import {rememberedRentalPurpose,rememberRentalPurpose,rememberedPurposeState} from './rental-purpose-memory.js?v=focusstable20261122';
 import {weekendRentalEnd} from './weekend-rental.js?v=weekendboth20261122';
@@ -55,7 +56,7 @@ import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
 import {moduleCardImage,sofaCardArt} from './module-card-image.js?v=sofaframes20261025';
 import {joinedModuleCover} from './module-joined-profiles.js?v=lagoon20261025';
 import {productSubcategory,availableSubcategories} from './catalog-subcategories.js?v=fest20261114';
-import {cartThumbnail,productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
+import {cartThumbnail as renderCartThumbnail,productPlaceholder} from './cart-thumbnail.js?v=launch20261024';
 import {sofaCartRow} from './sofa-cart-row.js?v=vat20261115b';
 import {mountStorefrontFeedback} from './storefront-feedback.js?v=enquiry20261115';
 import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation,rentalUsageState} from './rental-usage-model.js?v=fest20261114';
@@ -272,7 +273,8 @@ function cartRateMarkup(daily,weekly,monthly){
  if(!isEnquiryPage)return day+' · '+week+' · '+month;
  return '<span class="enquiry-cart-daily">'+day+'</span><span class="enquiry-cart-rate">'+week+'</span> · <span class="enquiry-cart-rate">'+month+'</span>';
 }
-function sofaCards(){return sofaSetups.map((s,i)=>{const c=sofaConfiguration({...s,textileId:''},{},products),textile=s.textileId?products.find(p=>p.id===s.textileId):null;const row=sofaCartRow({setup:s,index:i,modules:c.modules,count:c.count,width:c.width,widthKnown:c.widthKnown,priceHtml:c.priceOnRequest?'Pris på forespørsel':cartRateMarkup(c.price,c.weekPrice,c.monthPrice)});return textile?`<div class="cart-product-group has-addons">${row}${cartItem(textile,s,{[textile.id]:1},s.id)}</div>`:row;}).join('')+(isEnquiryPage?'':sofaCartActions());}
+function cartThumbnail(product){return enquiryThumbnails(renderCartThumbnail(product),isEnquiryPage);}
+function sofaCards(){return sofaSetups.map((s,i)=>{const c=sofaConfiguration({...s,textileId:''},{},products),textile=s.textileId?products.find(p=>p.id===s.textileId):null;const row=enquiryThumbnails(sofaCartRow({setup:s,index:i,modules:c.modules,count:c.count,width:c.width,widthKnown:c.widthKnown,priceHtml:c.priceOnRequest?'Pris på forespørsel':cartRateMarkup(c.price,c.weekPrice,c.monthPrice)}),isEnquiryPage);return textile?`<div class="cart-product-group has-addons">${row}${cartItem(textile,s,{[textile.id]:1},s.id)}</div>`:row;}).join('')+(isEnquiryPage?'':sofaCartActions());}
 function sofaCartActions(){return sofaSetups.length?`<button type="button" class="cart-line-action sofa-add-another" data-build="${html(sofaSetups.at(-1).series)}">+ Legg til ${outdoorSeries(sofaSetups.at(-1).series)?'et loungeoppsett':'en sofa'} til</button><p class="hint cart-common-info">Leiepriser inkl. mva. Tilgjengelighet bekreftes i tilbudet.</p>`:''; }
 document.addEventListener('click',e=>{const button=e.target.closest('[data-sofa-textile-remove]');if(!button)return;const setup=sofaSetups.find(s=>s.id===button.dataset.sofaTextileRemove);if(!setup)return;const next=saveSofa(sofaSetups,cart,products,{...setup,textileId:''},setup.id);if(!next)return;sofaSetups=next.setups;cart=next.cart;renderProducts();renderCart();});
 document.addEventListener('click',e=>{const edit=e.target.closest('[data-sofa-edit]'),copy=e.target.closest('[data-sofa-copy]'),remove=e.target.closest('[data-sofa-remove]');const id=edit?.dataset.sofaEdit||copy?.dataset.sofaCopy||remove?.dataset.sofaRemove;if(!id)return;const setup=sofaSetups.find(s=>s.id===id);if(!setup)return;if(edit){openModuleBuilder(setup.series,id);return;}if(copy){const next=saveSofa(sofaSetups,cart,products,{...setup,id:crypto.randomUUID(),selection:{...setup.selection}});if(!next){toast('Kan ikke duplisere: det er ikke nok ledige moduler.');return;}sofaSetups=next.setups;cart=next.cart;}else{cart=withoutSofas(cart,[setup]);sofaSetups=sofaSetups.filter(s=>s.id!==id);}renderProducts();renderCart();});

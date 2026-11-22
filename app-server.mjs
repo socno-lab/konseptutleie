@@ -239,6 +239,8 @@ export function createServer(options={}){
    if(pathname==='/api/site-settings'){if(req.method!=='GET')return out(405,{error:'Metoden støttes ikke.'});const data=await readPublicCatalog();return out(200,{settings:data.settings});}
    if(pathname==='/api/catalog'){const data=await readPublicCatalog();return out(200,{...data,canAdmin:store.enabled&&await authenticated()});}
    if(pathname.startsWith('/api/'))return out(404,{error:'Fant ikke endepunktet.'});
+   const cartImage=/^\/cart-image\/(320|640)\/([\w.-]+\.(?:jpe?g|png|webp|avif))$/i.exec(pathname);
+   if(cartImage)pathname='/assets/'+cartImage[2];
    const media=pathname.match(/^\/media\/([a-f0-9]{32})$/);
    if(store.enabled&&(pathname.startsWith('/assets/')||media)){
     // Bound database-backed media requests independently of HTML/API traffic.
@@ -246,6 +248,14 @@ export function createServer(options={}){
     mediaActive++;let released=false;const release=()=>{if(!released){released=true;mediaActive--;}};res.once('finish',release);res.once('close',release);
     const purged=store.mediaPurged?await store.mediaPurged(pathname):(await store.purgedMedia()).some(value=>decodeURIComponent(value)===pathname);
     if(purged)return send(404,'Fant ikke bildet.');
+   }
+   if(cartImage){
+    if(!['GET','HEAD'].includes(req.method))return send(405,'Metoden støttes ikke.');
+    const width=Number(cartImage[1]);
+    const body=await thumbnails.get(pathname,width,async()=>({
+     mime:types[path.extname(pathname).toLowerCase()],body:await readFile(path.join(publicRoot,pathname))
+    }));
+    return body?send(200,body,'image/jpeg',{'Cache-Control':'public, max-age=3600'}):await missing();
    }
    if(media){
     if(!store.enabled)return send(404,'Fant ikke bildet.');

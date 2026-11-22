@@ -1,7 +1,17 @@
+import {readFile} from 'node:fs/promises';
+
+// Discover the entry module's imports once so preloads share the exact same versioned URLs.
+const rentalEntry=await readFile(new URL('../public/app.js',import.meta.url),'utf8');
+const imports=[...rentalEntry.matchAll(/^import .+? from ['"]\.\/([^'"]+)['"]/gm)].map(match=>'/'+match[1]);
 // Reuse the checkout markup and bootstrap of the corresponding storefront.
 export function enquiryPageHtml(source,mode='rent'){
  const rentalStyle=mode==='rent'?'<link rel="stylesheet" href="/enquiry-intro.css?v=enquiryremove20261122">':'';
  const title=mode==='buy'?'Din kjøpsforespørsel':'Din leieforespørsel';
+ const entry=source.match(/<script\b[^>]*src="(\/app\.js[^"]*)"/)?.[1];
+ if(mode==='rent'&&entry){
+  const preload=[entry,...new Set(imports)].map(href=>'<link rel="modulepreload" href="'+href+'">').join('');
+  source=source.replace('</head>',preload+'</head>');
+ }
  return source.replace('href="#slik-kjoper-du"','href="/kjop.html#slik-kjoper-du"').replace(/<title>[\s\S]*?<\/title>/,'<title>'+title+' | Konseptuell</title>')
   .replace(/<body\b([^>]*)>/,'<body class="enquiry-page" data-enquiry-page="true">')
   // The app still needs the storefront's DOM hooks, but the hidden catalogue
