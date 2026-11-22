@@ -19,7 +19,7 @@ async function mountedDelivery(){
  const element=()=>({hidden:false,disabled:false,textContent:'',innerHTML:'',style:{},setAttribute(){},after(){},append(){}});
  let includedNote=null;const status=element(),legend={after(note){includedNote=note;}},prices=values.map(element),labels=values.map(element),radios=[];
  for(const [i,value] of values.entries()){
-  const caption=element(),label=labels[i];label.querySelector=selector=>selector==='span'?caption:null;
+  const caption=element(),label=labels[i];label.after=node=>{label.following=node;};label.querySelector=selector=>selector==='span'?caption:null;
   let checked=i===0;const radio={...element(),name:'delivery',value,closest:()=>label};
   Object.defineProperty(radio,'checked',{get:()=>checked,set(next){if(next)for(const other of radios)if(other!==radio)other.checked=false;checked=!!next;}});radios.push(radio);
  }
@@ -37,7 +37,7 @@ async function mountedDelivery(){
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
  const fire=(name,target)=>{for(const callback of formListeners[name]||[])callback({target});};
- return {summary,requests,events,radios,document,address,postalCode,prices,status,weekdayNotice,
+ return {summary,requests,events,radios,document,address,postalCode,prices,status,weekdayNotice,labels,
   occasion(value){fields.occasion.value=value;fields.occasion.name="occasion";fire("change",fields.occasion);},
   period(start,end){fields.start.value=start;fields.end.value=end;fields.start.name="start";fire("change",fields.start);},
   editTransport(name,value){const field=transportInputs[name];field.name=name;field.value=value;fire("change",field);},
@@ -134,4 +134,9 @@ test('styling weekend explains Friday/Monday transport and unchanged lease price
 test('manual Sunday collection for styling shows agreement notice and hides the automatic weekday explanation',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(1);
  assert.equal(ui.weekdayNotice.hidden,false);ui.editTransport('pickupDate','2030-11-03');assert.equal(ui.weekdayNotice.hidden,true);assert.equal(ui.summary().total,null);assert.match(ui.status.innerHTML,/Transport i helgen må avtales/);assert.match(ui.status.innerHTML,/Vi vurderer tilgjengeligheten/);
+});
+
+test('one details panel follows the currently selected transport option',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);const panel=ui.labels[1].following;
+ assert.equal(panel.className,'rental-delivery-details');ui.choose(2);assert.equal(ui.labels[2].following,panel);ui.choose(0);assert.equal(ui.labels[0].following,panel);
 });

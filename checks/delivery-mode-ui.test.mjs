@@ -16,7 +16,7 @@ async function mountedDelivery(){
  const element=()=>({hidden:false,disabled:false,textContent:'',innerHTML:'',style:{},setAttribute(){},after(){},append(){}});
  let includedNote=null;const status=element(),legend={after(note){includedNote=note;}},prices=values.map(element),labels=values.map(element),radios=[];
  for(const [i,value] of values.entries()){
-  const caption=element(),label=labels[i];label.querySelector=selector=>selector==='span'?caption:null;
+  const caption=element(),label=labels[i];label.after=node=>{label.following=node;};label.querySelector=selector=>selector==='span'?caption:null;
   let checked=i===0;const radio={...element(),name:'delivery',value,closest:()=>label};
   Object.defineProperty(radio,'checked',{get:()=>checked,set(next){if(next)for(const other of radios)if(other!==radio)other.checked=false;checked=!!next;}});radios.push(radio);
  }
