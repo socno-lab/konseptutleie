@@ -1,80 +1,129 @@
 .cart-usage-explanation{display:none}
-
-.enquiry-page #cart:has(>.enquiry-overview) .drawer-head h1{margin:0 0 12px}
-.enquiry-page #cart:has(>.enquiry-overview) #rentalDates{display:none}
-.enquiry-page #cart:has(>.enquiry-overview) > .quote-cart-note{
- max-width:61ch;
+#enquiryPage:has(.enquiry-open-sheet){max-width:888px}
+#enquiryPage .enquiry-open-sheet{--enquiry-columns:minmax(145px,.55fr) minmax(0,1.45fr);--enquiry-gap:24px}
+#enquiryPage .enquiry-open-sheet .drawer-head h1{
+ margin:0 0 12px;
+ font:400 clamp(38px,6.1vw,68px)/1 Georgia,serif;
+ letter-spacing:-.035em;
+}
+#enquiryPage .enquiry-open-sheet > .quote-cart-note{
  margin:0 0 26px;
  padding:0;
  border:0;
  color:var(--muted);
  font-size:14px;
 }
-.enquiry-page #cart .enquiry-overview{
+#enquiryPage .enquiry-open-sheet #rentalDates,
+#enquiryPage .enquiry-overview:has(#cartPricingScope[hidden]){display:none}
+#enquiryPage .enquiry-open-sheet .enquiry-section{
  display:grid;
- grid-template-columns:repeat(2,minmax(0,1fr));
- gap:12px;
- margin-bottom:30px;
+ grid-template-columns:var(--enquiry-columns);
+ gap:var(--enquiry-gap);
+ padding:20px 0;
+ border-top:1px solid var(--line);
+ min-width:0;
 }
-.enquiry-page #cart .enquiry-overview:has(> #cartPricingScope[hidden]){display:none}
-.enquiry-page #cart .enquiry-overview > #cartPricingScope{margin:0;padding:0;border:0;background:transparent}
-.enquiry-page #cart .enquiry-overview > [hidden]{display:none}
-.enquiry-page #cart .enquiry-setting{
+#enquiryPage .enquiry-open-sheet .enquiry-section-title,
+#enquiryPage .enquiry-open-sheet #customRequestProductsHeading{
+ margin:0;
+ font-size:19px;
+ font-weight:500;
+ letter-spacing:-.02em;
+ line-height:1.3;
+}
+#enquiryPage .enquiry-section-content{min-width:0}
+#enquiryPage .enquiry-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px}
+#enquiryPage .enquiry-settings > #cartPricingScope{margin:0;padding:0;border:0;background:none}
+#enquiryPage .enquiry-settings > [hidden]{display:none}
+#enquiryPage .enquiry-setting{
  display:flex;
  align-items:center;
  justify-content:space-between;
- gap:12px;
+ gap:8px;
  width:100%;
- min-height:72px;
- padding:12px 17px;
- border:1px solid var(--line);
- background:#fff;
+ min-height:44px;
+ padding:0;
+ border:0;
+ background:none;
  color:var(--ink);
  text-align:left;
  font:inherit;
  cursor:pointer;
 }
-.enquiry-page #cart .enquiry-setting:hover{border-color:var(--olive);background:#fafbf7}
-.enquiry-page #cart .enquiry-setting:focus-visible{outline:2px solid var(--olive);outline-offset:2px}
-.enquiry-page #cart .enquiry-overview-label{
- display:block;
- margin-bottom:3px;
- color:var(--muted);
- font-size:12px;
-}
-.enquiry-page #cart .enquiry-setting strong{font-size:16px;font-weight:600;line-height:1.25}
-.enquiry-page #cart .enquiry-setting-arrow{color:var(--olive);font-size:23px;line-height:1}
-.enquiry-page #cart .enquiry-products-toolbar{
- display:flex;
- flex-wrap:wrap;
- align-items:center;
- justify-content:space-between;
- gap:4px 16px;
- border-bottom:1px solid var(--line);
-}
-.enquiry-page #enquiryPage #customRequestProductsHeading{margin:0;font-size:21px;letter-spacing:-.02em}
-.enquiry-page #cart .enquiry-products-toolbar > .price-display-picker{display:flex;margin:0 0 0 auto;gap:8px 12px}
-.enquiry-page #cart .enquiry-products-toolbar .price-display-picker > span{color:var(--muted);font-size:12px;font-weight:400}
-.enquiry-page #cart .enquiry-products-toolbar .price-display-options{border:0;background:transparent}
-.enquiry-page #cart .enquiry-products-toolbar .price-display-options button{
- min-height:44px;
+#enquiryPage .enquiry-setting:hover strong{text-decoration:underline;text-underline-offset:3px}
+#enquiryPage .enquiry-setting:focus-visible{outline:2px solid var(--olive);outline-offset:2px}
+#enquiryPage .enquiry-overview-label{display:block;margin-bottom:3px;color:var(--muted);font-size:12px}
+#enquiryPage .enquiry-setting strong{font-size:14px;font-weight:600;line-height:1.3}
+#enquiryPage .enquiry-setting-arrow{color:var(--olive);font-size:20px;line-height:1}
+
+#enquiryPage .enquiry-products-toolbar{display:flex;justify-content:flex-start;margin:0 0 4px}
+#enquiryPage .enquiry-products-toolbar > .price-display-picker{display:flex;margin:0;gap:8px 12px}
+#enquiryPage .enquiry-products-toolbar .price-display-picker > span{display:none}
+#enquiryPage .enquiry-products-toolbar .price-display-options{border:0;background:none;gap:14px}
+#enquiryPage .enquiry-products-toolbar .price-display-options button{
+ min-height:36px;
  margin:0;
- padding:0 8px;
+ padding:0;
  border:0;
- background:transparent;
+ background:none;
  color:var(--muted);
 }
-.enquiry-page #cart .enquiry-products-toolbar .price-display-options button[aria-pressed=true]{
+#enquiryPage .enquiry-products-toolbar .price-display-options button[aria-pressed=true]{
  color:var(--ink);
  font-weight:600;
- box-shadow:inset 0 -2px var(--olive);
+ box-shadow:inset 0 -1px var(--olive);
 }
+#enquiryPage .enquiry-products #moduleCartSummary:empty,#enquiryPage .enquiry-products #cartItems:empty{display:none}
+#enquiryPage .enquiry-open-sheet #requestForm{margin-top:0;padding-top:0;border:0}
+#enquiryPage .enquiry-open-sheet .enquiry-section fieldset{margin:0;padding:0;border:0;min-inline-size:0}
+#enquiryPage .enquiry-contact legend,
+#enquiryPage .enquiry-transport legend,
+#enquiryPage .enquiry-extras .styling-choice legend{
+ position:absolute;
+ width:1px;
+ height:1px;
+ overflow:hidden;
+ clip-path:inset(50%);
+ white-space:nowrap;
+}
+#enquiryPage .enquiry-extras .styling-choice{margin:0 0 14px}
+#enquiryPage .enquiry-extras #discountCode{margin:16px 0 0}
+#enquiryPage .enquiry-transport .addon-choices{gap:0;border-top:1px solid var(--line)}
+#enquiryPage .enquiry-transport .rental-delivery-choice{margin:0;border-bottom:1px solid var(--line)}
+#enquiryPage .enquiry-transport .rental-delivery-choice:has(.addon-choice input:checked){box-shadow:none;background:#e8ecdf}
+#enquiryPage .enquiry-transport .rental-delivery-choice > .addon-choice{
+ min-height:49px!important;
+ padding:8px 12px;
+ border:0;
+ background:none;
+}
+#enquiryPage .enquiry-transport .rental-delivery-details{margin:0}
+#enquiryPage .enquiry-disclosure{padding:12px 0}
+#enquiryPage .enquiry-disclosure > summary{width:fit-content;min-height:24px;color:var(--muted);font-size:13px;cursor:pointer}
+#enquiryPage .enquiry-disclosure #priceEstimate{margin:12px 0 0}
+#enquiryPage .enquiry-review-slot{border-top:1px solid var(--line)}
+#enquiryPage .enquiry-review-slot .enquiry-review{border:0;margin:0;padding:5px 0 0}
+#enquiryPage .enquiry-review-slot .enquiry-review > h3{display:none}
+#enquiryPage .enquiry-final{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:24px;
+ margin-top:12px;
+ padding:22px;
+ background:#e8ecdf;
+}
+#enquiryPage .enquiry-final .enquiry-submit-summary{margin:8px 0 0;padding:0;background:none}
+#enquiryPage .enquiry-final-send{min-width:0}
+#enquiryPage .enquiry-final-send .customer-acceptance{margin:0 0 10px}
+#enquiryPage .enquiry-final-send [type=submit]{width:100%;justify-content:center}
+#enquiryPage .enquiry-final-send .demo-info{margin:8px 0 0;padding:0;border:0;background:none}
 
 @media(max-width:640px){
- .enquiry-page #cart:has(>.enquiry-overview) > .quote-cart-note{margin-bottom:20px}
- .enquiry-page #cart .enquiry-overview{grid-template-columns:minmax(0,1fr);gap:8px;margin-bottom:22px}
- .enquiry-page #cart .enquiry-setting{min-height:58px;padding:9px 12px}
- .enquiry-page #cart .enquiry-setting strong{font-size:15px}
- .enquiry-page #enquiryPage #customRequestProductsHeading{font-size:18px}
- .enquiry-page #cart .enquiry-products-toolbar .price-display-picker > span{display:none}
+ #enquiryPage .enquiry-open-sheet .enquiry-section{grid-template-columns:minmax(0,1fr);gap:10px;padding:16px 0}
+ #enquiryPage .enquiry-open-sheet .enquiry-section-title,#enquiryPage .enquiry-open-sheet #customRequestProductsHeading{font-size:18px}
+ #enquiryPage .enquiry-settings{gap:12px}
+ #enquiryPage .enquiry-final{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px}
+}
+@media(max-width:360px){
+ #enquiryPage .enquiry-settings{grid-template-columns:minmax(0,1fr);gap:5px}
 }

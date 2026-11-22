@@ -6,7 +6,11 @@ if(page==='/foresporsel.html'||page==='/tilpasset-foresporsel.html'){
   const sale=form.id==='saleRequestForm',proposal=form.id==='proposalForm';
   const submit=form.querySelector('[type=submit],#saleExport');
   const review=document.createElement('section');review.className='enquiry-review';review.setAttribute('aria-label','Kontroller før du sender');
-  if(!proposal)submit.before(review);
+  if(!proposal){
+   const slot=form.querySelector('.enquiry-review-slot');
+   if(slot)slot.append(review);
+   else submit.before(review);
+  }
   const errors=new Map();let errorId=0;
   function clear(field){const node=errors.get(field);if(!node)return;field.removeAttribute('aria-invalid');const described=(field.getAttribute('aria-describedby')||'').split(' ').filter(id=>id&&id!==node.id);if(described.length)field.setAttribute('aria-describedby',described.join(' '));else field.removeAttribute('aria-describedby');node.remove();errors.delete(field);}
   function mark(field){if(!field.willValidate||field.validity.valid)return;let node=errors.get(field);if(!node){node=document.createElement('span');node.className='enquiry-field-error';node.id='enquiry-field-error-'+(++errorId);field.after(node);errors.set(field,node);field.setAttribute('aria-describedby',[field.getAttribute('aria-describedby'),node.id].filter(Boolean).join(' '));}field.setAttribute('aria-invalid','true');node.textContent=field.validity.valueMissing?(field.type==='checkbox'?'Du må krysse av her før du sender.':'Fyll ut dette feltet.'):(field.type==='email'&&field.validity.typeMismatch?'Skriv en gyldig e-postadresse, for eksempel navn@firma.no.':field.validationMessage);}
@@ -27,7 +31,7 @@ if(page==='/foresporsel.html'||page==='/tilpasset-foresporsel.html'){
     for(const group of cart.querySelectorAll('.package-cart-card')){const name=group.querySelector('h3')?.textContent,q=group.querySelector('.package-cart-count output')?.textContent||'1';if(name)rows.push(q+' × '+name);}
     for(const item of cart.querySelectorAll('#moduleCartSummary .cart-sofa-row,#saleCartItems .cart-sofa-row,.cart-product-group>.cart-item:not(.cart-addon),#saleCartItems>.sale-row')){const name=item.querySelector('h3,h4,strong')?.textContent,q=item.querySelector('.quantity span,.sale-quantity input');if(name)rows.push((q?.value||q?.textContent||'1')+' × '+name);}
     if(rows.length){const group=node('div','');group.className='enquiry-review-row';const list=node('ul','',group);for(const row of rows)node('li',row,list);edit('Se og endre produkter, antall og tilvalg',document.getElementById(sale?'saleCartItems':'cartItems'),group);}
-    if(!sale){const date=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)?s.split('-').reverse().join('.'):s;fact('Leieperiode',value('start')&&value('end')?date(value('start'))+' – '+date(value('end')):'Ikke valgt',document.getElementById('rentalDates'));}
+    if(!sale){const date=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)?s.split('-').reverse().join('.'):s;fact('Leieperiode',value('start')&&value('end')?date(value('start'))+' – '+date(value('end')):'Ikke valgt',cart.querySelector('.enquiry-overview-period button')||document.getElementById('rentalDates'));}
     else if(value('deliveryDate'))fact('Ønsket levering',value('deliveryDate'),form.elements.namedItem('deliveryDate'));
     const delivery=form.elements.namedItem(sale?'shipping':'delivery');fact('Levering eller henting',value(sale?'shipping':'delivery'),delivery?.length?delivery[0].closest('fieldset')||delivery[0].parentElement:delivery);
    }

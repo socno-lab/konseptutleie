@@ -7,8 +7,22 @@ import {readPurposeState} from '../public/rental-purpose-model.js';
 
 // Mount the real checkout navigation without opening a browser or submitting a request.
 function checkout(mode){
- const node=()=>({children:[],classList:{add(){},remove(){}},append(...children){this.children.push(...children);},setAttribute(){},querySelector(selector){return this.innerHTML?.includes('<'+selector)?node():null;},querySelectorAll(){return [];},addEventListener(){},show(){},focus(){}});
- const cart=node(),form={elements:Object.assign([],{namedItem:()=>null})},host=node(),nodes={cart,requestForm:form,enquiryPage:host,cartPricingScope:node(),customRequestProductsHeading:{before(toolbar){cart.append(toolbar);}}};
+ const node=tag=>({
+  tag,children:[],classList:{add(){},remove(){}},
+  append(...children){for(const child of children){if(child.parent)child.parent.children.splice(child.parent.children.indexOf(child),1);child.parent=this;this.children.push(child);}},
+  setAttribute(){},
+  querySelector(selector){return this.children.find(child=>child.tag===selector)||(this.innerHTML?.includes('<'+selector)?node():null);},
+  querySelectorAll(){return [];},addEventListener(){},show(){},focus(){},after(){},closest(){return node();},
+  replaceWith(next){this.parent.children[this.parent.children.indexOf(this)]=next;next.parent=this.parent;},
+ });
+ const cart=node(),form=Object.assign(node(),{elements:Object.assign([],{namedItem:()=>null})}),host=node();
+ const productsHeading=Object.assign(node('h2'),{before(section){cart.append(section);}});
+ const nodes={cart,requestForm:form,enquiryPage:host,cartPricingScope:node(),customRequestProductsHeading:productsHeading,
+  moduleCartSummary:node(),cartItems:node(),wallCartActions:node(),cartSuggestion:node()};
+ form.querySelector=selector=>selector==='.enquiry-review'?null:node();
+ const contact=node('fieldset');contact.append(node('legend'));
+ const name=Object.assign(node(),{closest:()=>contact});
+ const queryForm=form.querySelector;form.querySelector=selector=>selector==='[name="name"]'?name:queryForm(selector);
  const intro={after(overview){cart.append(overview);}};
  cart.querySelector=selector=>selector==='.quote-cart-note'?intro:null;
  const context=vm.createContext({document:{getElementById:id=>nodes[id],createElement:node,querySelector:()=>null,head:node(),body:node(),addEventListener(){}},location:{pathname:'/foresporsel.html',origin:'https://konseptuell.no'},sessionStorage:{getItem:()=>null},window:{addEventListener(){}},performance:{getEntriesByType:()=>[{type:'back_forward'}]},MutationObserver:class{observe(){}},mode});
@@ -16,8 +30,9 @@ function checkout(mode){
  vm.runInContext(source.replace('export function mountEnquiryFlow','function mountEnquiryFlow')+"\nmountEnquiryFlow({cartId:'cart',formId:'requestForm',mode});",context);
  const overview=cart.children.find(child=>child.className==='enquiry-overview');
  if(mode==='rent'){
-  assert.equal(overview.children[1],nodes.cartPricingScope);
-  assert.equal(cart.children.find(child=>child.className==='enquiry-products-toolbar').children[0],nodes.customRequestProductsHeading);
+  assert.equal(overview.children[1].children[1],nodes.cartPricingScope);
+  assert.equal(cart.children.find(child=>child.className==='enquiry-section enquiry-products').children[0],productsHeading);
+  assert.equal(form.children.at(-1).className,'enquiry-final');
  }
  else assert.equal(overview,undefined);
  return host.children.find(child=>child.className==='text-button enquiry-back').href;

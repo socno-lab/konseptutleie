@@ -1,4 +1,62 @@
 const allowed=new Set(['start','end','deliveryDate','pickupDate','occasion','name','email','phone','company','address','postalCode','postalCity','notes','delivery','shipping','stylist','stylingNotes','customRequest']);
+
+function layoutRentalEnquiry(cart,form,overview){
+ const make=(tag,className,text='')=>{
+  const element=document.createElement(tag);element.className=className;
+  if(text)element.textContent=text;
+  return element;
+ };
+ function section(title,kind,...content){
+  const wrapper=make('section','enquiry-section enquiry-'+kind);
+  const heading=make('h2','enquiry-section-title',title);
+  const body=make('div','enquiry-section-content');
+  body.append(...content);
+  wrapper.append(heading,body);
+  return wrapper;
+ }
+ overview.classList.add('enquiry-section');
+ const settings=make('div','enquiry-section-content enquiry-settings');
+ settings.append(...overview.children);
+ overview.append(make('h2','enquiry-section-title','Leieperiode og formål'),settings);
+
+ const productsHeading=document.getElementById('customRequestProductsHeading');
+ const products=document.getElementById('moduleCartSummary');
+ const toolbar=make('div','enquiry-products-toolbar');
+ const productSection=section('','products',toolbar);
+ productsHeading.before(productSection);
+ productSection.querySelector('h2').replaceWith(productsHeading);
+ productsHeading.classList.add('enquiry-section-title');
+ const estimate=make('details','enquiry-disclosure enquiry-estimate');
+ estimate.append(make('summary','','Slik er leien beregnet'),form.querySelector('#priceEstimate'));
+ toolbar.after(products,document.getElementById('cartItems'),document.getElementById('wallCartActions'),document.getElementById('cartSuggestion'),estimate);
+
+ const contact=form.querySelector('[name="name"]').closest('fieldset');
+ const transport=form.querySelector('.rental-options');
+ const contactSection=section('Kontakt og adresse','contact',contact);
+ const transportSection=section('Levering eller henting','transport',transport);
+ contact.querySelector('legend').textContent='Kontakt og adresse';
+ for(const row of [contactSection,transportSection])row.querySelector('h2').setAttribute('aria-hidden','true');
+ const extras=section('Tilvalg og merknader','extras',
+  form.querySelector('.styling-choice'),
+  form.querySelector('[name="notes"]').closest('label'),
+  form.querySelector('#requestNotesHelp'),
+  form.querySelector('#discountCode')
+ );
+ const submit=form.querySelector('[type="submit"]');
+ const review=make('details','enquiry-disclosure enquiry-review-slot');
+ review.append(make('summary','','Kontroller før du sender'));
+ const existingReview=form.querySelector('.enquiry-review');
+ if(existingReview)review.append(existingReview);
+ const final=make('section','enquiry-final');
+ const finalPrice=make('div','enquiry-final-price');
+ finalPrice.append(make('h2','enquiry-section-title','Oppsummering'));
+ const send=make('div','enquiry-final-send');
+ send.append(form.querySelector('#rentalTermsLabel'),form.querySelector('#purchaseTermsLabel'),form.querySelector('#rentalPaymentNote'),submit,form.querySelector('#result'),form.querySelector('.demo-info'));
+ final.append(finalPrice,send);
+ form.append(contactSection,transportSection,extras,review,final);
+ cart.classList.add('enquiry-open-sheet');
+}
+
 export function mountEnquiryFlow({cartId,formId,mode}){
  const cart=document.getElementById(cartId),form=document.getElementById(formId),page=location.pathname==='/foresporsel.html',key='konsept-enquiry-draft-'+mode;
  if(!cart||!form)return {open(){},update(){},clearDraft(){},restoredField:()=>false};
@@ -35,11 +93,7 @@ export function mountEnquiryFlow({cartId,formId,mode}){
    intro.textContent='Forespørselen er uforpliktende. Du får et samlet tilbud med pris, innhold og tilgjengelighet før du bestemmer deg.';
    intro.after(overview);
    overview.append(period,document.getElementById('cartPricingScope'));
-   const productsHeading=document.getElementById('customRequestProductsHeading');
-   const productsToolbar=document.createElement('div');
-   productsToolbar.className='enquiry-products-toolbar';
-   productsHeading.before(productsToolbar);
-   productsToolbar.append(productsHeading);
+   layoutRentalEnquiry(cart,form,overview);
    cart.querySelector('.drawer-head .eyebrow')?.remove();
   }
  }else{cart.classList.add('enquiry-preview');cart.append(preview);}
