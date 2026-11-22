@@ -160,3 +160,19 @@ test('first confirmation previews and freezes a missing-item replacement made af
  const saved=await f.store.changeWorkflow('a',{...data,reserve:true,previewDigest:preview.previewDigest},'confirmation',catalog);
  assert.equal(saved.history.at(-1).document.confirmationChanges.rows[0][0].label,'Erstatning ved mangel');assert.equal(saved.requirements[0].id,replacement.id);
 });
+
+test('replacement reason stays consistent across updated offers, first confirmation and updated confirmation',async()=>{
+ for(const missing of [true,false]){
+  const alternative={...product,id:'alternative',name:'Alternativ stol'},replacement={...product,id:'replacement',name:'Ny erstatningsstol'},catalog=[product,alternative,replacement],f=fixture(catalog);
+  let r=f.state.records[0];r.status='new';r.history=[];
+  const send=async(action,data)=>{const preview=await f.store.workflowPreview('a',data,catalog,action);assert.equal(preview.canSend,true);const saved=await f.store.changeWorkflow('a',{...data,reserve:true,previewDigest:preview.previewDigest},action,catalog);for(const job of f.state.jobs)job.status='sent';return {preview,saved};};
+  r=(await send('offer',r)).saved;
+  r=await f.store.changeWorkflow('a',{...r,lines:r.lines.map(l=>({...l,id:alternative.id,review:missing?'missing':'alternative',originalMissing:missing}))},'save',catalog);
+  const updatedOffer=await send('offer',r);assert.equal(/ikke ønsket antall tilgjengelig/.test(updatedOffer.preview.text),missing);assert.match(updatedOffer.preview.text,/Alternativ stol/);
+  r=await f.store.changeWorkflow('a',{revision:updatedOffer.saved.revision},'accept',catalog);
+  const confirmation=await send('confirmation',r);assert.doesNotMatch(confirmation.preview.text,/ikke tilgjengelig|Byttet vare|Erstatning ved mangel/,'accepted replacement is not announced as new');r=confirmation.saved;
+  r=await f.store.changeWorkflow('a',{...r,lines:r.lines.map(l=>({...l,id:replacement.id,review:missing?'missing':'alternative',originalMissing:missing}))},'save',catalog);
+  const updated=await send('confirmation',r);assert.equal(/ikke tilgjengelig i ønsket antall/.test(updated.preview.text),missing);assert.match(updated.preview.text,missing?/Alternativ stol er dessverre/:/Vi har byttet Alternativ stol/);
+  assert.equal(updated.saved.history.at(-1).document.confirmationChanges.rows[0][0].label,missing?'Erstatning ved mangel':'Byttet vare');assert.equal(updated.saved.requirements[0].id,replacement.id);
+ }
+});
