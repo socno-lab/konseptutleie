@@ -138,24 +138,45 @@ function mountRentalDelivery(form){
   return 'Du har valgt levering eller henting i helgen. Vi vurderer tilgjengeligheten. '+price;
  };
  const syncTransportDates=()=>{const dayHire=syncWeekendChoice(),mode=transportMode(),selfCollection=mode==='collectionOnly',selfPickup=mode==='pickup',defaults=plannedTransportDates(dateOptions());for(const key of ['deliveryDate','pickupDate']){const field=transportInput(key);const hiddenEndpoint=mode==='pickup'||mode==='collectionOnly'&&key==='deliveryDate'||mode==='deliveryOnly'&&key==='pickupDate';field.value=defaults[key];field.readOnly=true;const value=transportFields.querySelector('[data-transport-value="'+key+'"]');if(value)value.textContent=field.value?new Intl.DateTimeFormat('nb-NO',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'}).format(new Date(field.value+'T12:00:00Z')):'Avklares i tilbudet';}previousTransportDefaults=defaults;previousTransportMode=mode;const limits=transportDateLimits(dateOptions()),error=transportDateError({...dateOptions(),deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value});for(const key of ['deliveryDate','pickupDate']){const field=transportInput(key);field.min=limits?.[key].min||'';field.max=limits?.[key].max||'';field.setCustomValidity(error);}transportFields.hidden=purchaseOnly()||selected()[2]===null;transportInput('deliveryDate').closest('label').hidden=false;for(const key of ['deliveryDate','pickupDate']){const label=transportFields.querySelector('[data-transport-label="'+key+'"]');if(label)label.textContent=key==='deliveryDate'?((selfCollection||selfPickup)?'Henting på vårt lager':'Levering hos deg'):((selfPickup||mode==='deliveryOnly')?'Retur på vårt lager':'Henting hos deg');}pickupTimeNote.textContent=transportTimingText(mode,defaults);pickupTimeNote.hidden=transportFields.hidden||!pickupTimeNote.textContent;transportInput('pickupDate').closest('label').hidden=false;
-  const options=dateOptions(),paid=selected()[2]>0&&!transportPolicy().weekend;
-  const shifted=options.start&&options.end&&options.scope==='standard'&&paid&&!transportFields.hidden&&(['delivery','deliveryOnly'].includes(mode)&&defaults.deliveryDate!==options.start&&transportInput('deliveryDate').value===defaults.deliveryDate||['delivery','collectionOnly','deliveryOnly'].includes(mode)&&defaults.pickupDate!==options.end&&transportInput('pickupDate').value===defaults.pickupDate);
-  const selfReturn=options.scope==='standard'&&mode==='pickup'&&options.end&&defaults.pickupDate!==options.end;
-  const minimum=weekendRentalEnd({...options,deliveryDate:transportInput('deliveryDate').value,pickupDate:transportInput('pickupDate').value})!==options.end;
-  weekdayNotice.hidden=!(shifted||minimum||selfReturn);
-  if(selfReturn&&!minimum){const day=new Intl.DateTimeFormat('nb-NO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(defaults.pickupDate+'T12:00:00Z'));weekdayNotice.innerHTML=informationBoxMarkup('Retur på hverdager','Henting og retur på lageret skjer på hverdager kl. 08.00–15.45. Siden leieperioden slutter i helgen, blir retur '+day+'. Dette gir ingen ekstra leiekostnad; leieprisen beregnes fortsatt for ønsket leieperiode.','i');}
-  if(minimum){if(options.scope==='standard'){const format=value=>new Intl.DateTimeFormat('nb-NO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));const self=mode==='pickup',visits=[];if(['delivery','deliveryOnly'].includes(mode))visits.push('levering '+format(transportInput('deliveryDate').value));if(['delivery','collectionOnly'].includes(mode))visits.push('henting '+format(transportInput('pickupDate').value));const explanation=self?'Henting og retur på lageret skjer på hverdager kl. 08.00–15.45. For din leieperiode er det foreslått uthenting '+format(defaults.deliveryDate)+' og retur '+format(defaults.pickupDate)+'.':'For din leieperiode er det foreslått '+visits.join(' og ')+'.';weekdayNotice.innerHTML=informationBoxMarkup('Helgeleie – minimum to døgn',explanation+' Siden leiedagen faller i helgen, disponerer du møblene fra fredag til mandag. Det beregnes minimum to døgns leie, uten ekstra leiekostnad for tilpasningen til hverdager. Endelig avtale bekreftes i tilbudet.','i');}else weekdayNotice.innerHTML=informationBoxMarkup('Helgeleie – minimum to døgn','Når du disponerer møblene fra fredag til mandag, beregnes minimum to døgns leie. Vi tilbyr også éndagsleie i helgen med levering og henting samme dag. Da vurderer vi tilgjengeligheten og beregner transportprisen individuelt i tilbudet.','i');}else if(shifted){
-   const format=value=>new Intl.DateTimeFormat('nb-NO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));
-   const delivery=format(defaults.deliveryDate),pickup=format(defaults.pickupDate);
-   const suffix=' Leieprisen beregnes fortsatt for ønsket leieperiode. Endelig avtale bekreftes i tilbudet.';
-   if(mode==='deliveryOnly'){
-    weekdayNotice.innerHTML=informationBoxMarkup('Levering og retur på hverdager','Vi leverer mandag til fredag, og lageret tar imot retur på hverdager. Derfor foreslår vi levering '+delivery+' og egen retur til lageret '+pickup+'. Disse tilpasningene gir ingen ekstra leiekostnad.'+suffix,'i');
-   }else if(mode==='collectionOnly'){
-    weekdayNotice.innerHTML=informationBoxMarkup('Henting på hverdager','Vi henter mandag til fredag. Derfor foreslår vi henting hos deg '+pickup+'. Denne tilpasningen gir ingen ekstra leiekostnad.'+suffix,'i');
-   }else{
-    weekdayNotice.innerHTML=informationBoxMarkup('Levering og henting på hverdager','Vi leverer og henter mandag til fredag. Derfor foreslår vi levering '+delivery+' og henting '+pickup+'. Denne tilpasningen gir ingen ekstra leiekostnad.'+suffix,'i');
-   }
+  const options=dateOptions();
+  const showShift=options.start&&options.end&&options.scope==='standard'&&!transportFields.hidden;
+  const startMoved=showShift&&defaults.deliveryDate!==options.start;
+  const endMoved=showShift&&defaults.pickupDate!==options.end;
+  const minimum=weekendRentalEnd({...options,...defaults})!==options.end;
+  weekdayNotice.hidden=!(startMoved||endMoved||minimum);
+  if(weekdayNotice.hidden)return;
+  if(minimum&&options.scope!=='standard'){
+   weekdayNotice.innerHTML=informationBoxMarkup('Helgeleie – minimum to døgn','Når du disponerer møblene fra fredag til mandag, beregnes minimum to døgns leie. Vi tilbyr også éndagsleie i helgen med levering og henting samme dag. Da vurderer vi tilgjengeligheten og beregner transportprisen individuelt i tilbudet.','i');
+   return;
   }
+  const format=value=>new Intl.DateTimeFormat('nb-NO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'));
+  const delivery=format(defaults.deliveryDate),pickup=format(defaults.pickupDate);
+  let heading,explanation;
+  if(selfPickup){
+   heading=startMoved?'Henting og retur på hverdager':'Retur på hverdager';
+   const visits=[startMoved&&'uthenting '+delivery,endMoved&&'retur '+pickup].filter(Boolean);
+   const hours='Henting og retur på lageret skjer på hverdager kl. 08.00–15.45. ';
+   explanation=hours+(startMoved?'For leieperioden din foreslår vi derfor '+visits.join(' og ')+'.':'Siden leieperioden slutter i helgen, blir retur '+pickup+'.');
+  }else if(mode==='deliveryOnly'){
+   heading='Levering og retur på hverdager';
+   const reasons=[startMoved&&'Vi leverer mandag til fredag',endMoved&&'lageret tar imot retur på hverdager'].filter(Boolean);
+   const reason=reasons.join(', og ');
+   const visits=[startMoved&&'levering '+delivery,endMoved&&'egen retur til lageret '+pickup].filter(Boolean);
+   explanation=reason[0].toUpperCase()+reason.slice(1)+'. Derfor foreslår vi '+visits.join(' og ')+'.';
+  }else if(selfCollection){
+   heading=startMoved?'Uthenting og henting på hverdager':'Henting på hverdager';
+   const reasons=[startMoved&&'Uthenting på lageret skjer på hverdager',endMoved&&'vi henter mandag til fredag'].filter(Boolean);
+   const reason=reasons.join(', og ');
+   const visits=[startMoved&&'uthenting på lageret '+delivery,endMoved&&'henting hos deg '+pickup].filter(Boolean);
+   explanation=reason[0].toUpperCase()+reason.slice(1)+'. Derfor foreslår vi '+visits.join(' og ')+'.';
+  }else{
+   heading='Levering og henting på hverdager';
+   explanation='Vi leverer og henter mandag til fredag. Derfor foreslår vi levering '+delivery+' og henting '+pickup+'.';
+  }
+  const cost=minimum
+   ?' Siden leiedagen faller i helgen, disponerer du møblene fra fredag til mandag. Det beregnes minimum to døgns leie, uten ekstra leiekostnad for tilpasningen til hverdager.'
+   :((startMoved&&endMoved&&mode==='deliveryOnly')?' Disse tilpasningene gir ingen ekstra leiekostnad.':' Denne tilpasningen gir ingen ekstra leiekostnad.')+' Leieprisen beregnes fortsatt for ønsket leieperiode.';
+  weekdayNotice.innerHTML=informationBoxMarkup(minimum?'Helgeleie – minimum to døgn':heading,explanation+cost+' Endelig avtale bekreftes i tilbudet.','i');
  };
 
  const addressNotice=document.createElement('p');addressNotice.className='hint';addressNotice.textContent='Komplett adresse brukes automatisk til fraktberegning via Google Maps.';addressNotice.id='rentalAddressPrivacy';address.setAttribute('aria-describedby',addressNotice.id);address.closest('label').after(addressNotice);
@@ -357,10 +378,9 @@ if(rentalForm){
   #requestForm .transport-note-warning .information-box-icon{color:#78621f}
   #requestForm .transport-note strong{color:var(--ink);font-weight:600}
   #requestForm .transport-note p{margin:0}
-  #requestForm .transport-note strong + p{margin-top:2px}
-  #requestForm .transport-note-warning{row-gap:2px}
-  #requestForm .transport-note-warning > div{display:contents}
-  #requestForm .transport-note-warning p{grid-column:1/-1;margin-top:0}
+  #requestForm .transport-note:has(> div > strong){row-gap:2px}
+  #requestForm .transport-note:has(> div > strong) > div{display:contents}
+  #requestForm .transport-note strong + p{grid-column:1/-1;margin-top:0}
   #requestForm .rental-transport-dates .transport-date-heading{margin:0 0 6px;color:var(--muted);font-size:12px;font-weight:400}
   #requestForm .rental-transport-dates > label{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0;padding:10px 0;font-size:13px;line-height:1.5}
   #requestForm .rental-transport-dates > label + label{border-top:1px solid var(--line)}

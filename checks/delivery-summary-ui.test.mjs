@@ -127,7 +127,7 @@ test('locked date overrides cannot create a conflicting weekend quote',async()=>
 test('styling weekend explains Friday/Monday transport and unchanged lease price; other uses hide it',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(1);
  assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/Vi leverer og henter mandag til fredag\. Derfor foreslår vi levering fredag 1\. november og henting mandag 4\. november/);assert.doesNotMatch(ui.weekdayNotice.innerHTML,/08\.00–12\.00/);assert.match(ui.pickupTimeNote.textContent,/Levering og henting skjer normalt kl\. 08\.00–12\.00/);assert.match(ui.weekdayNotice.innerHTML,/ingen ekstra leiekostnad/);
- ui.choose(0);assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/Retur på hverdager/);ui.choose(1);ui.occasion('Messe og stand');assert.equal(ui.weekdayNotice.hidden,true);
+ ui.choose(0);assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/uthenting fredag 1\. november og retur mandag 4\. november/);ui.choose(1);ui.occasion('Messe og stand');assert.equal(ui.weekdayNotice.hidden,true);
 });
 
 test('styling retains locked Monday collection when a Sunday override is attempted',async()=>{
@@ -267,4 +267,31 @@ test('styling delivery with own return explains both Friday delivery and Monday 
  const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(2);
  assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/Levering og retur på hverdager/);assert.match(ui.weekdayNotice.innerHTML,/levering fredag 1\. november og egen retur til lageret mandag 4\. november/);assert.match(ui.weekdayNotice.innerHTML,/Disse tilpasningene gir ingen ekstra leiekostnad/);
  ui.period('2030-11-01','2030-11-03');assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/egen retur til lageret mandag 4\. november/);
+});
+
+
+test('each styling transport choice explains which leg moves and whose weekday schedule applies',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');
+ ui.period('2030-11-02','2030-11-04');
+ for(const [choice,reason,visit] of [
+  [0,'Henting og retur på lageret skjer på hverdager','uthenting fredag 1. november'],
+  [2,'Vi leverer mandag til fredag','levering fredag 1. november'],
+  [3,'Uthenting på lageret skjer på hverdager','uthenting på lageret fredag 1. november']
+ ]){
+  ui.choose(choice);
+  assert.equal(ui.weekdayNotice.hidden,false);
+  assert.ok(ui.weekdayNotice.innerHTML.includes(reason));
+  assert.ok(ui.weekdayNotice.innerHTML.includes(visit));
+  assert.doesNotMatch(ui.weekdayNotice.innerHTML,/(retur|henting hos deg) mandag 4\. november/);
+ }
+ ui.period('2030-11-01','2030-11-03');
+ ui.choose(2);
+ assert.match(ui.weekdayNotice.innerHTML,/Lageret tar imot retur på hverdager.*egen retur til lageret mandag 4\. november/);
+ assert.doesNotMatch(ui.weekdayNotice.innerHTML,/Vi leverer|levering fredag/);
+ ui.choose(3);
+ assert.match(ui.weekdayNotice.innerHTML,/Vi henter mandag til fredag.*henting hos deg mandag 4\. november/);
+ assert.doesNotMatch(ui.weekdayNotice.innerHTML,/lageret/);
+ ui.period('2030-11-02','2030-11-03');
+ assert.match(ui.weekdayNotice.innerHTML,/Uthenting på lageret skjer på hverdager, og vi henter mandag til fredag/);
+ assert.match(ui.weekdayNotice.innerHTML,/uthenting på lageret fredag 1\. november og henting hos deg mandag 4\. november/);
 });
