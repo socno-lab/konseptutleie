@@ -236,3 +236,9 @@ test('weekend start with weekday end requires provider delivery but permits own 
 test('large loads keep self pickup free and available while paid transport is quoted manually',async()=>{
  const ui=await mountedDelivery();ui.emit({sofa:2});assert.equal(ui.radios[0].disabled,false);assert.equal(ui.radios[0].checked,true);assert.equal(ui.summary().total,0);assert.match(ui.status.innerHTML,/egnet kjøretøy/);ui.choose(1);assert.equal(ui.summary().total,null);assert.match(ui.status.innerHTML,/utvidet transport/);
 });
+
+test('styling delivery with own return explains both Friday delivery and Monday warehouse return',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(2);
+ assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/Levering og retur på hverdager/);assert.match(ui.weekdayNotice.innerHTML,/levering fredag 1\. november og egen retur til lageret mandag 4\. november/);assert.match(ui.weekdayNotice.innerHTML,/Disse tilpasningene gir ingen ekstra leiekostnad/);
+ ui.period('2030-11-01','2030-11-03');assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/egen retur til lageret mandag 4\. november/);
+});
