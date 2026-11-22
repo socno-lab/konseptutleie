@@ -27,7 +27,7 @@ import {catalogIntroHtml} from './catalog-intro.js?v=usage20261028a';
 import {mountProductRentalPeriod,productPeriodState,periodChangeNotice} from './product-rental-period.js?v=choicesfirst20261119';
 import {setRentalPeriodImpact} from './mobile-rental-dates.js?v=enquiryoverview20261122';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
-import {mountEnquiryFlow} from './enquiry-flow.js?v=enquiryoverview20261122';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=enquirysetup20261122';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=transportreceipt20261122';
 import {packageLineRentalPrice} from './enquiry-price-model.js?v=longrent20261026';
 import {detailSelectionPrices} from './detail-price-model.js?v=longrent20261026';
@@ -373,11 +373,12 @@ function renderPricingScope(){
  if(isProductPage&&catalog){const desktop=document.createElement('div');desktop.className='product-pricing-desktop';desktop.append(...catalog.childNodes);catalog.replaceChildren(desktop);if(productMobileControl)catalog.prepend(productMobileControl);catalog.classList.add('product-pricing-scope');}
  const cartScope=el('cartPricingScope');
  if(cartScope){
-  if(!cartScope.querySelector('.rental-selected-usage')){
-   const caption=isEnquiryPage?'<span class="enquiry-overview-label">Leieformål</span>':'Leieformål: ';
-   cartScope.innerHTML=`<p class="rental-selected-usage">${caption}<strong></strong></p><button type="button" class="text-button" data-change-rental-purpose aria-label="Endre formål" aria-haspopup="dialog">${isEnquiryPage?'Endre':'Endre formål'}</button>`;
+  if(!cartScope.querySelector('strong')){
+   cartScope.innerHTML=isEnquiryPage
+    ?'<button type="button" class="enquiry-setting" data-change-rental-purpose aria-label="Endre formål" aria-haspopup="dialog"><span><span class="enquiry-overview-label">Leieformål</span><strong></strong></span><span class="enquiry-setting-arrow" aria-hidden="true">›</span></button>'
+    :'<p class="rental-selected-usage">Leieformål: <strong></strong></p><button type="button" class="text-button" data-change-rental-purpose aria-haspopup="dialog">Endre formål</button>';
   }
-  cartScope.querySelector('.rental-selected-usage strong').textContent=rentalScopeConfirmed?rentalPurposeLabel(purpose,rentalScope):'Velg formål';
+  cartScope.querySelector('strong').textContent=rentalScopeConfirmed?rentalPurposeLabel(purpose,rentalScope):'Velg formål';
  }
  el('occasion').closest('label').hidden=true;
  el('pricingChoiceOptions').innerHTML=usageButtons();syncMobileCatalog();catalogUsage?.render();mountPricingScopeHint(catalogUsage?.host||catalog,{confirmed:rentalScopeConfirmed,label:pricingScopeLabel(),enabled:isCatalogPage||isProductPage,control:catalogUsage?.button});

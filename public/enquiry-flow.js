@@ -24,10 +24,10 @@ export function mountEnquiryFlow({cartId,formId,mode}){
   if(mode==='rent'){
    const overview=document.createElement('section');
    overview.className='enquiry-overview';
-   overview.setAttribute('aria-label','Leieperiode, formål og prisvisning');
+   overview.setAttribute('aria-label','Leieperiode og formål');
    period=document.createElement('div');
    period.className='enquiry-overview-period';
-   period.innerHTML='<div><span class="enquiry-overview-label">Leieperiode</span><strong aria-live="polite"></strong></div><button type="button" class="text-button" aria-label="Endre leieperiode" aria-haspopup="dialog">Endre</button>';
+   period.innerHTML='<button type="button" class="enquiry-setting" aria-label="Endre leieperiode" aria-haspopup="dialog"><span><span class="enquiry-overview-label">Leieperiode</span><strong aria-live="polite"></strong></span><span aria-hidden="true" class="enquiry-setting-arrow">›</span></button>';
    periodValue=period.querySelector('strong');
    periodButton=period.querySelector('button');
    periodButton.addEventListener('click',event=>form.dispatchEvent(new CustomEvent('rental-period-edit',{detail:{opener:periodButton,pointer:event.detail>0}})));
@@ -35,6 +35,11 @@ export function mountEnquiryFlow({cartId,formId,mode}){
    intro.textContent='Forespørselen er uforpliktende. Du får et samlet tilbud med pris, innhold og tilgjengelighet før du bestemmer deg.';
    intro.after(overview);
    overview.append(period,document.getElementById('cartPricingScope'));
+   const productsHeading=document.getElementById('customRequestProductsHeading');
+   const productsToolbar=document.createElement('div');
+   productsToolbar.className='enquiry-products-toolbar';
+   productsHeading.before(productsToolbar);
+   productsToolbar.append(productsHeading);
    cart.querySelector('.drawer-head .eyebrow')?.remove();
   }
  }else{cart.classList.add('enquiry-preview');cart.append(preview);}
@@ -44,9 +49,8 @@ export function mountEnquiryFlow({cartId,formId,mode}){
   if(period){
    const start=new Date(form.elements.namedItem('start')?.value),end=new Date(form.elements.namedItem('end')?.value);
    const selected=Number.isFinite(+start)&&Number.isFinite(+end)&&start<=end;
-   const dates=selected?periodFormat.formatRange(start,end):'Ingen datoer valgt';
+   const dates=selected?periodFormat.formatRange(start,end):'Velg datoer';
    if(periodValue.textContent!==dates)periodValue.textContent=dates;
-   periodButton.textContent=selected?'Endre':'Velg datoer';
    periodButton.setAttribute('aria-label',selected?'Endre leieperiode':'Velg leieperiode');
    period.hidden=document.getElementById('rentalDates')?.hidden??true;
   }

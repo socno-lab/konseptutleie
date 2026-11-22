@@ -28,8 +28,8 @@ function mountPriceDisplay(){
   if(usage){usage.classList.add('has-price-display');atHost(usage);}
   else atHost(document.getElementById('catalogPricingScope'));
   before(document.getElementById('cartPricingScope'),'rental-cart');
-  const overview=document.querySelector('body.enquiry-page #cart .enquiry-overview'),cartPicker=document.querySelector('[data-price-location="rental-cart"]');
-  if(overview&&cartPicker&&cartPicker.parentElement!==overview)overview.append(cartPicker);
+  const toolbar=document.querySelector('body.enquiry-page #cart .enquiry-products-toolbar'),cartPicker=document.querySelector('[data-price-location="rental-cart"]');
+  if(toolbar&&cartPicker&&cartPicker.parentElement!==toolbar)toolbar.append(cartPicker);
   before(document.getElementById('saleCartItems'),'purchase-cart');
   before(document.getElementById('saleCategories')?.closest('.catalog-tools'),'purchase-catalog');
   before(document.getElementById('saleDetailContent'),'purchase-product');
