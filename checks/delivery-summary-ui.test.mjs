@@ -146,3 +146,9 @@ test('route attribution cannot shrink a selected transport choice below the othe
  ui.labels[1].getBoundingClientRect=()=>({height:40});ui.choose(1);
  assert.ok(ui.labels.every(label=>label.style.minHeight==='44px'));
 });
+
+test('styling Friday to Sunday sets Monday collection before showing the pending tariff',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-01','2030-11-03');ui.choose(1);
+ assert.equal(ui.prices[1].innerHTML,'Beregner …');assert.equal(ui.status.textContent,'Beregner transportpris …');assert.equal(ui.weekdayNotice.hidden,false);
+ await ui.calculate();const request=JSON.parse(ui.requests.find(r=>r.init?.method==='POST').init.body);assert.equal(request.pickupDate,'2030-11-04');assert.equal(request.deliveryDate,'2030-11-01');assert.equal(ui.summary().total,1380);
+});
