@@ -17,7 +17,7 @@ export function mountEnquiryFlow({cartId,formId,mode}){
  let period,periodValue,periodButton;
  if(page){
   document.body.classList.remove('catalog-page','home-page','occasion-page','buy-page');document.body.classList.add('enquiry-page');const host=document.getElementById('enquiryPage');cart.hidden=true;
-  const back=document.createElement('a');back.href=mode==='buy'?'/kjop.html':'/utvalg.html';back.className='text-button enquiry-back';back.textContent='← Fortsett å se produkter';host.append(back,cart);cart.classList.add('enquiry-full');
+  const back=document.createElement('a');back.href=mode==='buy'?'/kjop.html':'/utvalg.html';back.className='text-button enquiry-back';back.textContent=mode==='rent'?'← Se flere produkter':'← Fortsett å se produkter';host.append(back,cart);cart.classList.add('enquiry-full');
   const heading=cart.querySelector('h2');if(heading){const h1=document.createElement('h1');h1.id=heading.id;h1.textContent=mode==='buy'?'Din kjøpsforespørsel':heading.textContent;heading.replaceWith(h1);}
   for(const close of cart.querySelectorAll('[data-close="'+cartId+'"]'))close.hidden=true;
   cart.addEventListener('cancel',event=>event.preventDefault());cart.show();cart.tabIndex=-1;if(performance.getEntriesByType('navigation')[0]?.type==='navigate')requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));
@@ -27,19 +27,30 @@ export function mountEnquiryFlow({cartId,formId,mode}){
    overview.setAttribute('aria-label','Leieperiode og formål');
    period=document.createElement('div');
    period.className='enquiry-overview-period';
-   period.innerHTML='<button type="button" class="enquiry-setting" aria-label="Endre leieperiode" aria-haspopup="dialog"><span><span class="enquiry-overview-label">Leieperiode</span><strong aria-live="polite"></strong></span><span aria-hidden="true" class="enquiry-setting-arrow">›</span></button>';
+   period.innerHTML='<button type="button" class="enquiry-setting" aria-label="Endre leieperiode" aria-haspopup="dialog"><svg class="enquiry-setting-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v5m8-5v5"/></svg><span><span class="enquiry-overview-label">Leieperiode</span><strong aria-live="polite"></strong></span><span class="enquiry-setting-action" aria-hidden="true">Endre</span></button>';
    periodValue=period.querySelector('strong');
    periodButton=period.querySelector('button');
    periodButton.addEventListener('click',event=>form.dispatchEvent(new CustomEvent('rental-period-edit',{detail:{opener:periodButton,pointer:event.detail>0}})));
    const intro=cart.querySelector('.quote-cart-note');
-   intro.textContent='Forespørselen er uforpliktende. Du får et samlet tilbud med pris, innhold og tilgjengelighet før du bestemmer deg.';
-   intro.after(overview);
+   intro.textContent='Du får et samlet tilbud før du bestemmer deg.';
+   const assurance=document.createElement('span');
+   assurance.className='enquiry-assurance';
+   assurance.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Helt uforpliktende';
+   cart.querySelector('.drawer-head')?.append(assurance);
+   const offerNote=document.createElement('p');
+   offerNote.className='enquiry-offer-note';
+   offerNote.textContent='Pris og tilgjengelighet bekreftes i tilbudet.';
+   intro.after(overview,offerNote);
    overview.append(period,document.getElementById('cartPricingScope'));
    const productsHeading=document.getElementById('customRequestProductsHeading');
    const productsToolbar=document.createElement('div');
    productsToolbar.className='enquiry-products-toolbar';
    productsHeading.before(productsToolbar);
-   productsToolbar.append(productsHeading);
+   const count=document.createElement('span');
+   count.id='enquiryProductCount';
+   count.className='enquiry-product-count';
+   count.setAttribute('aria-live','polite');
+   productsToolbar.append(productsHeading,count);
    cart.querySelector('.drawer-head .eyebrow')?.remove();
   }
  }else{cart.classList.add('enquiry-preview');cart.append(preview);}
