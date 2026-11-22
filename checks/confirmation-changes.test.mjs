@@ -27,3 +27,11 @@ test('missing stock explains the reason for replacement while alternative select
  const neutral=confirmationChanges(old,{...missing,lines:missing.lines.map(l=>({...l,originalMissing:false}))});assert.match(neutral.summary,/Vi har byttet Bord med Nytt bord/);assert.doesNotMatch(neutral.summary,/ikke tilgjengelig/);assert.equal(neutral.rows[1][0].label,'Byttet vare');
  const mail=workflowEmail({documentType:'confirmation',version:1,workflow:missing,lines:missing.lines,confirmationChanges:changes});assert.match(mail.text,/ikke tilgjengelig i ønsket antall/);assert.match(mail.html,/Erstatning ved mangel/);
 });
+
+test('replacement summary shows customer savings or unchanged price for missing stock',()=>{
+ const previous={...next,lines:[{...next.lines[0],total:1000}]};
+ for(const [price,text] of [[760,/Du sparer 240 kr i leie inkl. mva/],[1000,/Du betaler ikke ekstra/]]){
+  const current={...previous,lines:[{...previous.lines[0],id:'new',name:'Erstatning',originalMissing:true,total:price}]},changes=confirmationChanges(previous,current);
+  assert.match(changes.summary,text);const mail=workflowEmail({documentType:'confirmation',workflow:current,lines:current.lines,confirmationChanges:changes});assert.match(mail.text,text);assert.match(mail.html,text);
+ }
+});

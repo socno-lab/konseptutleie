@@ -7,6 +7,7 @@ export function confirmationChanges(previous,current){
  if(index<0){summary.push(`Vi har lagt til ${line.name} (${line.quantity} stk.).`);return [{label:'Ny',text:''}];}
  used.add(index);const old=previous.lines[index],changes=[];
  if(old.id!==line.id)summary.push(line.originalMissing===true?`${old.name} er dessverre ikke tilgjengelig i ønsket antall. Vi har derfor erstattet den med ${line.name} (${line.quantity} stk.).`:`Vi har byttet ${old.name} med ${line.name} (${line.quantity} stk.).`);
+ if(old.id!==line.id&&old.quantity===line.quantity&&Number.isFinite(old.total)&&Number.isFinite(line.total)){const difference=Math.round((old.total-line.total)*100)/100,money=n=>new Intl.NumberFormat('nb-NO',{maximumFractionDigits:2}).format(n)+' kr';if(difference>0)summary.push(`Du sparer ${money(difference)} i leie inkl. mva.`);else if(difference<0)summary.push(`Leieprisen øker med ${money(-difference)} inkl. mva.`);else if(line.originalMissing)summary.push('Leieprisen er uendret. Du betaler ikke ekstra for erstatningsvaren.');}
  if(old.id===line.id&&old.quantity!==line.quantity)summary.push(`Antallet av ${line.name} er endret fra ${old.quantity} til ${line.quantity} stk.`);
  if(old.id===line.id&&old.quantity===line.quantity&&old.total!==line.total)summary.push(`Leieprisen for ${line.name} er endret.`);
  if(old.id!==line.id)changes.push({label:line.originalMissing===true?'Erstatning ved mangel':'Byttet vare',text:'Erstatter '+old.name});

@@ -108,3 +108,18 @@ test('legacy generated shortage introduction refreshes on editing while custom a
  const historical=workflowEmail({workflow:r,lines:r.lines,documentType:'offer'});assert.match(historical.text,/Ett eller flere av produktene/);assert.doesNotMatch(historical.text,/med ett lite unntak/);
  const changed={...r,start:'2026-12-08',end:'2026-12-09',lines:[ordinary],history:[{type:'offer',document:{workflow:r}}]};assert.equal(isLegacyGeneratedOfferIntro(changed),true);
 });
+
+test('shortage replacement protects agreed price and passes savings to customer; alternatives use normal price',()=>{
+ const r=record(),expensive={...p,id:'expensive',name:'Dyrere stol',price:200,weekPrice:600},cheaper={...p,id:'cheaper',name:'Rimeligere stol',price:50,weekPrice:150},products=[p,expensive,cheaper];
+ for(const [product,missing,expected] of [[expensive,true,800],[cheaper,true,400],[expensive,false,1600]]){
+  const updated=editWorkflow(r,{...r,lines:r.lines.map(l=>({...l,id:product.id,review:missing?'missing':'alternative',originalMissing:missing}))},products);
+  assert.equal(updated.lines[0].total,expected);
+  const saved=editWorkflow(updated,updated,products);assert.equal(saved.lines[0].total,expected);
+ }
+});
+test('document product links carry purpose and price scope without exposing another chooser',()=>{
+ for(const [scope,purpose] of [['standard','boligsalg'],['messe','fest']]){
+  const r={...record(),scope,purpose},mail=workflowEmail({workflow:r,lines:r.lines,documentType:'confirmation'}),href=mail.html.match(/href="(https:\/\/konseptuell.no\/leieprodukt.html[^\"]+)"/)[1].replaceAll('&amp;','&'),url=new URL(href);
+  assert.equal(url.searchParams.get('bruk'),purpose);assert.equal(url.searchParams.get('prisbruk'),scope);
+ }
+});

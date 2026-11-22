@@ -1,4 +1,4 @@
-import {workflowCopy} from './offer-copy.js?v=offerdraft20261121';
+import {workflowCopy} from './offer-copy.js?v=replacement20261122';
 import {enquiryGroup} from './enquiries-model.js?v=returns20261121';
 export function hasConfirmationChanges(r,draft=r){
  const previous=r.history?.filter(h=>h.type==='confirmation').at(-1)?.document?.workflow;if(!previous)return false;
