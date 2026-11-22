@@ -1,6 +1,6 @@
 // Reuse the checkout markup and bootstrap of the corresponding storefront.
 export function enquiryPageHtml(source,mode='rent'){
- const rentalStyle=mode==='rent'?'<link rel="stylesheet" href="/enquiry-intro.css?v=enquirytextile20261122">':'';
+ const rentalStyle=mode==='rent'?'<link rel="stylesheet" href="/enquiry-intro.css?v=enquiryremove20261122">':'';
  const title=mode==='buy'?'Din kjøpsforespørsel':'Din leieforespørsel';
  return source.replace('href="#slik-kjoper-du"','href="/kjop.html#slik-kjoper-du"').replace(/<title>[\s\S]*?<\/title>/,'<title>'+title+' | Konseptuell</title>')
   .replace(/<body\b([^>]*)>/,'<body class="enquiry-page" data-enquiry-page="true">')

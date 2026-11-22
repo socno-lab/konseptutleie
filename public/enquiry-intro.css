@@ -120,6 +120,7 @@ body.enquiry-page #cart.enquiry-full .drawer-head h1 {
  border:0;
 }
 .enquiry-page #cart.enquiry-full :is(#cartItems,#moduleCartSummary) .cart-item:not(.cart-addon) .item-copy > h3 {font-size:16px}
+.enquiry-page #cart.enquiry-full .cart-sofa-row [data-sofa-remove] {color:var(--muted)}
 .enquiry-page #cart.enquiry-full .enquiry-cart-daily {display:block;font-size:14px;font-weight:600;color:var(--ink)}
 .enquiry-page #cart.enquiry-full .enquiry-cart-rate {display:inline-block}
 @media(min-width:641px){
