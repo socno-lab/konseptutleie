@@ -176,7 +176,7 @@ test('event weekend never prefetches a misleading weekday tariff from self picku
 test('Friday to Sunday event allows self pickup Friday but requires collection Sunday',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');assert.equal(ui.radios[3].checked,true);assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,false,true]);assert.equal(ui.scheduled(),false);assert.equal(ui.transportInputs.pickupDate.value,'2030-11-03');assert.equal(ui.transportInputs.pickupDate.readOnly,true);
  ui.editTransport('pickupDate','2030-11-04');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-03');ui.choose(1);assert.equal(ui.radios[1].checked,true);assert.equal(ui.summary().total,null);
- ui.period('2030-11-04','2030-11-05');assert.ok(ui.radios.every(r=>!r.disabled));assert.equal(ui.transportInputs.pickupDate.readOnly,false);
+ ui.period('2030-11-04','2030-11-05');assert.ok(ui.radios.every(r=>!r.disabled));assert.equal(ui.transportInputs.pickupDate.readOnly,true);
 });
 
 test('mobile address debounce can prefetch without changing focus or selected transport',async()=>{
@@ -195,7 +195,7 @@ test('event one-day weekend hire locks only delivery and collection on the same 
  const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(2);ui.period('2030-11-02','2030-11-02');
  assert.equal(ui.radios[1].checked,true);assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,true,true]);assert.ok(ui.labels.every(l=>!l.hidden));assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.transportInputs.deliveryDate.value,'2030-11-02');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-02');assert.equal(ui.scheduled(),false);
  ui.editTransport('pickupDate','2030-11-04');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-02');
- ui.period('2030-11-04','2030-11-05');assert.ok(ui.radios.every(r=>!r.disabled));assert.equal(ui.radios[2].checked,true);assert.equal(ui.transportInputs.pickupDate.readOnly,false);
+ ui.period('2030-11-04','2030-11-05');assert.ok(ui.radios.every(r=>!r.disabled));assert.equal(ui.radios[2].checked,true);assert.equal(ui.transportInputs.pickupDate.readOnly,true);
 });
 
 test('styling self pickup explains Monday return without changing the requested period or price basis',async()=>{
@@ -219,4 +219,10 @@ test('weekend collection copy explains own-return restriction for multiple days 
  const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');
  for(const choice of [1,3]){ui.choose(choice);assert.match(ui.status.innerHTML,/møblene må derfor hentes hos deg/);assert.match(ui.status.innerHTML,/Egen retur til lageret er kun mulig på hverdager/);assert.match(ui.status.innerHTML,/Transportprisen beregnes individuelt/);assert.doesNotMatch(ui.status.innerHTML,/éndagsleie/);}
  ui.period('2030-11-02','2030-11-02');assert.match(ui.status.innerHTML,/éndagsleie i helgen/);assert.match(ui.status.innerHTML,/levering og henting samme dag/);
+});
+
+
+test('weekday tentative dates are maintained for every concrete transport mode regardless of purpose',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});
+ for(const purpose of ['Boligfoto og visning','Messe, stand og event','Bedrift','Bryllup og fest','Foto, film og reklame']){ui.occasion(purpose);ui.period('2030-11-04','2030-11-05');for(const choice of [0,1,2,3]){ui.choose(choice);assert.equal(ui.transportInputs.deliveryDate.value,'2030-11-04');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-05');if(choice===0||choice===3){assert.equal(ui.transportInputs.deliveryDate.readOnly,true);assert.equal(ui.transportInputs.pickupDate.readOnly,true);}}}
 });
