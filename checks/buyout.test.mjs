@@ -8,7 +8,7 @@ import {readFileSync} from 'node:fs';
 const sofaTextile='obj_1cd92777d68c44ddbc1fe0f9dc72b032',chairTextile='obj_textile_loungestol_30days',decor='obj_4768bc953cba43da88eb565feb753892';
 const base={active:true,stock:20,unavailable:0,price:100,weekPrice:300,monthPrice:500,rentalPricingMode:'manual',isPackage:false,isService:false};
 const products=[{...base,id:'sofa',name:'Sofa',type:'sofa',category:'Sofaer',relatedAddOns:[sofaTextile]},{...base,id:'chair',name:'Lenestol',category:'Stoler',relatedAddOns:[chairTextile]},{...base,id:'table',name:'Sofabord',category:'Bord',relatedAddOns:[decor]},{...base,id:'other',name:'Ekstra stol',category:'Stoler'},...[sofaTextile,chairTextile,decor].map((id,i)=>({...base,id,name:['Tekstilpakke til sofa','Tekstilpakke til lenestol','Dekorpakke til Luana-bord'][i],category:'Dekor',isService:true,rentalPricingMode:'period',price:250})),{...base,id:'pack',name:'Loungepakken',isPackage:true,category:'Pakker',businessPurchase:true,purchasePriceMode:'manual',purchasePrice:30462,price:1000,weekPrice:4000,monthPrice:13730,components:[{id:'sofa',quantity:1},{id:'chair',quantity:2},{id:'table',quantity:1}]}];
-const input=()=>({basket:{pack:1,[sofaTextile]:1,[chairTextile]:2,[decor]:1},businessChoices:{pack:'try'},cartLinks:Object.fromEntries([sofaTextile,chairTextile,decor].map(id=>[id,{parentId:'pack',packageQuantity:id===chairTextile?2:1}])),details:{phone:'00000000',address:'Eksempelveien 1, 2010 Strømmen',occasion:'Bedrift',start:'2030-11-03',end:'2030-12-02',deliveryDate:'2030-11-01',pickupDate:'2030-12-02',delivery:'Ønsker levering og henting'}});
+const input=()=>({basket:{pack:1,[sofaTextile]:1,[chairTextile]:2,[decor]:1},businessChoices:{pack:'try'},cartLinks:Object.fromEntries([sofaTextile,chairTextile,decor].map(id=>[id,{parentId:'pack',packageQuantity:id===chairTextile?2:1}])),details:{phone:'00000000',address:'Eksempelveien 1, 2010 Strømmen',occasion:'Bedrift',start:'2030-11-04',end:'2030-12-03',deliveryDate:'2030-11-04',pickupDate:'2030-12-03',delivery:'Ønsker levering og henting'}});
 const snapshot=(data=input(),items=products,verifyDelivery=()=>({total:2380,perVisit:1190,visits:2}))=>createEnquirySnapshot({id:'TEST',kind:'rental',name:'Eksempel',email:'test@example.invalid',terms:'test'},data,items,{verifyDelivery,now:new Date('2030-10-01T12:00:00Z')});
 const fact=(s,label)=>s.facts.find(([l])=>l===label)?.[1];
 test('approved addon buyout values are separate from rental and new-product prices; explicit admin override and unknown are respected',()=>{
@@ -28,7 +28,7 @@ test('option includes every selected physical addon at its own quantity, never s
 test('server snapshots known optional price and actual return tariff without charging buyout in rental total',()=>{
  const s=snapshot();assert.equal(s.total,snapshot({...input(),businessChoices:{pack:'rent'}}).total);assert.ok(s.total<33762);assert.equal(s.purchaseOptions[0].total,33762);
  assert.equal(fact(s,'Samlet valgfri kjøpspris inkl. mva.'),'33 762 kr');assert.match(fact(s,'Fratrekk for forhåndsbetalt henting'),/1 190 kr/);assert.match(fact(s,'Beløp ved kjøp etter eventuelt fratrekk'),/32 572 kr/);
- assert.match(fact(s,'Svarfrist for kjøp'),/30\.11\.2030/);assert.ok(!s.facts.some(([,v])=>v.includes('kjøpspris avtales separat')));
+ assert.match(fact(s,'Svarfrist for kjøp'),/01\.12\.2030/);assert.ok(!s.facts.some(([,v])=>v.includes('kjøpspris avtales separat')));
  const forged=input();forged.purchaseOptions=[{total:1}];forged.returnCredit=50000;assert.deepEqual(snapshot(forged),s);
 });
 test('no automatic pickup credit when other furniture remains, transport is unknown, or per-visit tariff is not verified',()=>{
@@ -46,7 +46,7 @@ test('rent-only and outright purchase do not receive rental buyout terms; unavai
  assert.deepEqual(buyoutFacts([]),[]);
 });
 test('customer and internal HTML and plain text show the same immutable price, addons, deadline and conditional pickup credit',()=>{
- const s=snapshot();for(const audience of ['customer','internal']){const mail=enquiryEmail(s,audience);for(const text of [mail.text,mail.html]){assert.match(text,/33 762 kr/);assert.match(text,/32 572 kr/);assert.match(text,/30\.11\.2030/);assert.match(text,/Tekstilpakke til sofa/);assert.match(text,/dersom hentingen er betalt/);assert.ok(!text.includes('kjøpspris avtales separat'));}}
+ const s=snapshot();for(const audience of ['customer','internal']){const mail=enquiryEmail(s,audience);for(const text of [mail.text,mail.html]){assert.match(text,/33 762 kr/);assert.match(text,/32 572 kr/);assert.match(text,/01\.12\.2030/);assert.match(text,/Tekstilpakke til sofa/);assert.match(text,/dersom hentingen er betalt/);assert.ok(!text.includes('kjøpspris avtales separat'));}}
 });
 
 import {createDeliveryEstimator} from '../server/delivery.mjs';

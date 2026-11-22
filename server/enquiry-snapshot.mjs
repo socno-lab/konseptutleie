@@ -1,3 +1,4 @@
+import {customerTransportError} from '../public/customer-transport-plan.js';
 import {weekendRentalEnd,weekendDayDeliveryRequired,weekendCollectionRequired,weekendPeriodDeliveryRequired} from '../public/weekend-rental.js';
 import {transportWeekdayPolicy,transportDateError} from '../public/transport-weekdays.js';
 import {transportMode} from '../public/admin/transport-model.js';
@@ -94,19 +95,17 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const capacity=hasRental?rentalDeliveryCapacity(rent,products,value.customRequest):{manual:false};
  const included=hasRental&&capacity.includedOnly;
  const purchaseOnly=acquisition==='purchase',deliveryChoice=purchaseOnly?({'Henter og returnerer selv':'Henter selv etter avtale','Ønsker levering og henting':'Ønsker levering','Kun levering – jeg returnerer selv':'Ønsker levering','Kun henting – jeg henter selv':'Henter selv etter avtale','Avklares senere':'Ønsker levering'}[d.delivery]||d.delivery):d.delivery;
- const self=!capacity.manual&&(purchaseOnly?deliveryChoice==='Henter selv etter avtale':deliveryChoice==='Henter og returnerer selv');
+ const self=(purchaseOnly?deliveryChoice==='Henter selv etter avtale':deliveryChoice==='Henter og returnerer selv');
  const labels=purchaseOnly?['Ønsker levering','Henter selv etter avtale']:['Henter og returnerer selv','Ønsker levering og henting','Kun levering – jeg returnerer selv','Kun henting – jeg henter selv','Avklares senere'];
  if(!labels.includes(deliveryChoice))fail('Velg levering eller henting.');
  const visits=deliveryChoice==='Ønsker levering og henting'?2:1;
  const transportError=hasRental?transportDateError({...d,scope,mode:transportMode(deliveryChoice)}):'';if(transportError)fail(transportError);
  const transportDates=transportWeekdayPolicy({...d,scope,mode:transportMode(deliveryChoice)});
- if(hasRental&&!capacity.manual&&!included&&weekendDayDeliveryRequired({...d,scope})&&(deliveryChoice!=='Ønsker levering og henting'||transportDates.deliveryDate!==d.start||transportDates.pickupDate!==d.end))fail('Éndagsleie i helgen krever levering og henting samme dag. Transport avtales og prises i tilbudet.');
- if(hasRental&&!capacity.manual&&!included&&weekendPeriodDeliveryRequired({...d,scope})&&(deliveryChoice!=='Ønsker levering og henting'||transportDates.deliveryDate!==d.start||transportDates.pickupDate!==d.end))fail('Helgeleie krever levering og henting av oss eller vår transportør på valgte leiedatoer.');
- if(hasRental&&!capacity.manual&&!included&&weekendCollectionRequired({...d,scope})&&(!['Ønsker levering og henting','Kun henting – jeg henter selv'].includes(deliveryChoice)||transportDates.pickupDate!==d.end))fail('Leie som slutter i helgen krever henting hos kunden på siste leiedag. Transport avtales og prises i tilbudet.');
+ if(hasRental&&!included){const error=customerTransportError({...d,scope,mode:transportMode(deliveryChoice)});if(error)fail(error);}
  if(hasRental&&((transportDates.deliveryDate&&transportDates.deliveryDate>d.start)||(transportDates.pickupDate&&transportDates.pickupDate<d.end)))fail('Transportdatoene må omfatte leieperioden.');
  if(hasRental&&!self){const display=v=>v?v.split('-').reverse().join('.'):'';if(['Ønsker levering og henting','Kun levering – jeg returnerer selv'].includes(deliveryChoice))facts.push(['Ønsket levering',display(transportDates.deliveryDate)]);if(['Ønsker levering og henting','Kun henting – jeg henter selv'].includes(deliveryChoice))facts.push(['Ønsket henting',display(transportDates.pickupDate)]);}
  const receipt=hasRental&&!transportDates.manual&&!self&&!capacity.manual?verifyDelivery(d.deliveryToken,d.address,rent,value.customRequest,visits):null;
- const delivery={choice:deliveryChoice,label:included?'Levering og henting inkludert i fastprisen':capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':hasRental&&transportDates.manual&&!self?'Transport må beregnes i tilbudet':deliveryChoice,...(hasRental?{dates:{deliveryDate:transportDates.deliveryDate,pickupDate:transportDates.pickupDate}}:{}),total:included||self?0:receipt?.total??null};
+ const delivery={choice:deliveryChoice,label:included?'Levering og henting inkludert i fastprisen':self?deliveryChoice:capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':hasRental&&transportDates.manual&&!self?'Transport må beregnes i tilbudet':deliveryChoice,...(hasRental?{dates:{deliveryDate:transportDates.deliveryDate,pickupDate:transportDates.pickupDate}}:{}),total:included||self?0:receipt?.total??null};
  const tryGroups=groups.filter(g=>businessPurchaseEnabled(g.product)&&(g.custom?g.acquisition==='try':choices[g.packageId]==='try'));
  const purchaseOptions=tryGroups.map(g=>packageBuyoutOption({...g.product,purchasePrice:resolvedPackagePurchasePrice(g.product,products)},products,{quantity:g.quantity,custom:g.custom,extras:g.custom?Object.fromEntries(Object.entries(g.selection).filter(([id])=>isBuyoutAddon(products.find(p=>p.id===id)))):g.extras||{}}));
  // Only a complete buyout can remove the entire pickup; other rental goods keep it.

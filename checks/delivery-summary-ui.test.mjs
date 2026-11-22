@@ -1,3 +1,4 @@
+import {customerTransportPlan} from '../public/customer-transport-plan.js';
 import {weekendRentalEnd,weekendDayDeliveryRequired,weekendCollectionRequired,weekendPeriodDeliveryRequired} from '../public/weekend-rental.js';
 import {informationBoxMarkup} from '../public/information-box.js';
 import {plannedTransportDates,transportWeekdayPolicy,transportDateLimits,transportDateError} from '../public/transport-weekdays.js';
@@ -32,7 +33,7 @@ async function mountedDelivery(){
  const document={activeElement:null,createElement:tag=>tag==='section'?(weekdayNotice=element()):tag==='fieldset'?group:tag==='div'?{...element(),querySelector:selector=>selector.startsWith('[data-transport-label')?null:transportInputs[selector.match(/name="([^"]+)"/)[1]]}:element(),addEventListener(name,callback){listeners[name]=callback;},dispatchEvent(event){events.push(event.type);}};
  const products=[{id:'chair',name:'Teststol',category:'Stoler'},{id:'sofa',name:'Testsofa',type:'sofa'},{id:'tree',deliveryIncluded:true,isService:true,offeringType:'service'}];
  let quoteGate=null;
- const context=vm.createContext({weekendRentalEnd,weekendDayDeliveryRequired,weekendCollectionRequired,weekendPeriodDeliveryRequired,informationBoxMarkup,transportDateLimits,transportDateError,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
+ const context=vm.createContext({customerTransportPlan,weekendRentalEnd,weekendDayDeliveryRequired,weekendCollectionRequired,weekendPeriodDeliveryRequired,informationBoxMarkup,transportDateLimits,transportDateError,plannedTransportDates,transportWeekdayPolicy,scopeForOccasion,priceMarkup,document,form,deliverySelection:{basket:{},products},deliveryQuote:null,mountAddressFields(){},completeAddress:()=>[address.value,postalCode.value,postalCity.value].join(', '),matchMedia:()=>({matches:mobile}),requiresTwoPeople,rentalDeliveryCapacity,getSiteSettings:()=>({delivery:{maxMinutes:40}}),MutationObserver:class{observe(){}},AbortController,AbortSignal,Event,Date:class extends Date{static now(){return now;}},clearTimeout:id=>timers.delete(id),setTimeout(callback,delay){timers.set(++timerId,{callback,delay});return timerId;},requestAnimationFrame:callback=>callback(),fetch:async(url,init)=>{requests.push({url,init});if(init?.method==='POST'&&quoteGate)await quoteGate;return {ok:true,json:async()=>init?.method==='POST'?quote:{enabled:true}};}});
  vm.runInContext(getter+'\n'+source.slice(first,last)+'\nmountRentalDelivery(form);\nvar deliverySummaryProvider;',context);
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
@@ -96,8 +97,8 @@ test('canonical mode and capacity changes remain accurate while mobile rendering
 
 test('changing a paid visit to a weekend hides the preceding quote immediately and restores it for weekday visits',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);await ui.calculate();assert.equal(ui.summary().total,1380);
- ui.editTransport('deliveryDate','2030-11-02');assert.equal(ui.summary().total,null);assert.match(ui.summary().label,/må beregnes/);
- ui.editTransport('deliveryDate','2030-11-01');assert.equal(ui.summary().total,1380);
+ ui.period('2030-11-02','2030-11-03');assert.equal(ui.summary().total,null);assert.match(ui.summary().label,/må beregnes/);
+ ui.period('2030-11-04','2030-11-05');assert.equal(ui.summary().total,1380);
 });
 
 test('weekend alternatives never display a cached weekday price, even during mobile address editing',async()=>{
@@ -110,7 +111,7 @@ test('weekend alternatives never display a cached weekday price, even during mob
 
 test('a Maps response already in flight cannot restore a price after the visit becomes a weekend',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);const release=ui.holdQuote(),pending=ui.calculate();
- ui.editTransport('deliveryDate','2030-11-02');assert.equal(ui.summary().total,null);
+ ui.period('2030-11-02','2030-11-03');assert.equal(ui.summary().total,null);
  release();await pending;assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');
 });
 
@@ -119,11 +120,8 @@ test('switching to self pickup removes hidden transport overrides rather than su
  ui.choose(1);await ui.calculate();assert.equal(ui.summary().total,1380);
 });
 
-test('weekend notice uses the requested text and disappears on weekday transport or self pickup',async()=>{
- const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);ui.editTransport('deliveryDate','2030-11-02');
- assert.equal(ui.status.className,'information-box');assert.match(ui.status.innerHTML,/Du har valgt levering eller henting i helgen/);
- ui.editTransport('deliveryDate','2030-11-01');assert.equal(ui.status.className,'');
- ui.editTransport('deliveryDate','2030-11-02');ui.choose(0);assert.equal(ui.status.className,'');
+test('locked date overrides cannot create a conflicting weekend quote',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);ui.editTransport('deliveryDate','2030-11-02');assert.equal(ui.transportInputs.deliveryDate.value,'2030-11-04');assert.equal(ui.transportInputs.deliveryDate.readOnly,true);
 });
 
 test('styling weekend explains Friday/Monday transport and unchanged lease price; other uses hide it',async()=>{
@@ -132,9 +130,8 @@ test('styling weekend explains Friday/Monday transport and unchanged lease price
  ui.choose(0);assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/Retur på hverdager/);ui.choose(1);ui.occasion('Messe og stand');assert.equal(ui.weekdayNotice.hidden,true);
 });
 
-test('manual Sunday collection for styling shows agreement notice and hides the automatic weekday explanation',async()=>{
- const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(1);
- assert.equal(ui.weekdayNotice.hidden,false);ui.editTransport('pickupDate','2030-11-03');assert.equal(ui.weekdayNotice.hidden,true);assert.equal(ui.summary().total,null);assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.match(ui.status.innerHTML,/Vi vurderer tilgjengeligheten/);
+test('styling retains locked Monday collection when a Sunday override is attempted',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(1);ui.editTransport('pickupDate','2030-11-03');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-04');assert.equal(ui.weekdayNotice.hidden,false);
 });
 
 test('one details panel follows the currently selected transport option',async()=>{
@@ -187,13 +184,13 @@ test('mobile address debounce can prefetch without changing focus or selected tr
 
 test('prefetching a weekday leg preserves the selected weekend transport notice',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');ui.choose(1);
- assert.equal(ui.status.className,'information-box');assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.notEqual(ui.status.textContent,'Beregner transportpris …');assert.equal(ui.scheduled(),false);assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.radios[2].disabled,true);
+ assert.equal(ui.status.className,'information-box');assert.match(ui.status.innerHTML,/Transport i helgen prises individuelt/);assert.notEqual(ui.status.textContent,'Beregner transportpris …');assert.equal(ui.scheduled(),false);assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.radios[2].disabled,true);
 });
 
 
 test('event one-day weekend hire locks only delivery and collection on the same day',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(2);ui.period('2030-11-02','2030-11-02');
- assert.equal(ui.radios[1].checked,true);assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,true,true]);assert.ok(ui.labels.every(l=>!l.hidden));assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.transportInputs.deliveryDate.value,'2030-11-02');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-02');assert.equal(ui.scheduled(),false);
+ assert.equal(ui.radios[1].checked,true);assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,true,true]);assert.ok(ui.labels.every(l=>!l.hidden));assert.match(ui.status.innerHTML,/Transport i helgen prises individuelt/);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.transportInputs.deliveryDate.value,'2030-11-02');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-02');assert.equal(ui.scheduled(),false);
  ui.editTransport('pickupDate','2030-11-04');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-02');
  ui.period('2030-11-04','2030-11-05');assert.ok(ui.radios.every(r=>!r.disabled));assert.equal(ui.radios[2].checked,true);assert.equal(ui.transportInputs.pickupDate.readOnly,true);
 });
@@ -206,7 +203,7 @@ test('styling self pickup explains Monday return without changing the requested 
 });
 
 test('Friday to Sunday event hire shows weekend manual pricing notice',async()=>{
- const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');ui.choose(1);assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,false,true]);
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');ui.choose(1);assert.match(ui.status.innerHTML,/Transport i helgen prises individuelt/);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,false,true]);
 });
 
 test('single-day styling weekend explains weekday logistics under minimum hire heading',async()=>{
@@ -230,4 +227,12 @@ test('weekday tentative dates are maintained for every concrete transport mode r
 test('Saturday to Sunday event hire requires provider transport while styling keeps Friday/Monday self pickup',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-02','2030-11-03');assert.equal(ui.radios[1].checked,true);assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,true,true,true]);assert.equal(ui.transportInputs.deliveryDate.value,'2030-11-02');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-03');assert.equal(ui.transportInputs.deliveryDate.readOnly,true);assert.equal(ui.transportInputs.pickupDate.readOnly,true);assert.match(ui.status.innerHTML,/Leie i helgen tilbys kun med levering og henting utført av oss eller vår transportør/);assert.doesNotMatch(ui.status.innerHTML,/Éndagsleie/);
  ui.occasion('Boligfoto og visning');ui.choose(0);assert.ok(ui.radios.every(r=>!r.disabled));assert.equal(ui.transportInputs.deliveryDate.value,'2030-11-01');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-04');
+});
+
+test('weekend start with weekday end requires provider delivery but permits own weekday return',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-02','2030-11-04');assert.equal(ui.radios[2].checked,true);assert.deepEqual(ui.radios.map(r=>r.disabled),[true,false,false,true,true]);assert.equal(ui.transportInputs.deliveryDate.value,'2030-11-02');assert.equal(ui.transportInputs.pickupDate.value,'2030-11-04');assert.match(ui.status.innerHTML,/Transport i helgen/);assert.equal(ui.scheduled(),false);
+});
+
+test('large loads keep self pickup free and available while paid transport is quoted manually',async()=>{
+ const ui=await mountedDelivery();ui.emit({sofa:2});assert.equal(ui.radios[0].disabled,false);assert.equal(ui.radios[0].checked,true);assert.equal(ui.summary().total,0);assert.match(ui.status.innerHTML,/egnet kjøretøy/);ui.choose(1);assert.equal(ui.summary().total,null);assert.match(ui.status.innerHTML,/utvidet transport/);
 });

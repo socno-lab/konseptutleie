@@ -35,7 +35,7 @@ test('rental submissions require an occasion and never infer it from visited pro
 test('changing confirmation wording preserves tariff scope and period-based addon amounts',()=>{
  const cases=[[1,100,150],[2,200,300],[7,300,450],[30,500,750],[31,550,900],[60,750,1500],[61,800,1650]];
  for(const [days,standard,messe] of cases)for(const quantity of [1,2])for(const [occasion,scope] of occasionCases){
-  let start=details.start,end=addDateDays(start,days-1);while([0,6].includes(new Date(end+'T12:00:00Z').getUTCDay())){start=addDateDays(start,1);end=addDateDays(end,1);}
+  let start=details.start,end=addDateDays(start,days-1);while([0,6].includes(new Date(end+'T12:00:00Z').getUTCDay())||[0,6].includes(new Date(start+'T12:00:00Z').getUTCDay())){start=addDateDays(start,1);end=addDateDays(end,1);}
   const receipt=snapshot({basket:{chair:quantity,textile:quantity},details:{occasion,start,end}});
   assert.equal(receipt.lines.find(line=>line.id==='chair').total,(scope==='standard'?standard:messe)*quantity,occasion+' / '+days+' days');
   assert.equal(receipt.lines.find(line=>line.id==='textile').total,400*Math.ceil(days/30)*quantity);
