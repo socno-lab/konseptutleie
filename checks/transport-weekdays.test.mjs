@@ -36,6 +36,23 @@ test('styling keeps Friday/Monday defaults and rejects conflicting customer date
  const d=input();d.details.occasion='Boligfoto og visning';assert.equal(snapshot(d).delivery.dates.pickupDate,'2030-11-04');d.details.pickupDate='2030-11-03';assert.throws(()=>snapshot(d),/Transportdatoene/);
 });
 
+test('receipt facts include both warehouse and provider dates with labels matching the selected mode',()=>{
+ const d=input();d.details.start='2030-11-01';d.details.occasion='Boligfoto og visning';
+ const pairs=[
+  ['Henter og returnerer selv','Foreløpig henting på vårt lager','Foreløpig retur på vårt lager'],
+  ['Ønsker levering og henting','Foreløpig levering hos deg','Foreløpig henting hos deg'],
+  ['Kun levering – jeg returnerer selv','Foreløpig levering hos deg','Foreløpig retur på vårt lager'],
+  ['Kun henting – jeg henter selv','Foreløpig henting på vårt lager','Foreløpig henting hos deg'],
+ ];
+ for(const [choice,first,last] of pairs){
+  d.details.delivery=choice;
+  const facts=Object.fromEntries(snapshot(d).facts);
+  assert.equal(facts[first],'01.11.2030');assert.equal(facts[last],'04.11.2030');
+ }
+ d.details.delivery='Avklares senere';
+ assert.ok(snapshot(d).facts.every(([key])=>!key.startsWith('Foreløpig')));
+});
+
 test('event one-day weekend orders require both paid visits the same day on the server',()=>{
  const d=input();d.details.end=d.details.start;
  const result=snapshot(d);assert.equal(result.lines.find(line=>line.id==='chair').total,150,'same-day hire keeps one day at the event rate');assert.equal(result.delivery.total,null);assert.deepEqual(result.delivery.dates,{deliveryDate:d.details.start,pickupDate:d.details.start});

@@ -28,7 +28,7 @@ import {mountProductRentalPeriod,productPeriodState,periodChangeNotice} from './
 import {setRentalPeriodImpact} from './mobile-rental-dates.js?v=focusstable20261122';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
 import {mountEnquiryFlow} from './enquiry-flow.js?v=focusstable20261122';
-import {mountSubmitSummary} from './enquiry-submit-summary.js?v=vat20261115b';
+import {mountSubmitSummary} from './enquiry-submit-summary.js?v=transportreceipt20261122';
 import {packageLineRentalPrice} from './enquiry-price-model.js?v=longrent20261026';
 import {detailSelectionPrices} from './detail-price-model.js?v=longrent20261026';
 import {packageBuyoutOption,addonBuyoutPrice} from './buyout-model.js?v=longrent20261026';
@@ -40,15 +40,15 @@ import {homeOccasionCards} from './home-occasions.js?v=fest20261114';
 import {responsiveImageAttributes} from './media-image.js?v=launch20261024';
 import {mountPricingScopeHint} from './pricing-scope-hint.js?v=neutralusage20261121';
 import {syncEnquiryTerms} from './enquiry-terms.js?v=launch20261024';
-import {receiptEntries} from './receipt-layout.js?v=receipts20261025b';
+import {receiptEntries} from './receipt-layout.js?v=transportreceipt20261122';
 import {inheritsPackageAddons,packageAddonChoices} from './package-addon-model.js?v=launch20261024';
 import {isServiceOffering,serviceVariants,groupedServiceCards} from './service-model.js?v=launch20261024';
 import {rentalModuleRequirementError} from './sofa-layout.js?v=launch20261024';
-import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=weekdays20261121';
+import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=transportreceipt20261122';
 import {decorExamples} from './decor-examples.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js?v=fest20261114';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=longrent20261026';
-import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=transportgroup20261122';
+import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=transportreceipt20261122';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=choicesfirst20261119';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
@@ -332,7 +332,7 @@ function renderSubmitSummary(){
   delivery:rentalDeliverySummary(),stylist:el('stylist').checked
  });
 }
-document.addEventListener('rental-delivery-updated',()=>{renderEstimate();renderSubmitSummary();});
+document.addEventListener('rental-delivery-updated',()=>{if(!enquiryCompleted){renderEstimate();renderSubmitSummary();}});
 document.getElementById('requestForm').addEventListener('change',event=>{if(event.target.name==='stylist')renderSubmitSummary();});
 function renderEstimate(){
  enquiryFlow.update();

@@ -1,4 +1,4 @@
-import {receiptTotalLabel} from './receipt-layout.js?v=receipts20261025b';
+import {receiptTotalLabel} from './receipt-layout.js?v=transportreceipt20261122';
 
 const amount=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0?value:null;
 const round=value=>Math.round(value*100)/100;

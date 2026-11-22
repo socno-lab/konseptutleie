@@ -99,11 +99,20 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const labels=purchaseOnly?['Ønsker levering','Henter selv etter avtale']:['Henter og returnerer selv','Ønsker levering og henting','Kun levering – jeg returnerer selv','Kun henting – jeg henter selv','Avklares senere'];
  if(!labels.includes(deliveryChoice))fail('Velg levering eller henting.');
  const visits=deliveryChoice==='Ønsker levering og henting'?2:1;
- const transportError=hasRental?transportDateError({...d,scope,mode:transportMode(deliveryChoice)}):'';if(transportError)fail(transportError);
- const transportDates=transportWeekdayPolicy({...d,scope,mode:transportMode(deliveryChoice)});
- if(hasRental&&!included){const error=customerTransportError({...d,scope,mode:transportMode(deliveryChoice)});if(error)fail(error);}
+ const mode=transportMode(deliveryChoice),transportOptions={...d,scope,mode};
+ const transportError=hasRental?transportDateError(transportOptions):'';if(transportError)fail(transportError);
+ const transportDates=transportWeekdayPolicy(transportOptions);
+ if(hasRental&&!included){const error=customerTransportError(transportOptions);if(error)fail(error);}
  if(hasRental&&((transportDates.deliveryDate&&transportDates.deliveryDate>d.start)||(transportDates.pickupDate&&transportDates.pickupDate<d.end)))fail('Transportdatoene må omfatte leieperioden.');
- if(hasRental&&!self){const display=v=>v?v.split('-').reverse().join('.'):'';if(['Ønsker levering og henting','Kun levering – jeg returnerer selv'].includes(deliveryChoice))facts.push(['Ønsket levering',display(transportDates.deliveryDate)]);if(['Ønsker levering og henting','Kun henting – jeg henter selv'].includes(deliveryChoice))facts.push(['Ønsket henting',display(transportDates.pickupDate)]);}
+ if(hasRental&&mode!=='undecided'){
+  const display=date=>date.split('-').reverse().join('.');
+  const warehousePickup=mode==='pickup'||mode==='collectionOnly';
+  const warehouseReturn=mode==='pickup'||mode==='deliveryOnly';
+  facts.push(
+   [warehousePickup?'Foreløpig henting på vårt lager':'Foreløpig levering hos deg',display(transportDates.deliveryDate)],
+   [warehouseReturn?'Foreløpig retur på vårt lager':'Foreløpig henting hos deg',display(transportDates.pickupDate)],
+  );
+ }
  const receipt=hasRental&&!transportDates.manual&&!self&&!capacity.manual?verifyDelivery(d.deliveryToken,d.address,rent,value.customRequest,visits):null;
  const delivery={choice:deliveryChoice,label:included?'Levering og henting inkludert i fastprisen':self?deliveryChoice:capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':hasRental&&transportDates.manual&&!self?'Transport må beregnes i tilbudet':deliveryChoice,...(hasRental?{dates:{deliveryDate:transportDates.deliveryDate,pickupDate:transportDates.pickupDate}}:{}),total:included||self?0:receipt?.total??null};
  const tryGroups=groups.filter(g=>businessPurchaseEnabled(g.product)&&(g.custom?g.acquisition==='try':choices[g.packageId]==='try'));

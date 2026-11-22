@@ -15,7 +15,8 @@ export function receiptFacts(facts=[]){
 }
 export function deliveryReceiptLine(delivery){
  if(!delivery)return null;
- return {id:'receipt-transport',name:'Transport',image:'/assets/transport-truck.png',quantity:1,basis:delivery.label||'Transport avklares i tilbudet',total:delivery.total??null,transport:true};
+ const unpricedLabel=['Avklares senere','Ønsker levering'].includes(delivery.choice)?'Avklares':'Må beregnes';
+ return {id:'receipt-transport',name:'Transport',image:'/assets/transport-truck.png',quantity:1,basis:delivery.label||'Transport avklares i tilbudet',total:delivery.total??null,unpricedLabel,transport:true};
 }
 
 // Transport is included in the heading only when its amount is known.
