@@ -156,7 +156,7 @@ test('first confirmation previews and freezes a missing-item replacement made af
  const replacement={...product,id:'replacement',name:'Alternativ stol'};const catalog=[product,replacement],f=fixture(catalog),r=f.state.records[0];
  r.acceptedOfferId='accepted-offer';r.history=[{id:'accepted-offer',type:'offer',sentAt:'2026-11-21T12:00Z',document:{workflow:structuredClone({...r,history:[]})}}];
  const data={...r,lines:r.lines.map(l=>({...l,id:replacement.id,review:'missing',originalMissing:true}))};
- const preview=await f.store.workflowPreview('a',data,catalog,'confirmation');assert.equal(preview.canSend,true);assert.match(preview.html,/Byttet vare/);assert.match(preview.html,/Erstatter Stol/);assert.match(preview.text,/Vi har byttet Stol med Alternativ stol/);
+ const preview=await f.store.workflowPreview('a',data,catalog,'confirmation');assert.equal(preview.canSend,true);assert.match(preview.html,/Erstatning ved mangel/);assert.match(preview.html,/Erstatter Stol/);assert.match(preview.text,/Stol er dessverre ikke tilgjengelig i ønsket antall/);assert.match(preview.text,/erstattet den med Alternativ stol/);
  const saved=await f.store.changeWorkflow('a',{...data,reserve:true,previewDigest:preview.previewDigest},'confirmation',catalog);
- assert.equal(saved.history.at(-1).document.confirmationChanges.rows[0][0].label,'Byttet vare');assert.equal(saved.requirements[0].id,replacement.id);
+ assert.equal(saved.history.at(-1).document.confirmationChanges.rows[0][0].label,'Erstatning ved mangel');assert.equal(saved.requirements[0].id,replacement.id);
 });

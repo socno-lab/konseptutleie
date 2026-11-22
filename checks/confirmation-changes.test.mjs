@@ -20,3 +20,10 @@ test('first confirmation compares with the accepted sent offer, later orders wit
  assert.equal(await confirmationBaseline(r,db),old);r.history.push({id:'confirmed',type:'confirmation',sentAt:'yes',document:{workflow:next}});assert.equal(await confirmationBaseline(r,db),next);
  r.history.pop();delete r.history[1].sentAt;assert.equal(await confirmationBaseline(r,db),null);
 });
+
+test('missing stock explains the reason for replacement while alternative selection remains neutral',()=>{
+ const missing={...next,lines:next.lines.map(l=>l.key==='b'?{...l,originalMissing:true}:l)},changes=confirmationChanges(old,missing);
+ assert.match(changes.summary,/Bord er dessverre ikke tilgjengelig i ønsket antall/);assert.match(changes.summary,/erstattet den med Nytt bord/);assert.equal(changes.rows[1][0].label,'Erstatning ved mangel');
+ const neutral=confirmationChanges(old,{...missing,lines:missing.lines.map(l=>({...l,originalMissing:false}))});assert.match(neutral.summary,/Vi har byttet Bord med Nytt bord/);assert.doesNotMatch(neutral.summary,/ikke tilgjengelig/);assert.equal(neutral.rows[1][0].label,'Byttet vare');
+ const mail=workflowEmail({documentType:'confirmation',version:1,workflow:missing,lines:missing.lines,confirmationChanges:changes});assert.match(mail.text,/ikke tilgjengelig i ønsket antall/);assert.match(mail.html,/Erstatning ved mangel/);
+});
