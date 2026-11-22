@@ -15,6 +15,16 @@ test('checkout shell reuses form and retains hidden catalog hooks without duplic
  const html=enquiryPageHtml(source);assert.match(html,/data-enquiry-page="true"/);assert.match(html,/<main hidden inert>/);assert.match(html,/id="enquiryPage"/);assert.match(html,/id="requestForm"/);assert.match(html,/noindex,nofollow,noarchive/);
  assert.match(enquiryPageHtml(source,'buy'),/Din kjøpsforespørsel/);
 });
+test('checkout prevents hidden storefront image requests while retaining visible image sources',()=>{
+ const source='<html><head><title>Utvalg</title></head><body><header><img src="/logo.png"></header><main><picture><source srcset="/large.webp"><img src="/hero.jpg" srcset="/small.jpg 320w" alt="Hero"></picture><div id="products"></div></main><dialog id="cart"><img src="/item.jpg"></dialog></body></html>';
+ for(const mode of ['rent','buy']){
+  const html=enquiryPageHtml(source,mode);
+  assert.match(html,/<main hidden inert><picture><source><img alt="Hero">/);
+  assert.doesNotMatch(html,/large\.webp|hero\.jpg|small\.jpg/);
+  assert.match(html,/<header><img src="\/logo.png">/);
+  assert.match(html,/<dialog id="cart"><img src="\/item.jpg">/);
+ }
+});
 test('dedicated rental and purchase checkout routes serve the correct bootstrap and are never indexed',async()=>{
  const server=createServer({env:{NODE_ENV:'test'}});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  try{for(const suffix of ['','?type=kjop']){const res=await fetch('http://127.0.0.1:'+server.address().port+'/foresporsel.html'+suffix),html=await res.text();assert.equal(res.status,200);assert.match(res.headers.get('x-robots-tag'),/noindex/);assert.match(html,suffix?/id="saleRequestForm"/:/id="requestForm"/);assert.match(html,/enquiry-page.css/);}}

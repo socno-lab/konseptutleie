@@ -304,7 +304,11 @@ if(rentalForm){const style=document.createElement('style');style.textContent='#c
 if(rentalForm){
  const style=document.createElement('style');
  style.textContent=`
-  #requestForm .rental-delivery-choice{margin-bottom:12px}
+  #requestForm .rental-delivery-choice{
+   border:1px solid var(--line);
+   border-radius:8px;
+   background:#fff;
+  }
   #requestForm .rental-delivery-choice > .addon-choice{
    display:grid;
    grid-template-columns:18px minmax(0,1fr) auto;
@@ -312,8 +316,11 @@ if(rentalForm){
    gap:3px 10px;
    box-sizing:border-box;
    margin:0;
-   min-height:76px;
-   padding:11px 12px;
+   min-height:68px;
+   padding:9px 12px;
+   border:0;
+   border-radius:inherit;
+   background:transparent;
   }
   #requestForm .rental-delivery-choice > .addon-choice > input[type=radio]{
    grid-column:1;
@@ -334,18 +341,14 @@ if(rentalForm){
   #requestForm .rental-delivery-choice:has(> .addon-choice[hidden]){display:none}
   #requestForm .rental-delivery-choice:has(> .addon-choice input:checked){
    background:#eef0e7;
-   box-shadow:inset 0 0 0 2px var(--olive);
-  }
-  #requestForm .rental-delivery-choice > .addon-choice:has(input:checked){
-   border-color:transparent;
-   background:transparent;
+   border-color:var(--olive);
   }
   #requestForm .rental-delivery-details{
    display:grid;
    gap:8px;
    min-width:0;
-   margin:0 2px;
-   padding:12px 14px 14px;
+   margin:0 12px;
+   padding:8px 0 12px;
    border-top:1px solid var(--line);
    font:400 13px/1.5 "DM Sans",sans-serif;
   }
@@ -382,14 +385,23 @@ if(rentalForm){
   #requestForm .transport-note:has(> div > strong) > div{display:contents}
   #requestForm .transport-note strong + p{grid-column:1/-1;margin-top:0}
   #requestForm .rental-transport-dates .transport-date-heading{margin:0 0 6px;color:var(--muted);font-size:12px;font-weight:400}
-  #requestForm .rental-transport-dates > label{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0;padding:10px 0;font-size:13px;line-height:1.5}
+  #requestForm .rental-transport-dates > label{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0;padding:6px 0;font-size:13px;line-height:1.5}
   #requestForm .rental-transport-dates > label + label{border-top:1px solid var(--line)}
   #requestForm .rental-transport-dates > label > span{min-width:0}
   #requestForm .rental-transport-dates strong{flex-shrink:0;font-size:13px;font-weight:600;white-space:nowrap}
   #requestForm .rental-transport-dates input[hidden]{display:none!important}
   #requestForm .rental-delivery-details > .hint{margin:0;font-size:12px;line-height:1.6}
+  @media(min-width:641px){
+   #requestForm .rental-transport-dates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+   #requestForm .rental-transport-dates .transport-date-heading{grid-column:1/-1}
+   #requestForm .rental-transport-dates > label{display:grid;justify-content:start;gap:2px;padding:2px 12px 2px 0}
+   #requestForm .rental-transport-dates > label + label{border-top:0;border-left:1px solid var(--line);padding-left:14px}
+   #requestForm .rental-transport-dates > label > span{color:var(--muted);font-size:12px}
+   #requestForm .rental-transport-dates strong{font-size:16px}
+  }
   @media(max-width:640px){
-   #requestForm .rental-delivery-choice > .addon-choice{min-height:70px;padding:10px}
+   #requestForm .rental-delivery-choice > .addon-choice{min-height:64px;padding:9px 10px}
+   #requestForm .rental-delivery-details{margin-inline:10px}
    #requestForm [data-delivery-price]{font-size:13px}
   }
   @media(max-width:360px){#requestForm .rental-transport-dates > label{flex-wrap:wrap;gap:4px 12px}}
