@@ -207,3 +207,9 @@ test('styling self pickup explains Monday return without changing the requested 
 test('Friday to Sunday event hire shows weekend manual pricing notice',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');ui.choose(1);assert.match(ui.status.innerHTML,/Transport i helgen må manuelt beregnes/);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.ok(ui.radios.every(r=>!r.disabled));
 });
+
+test('single-day styling weekend explains weekday logistics under minimum hire heading',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-02');ui.choose(1);
+ assert.match(ui.weekdayNotice.innerHTML,/Helgeleie – minimum to døgn/);assert.match(ui.weekdayNotice.innerHTML,/08.00–12.00/);assert.match(ui.weekdayNotice.innerHTML,/fredag 1\. november/);assert.match(ui.weekdayNotice.innerHTML,/mandag 4\. november/);assert.doesNotMatch(ui.weekdayNotice.innerHTML,/Vi tilbyr også éndagsleie/);
+ ui.choose(0);assert.match(ui.weekdayNotice.innerHTML,/08.00–15.45/);assert.match(ui.weekdayNotice.innerHTML,/retur mandag 4\. november/);
+});
