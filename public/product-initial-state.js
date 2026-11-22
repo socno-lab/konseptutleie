@@ -4,7 +4,7 @@ import {restoreSofas,migrateSofas} from './sofa-model.js?v=longrent20261026';
 import {readPurposeState} from './rental-purpose-model.js?v=fest20261114';
 import {rentalUsageState,rentalUsageLabels} from './rental-usage-model.js?v=fest20261114';
 import {applyRentalScope,scopeForOccasion} from './rental-pricing-model.js?v=fest20261114';
-import {rentalScopeMarkup} from './rental-scope-markup.js?v=fest20261114';
+import {rentalScopeMarkup,rentalPurposeLabel} from './rental-scope-markup.js?v=purpose20261122';
 import {configureBusinessPackages,cleanBusinessChoices} from './business-purchase-model.js';
 import {salesEnabled,cleanSaleBasket} from './sales-model.js?v=fest20261114';
 import {restoreSaleSetups} from './sale-sofa-model.js?v=fest20261114';
@@ -72,7 +72,7 @@ export function projectInitialProduct(doc,href,storage){
  }else{
   const context=state.context;
   const scope=host.querySelector('#catalogPricingScope');
-  if(scope){const confirmed=context.rentalScopeConfirmed,label=confirmed?rentalUsageLabels[context.rentalScope]:'Velg bruk for å se leiepriser';scope.innerHTML='<div class="mobile-catalog-usage mobile-catalog-only"><span id="mobileCatalogUsageLabel">'+label+'</span><button type="button" id="mobileChangeUsage" aria-haspopup="dialog">'+(confirmed?'Endre':'Velg bruk')+'</button></div><div class="product-pricing-desktop">'+rentalScopeMarkup(context.rentalScope,confirmed)+'</div>';}
+  if(scope){const confirmed=context.rentalScopeConfirmed,label=confirmed?rentalPurposeLabel(context.purpose,context.rentalScope):'Velg formål for å se leiepriser';scope.innerHTML='<div class="mobile-catalog-usage mobile-catalog-only"><span id="mobileCatalogUsageLabel">'+label+'</span><button type="button" id="mobileChangeUsage" aria-haspopup="dialog">'+(confirmed?'Endre formål':'Velg formål')+'</button></div><div class="product-pricing-desktop">'+rentalScopeMarkup(context.rentalScope,confirmed,context.purpose)+'</div>';}
   if(p.moduleSeries){
    const old=host.querySelector('[data-initial-builder="modules"]');
    if(old)old.outerHTML=rentalModuleSurface(context,rentalModuleInitialState(p.moduleSeries,products,{cart:context.cart,setups:state.setups,editingId:state.editingId}));

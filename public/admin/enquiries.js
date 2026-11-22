@@ -3,7 +3,7 @@ import {nextStepMarkup,nextStepRequirements,nextStep,hasConfirmationChanges} fro
 import {enquiryListRow} from './enquiry-list.js?v=addressfirst20261121';
 import {activityMarkup,progressMarkup,activityDate} from './enquiry-activity.js?v=invoicehidden20261121';
 import {adminDateKeys,adminDateFieldMarkup,bindAdminDateFields,collectAdminDates,readAdminDateField,setAdminDateField} from './date-fields.js?v=datevalues20261121';
-import {enquiryLineTotal} from './enquiry-line-pricing.js?v=weekendminimum20261121';
+import {enquiryLineTotal} from './enquiry-line-pricing.js?v=purpose20261122';
 import {configureSiteSettings} from '../site-settings.js?v=fest20261114';
 import {transportModes,customerVisits} from './transport-model.js';
 import {workflowCopy,isLegacyGeneratedOfferIntro} from './offer-copy.js?v=offerdraft20261121';

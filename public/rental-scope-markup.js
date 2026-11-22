@@ -1,5 +1,8 @@
-import {rentalUsageLabels,rentalUsageDescriptions,rentalUsageExplanation} from './rental-usage-model.js?v=fest20261114';
-export function rentalScopeMarkup(scope,confirmed){
- const buttons='<div class="rental-usage-options" role="group" aria-label="Velg bruk for leiepriser">'+Object.entries(rentalUsageLabels).map(([key,label])=>`<button type="button" data-rental-scope-choice="${key}" aria-pressed="${confirmed&&scope===key}"><strong>${label}</strong><span>${rentalUsageDescriptions[key]}</span></button>`).join('')+'</div>';
- return confirmed?`<p class="rental-selected-usage">Leiepriser for: <strong>${rentalUsageLabels[scope]}</strong></p><p class="hint">${rentalUsageExplanation} Prisene inkluderer valgt bruk og mva.</p><details><summary>Endre bruk</summary>${buttons}</details>`:`<h3>Hva skal du bruke møblene til?</h3><p>Velg bruk for å se riktige leiepriser.</p>${buttons}<p class="hint">${rentalUsageExplanation} Alle viste leiepriser inkluderer valgt bruk og mva. Transport og eventuelt oppsett avklares i tilbudet.</p>`;
+import {purposes,validPurpose} from './rental-purpose-model.js?v=fest20261114';
+export function purposeForOccasion(value){return purposes.find(p=>p.label===value)?.id||({'Boligsalg':'boligsalg','Messe og stand':'messe','Event og selskap':'messe','Leie over tid':'bedrift'})[value]||'alle';}
+export function rentalPurposeLabel(purpose,scope){return purposes.find(p=>p.id===validPurpose(purpose)&&p.id!=='alle')?.label||(scope==='standard'?'Boligfoto og visning':'Velg formål');}
+export function purposeButtons(purpose){return '<div class="rental-usage-options" role="group" aria-label="Velg formål">'+purposes.filter(p=>p.id!=='alle').map(p=>`<button type="button" data-rental-purpose-choice="${p.id}" aria-pressed="${purpose===p.id}"><strong>${p.label}</strong></button>`).join('')+'</div>';}
+export function rentalScopeMarkup(scope,confirmed,purpose=scope==='standard'?'boligsalg':'alle'){
+ const buttons=purposeButtons(purpose);
+ return confirmed?`<p class="rental-selected-usage">Formål: <strong>${rentalPurposeLabel(purpose,scope)}</strong></p><details><summary>Endre formål</summary>${buttons}</details>`:`<h3>Hva skal du bruke møblene til?</h3><p>Velg formål for å se leiepriser.</p>${buttons}`;
 }

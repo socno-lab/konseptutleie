@@ -1,4 +1,4 @@
-import {plannedTransportDates} from './transport-weekdays.js?v=weekendminimum20261121';
+import {plannedTransportDates} from './transport-weekdays.js?v=purpose20261122';
 import {parseDateOnly,addDateDays} from './rental-dates.js?v=launch20261024';
 export function weekendRentalEnd(options){
  const {start,end}=options,n=parseDateOnly(start);if(n===null||start!==end)return end;

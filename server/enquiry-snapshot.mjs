@@ -38,7 +38,7 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  if(input.packageGroups&&(!Array.isArray(input.packageGroups)||input.packageGroups.length>100)||input.cartLinks&&(typeof input.cartLinks!=='object'||Array.isArray(input.cartLinks)||Object.keys(input.cartLinks).length>150))fail('Kontroller pakker og tilvalg.');
  const {rental:rent,purchase:buy}=rental?splitAcquisitionBasket(input.basket,choices,products,input.cartLinks||{},input.packageGroups||[]):{rental:input.basket,purchase:{}};
  const hasRental=rental&&(Object.keys(rent).length>0||value.customRequest===true),acquisition=hasRental?(Object.keys(buy).length?'mixed':'rental'):'purchase';
- if(hasRental&&!d.occasion)fail('Velg anledning.');
+ if(hasRental&&!d.occasion)fail('Velg formål.');
  const scope=scopeForOccasion(d.occasion),priced=products.map(p=>({...p,...rentalRateSets(p,products)[scope]}));
  if(rental){
   const normalized=normalizeBasket(rent,priced);
@@ -79,7 +79,7 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const facts=[];if(pricingEnd!==d.end)facts.push(['Helgeleie','Minimum to døgn ved disponering fredag–mandag.']);
  if(!rental&&input.purchaseSofas!==undefined){const setups=input.purchaseSofas;if(!Array.isArray(setups)||setups.length>50||setups.some(s=>!validSaleSetup(s,products))||new Set(setups.map(s=>s.id)).size!==setups.length)fail('Kontroller sofaoppsettene.');if(Object.entries(saleSetupBasket(setups)).some(([id,q])=>q>(input.basket[id]||0)))fail('Kontroller modulene i handlekurven.');for(const [i,s] of setups.entries())facts.push(['Sofa '+(i+1)+' · '+s.series,Object.entries(s.selection).map(([id,q])=>q+' × '+products.find(p=>p.id===id).name).join(' · ')]);}
  if(hasRental&&d.start&&d.end)facts.push(['Ønsket leieperiode',d.start+' til '+d.end]);
- if(hasRental)facts.push(['Prisgrunnlag',rentalUsageLabels[scope]+'\n'+rentalUsageDescriptions[scope]],['Anledning',d.occasion]);if(!rental||Object.keys(buy).length)facts.push(['Leveringstid','2–3 uker. Levering kan skje tidligere. Vi bekrefter leveringsdatoen i ordrebekreftelsen.']);
+ if(hasRental)facts.push(['Leieformål',d.occasion]);if(!rental||Object.keys(buy).length)facts.push(['Leveringstid','2–3 uker. Levering kan skje tidligere. Vi bekrefter leveringsdatoen i ordrebekreftelsen.']);
  if(d.stylist)facts.push(['Styling ønskes',d.stylingNotes||'Stylist – pris avklares i tilbudet']);
  for(const g of groups.filter(g=>g.custom))facts.push(['Tilpasset fra '+g.name,Object.entries(g.selection).map(([id,q])=>q+' × '+products.find(x=>x.id===id)?.name).join('; ')]);
  // Preserve optional textile/colour wishes, never prices or arbitrary HTML.

@@ -1,4 +1,4 @@
-import {getTermsVersions} from './terms-versions.js?v=weekendminimum20261121';
+import {getTermsVersions} from './terms-versions.js?v=purpose20261122';
 import {getSiteSettings as currentSettings} from './site-settings.js?v=fest20261114';
 export function customerInformationPages(settings=currentSettings()){
  const getSiteSettings=()=>settings;const {rental:rentalTermsVersion,purchase:termsVersion}=getTermsVersions(settings.delivery);

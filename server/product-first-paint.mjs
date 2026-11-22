@@ -1,6 +1,6 @@
 import {productRecommendationsFirstPaint} from './product-recommendations-first-paint.mjs';
 import {productOverview} from './product-overview.mjs';
-import {rentalScopeMarkup} from '../public/rental-scope-markup.js?v=fest20261114';
+import {rentalScopeMarkup,rentalPurposeLabel} from '../public/rental-scope-markup.js?v=purpose20261122';
 import {rentalUsageLabels} from '../public/rental-usage-model.js?v=fest20261114';
 import {safeCatalogReturn} from '../public/product-page-model.js';
 import {responsiveImageAttributes} from '../public/media-image.js';
@@ -18,8 +18,8 @@ export function productFirstPaint(html,model,products,settings){
  // The first response owns the builder's real IDs; runtime adopts that surface.
  if(!model.buy&&(p.moduleSeries||p.wallGroup)){const id=p.moduleSeries?'modules':'wall';html=html.replace(new RegExp('<dialog id="'+id+'"[\\s\\S]*?<\\/dialog>'),'');}
  const returnTo=safeCatalogReturn(model.productReturn,model.buy?'buy':'rent','https://konseptuell.no');
- const mobile=(scope,confirmed)=>'<div class="mobile-catalog-usage mobile-catalog-only"><span id="mobileCatalogUsageLabel">'+(confirmed?rentalUsageLabels[scope]:'Velg bruk for å se leiepriser')+'</span><button type="button" id="mobileChangeUsage" aria-haspopup="dialog">'+(confirmed?'Endre':'Velg bruk')+'</button></div>';
- const scopeContents=(scope,confirmed)=>mobile(scope,confirmed)+'<div class="product-pricing-desktop">'+rentalScopeMarkup(scope,confirmed)+'</div>';
+ const mobile=(scope,confirmed)=>'<div class="mobile-catalog-usage mobile-catalog-only"><span id="mobileCatalogUsageLabel">'+(confirmed?rentalPurposeLabel(model.productPurpose,scope):'Velg formål for å se leiepriser')+'</span><button type="button" id="mobileChangeUsage" aria-haspopup="dialog">'+(confirmed?'Endre formål':'Velg formål')+'</button></div>';
+ const scopeContents=(scope,confirmed)=>mobile(scope,confirmed)+'<div class="product-pricing-desktop">'+rentalScopeMarkup(scope,confirmed,model.productPurpose)+'</div>';
  // Move the controls out of the hidden catalogue before the browser paints.
  html=html.replace(/<div class="mobile-catalog-usage mobile-catalog-only">[\s\S]*?<\/button><\/div>/,'').replace('<div id="catalogPricingScope" class="rental-pricing-scope"></div>','');
  const initial=model.productUsage||{scope:'messe',confirmed:false};

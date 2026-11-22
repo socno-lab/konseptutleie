@@ -15,34 +15,19 @@ const identity={id:'pricing-basis-local-test',kind:'rental',name:'Lokal kontroll
 const occasionCases=[['Boligsalg','standard'],['Boligfoto og visning','standard'],['Bedrift','messe'],['Event og selskap','messe'],['Messe og stand','messe'],['Leie over tid','messe'],['Annet','messe']];
 const expectedBasis={standard:['Boligfoto og visning','Til styling av bolig før fotografering og visning.'],messe:['Arrangementer og annen bruk','Til selskap, messe, arbeidsplassen eller daglig bruk.']};
 const snapshot=(input={},value={})=>createEnquirySnapshot({...identity,...value},{basket:{chair:1},...input,details:{...details,...input.details}},products,{now,verifyDelivery:()=>{throw Error('Local pickup must not call a transport service');}});
-const basisFacts=receipt=>receipt.facts.filter(([label])=>['Prisgrunnlag','Bruksområde','Anledning'].includes(label));
+const basisFacts=receipt=>receipt.facts.filter(([label])=>['Leieformål','Prisgrunnlag','Bruksområde','Anledning'].includes(label));
 
-test('receipts distinguish the approved price basis from the explicitly selected occasion',()=>{
- for(const [occasion,scope] of occasionCases){
-  const receipt=snapshot({details:{occasion}});
-  const [label,description]=expectedBasis[scope];
-  assert.equal(rentalUsageLabels[scope],label);assert.equal(rentalUsageDescriptions[scope],description);
-  assert.deepEqual(basisFacts(receipt),[['Prisgrunnlag',label+'\n'+description],['Anledning',occasion]],occasion);
-  for(const audience of ['customer','internal']){
-   const mail=enquiryEmail(receipt,audience);
-   assert.ok(mail.text.includes('Prisgrunnlag: '+label+'\n'+description),audience+' text / '+occasion);
-   assert.ok(mail.html.includes('>Prisgrunnlag</span><br>'+label+'<br>'+description),audience+' HTML / '+occasion);
-   assert.ok(mail.text.includes('Anledning: '+occasion),audience+' text / '+occasion);
-   assert.ok(mail.html.includes('>Anledning</span><br>'+occasion),audience+' HTML / '+occasion);
-   assert.ok(mail.text.indexOf('Prisgrunnlag:')<mail.text.indexOf('Anledning:'));
-   assert.ok(mail.html.indexOf('>Prisgrunnlag<')<mail.html.indexOf('>Anledning<'));
-   assert.doesNotMatch(mail.text,/Bruksområde:/);assert.doesNotMatch(mail.html,/>Bruksområde</);
-  }
- }
+test('receipts and both emails show one purpose without internal pricing tiers',()=>{
+ for(const [occasion] of occasionCases){const receipt=snapshot({details:{occasion}});assert.deepEqual(basisFacts(receipt),[['Leieformål',occasion]]);for(const audience of ['customer','internal']){const mail=enquiryEmail(receipt,audience);assert.match(mail.text,/Leieformål:/);assert.doesNotMatch(mail.text,/Prisgrunnlag:|Anledning:/);}}
 });
 
 test('rental submissions require an occasion and never infer it from visited product purposes',()=>{
  for(const occasion of ['',undefined,'  ']){
-  assert.throws(()=>snapshot({purpose:'messe',rentalScope:'messe',details:{occasion}}),error=>error.status===400&&error.message==='Velg anledning.');
+  assert.throws(()=>snapshot({purpose:'messe',rentalScope:'messe',details:{occasion}}),error=>error.status===400&&error.message==='Velg formål.');
  }
  for(const purpose of ['bedrift','messe','fest','boligsalg']){
   const receipt=snapshot({purpose,rentalScope:'standard',details:{occasion:'Event og selskap'}});
-  assert.deepEqual(basisFacts(receipt),[['Prisgrunnlag',expectedBasis.messe.join('\n')],['Anledning','Event og selskap']]);
+  assert.deepEqual(basisFacts(receipt),[['Leieformål','Event og selskap']]);
   assert.equal(receipt.total,150);
  }
 });
@@ -68,9 +53,9 @@ test('mixed and custom rental enquiries include a basis, pure purchases do not i
  }
  assert.equal(purchased.total,6000);assert.equal(direct.total,2000);
  const mixed=snapshot({basket:{pack:1,chair:1},businessChoices:{pack:'buy'}});
- assert.equal(mixed.acquisition,'mixed');assert.equal(mixed.total,6150);assert.deepEqual(basisFacts(mixed),[['Prisgrunnlag',expectedBasis.messe.join('\n')],['Anledning','Bedrift']]);
+ assert.equal(mixed.acquisition,'mixed');assert.equal(mixed.total,6150);assert.deepEqual(basisFacts(mixed),[['Leieformål','Bedrift']]);
  const custom=snapshot({basket:{},details:{customRequest:'Et spesielt oppsett'}},{customRequest:true});
- assert.equal(custom.acquisition,'rental');assert.equal(custom.total,null);assert.deepEqual(basisFacts(custom),[['Prisgrunnlag',expectedBasis.messe.join('\n')],['Anledning','Bedrift']]);
+ assert.equal(custom.acquisition,'rental');assert.equal(custom.total,null);assert.deepEqual(basisFacts(custom),[['Leieformål','Bedrift']]);
 });
 
 test('web confirmation renders the same label and description on separate lines',async t=>{
@@ -86,12 +71,13 @@ test('web confirmation renders the same label and description on separate lines'
  const {enquiryReceipt}=await import('../public/submission-ui.js');
  for(const [occasion,scope] of occasionCases){
   const node=enquiryReceipt(snapshot({details:{occasion}}));
-  const facts=node.children.filter(child=>child.tagName==='p'&&child.children[0]?.textContent==='Prisgrunnlag');
-  assert.equal(facts.length,1);assert.equal(facts[0].children[1].textContent,expectedBasis[scope].join('\n'));
-  assert.match(facts[0].children[1].style.cssText,/white-space:pre-line/);
-  const occasionFacts=node.children.filter(child=>child.tagName==='p'&&child.children[0]?.textContent==='Anledning');
-  assert.equal(occasionFacts.length,1);assert.equal(occasionFacts[0].children[1].textContent,occasion);
-  assert.ok(node.children.indexOf(facts[0])<node.children.indexOf(occasionFacts[0]));
+  const facts=node.children.filter(child=>child.tagName==='p'&&child.children[0]?.textContent==='Leieformål');
+  assert.equal(facts.length,1);assert.equal(facts[0].children[1].textContent,occasion);assert.doesNotMatch(node.textContent,/Prisgrunnlag|Anledning/);
   assert.doesNotMatch(node.textContent,/Bruksområde/);
  }
+});
+
+test('new purpose facts retain the internal pricing scope in admin, including legacy wording',async()=>{
+ const {workflowRecord}=await import('../server/enquiry-workflow.mjs');
+ for(const [occasion,scope] of occasionCases)assert.equal(workflowRecord(snapshot({details:{occasion}})).scope,scope);
 });

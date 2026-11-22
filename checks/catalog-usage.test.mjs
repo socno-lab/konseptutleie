@@ -26,7 +26,7 @@ test('Vis alle retains either confirmed basis and keeps it visible',()=>{
   assert.equal(proposal.confirmed,true);
   assert.equal(proposal.scopeChanged,false);
   assert.equal(proposal.requiresConfirmation,false);
-  assert.match(catalogUsageLabel(proposal),scope==='standard'?/^Boligfoto og visning$/:/^Arrangementer og annen bruk$/);
+  assert.equal(catalogUsageLabel(proposal),'Velg formål');
  }
 });
 
@@ -56,9 +56,9 @@ test('Vis alle allows a deliberate basis choice in the same selector',()=>{
 test('An explicit actual use reports a conflicting occasion instead of silently accepting its tariff',()=>{
  const proposal=proposedCatalogUsage({purpose:'boligsalg',currentScope:'messe',confirmed:true,occasion:'Bedrift'});
  assert.equal(proposal.scope,'standard');
- assert.equal(proposal.occasionConflict,true);
- assert.equal(proposal.requiresConfirmation,true);
- assert.match(proposal.messages.join(' '),/Anledningen.*tømmes/);
+ assert.equal(proposal.occasionConflict,false);
+ assert.equal(proposal.requiresConfirmation,false);
+ assert.doesNotMatch(proposal.messages.join(' '),/Anledningen.*tømmes/);
  for(const occasion of ['Boligsalg','Boligfoto og visning']){
   assert.equal(proposedCatalogUsage({purpose:'boligsalg',currentScope:'standard',confirmed:true,occasion}).occasionConflict,false);
  }
@@ -105,7 +105,7 @@ test('all rental purposes and categories receive their complete usage field befo
   const usage=html.match(/<section id="catalogUsage"[^>]*>([\s\S]*?)<\/section>/)?.[1];
   assert.equal((usage.match(/class="price-display-picker"/g)||[]).length,1,'the initial HTML already has exactly one VAT picker');
   assert.equal((usage.match(/class="mobile-price-switch"/g)||[]).length,1,'the initial HTML already has exactly one mobile VAT switch');
-  const expected=purpose.id==='alle'?scope==='standard'?'Boligfoto og visning':scope==='messe'?'Arrangementer og annen bruk':'Velg bruksområde':purpose.label;
+  const expected=purpose.id==='alle'?scope?'Velg formål':'Velg bruksområde':purpose.label;
   assert.ok(catalogUsageLabel(model.catalogUsage).includes(expected));
   assert.ok(html.indexOf('id="catalogUsageButton"')<html.indexOf('class="catalog-tools"'));
  }
