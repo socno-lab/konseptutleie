@@ -9,7 +9,7 @@ export function enquiryPageHtml(source,mode='rent'){
  const title=mode==='buy'?'Din kjøpsforespørsel':'Din leieforespørsel';
  const entry=source.match(/<script\b[^>]*src="(\/app\.js[^"]*)"/)?.[1];
  if(mode==='rent'&&entry){
-  const preload=[entry,...new Set(imports)].map(href=>'<link rel="modulepreload" href="'+href+'">').join('');
+  const preload=[entry,...imports.filter(url=>/^\/(customer-info|rental-product-options|rental-catalog-view)\.js\?/.test(url))].map(href=>'<link rel="modulepreload" fetchpriority="low" href="'+href+'">').join('');
   source=source.replace('</head>',preload+'</head>');
  }
  return source.replace('href="#slik-kjoper-du"','href="/kjop.html#slik-kjoper-du"').replace(/<title>[\s\S]*?<\/title>/,'<title>'+title+' | Konseptuell</title>')
