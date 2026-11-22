@@ -16,7 +16,7 @@ export function mountEnquiryFlow({cartId,formId,mode}){
  let period;
  if(page){
   document.body.classList.remove('catalog-page','home-page','occasion-page','buy-page');document.body.classList.add('enquiry-page');const host=document.getElementById('enquiryPage');cart.hidden=true;
-  const back=document.createElement('a');back.href=mode==='buy'?'/kjop.html':'/utvalg.html?bruk=alle';back.className='text-button enquiry-back';back.textContent='← Fortsett å se produkter';host.append(back,cart);cart.classList.add('enquiry-full');
+  const back=document.createElement('a');back.href=mode==='buy'?'/kjop.html':'/utvalg.html';back.className='text-button enquiry-back';back.textContent='← Fortsett å se produkter';host.append(back,cart);cart.classList.add('enquiry-full');
   const heading=cart.querySelector('h2');if(heading){const h1=document.createElement('h1');h1.id=heading.id;h1.textContent=mode==='buy'?'Din kjøpsforespørsel':heading.textContent;heading.replaceWith(h1);}
   for(const close of cart.querySelectorAll('[data-close="'+cartId+'"]'))close.hidden=true;
   cart.addEventListener('cancel',event=>event.preventDefault());cart.show();cart.tabIndex=-1;cart.focus({preventScroll:true});if(performance.getEntriesByType('navigation')[0]?.type==='navigate')requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));

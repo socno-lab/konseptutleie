@@ -25,7 +25,7 @@ import {catalogIntroHtml} from './catalog-intro.js?v=usage20261028a';
 import {mountProductRentalPeriod,productPeriodState,periodChangeNotice} from './product-rental-period.js?v=choicesfirst20261119';
 import {setRentalPeriodImpact} from './mobile-rental-dates.js?v=period20261028e';
 import {sofaCardConfiguration} from './sofa-card-model.js?v=longrent20261026';
-import {mountEnquiryFlow} from './enquiry-flow.js?v=weekdays20261121';
+import {mountEnquiryFlow} from './enquiry-flow.js?v=purposeback20261122';
 import {mountSubmitSummary} from './enquiry-submit-summary.js?v=vat20261115b';
 import {packageLineRentalPrice} from './enquiry-price-model.js?v=longrent20261026';
 import {detailSelectionPrices} from './detail-price-model.js?v=longrent20261026';
@@ -46,7 +46,7 @@ import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=weekda
 import {decorExamples} from './decor-examples.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js?v=fest20261114';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=longrent20261026';
-import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=addressquote20261122';
+import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=purposeback20261122';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=choicesfirst20261119';
 import {moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';
 import {modulePhotoPreview} from './module-photo-preview.js?v=lagoon20261025';
@@ -406,9 +406,9 @@ function syncMobileCatalog(){
  el('mobileCategoryChoices').innerHTML=categoryButtons.map(b=>`<button type="button" data-mobile-filter="${html(b.dataset.filter)}" aria-pressed="${filter===b.dataset.filter}">${b.innerHTML}</button>`).join('');
  if(el('mobileUsageChoices'))el('mobileUsageChoices').innerHTML=usageButtons();
 }
-function rememberPurpose(){try{sessionStorage.setItem('konsept-purpose-v1',purpose);}catch{}}
+function rememberPurpose(){savedPurpose=purpose;try{sessionStorage.setItem('konsept-purpose-v1',purpose);}catch{}}
 function syncPurpose(){for(const b of document.querySelectorAll('[data-filter=Pakker]'))b.hidden=purpose==='boligsalg';syncRentalPurpose();syncMobileCatalog();for(const button of document.querySelectorAll('[data-purpose]'))button.setAttribute('aria-pressed',String(button.dataset.purpose===purpose));for(const button of document.querySelectorAll('[data-filter]')){const active=button.dataset.filter===filter;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}catalogUsage?.render();if(el('purposeSummary'))el('purposeSummary').textContent='Du ser utvalg for: '+(purpose==='alle'?'Alle bruksområder':purposes.find(p=>p.id===purpose).label);}
-function restorePurpose(){refinement=readRefinement(new URL(location.href).searchParams);const state=readPurposeState(location.href,isEnquiryPage&&el('occasion').value?purposeForOccasion(el('occasion').value):savedPurpose);purpose=state.purpose;filter=state.category==='Modulsofaer'?'Sofaer':(!catalogProducts.length||getSiteSettings().categories.some(c=>c.id===state.category)||['Alle','Enkeltprodukter'].includes(state.category))?state.category:'Alle';if(purpose==='boligsalg'&&filter==='Pakker')filter='Enkeltprodukter';el('search').value=state.query;tableFilter=state.category==='Modulsofaer'?'Modulsofaer':new URL(location.href).searchParams.get('underkategori')||'';rememberPurpose();syncPurpose();renderProducts();}
+function restorePurpose(){try{savedPurpose=sessionStorage.getItem('konsept-purpose-v1')||savedPurpose;}catch{}refinement=readRefinement(new URL(location.href).searchParams);const state=readPurposeState(location.href,isEnquiryPage&&el('occasion').value?purposeForOccasion(el('occasion').value):savedPurpose);purpose=state.purpose;filter=state.category==='Modulsofaer'?'Sofaer':(!catalogProducts.length||getSiteSettings().categories.some(c=>c.id===state.category)||['Alle','Enkeltprodukter'].includes(state.category))?state.category:'Alle';if(purpose==='boligsalg'&&filter==='Pakker')filter='Enkeltprodukter';el('search').value=state.query;tableFilter=state.category==='Modulsofaer'?'Modulsofaer':new URL(location.href).searchParams.get('underkategori')||'';rememberPurpose();syncPurpose();renderProducts();}
 function writePurpose(push=true){if(purpose==='boligsalg'&&filter==='Pakker')filter='Enkeltprodukter';rememberPurpose();if(products.length&&!availableSubcategories(products.filter(p=>matchesPurpose(p,purpose)),filter).includes(tableFilter))tableFilter='';const nextUrl=new URL(purposeUrl(location.href,{purpose,category:filter,query:el('search').value}),location.href);if(tableFilter)nextUrl.searchParams.set('underkategori',tableFilter);else nextUrl.searchParams.delete('underkategori');writeRefinement(nextUrl.searchParams,refinement);const url=nextUrl.pathname+nextUrl.search+nextUrl.hash;if(url!==location.pathname+location.search+location.hash)history[push?'pushState':'replaceState'](null,'',url);syncPurpose();renderProducts();}
 if(!el('rentalTableTypes'))el('utvalg').querySelector('.catalog-tools').insertAdjacentHTML('afterend','<div id="rentalTableTypes" class="catalog-subcategories" role="group" aria-label="Underkategorier" hidden></div>');
 el('rentalTableTypes').onclick=e=>{const button=e.target.closest('[data-table-type]');if(!button)return;tableFilter=button.dataset.tableType;writePurpose();};
