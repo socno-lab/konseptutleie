@@ -126,7 +126,7 @@ test('locked date overrides cannot create a conflicting weekend quote',async()=>
 
 test('styling weekend explains Friday/Monday transport and unchanged lease price; other uses hide it',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');ui.choose(1);
- assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/fredag 1\. november/);assert.match(ui.weekdayNotice.innerHTML,/mandag 4\. november/);assert.match(ui.pickupTimeNote.textContent,/Levering og henting skjer normalt kl\. 08\.00–12\.00/);assert.match(ui.weekdayNotice.innerHTML,/ingen ekstra leiekostnad/);
+ assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/Vi leverer og henter mandag til fredag\. Derfor foreslår vi levering fredag 1\. november og henting mandag 4\. november/);assert.doesNotMatch(ui.weekdayNotice.innerHTML,/08\.00–12\.00/);assert.match(ui.pickupTimeNote.textContent,/Levering og henting skjer normalt kl\. 08\.00–12\.00/);assert.match(ui.weekdayNotice.innerHTML,/ingen ekstra leiekostnad/);
  ui.choose(0);assert.equal(ui.weekdayNotice.hidden,false);assert.match(ui.weekdayNotice.innerHTML,/Retur på hverdager/);ui.choose(1);ui.occasion('Messe og stand');assert.equal(ui.weekdayNotice.hidden,true);
 });
 
