@@ -37,7 +37,8 @@ async function mountedDelivery(){
  await new Promise(resolve=>setImmediate(resolve));
  const summary=()=>JSON.parse(JSON.stringify(context.rentalDeliverySummary()));
  const fire=(name,target)=>{for(const callback of formListeners[name]||[])callback({target});};
- return {summary,requests,events,radios,document,address,postalCode,prices,status,weekdayNotice,labels,
+ return {summary,requests,events,radios,document,address,postalCode,prices,status,weekdayNotice,labels,transportInputs,
+  scheduled:()=>[...timers.values()].some(timer=>timer.delay===1800),
   occasion(value){fields.occasion.value=value;fields.occasion.name="occasion";fire("change",fields.occasion);},
   period(start,end){fields.start.value=start;fields.end.value=end;fields.start.name="start";fire("change",fields.start);},
   editTransport(name,value){const field=transportInputs[name];field.name=name;field.value=value;fire("change",field);},
@@ -64,7 +65,7 @@ test('summary uses current crew, visits and capacity instead of a stale rendered
  assert.equal(ui.requests.filter(request=>request.init?.method==='POST').length,1,'crew/visit changes reuse a current route quote without new Google calls');
 });
 
-test('mobile address editing invalidates the summary immediately while preserving focus and deferred routing',async()=>{
+test('mobile address editing invalidates the summary immediately while preserving focus',async()=>{
  const ui=await mountedDelivery();ui.emit({chair:1});ui.choose(1);await ui.calculate();
  const requests=ui.requests.length,events=ui.events.length;ui.editing(true);ui.editAddress('Annen testvei 2');
  assert.equal(ui.summary().total,null);assert.equal(ui.document.activeElement,ui.address);
@@ -151,4 +152,39 @@ test('styling Friday to Sunday sets Monday collection before showing the pending
  const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-01','2030-11-03');ui.choose(1);
  assert.equal(ui.prices[1].innerHTML,'Beregner …');assert.equal(ui.status.textContent,'Beregner transportpris …');assert.equal(ui.weekdayNotice.hidden,false);
  await ui.calculate();const request=JSON.parse(ui.requests.find(r=>r.init?.method==='POST').init.body);assert.equal(request.pickupDate,'2030-11-04');assert.equal(request.deliveryDate,'2030-11-01');assert.equal(ui.summary().total,1380);
+});
+
+
+test('complete address prefetches all weekday prices before choosing transport',async()=>{
+ const ui=await mountedDelivery();ui.editAddress('');ui.emit({chair:1});assert.equal(ui.scheduled(),false);
+ ui.editAddress('Testveien 1');assert.equal(ui.scheduled(),true);assert.equal(ui.radios[0].checked,true);
+ await ui.calculate();assert.match(ui.prices[1].innerHTML,/1.?380/);assert.match(ui.prices[2].innerHTML,/690/);assert.match(ui.prices[3].innerHTML,/690/);
+ assert.equal(ui.summary().total,0);assert.equal(ui.radios[0].checked,true);assert.equal(ui.weekdayNotice.hidden,true);
+ ui.choose(1);assert.equal(ui.summary().total,1380);assert.equal(ui.scheduled(),false);assert.equal(ui.requests.filter(r=>r.init?.method==='POST').length,1);
+});
+
+test('prefetch resolves styling Friday/Monday dates without exposing date fields',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.occasion('Boligfoto og visning');ui.period('2030-11-02','2030-11-03');await ui.calculate();
+ const request=JSON.parse(ui.requests.find(r=>r.init?.method==='POST').init.body);assert.equal(request.mode,'delivery');assert.equal(request.deliveryDate,'2030-11-01');assert.equal(request.pickupDate,'2030-11-04');assert.equal(ui.radios[0].checked,true);
+ ui.choose(1);assert.equal(ui.summary().total,1380);assert.equal(ui.weekdayNotice.hidden,false);
+});
+
+test('event weekend never prefetches a misleading weekday tariff from self pickup dates',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-02','2030-11-03');assert.equal(ui.scheduled(),false);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.prices[2].innerHTML,'Må beregnes');assert.equal(ui.requests.filter(r=>r.init?.method==='POST').length,0);
+});
+
+test('mixed weekday/weekend event prefetches only the eligible weekday alternative',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');await ui.calculate();
+ const request=JSON.parse(ui.requests.find(r=>r.init?.method==='POST').init.body);assert.equal(request.mode,'deliveryOnly');assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.equal(ui.prices[3].innerHTML,'Må beregnes');assert.match(ui.prices[2].innerHTML,/690/);
+});
+
+test('mobile address debounce can prefetch without changing focus or selected transport',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.editing(true);ui.editAddress('Ny testvei 2');await ui.calculate();assert.equal(ui.document.activeElement,ui.address);assert.equal(ui.radios[0].checked,true);assert.equal(ui.summary().total,0);
+ ui.editing(false);assert.match(ui.prices[1].innerHTML,/1.?380/);assert.equal(ui.scheduled(),false);
+});
+
+
+test('prefetching a weekday leg preserves the selected weekend transport notice',async()=>{
+ const ui=await mountedDelivery();ui.emit({chair:1});ui.period('2030-11-01','2030-11-03');ui.choose(1);
+ assert.equal(ui.status.className,'information-box');assert.match(ui.status.innerHTML,/Transport i helgen må avtales/);assert.notEqual(ui.status.textContent,'Beregner transportpris …');await ui.calculate();assert.equal(ui.summary().total,null);assert.equal(ui.prices[1].innerHTML,'Må beregnes');assert.match(ui.prices[2].innerHTML,/690/);
 });
