@@ -55,7 +55,7 @@ export async function readHtmlTemplate(name,base=root){
  if(/<span id="(?:count|saleCount)">/.test(html))html=html.replace('</head>','<script src="/cart-badge-bootstrap.js?v=cartfirstpaint20261026"></script></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=labelalign20261119"><script type="module" src="/header-tools.js?v=choicesfirst20261119"></script><script type="module" src="/mobile-navigation.js?v=fest20261114"></script><link rel="stylesheet" href="/cart-addons.css?v=quantitymatch20261115"><link rel="stylesheet" href="/service-detail.css?v=choicesfirst20261119"></head>');
  if(['index.html','utvalg.html','kjop.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/catalog-refinements.css?v=compactsort20261119c"></head>');
- if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=purposeinline20261122"></head>');
+ if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=vatright20261122"></head>');
  if(['index.html','utvalg.html','anledning.html','leieprodukt.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/rental-status.css?v=rented20261029b"></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/primary-navigation.css?v=proposalhover20261115"><script defer src="/primary-navigation.js?v=20261108b"></script></head>');
  html=html.replace('</head>','<link rel="stylesheet" href="/price-display.css?v=vatcarttop20261115"><script src="/price-display-first.js?v=mobilefirst20261119"></script></head>');
