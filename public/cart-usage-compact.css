@@ -115,6 +115,13 @@
 #enquiryPage .enquiry-final .enquiry-submit-summary{margin:8px 0 0;padding:0;background:none}
 #enquiryPage .enquiry-final-send{min-width:0}
 #enquiryPage .enquiry-final-send .customer-acceptance{margin:0 0 10px}
+#enquiryPage .enquiry-final-send .customer-acceptance:has(.enquiry-field-error){
+ display:grid!important;
+ grid-template-columns:auto minmax(0,1fr);
+ align-items:start;
+ gap:3px 10px;
+}
+#enquiryPage .enquiry-final-send .customer-acceptance > .enquiry-field-error{grid-column:2;grid-row:2}
 #enquiryPage .enquiry-final-send [type=submit]{width:100%;justify-content:center}
 #enquiryPage .enquiry-final-send .demo-info{margin:8px 0 0;padding:0;border:0;background:none}
 
