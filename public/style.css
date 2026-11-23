@@ -908,5 +908,5 @@ body>main.proposal-main{padding-bottom:32px;margin-bottom:0}
 /* Approved desktop catalogue heading alignment, 23 November 2026. */
 @media(min-width:641px){
  .catalog-page #utvalg>.section-head :is(h1,h2){margin-bottom:0}
- .catalog-page #utvalg>.section-head>#catalogIntro{margin:0}
+ .catalog-page #utvalg>.section-head>#catalogIntro{margin:0;padding-bottom:6px}
 }

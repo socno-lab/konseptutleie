@@ -290,7 +290,7 @@ Fokusrammer bruker profilens grønne `--olive`, også i gallerier og admin. Brun
 
 Eier har uttrykkelig godkjent disse løsningene som designstandard. Denne seksjonen erstatter tidligere beskrivelser av leieforespørselens oppsett der de er i konflikt.
 
-På desktop flukter underkanten av katalogens innledning til høyre med underkanten av hovedoverskriften til venstre. Overskrift og innledning har ingen ekstra bunnmarg inne i den felles raden. Feltet «Hva skal du bruke møblene til?» følger under med radens ordinære avstand. Dette gjelder alle kategorier og bruksområder i leiekatalogen. Mobil følger sitt eksisterende kompakte oppsett.
+På desktop flukter underkanten av katalogens innledning til høyre med underkanten av hovedoverskriften til venstre. Overskrift og innledning har ingen ekstra bunnmarg inne i den felles raden. Innledningen har 6 px innvendig bunnavstand på desktop for å justere den synlige teksten mot overskriftens underkant. Like underkanter på tekstboksene alene er ikke tilstrekkelig. Feltet «Hva skal du bruke møblene til?» følger under med radens ordinære avstand. Dette gjelder alle kategorier og bruksområder i leiekatalogen. Mobil følger sitt eksisterende kompakte oppsett.
 
 Leieforespørselen bruker den godkjente enkeltsiden:
 - Tittel og kort innledning etterfulgt av grønn samlet oversikt for leieperiode og formål. Feltene står ved siden av hverandre på desktop og under hverandre på mobil. «Helt uforpliktende» vises bare på desktop.

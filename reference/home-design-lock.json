@@ -1,6 +1,6 @@
 {
   "approved": "2026-10-23",
-  "reason": "Bruker godkjente opprinnelig overskrift og korrigert responsiv kortvisning. 23.11.2026: Eier godkjente bunnjustering av katalogens overskrift og innledning på desktop. Kun katalogsidens desktopregel endres. Kontrollert ved 320, 390 og 1440 px. Mobil har identiske koordinater før/etter og ingen horisontal scrolling.",
+  "reason": "Bruker godkjente opprinnelig overskrift og korrigert responsiv kortvisning. 23.11.2026: Eier godkjente bunnjustering av katalogens overskrift og innledning på desktop. Kun katalogsidens desktopregel endres. Kontrollert ved 320, 390 og 1440 px. Mobil har identiske koordinater før/etter og ingen horisontal scrolling. Synlig tekst er etterkontrollert pikselvis og innledningen løftet ytterligere 6 px for optisk bunnjustering.",
   "mobile": {
     "viewport": 390,
     "columns": 2,
@@ -12,7 +12,7 @@
     "imageAspectRatio": 1.6
   },
   "fingerprints": {
-    "shared-styles": "fe43dcdda72470935eb4edf4c59dec1a2988fee6c9af35c694cf0dc7f61295fd",
+    "shared-styles": "4db3d86ec845b67caa65145f4cef2866ca53a146086bc3b82c0c35e332a6a11c",
     "commerce-styles": "86a2306765b53db23579e396aaafbe0e1632b038e7b175ca3a7b55a5bd8e1dd0",
     "home-hero": "7ea9347370666a220397d875eac915913ce1244cdea28c53b48483b79dc54dcd",
     "rendered-home-hero": "7ea9347370666a220397d875eac915913ce1244cdea28c53b48483b79dc54dcd",
