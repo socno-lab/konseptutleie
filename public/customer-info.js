@@ -199,8 +199,8 @@ function mountRentalDelivery(form){
  const choiceLegs=choice=>choice===choices[1]?legs:choice===choices[2]?['delivery']:choice===choices[3]?['pickup']:[];
  const overrideFor=leg=>{
   const active=choiceLegs(selected());
+  if(active.length===2)return fieldFor('deliveryOverride')?.checked?'delivery':'';
   if(active.includes(leg)&&fieldFor(leg+'Override')?.checked)return leg;
-  if(leg==='pickup'&&active.length===2&&fieldFor('deliveryOverride')?.checked)return 'delivery';
   return '';
  };
  const addressFor=leg=>{
@@ -208,20 +208,7 @@ function mountRentalDelivery(form){
   return override?fieldFor(override+'Address').value.trim():completeAddress(form);
  };
  const complete=value=>/^.{3,},?\s+[0-9]{4}\b[\s,]+\S.{1,}$/u.test(value);
- const pickupField=fieldFor('pickupAddress');
- let pickupDetails,pickupSummary,pickupEdit,pickupHome;
- if(pickupField){
-  pickupHome=pickupField.closest('label').parentElement;
-  pickupDetails=document.createElement('div');
-  pickupDetails.innerHTML='<span class="hint"></span> <button type="button" class="text-button">Endre henteadresse</button>';
-  pickupSummary=pickupDetails.querySelector('span');
-  pickupEdit=pickupDetails.querySelector('button');
-  pickupEdit.addEventListener('click',()=>{
-   const toggle=fieldFor('pickupOverride');
-   toggle.checked=!toggle.checked;
-   toggle.dispatchEvent(new Event('change',{bubbles:true}));
-   if(toggle.checked)pickupField.focus();
-  });
+ if(fieldFor('pickupAddress')){
   form.addEventListener('formdata',event=>{
    for(const leg of legs){
     if(!purchaseOnly()&&choiceLegs(selected()).includes(leg))event.formData.set(leg+'Address',addressFor(leg));
@@ -232,20 +219,12 @@ function mountRentalDelivery(form){
  const syncAddresses=()=>{
   const activeLegs=purchaseOnly()?[]:choiceLegs(selected());
   const both=activeLegs.length===2;
-  if(pickupDetails){
-   pickupDetails.hidden=!both;
-   const parent=both?pickupDetails:pickupHome,label=pickupField.closest('label');
-   if(label.parentElement!==parent)parent.append(label);
-   pickupSummary.textContent=both&&complete(addressFor('pickup'))?'Henteadresse: '+addressFor('pickup'):'';
-   pickupEdit.textContent=fieldFor('pickupOverride').checked?'Bruk samme adresse som ved levering':'Endre henteadresse';
-   pickupEdit.setAttribute('aria-expanded',String(fieldFor('pickupOverride').checked));
-  }
   for(const leg of legs){
    const field=fieldFor(leg+'Address');
    if(!field)continue;
    const toggle=fieldFor(leg+'Override'),relevant=activeLegs.includes(leg);
    toggle.closest('label').hidden=!relevant||(leg==='pickup'&&both);
-   const editing=relevant&&toggle.checked;
+   const editing=relevant&&!(leg==='pickup'&&both)&&toggle.checked;
    field.closest('label').hidden=!editing;field.disabled=!editing;field.required=editing;
    field.setCustomValidity(editing&&!complete(field.value.trim())?'Oppgi gateadresse, postnummer og poststed.':'');
   }
@@ -275,7 +254,7 @@ function mountRentalDelivery(form){
  const capacity=()=>rentalDeliveryCapacity(deliverySelection?.basket||{},deliverySelection?.products||[],deliverySelection?.customRequest===true);
  const updated=()=>document.dispatchEvent?.(new Event('rental-delivery-updated'));
  const preserveChoiceHeight=()=>{const labels=[...group.querySelectorAll('[name=delivery]')].map(radio=>radio.closest('label'));const height=Math.max(0,...labels.filter(label=>!label.hidden&&!String(label.className).includes('has-route-credit')).map(label=>label.getBoundingClientRect?.().height||0));if(height)for(const label of labels)label.style.minHeight=height+'px';};
- const choiceDetails=document.createElement('div');choiceDetails.className='rental-delivery-details';choiceDetails.append(transportFields,weekdayNotice,result,pickupTimeNote);if(pickupDetails)transportFields.after(pickupDetails);let detailsAnchor=null;
+ const choiceDetails=document.createElement('div');choiceDetails.className='rental-delivery-details';choiceDetails.append(transportFields,weekdayNotice,result,pickupTimeNote);let detailsAnchor=null;
  const placeChoiceDetails=()=>{const anchor=group.querySelector('[name="delivery"]:checked')?.closest('label');if(anchor&&anchor!==detailsAnchor){anchor.after(choiceDetails);detailsAnchor=anchor;}};
  deliverySummaryProvider=()=>{
   const load=capacity(),choice=selected(),unknown=label=>({total:null,included:false,label});
