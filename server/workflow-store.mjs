@@ -1,3 +1,4 @@
+import {queueTransportCalendar} from './transport-calendar.mjs';
 import {invoiceReminderEvents} from './invoice-reminder.mjs';
 import {confirmationChanges,confirmationBaseline} from './confirmation-changes.mjs';
 import {canConfirmReturn} from '../public/admin/return-eligibility.js';
@@ -18,7 +19,11 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  async function records(){const source=await sync();const [rows]=await pool.execute('SELECT body FROM ku_workflow');return rows.map(row=>{const r=JSON.parse(row.body),original=source.get(r.id);r.customerType=r.customerType||original?.customerType||'consumer';r.lines=r.lines.map(l=>{const old=original?.lines.find(x=>x.id===l.originalId&&x.key===l.key);return {...l,...(l.originalTotal==null&&old?.total!=null?{originalTotal:old.total,originalQuantity:old.quantity}:{})};});return r.deliveryMode?r:{...r,deliveryMode:original?.deliveryMode||'undecided',deliveryAddress:original?.deliveryAddress||'',pickupTime:r.pickupTime||'',returnTime:r.returnTime||''};});}
  return {
  workflowRecords:records,
- async recordWorkflowMailSent(id,now){await init();const c=await pool.getConnection();try{await c.beginTransaction();await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');for(const row of rows){const r=JSON.parse(row.body),h=r.history.find(h=>h.id===id);if(h&&!h.sentAt){h.sentAt=new Date(now).toISOString();r.revision++;await c.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(r),r.id]);break;}}await c.commit();}catch(error){await c.rollback();throw error;}finally{c.release();}},
+ async recordWorkflowMailSent(id,now,channel){await init();const c=await pool.getConnection();try{await c.beginTransaction();await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');if(channel){
+ const [result]=await c.execute("UPDATE ku_enquiry_mail SET status='sent',next_at=?,lease_until=0 WHERE submission_id=? AND channel=? AND status='sending'",[now+300000,id,channel]);
+ if(!result.affectedRows){await c.commit();return;}
+ }
+ const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');for(const row of rows){const r=JSON.parse(row.body),h=r.history.find(h=>h.id===id);if(h&&!h.sentAt){if(h.type==='confirmation'&&r.status==='confirmed')await queueTransportCalendar(c,r,h,now);h.sentAt=new Date(now).toISOString();r.revision++;await c.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(r),r.id]);break;}}await c.commit();}catch(error){await c.rollback();throw error;}finally{c.release();}},
  async queueWorkflowReminders(now=Date.now()){
  await init();const c=await pool.getConnection();try{await c.beginTransaction();
  await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
@@ -55,7 +60,7 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
  const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');
  for(const row of rows){const r=JSON.parse(row.body);if(!workflowExpired(r,now))continue;
- for(const id of new Set([r.id,...(r.history||[]).map(h=>h.id)])){
+ for(const id of new Set([r.id,...(r.history||[]).flatMap(h=>[h.id,...(h.calendarJobIds||[])])])){
  await c.execute('DELETE FROM ku_enquiry_mail WHERE submission_id=?',[id]);
  await c.execute('DELETE FROM ku_enquiries WHERE id=?',[id]);
  await c.execute('DELETE FROM ku_submissions WHERE id=?',[id]);
@@ -105,6 +110,7 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  await c.execute("INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,'customer',?)",[messageId,Date.now()]);
  }
  if(action==='cancel')for(const h of current.history){const [[job]]=await c.execute('SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel=\'customer\' FOR UPDATE',[h.id]);if(job?.status==='sending')fail('E-posten sendes nå. Vent til sendestatus er avklart før avbestilling.');await c.execute("UPDATE ku_enquiry_mail SET status='cancelled' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[h.id]);}
+ if(action==='cancel'&&current.status==='confirmed'){const issued=next.history.filter(h=>h.calendarVisits?.length).at(-1);if(issued)await queueTransportCalendar(c,next,issued,Date.now(),true);}
  await c.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(next),id]);await c.commit();return next;
  }catch(e){await c.rollback();throw e;}finally{c.release();}},
  async offerAcceptance(token,accept=false,selections={}){

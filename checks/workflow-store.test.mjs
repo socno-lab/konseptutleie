@@ -8,6 +8,7 @@ function fixture(catalog=[product]){
  const make=id=>({...workflowRecord({id,company:'Testbedrift',email:'test@example.invalid',kind:'rental',address:'Testveien 1, 2010 Strømmen',receivedAt:'2026-11-20',facts:[['Ønsket leieperiode','2026-12-05 til 2026-12-06']],lines:[{id:'chair',name:'Stol',quantity:2,total:400}],delivery:{total:0}}),status:'accepted',lines:[{key:'0',id:'chair',name:'Stol',originalId:'chair',originalName:'Stol',quantity:2,total:400,review:'ok',image:''}],changeReason:'',history:[{id:'offer-'+id,type:'offer'}]});
  let state={records:[make('a'),make('b')],settings:structuredClone(defaultSettings),jobs:[],enquiries:[]},failQueue=false,tail=Promise.resolve();
  const execute=async(db,sql,args=[])=>{
+  if(sql==='SELECT body FROM ku_enquiries WHERE id=?')return [db.enquiries.filter(e=>e.id===args[0]).map(e=>({body:JSON.stringify(e.snapshot)}))];
   if(sql==='SELECT body FROM ku_enquiries')return [db.enquiries.map(e=>({body:JSON.stringify(e.snapshot)}))];
   if(sql.startsWith('INSERT IGNORE INTO ku_workflow')){if(!db.records.some(r=>r.id===args[0]))db.records.push(JSON.parse(args[1]));return [{}];}
   if(sql==='SELECT body FROM ku_site_settings WHERE id=1')return [[{body:JSON.stringify(db.settings)}]];
@@ -175,4 +176,19 @@ test('replacement reason stays consistent across updated offers, first confirmat
   const updated=await send('confirmation',r);assert.equal(/ikke tilgjengelig i ønsket antall/.test(updated.preview.text),missing);assert.match(updated.preview.text,missing?/Alternativ stol er dessverre/:/Vi har byttet Alternativ stol/);
   assert.equal(updated.saved.history.at(-1).document.confirmationChanges.rows[0][0].label,missing?'Erstatning ved mangel':'Byttet vare');assert.equal(updated.saved.requirements[0].id,replacement.id);
  }
+});
+
+test('sent confirmations queue internal calendar requests once, update the changed leg and cancel both',async()=>{
+ const f=fixture(), calendar=()=>f.state.enquiries.map(e=>e.snapshot).filter(s=>s.documentType==='transport_calendar');
+ const first=await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);
+ const sent=record=>f.store.recordWorkflowMailSent(record.history.at(-1).id,Date.now());
+ assert.equal(calendar().length,0);
+ await sent(first);await sent(first);
+ assert.deepEqual(calendar().map(s=>[s.method,s.event.phase,s.sequence]),[['REQUEST','outbound',0],['REQUEST','return',0]]);
+ const revised=await f.store.changeWorkflow('a',await input(f,'a',{pickupDate:'2026-12-08',changeReason:'Ny hentedato'}),'confirmation',[product]);
+ await sent(revised);
+ assert.deepEqual(calendar().slice(2).map(s=>[s.event.phase,s.event.date,s.sequence]),[['return','2026-12-08',1]]);
+ await f.store.changeWorkflow('a',f.state.records[0],'cancel',[product]);
+ assert.deepEqual(calendar().slice(3).map(s=>[s.method,s.event.phase,s.sequence]),[['CANCEL','outbound',1],['CANCEL','return',2]]);
+ assert.ok(calendar().every(s=>f.state.jobs.find(j=>j.id===s.id).channel==='internal'));
 });
