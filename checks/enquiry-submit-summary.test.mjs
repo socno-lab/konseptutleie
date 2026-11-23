@@ -90,3 +90,15 @@ test('purchase forms with an implicit submit button receive the same summary',()
  const {form,button}=documentFixture(false);mountSubmitSummary(form).update(state({mode:'purchase',needsDates:false}));
  assert.equal(form.children.length,2);assert.equal(form.children[1],button);assert.match(form.children[0].textContent,/Beregnet kjøpesum/);
 });
+
+test('pending transport shows discounted goods plus transport only when the goods price is complete',()=>{
+ const delivery={total:null,status:'address',addressField:'pickupAddress'};
+ const result=submitSummaryModel(state({discount:discount(),delivery}));
+ assert.deepEqual(result.rows.at(-1),{label:'Transport',value:'Fyll inn adresse for å se pris',addressField:'pickupAddress'});
+ assert.equal(result.pendingTotal,'900 kr + transport');
+ assert.equal(result.total,null);
+ assert.equal(submitSummaryModel(state({delivery,hasUnpriced:true})).pendingTotal,'Avklares i tilbudet');
+ for(const [status,text] of [['calculating','Beregner transportpris …'],['manual','Prises i tilbudet'],['undecided','Avklares i tilbudet']]){
+  assert.equal(submitSummaryModel(state({delivery:{total:null,status}})).rows.at(-1).value,text);
+ }
+});

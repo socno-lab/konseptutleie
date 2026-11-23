@@ -282,14 +282,24 @@ function mountRentalDelivery(form){
   // Mirror the effective choice even when mobile contact editing defers DOM updates.
   if(purchaseOnly())return choice[0]===choices[2][0]?unknown('Ønsker levering'):{total:0,included:false,label:'Henter selv etter avtale'};
   if(load.includedOnly)return {total:0,included:true,label:'Levering og henting inkludert i fastprisen'};
-  if(load.manual&&choice[2]!==0)return unknown('Transport avklares i tilbudet');
+  if(load.manual&&choice[2]>0)return {...unknown('Transport avklares i tilbudet'),status:'manual'};
   const currentChoice=wasLocked?(choices.find(([value])=>value===previousChoice)||choices[0]):choice;
   if(currentChoice[2]===0)return {total:0,included:false,label:currentChoice[1]};
   if(currentChoice[2]===null)return unknown(currentChoice[1]);
-  if(transportPolicy().manual)return unknown('Transport må beregnes i tilbudet');
+  const policy=transportPolicy();
+  if(policy.manual)return {...unknown('Transport må beregnes i tilbudet'),status:policy.reason==='dates'?'dates':'manual'};
   const crew=requiresTwoPeople(deliverySelection?.basket||{},deliverySelection?.products||[])?'twoPeople':'onePerson';
   const quote=quoteFor(currentChoice,crew);
-  return Number.isFinite(quote?.total)?{total:quote.total,included:false,label:currentChoice[1]}:unknown(currentChoice[1]);
+  if(Number.isFinite(quote?.total))return {total:quote.total,included:false,label:currentChoice[1]};
+  const pending=unknown(currentChoice[1]);
+  if(quote?.manual||enabled===false||Date.now()<retryAfter)return {...pending,status:'manual'};
+  const missing=choiceLegs(currentChoice).find(leg=>!readyFor(leg));
+  if(missing){
+   const override=overrideFor(missing);
+   const field=override?override+'Address':address.value.trim().length<3?'address':!/^\d{4}$/.test(fieldFor('postalCode').value)?'postalCode':'postalCity';
+   return {...pending,status:'address',addressField:field};
+  }
+  return {...pending,status:'calculating'};
  };
  const render=()=>{
   try{
@@ -331,7 +341,7 @@ function mountRentalDelivery(form){
   }finally{syncAddresses();placeChoiceDetails();updated();}
  };
  const schedule=()=>{
-  clearTimeout(timer);syncTransportDates();const key=addressKey();
+  clearTimeout(timer);syncTransportDates();syncAddresses();const key=addressKey();
   if(pendingKey&&pendingKey!==key){revision++;controller?.abort();pendingKey='';}
   if(purchaseOnly()||!routeOptions()||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
   if(editingContact()){deferredDelivery=true;updated();}else render();

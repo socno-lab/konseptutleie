@@ -19,7 +19,10 @@ export function submitSummaryModel({mode='rental',hasItems=false,needsDates=fals
  if(gross!==null&&(gross>0||!partial))rows.push({label:partial?'Delpris for prisede varer':goodsLabel,value:gross});
  if(missingDates)rows.push({label:'Leieperiode',value:'Velg datoer'});
  if(validDiscount)rows.push({label:'Rabatt · '+discount.code,value:-reduction});
- rows.push({label:'Transport',value:delivery.included===true?'Inkludert':transport===null?'Avklares i tilbudet':transport});
+ const statuses={address:'Fyll inn adresse for å se pris',calculating:'Beregner transportpris …',manual:'Prises i tilbudet',dates:'Velg leieperiode for å se pris'};
+ rows.push({label:'Transport',value:delivery.included===true?'Inkludert':transport===null?(statuses[delivery.status]||'Avklares i tilbudet'):transport,...(transport===null&&delivery.status==='address'?{addressField:delivery.addressField}:{})});
+ const showGoodsTotal=transport===null&&acquisition!=='purchase'&&gross!==null&&!partial&&!pending;
+ const pendingTotal=showGoodsTotal?money(round(gross-(validDiscount?reduction:0)))+' + transport':'Avklares i tilbudet';
  const total=gross===null||missingDates||unknownPrices||transport===null||pending?null:round(gross-(validDiscount?reduction:0)+transport);
  const label=acquisition==='rental'?'Totalpris':receiptTotalLabel({acquisition,delivery:{total:transport,label:delivery.included===true?'Transport inkludert':delivery.label||''}});
  const notes=['Alle priser er inkl. mva. Forespørselen er uforpliktende.'];
@@ -32,7 +35,7 @@ export function submitSummaryModel({mode='rental',hasItems=false,needsDates=fals
  if(pending)notes.push('Rabattkoden kontrolleres.');
  else if(discount?.code&&!validDiscount)notes.push('Rabatt er ikke trukket fra; koden må avklares.');
  if(stylist)notes.push('Styling er ikke inkludert og prises separat i tilbudet.');
- return {hidden:!hasItems,rows,label,total,note:notes.join(' ')};
+ return {hidden:!hasItems,rows,label,total,pendingTotal,note:notes.join(' ')};
 }
 
 const mounted=new WeakMap();
@@ -44,20 +47,29 @@ export function mountSubmitSummary(form){
  section.className='enquiry-submit-summary';section.hidden=true;
  section.setAttribute('aria-label','Prisoppsummering');section.setAttribute('aria-live','polite');
  button.parentNode.insertBefore(section,button);
- function row(label,value,total=false,fixed=''){
+ function row(label,value,total=false,fixed='',addressField){
   const line=doc.createElement('div'),name=doc.createElement('span'),price=doc.createElement('span');
   line.className=total?'enquiry-submit-summary-total':'enquiry-submit-summary-row';
   price.className='enquiry-submit-summary-value';name.textContent=label;
   if(typeof value==='number'){price.setAttribute('data-price-gross',String(value));if(fixed)price.setAttribute('data-price-fixed',fixed);}
   price.textContent=typeof value==='number'?money(value):value;
+  if(addressField){
+   const link=doc.createElement('button');
+   link.type='button';link.className='text-button';link.textContent=value;
+   link.addEventListener('click',()=>{
+    const field=form.elements.namedItem(addressField);
+    field?.focus({preventScroll:true});field?.scrollIntoView({block:'center'});
+   });
+   price.replaceChildren(link);
+  }
   line.append(name,price);return line;
  }
  const api={update(state){
   const model=submitSummaryModel(state);section.hidden=model.hidden;section.replaceChildren();
   if(!model.hidden){
-   for(const item of model.rows)section.append(row(item.label,item.value));
+   for(const item of model.rows)section.append(row(item.label,item.value,false,'',item.addressField));
    if(model.total!==null){for(const [label,fixed] of [['Sum ekskl. mva.','net'],['Mva. (25 %)','vat']]){const line=row(label,model.total,false,fixed);line.setAttribute('data-price-detail','');section.append(line);}}
-   section.append(row(model.label+' inkl. mva.',model.total===null?'Avklares i tilbudet':model.total,true,'gross'));
+   section.append(row(model.label+' inkl. mva.',model.total??model.pendingTotal,true,'gross'));
    const note=doc.createElement('p');note.className='enquiry-submit-summary-note';note.textContent=model.note.replace(/Beregnet leie er [^.]+\. /,'').replace('Alle priser er inkl. mva.','Vare- og transportlinjer vises inkl. mva. Totalprisen er alltid inkludert merverdiavgift.');section.append(note);
   }
   return model;
