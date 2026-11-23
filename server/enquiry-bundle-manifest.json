@@ -22,6 +22,7 @@
     "public/catalog-image-bounds.js": "8817a39542a960971e610422991cf5978b1b5053b29102513542a1e70c362b13",
     "public/catalog-image-framing.js": "1558c96770ebe9bbd703cc438a5ef5eb1b6debd05aeb3c0395a6a7e1052a1687",
     "public/catalog-intro.js": "a6476fe06caaa9bc272b6881778234d4eea32c9dfcd19a93f03b098bcacf2061",
+    "public/catalog-link-target.js": "bb5af6a6a1e7f17d753d449fc5f8080a37fe7212d05bea56f7f32a49dc01a949",
     "public/catalog-manual-order.js": "e45ea33c57ed6dc59cb9fcb2603fe55c017ba4107be5e9a86de24b54393b1e54",
     "public/catalog-model.js": "f3b09edd83e1f0957e72e382cb6f95c4593224fc1967f6ddfab0148f3364e020",
     "public/catalog-order-model.js": "033ed2307541147cfe654bb2d68c71f1b32441e44216301d21b636b209b2817c",
@@ -90,7 +91,7 @@
     "public/product-illustration.js": "4b0e248efd605cea3f1646aa785f6f004d96815665fb7f40663e720d2193adfb",
     "public/product-image-loading.js": "3049be5fa0d1f17a34ba6e6a6d2b41844197341304da53c5913570145c7bd793",
     "public/product-page-model.js": "01d129d98c2235d3b5335aaf385931759bcc729864662f1b20db29ca9d4fcea0",
-    "public/product-pages.js": "78beeef20e60a90ac0d642c64dcaa3391c5cfcbc2310e30c4017869e30ea03f7",
+    "public/product-pages.js": "132c78c71cb0d2f25fd881724c1080667854a979613cdfda336fbc2edcc556b5",
     "public/product-period-markup.js": "9cda691907f1a6124bc982c193776999a4a27b2f59b97e6316c92a5a452e7643",
     "public/product-recommendations.js": "19b8ffce1c88e5cf512fbbc10a8346032f1a860a8ed7dc37cc229e4730696d30",
     "public/product-rental-period.js": "d0605b00d8120ad12a1bcd13de76e5a9060b61c23cbe0be5c129680c9ba23972",
@@ -135,5 +136,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "public/weekend-rental.js": "5d650c1f38af7850221ed60719b403f31650eef9f9aebdd73cbd5da11bdbc955"
   },
-  "digest": "0a4e038f73940cc266c9e666188852ae566e697eb701e1d585d0bd2d7b883480"
+  "digest": "5a2fa20b282282bef95b67355ba39952e957d046016816f884bbf0ce4a81bdc9"
 }

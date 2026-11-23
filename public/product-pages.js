@@ -1,3 +1,4 @@
+import {catalogLinkTarget} from './catalog-link-target.js';
 import {catalogPositionKey} from './catalog-position.js?v=launch20261024';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {renderRecommendations} from './product-recommendations.js?v=choicesfirst20261119';
@@ -113,13 +114,13 @@ export function installProductLinks(mode,getProducts,getContext=()=>({})){
  const scan=()=>{queued=false;const products=getProducts();if(!products.length)return;
   for(const button of document.querySelectorAll('button[data-product],button[data-detail],button[data-build],button[data-rental-colour],#products button[data-wall]')){
    if(button.closest('dialog,.product-page-surface'))continue;
-   const id=button.dataset.product||button.dataset.detail||button.dataset.rentalColour||products.find(p=>p.moduleSeries===button.dataset.build)?.id||products.find(p=>button.dataset.wall&&p.wallGroup===button.dataset.wall)?.id;if(!products.some(p=>p.id===id))continue;
+   const id=catalogLinkTarget(button.dataset,products);if(!products.some(p=>p.id===id))continue;
    const link=document.createElement('a');for(const attr of button.attributes)if(!['type','aria-pressed'].includes(attr.name))link.setAttribute(attr.name,attr.value);link.href=productLink(id,mode,getContext());link.dataset.productLink='';link.append(...button.childNodes);button.replaceWith(link);
   }
   // Keep first-paint rental links tied to the exact current filter/return URL.
   // Their final card geometry is already present, so no elements move here.
   if(mode==='rent')for(const link of document.querySelectorAll('a[data-rental-catalog-link]')){
-   const id=link.dataset.detail||link.dataset.rentalColour||products.find(p=>p.moduleSeries===link.dataset.build)?.id||products.find(p=>link.dataset.wall&&p.wallGroup===link.dataset.wall)?.id;
+   const id=catalogLinkTarget(link.dataset,products);
    if(id){const href=productLink(id,mode,getContext());if(link.getAttribute('href')!==href)link.setAttribute('href',href);}
   }
   for(const card of document.querySelectorAll('#products>article,#saleProducts>article')){
