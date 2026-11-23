@@ -128,7 +128,7 @@ body.enquiry-page #cart.enquiry-full .drawer-head h1 {
 }
 @media(max-width:640px){
  body.enquiry-page #cart.enquiry-full .drawer-head {grid-template-columns:minmax(0,1fr)}
- .enquiry-page #cart.enquiry-full .enquiry-assurance {grid-column:1;grid-row:2}
+ .enquiry-page #cart.enquiry-full .enquiry-assurance {display:none}
  .enquiry-page #cart.enquiry-full .enquiry-overview {padding:0 10px}
  .enquiry-page #cart.enquiry-full .enquiry-overview > #cartPricingScope:not([hidden]) {border-left:0;border-top:1px solid #cbd2c2}
  .enquiry-page #cart.enquiry-full .enquiry-setting {padding:8px 4px;gap:8px}
@@ -209,3 +209,7 @@ body.enquiry-page #cart.enquiry-full .drawer-head h1 {
   grid-template-columns:var(--cart-image-size) minmax(0,1fr);
  }
 }
+
+#cart .cart-more-products {margin-block:8px 12px}
+#cart .discount-code summary {cursor:pointer}
+#cart .discount-code details[open] > summary {margin-bottom:12px}

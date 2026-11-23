@@ -13,8 +13,12 @@ export function mountEnquiryFlow({cartId,formId,mode}){
  const storeOwned=event=>{if(event.target.form===form)store(event);};document.addEventListener('input',storeOwned);document.addEventListener('change',storeOwned);window.addEventListener('pagehide',store);
  const checkoutUrl='/foresporsel.html'+(mode==='buy'?'?type=kjop':'');
  const preview=document.createElement('section');preview.className='enquiry-preview-content';preview.setAttribute('aria-label','Kort oversikt over forespørselen');
- const list=document.createElement('div'),note=document.createElement('p'),next=document.createElement('a');note.className='hint';note.textContent='Se hele innholdet, tilpass valgene og fyll inn opplysningene på neste side.';next.className='button dark';next.href=checkoutUrl;next.textContent='Se og fullfør forespørselen ↗';preview.append(list,note,next);
+ const list=document.createElement('div'),note=document.createElement('p'),next=document.createElement('a');note.className='hint';note.textContent='Se hele innholdet, tilpass valgene og fyll inn opplysningene på neste side.';next.className='button dark';next.href=checkoutUrl;next.textContent='Se og fullfør forespørselen ↗';preview.append(list);
+ if(!page&&mode==='rent'){
+  const more=document.createElement('a');more.href='/utvalg.html';more.className='text-button';more.textContent='+ Legg til flere produkter';preview.append(more);
+ }
  let period,periodValue,periodButton;
+ preview.append(note,next);
  if(page){
   document.body.classList.remove('catalog-page','home-page','occasion-page','buy-page');document.body.classList.add('enquiry-page');const host=document.getElementById('enquiryPage');cart.hidden=true;
   const back=document.createElement('a');back.href=mode==='buy'?'/kjop.html':'/utvalg.html';back.className='text-button enquiry-back';back.textContent=mode==='rent'?'← Se flere produkter':'← Fortsett å se produkter';host.append(back,cart);cart.classList.add('enquiry-full');
