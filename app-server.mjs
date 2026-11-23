@@ -177,12 +177,12 @@ export function createServer(options={}){
      const requested={start:url.searchParams.get('start')||r.start,end:url.searchParams.get('end')||r.end,scope:r.scope};
      return out(200,{revision:r.revision,status:r.status,storedDates:{start:r.start,end:r.end,deliveryDate:r.deliveryDate,pickupDate:r.pickupDate},storedDays:rentalDayCount(r.start,r.end),scope:r.scope,comparisonPeriod:requested,lines:r.lines.map(l=>{const p=catalog.products.find(p=>p.id===l.id);return {name:l.name,quantity:l.quantity,storedTotal:l.total,calculatedStoredPeriod:enquiryLineTotal(p,{...r,quantity:l.quantity},catalog.products),calculatedComparisonPeriod:enquiryLineTotal(p,{...requested,quantity:l.quantity},catalog.products)};})});
     }
-    const workflow=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/(save|preview|offer|accept|confirmation|calendar|cancel|complete|document)$/);
+    const workflow=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/(save|preview|offer|accept|confirmation|cancel|complete|document)$/);
     if(workflow&&req.method==='POST'){
      const input=await json(req,200000),catalog=await readCatalog(),action=workflow[2];configureWorkflowPricing(catalog.settings);
      if(action==='document'){const r=(await store.workflowRecords()).find(r=>r.id===workflow[1]),doc=r?.history.find(h=>h.id===input.historyId);if(!doc)throw error('Dokumentet finnes ikke.',404);return out(200,workflowEmail(doc.document));}
      if(action==='preview')return out(200,await store.workflowPreview(workflow[1],input,catalog.products,input.documentType==='return'?'return':input.documentType==='confirmation'?'confirmation':'offer'));
-     if((['offer','confirmation','calendar'].includes(action)||(action==='complete'&&input.sendThanks===true))&&!submissions.enabled)throw error('E-postsending er ikke aktivert.',503);
+     if((['offer','confirmation'].includes(action)||(action==='complete'&&input.sendThanks===true))&&!submissions.enabled)throw error('E-postsending er ikke aktivert.',503);
      const record=await store.changeWorkflow(workflow[1],input,action,catalog.products);void submissions.flush();return out(200,{record});
     }
     if(pathname==='/api/admin/enquiry-mail-health'&&req.method==='GET')return out(200,enquiryHealth(await store.enquiryMailHealth(Date.now()),submissions.enabled));
