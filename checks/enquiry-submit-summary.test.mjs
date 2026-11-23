@@ -98,7 +98,7 @@ test('pending transport shows discounted goods plus transport only when the good
  assert.equal(result.pendingTotal,'900 kr + transport');
  assert.equal(result.total,null);
  assert.equal(submitSummaryModel(state({delivery,hasUnpriced:true})).pendingTotal,'Avklares i tilbudet');
- for(const [status,text] of [['calculating','Beregner transportpris …'],['manual','Prises i tilbudet'],['undecided','Avklares i tilbudet']]){
+ for(const [status,text] of [['calculating','Beregner transportpris …'],['manual','Du får transportprisen i tilbudet'],['undecided','Avklares i tilbudet']]){
   assert.equal(submitSummaryModel(state({delivery:{total:null,status}})).rows.at(-1).value,text);
  }
 });

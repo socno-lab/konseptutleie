@@ -19,7 +19,7 @@ export function submitSummaryModel({mode='rental',hasItems=false,needsDates=fals
  if(gross!==null&&(gross>0||!partial))rows.push({label:partial?'Delpris for prisede varer':goodsLabel,value:gross});
  if(missingDates)rows.push({label:'Leieperiode',value:'Velg datoer'});
  if(validDiscount)rows.push({label:'Rabatt · '+discount.code,value:-reduction});
- const statuses={address:'Fyll inn adresse for å se pris',calculating:'Beregner transportpris …',manual:'Prises i tilbudet',dates:'Velg leieperiode for å se pris'};
+ const statuses={address:'Fyll inn adresse for å se pris',calculating:'Beregner transportpris …',manual:'Du får transportprisen i tilbudet',dates:'Velg leieperiode for å se pris'};
  rows.push({label:'Transport',value:delivery.included===true?'Inkludert':transport===null?(statuses[delivery.status]||'Avklares i tilbudet'):transport,...(transport===null&&delivery.status==='address'?{addressField:delivery.addressField}:{})});
  const showGoodsTotal=transport===null&&acquisition!=='purchase'&&gross!==null&&!partial&&!pending;
  const pendingTotal=showGoodsTotal?money(round(gross-(validDiscount?reduction:0)))+' + transport':'Avklares i tilbudet';
@@ -28,7 +28,7 @@ export function submitSummaryModel({mode='rental',hasItems=false,needsDates=fals
  const notes=['Alle priser er inkl. mva. Forespørselen er uforpliktende.'];
  if(acquisition==='rental'){
   if(gross!==null&&!partial&&!pending)notes.push('Beregnet leie er '+money(round(gross-(validDiscount?reduction:0)))+(validDiscount?' etter rabatt':'')+'.');
-  notes.push('Endelig totalpris inkludert eventuell transport bekreftes i tilbudet.');
+  notes.push('Etter innsending får du et samlet tilbud med leie og transport. Du velger selv om du vil godta tilbudet.');
  }
  if(missingDates)notes.push('Velg leieperiode for å beregne samlet pris.');
  if(unknownPrices)notes.push('Varer med pris på forespørsel avklares i tilbudet.');
@@ -53,6 +53,8 @@ export function mountSubmitSummary(form){
   price.className='enquiry-submit-summary-value';name.textContent=label;
   if(typeof value==='number'){price.setAttribute('data-price-gross',String(value));if(fixed)price.setAttribute('data-price-fixed',fixed);}
   price.textContent=typeof value==='number'?money(value):value;
+  name.setAttribute('style','flex-shrink:0');
+  if(typeof value==='string')price.setAttribute('style','min-width:0;flex-shrink:1;white-space:normal;text-align:right');
   if(addressField){
    const link=doc.createElement('button');
    link.type='button';link.className='text-button';link.textContent=value;
