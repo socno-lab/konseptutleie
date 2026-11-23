@@ -19,6 +19,7 @@ export function createMysqlStore(env,seed){
   if(!enabled)throw Error('Database er ikke konfigurert.');
   if(!ready)ready=(async()=>{
    for(const sql of [
+    'CREATE TABLE IF NOT EXISTS ku_catalog_migrations (name VARCHAR(100) PRIMARY KEY)',
     'CREATE TABLE IF NOT EXISTS ku_workflow (id CHAR(36) PRIMARY KEY, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_site_settings (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_catalog (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL, updated_at DATETIME(3) NOT NULL)',
@@ -48,6 +49,13 @@ export function createMysqlStore(env,seed){
     if(nextSettings!==currentSettings)await connection.execute('UPDATE ku_site_settings SET revision=revision+1,body=? WHERE id=1',[JSON.stringify(nextSettings)]);
     const [[row]]=await connection.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
     const products=JSON.parse(row.body),cleaned=mergeOakTables(migrateCatalogDimensions(removeRetiredCosts(products)));
+    const [addition]=await connection.execute('INSERT IGNORE INTO ku_catalog_migrations (name) VALUES (?)',['rental-furniture-20261123']);
+    if(addition.affectedRows){
+     const ids=new Set(['obj_ikea_skansnas_brun','obj_ikea_skansnas_lys','obj_hm_nattbord_1108352003','obj_ikea_vihals_gronn']);
+     for(const item of seed.products){
+      if(ids.has(item.id)&&!cleaned.some(existing=>existing.id===item.id))cleaned.push(item);
+     }
+    }
     if(JSON.stringify(products)!==JSON.stringify(cleaned))
      await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(cleaned),new Date()]);
     if(products.some(p=>p.id===retiredOakTableId)){const [workflows]=await connection.execute('SELECT body FROM ku_workflow FOR UPDATE');

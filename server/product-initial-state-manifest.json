@@ -20,7 +20,7 @@
     "public/decor-examples.js": "1cf24f26e7ec9c4bfaee91ab55b17566981fe1e450e646e2161ec4e110babc36",
     "public/detail-price-model.js": "a7bb7ba5ad7c108f812457fb6e55d2a17b43d44fa40fb510bd5c879792bead58",
     "public/home-product-copy.js": "74b74f9c61faa531ffe44fcf19054bb6ae4cad9e46d29be8c30799381cdbc94e",
-    "public/image-provenance.js": "07965a20f7271db9faa333c538efc52a28ed43ae685c40eafaa8897330ad0383",
+    "public/image-provenance.js": "5533dfdedd2183453dbe8a3c4ad7f7d2d1e1aba123fb1563ff7dd8c2a250506f",
     "public/landing-content.js": "284773b3b33f41981e786e6fd2db541aa00863ea9b8fcad61bb2002609a82b06",
     "public/media-image.js": "54b997390022f8eb4aff0d676b28444b87fbbf05e2ee14d2545864b98454b149",
     "public/module-builder-settings.js": "c3229eb6f98ff902126dcca6ccecc68ba343c74297efeb241b8e5f1a2abddca6",
@@ -70,5 +70,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "server/product-initial-state-script.mjs": "814a4cc97c3bbb7e7428ed9560a8a390aadf119816448e6604d850ee92e93e74"
   },
-  "bundleSha256": "9ddc4ccff9ff9f5f4a0a7ff4a966206f00860894a1e773c26980dcc8f03e221e"
+  "bundleSha256": "ddabe29f344906125723235e2f9dd058186c9cd73b977c77573301507516a669"
 }

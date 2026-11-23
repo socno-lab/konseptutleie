@@ -22,7 +22,7 @@ test('Live HTTP trash/restore enforces auth, origin, revisions and public visibi
   assert.equal((await post(url+'/trash',{revision:data.revision},cookie,'https://foreign.invalid')).status,403);
   assert.equal((await post(url+'/trash',{revision:-1},cookie)).status,409);
   const bed=data.products.find(p=>p.name==='Sammenleggbar stylingseng ILSKOV');assert.equal((await post('/api/admin/products/'+bed.id+'/trash',{revision:data.revision},cookie)).status,409);
-  let response=await post(url+'/trash',{revision:data.revision},cookie);assert.equal(response.status,200);data=await response.json();assert(data.products.find(p=>p.id===table.id).deletedAt);assert.equal(data.products.length,54);assert.equal((await (await fetch(base+'/api/catalog')).json()).products.some(p=>p.id===table.id),false);
+  let response=await post(url+'/trash',{revision:data.revision},cookie);assert.equal(response.status,200);data=await response.json();assert(data.products.find(p=>p.id===table.id).deletedAt);assert.equal(data.products.length,58);assert.equal((await (await fetch(base+'/api/catalog')).json()).products.some(p=>p.id===table.id),false);
   response=await post(url+'/restore',{revision:data.revision},cookie);assert.equal(response.status,200);data=await response.json();assert.equal(data.products.find(p=>p.id===table.id).deletedAt,'');assert.equal(data.products.find(p=>p.id===table.id).active,false);assert.equal(data.products.find(p=>p.id===table.id).image,table.image);
  }finally{await new Promise(r=>server.close(r));}
 });

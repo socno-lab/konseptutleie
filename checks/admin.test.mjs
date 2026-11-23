@@ -27,7 +27,7 @@ test('Admin setup, sessions, CSRF, revision conflicts, media assignment and wall
   assert.equal((await fetch(base+'/api/admin/status')).status,200);
   assert.equal((await (await fetch(base+'/api/admin/status')).json()).setupRequired,false);
   assert.equal((await fetch(base+'/admin',{headers:{cookie}})).status,200);
-  const data=await (await fetch(base+'/api/admin/catalog',{headers:{cookie}})).json();assert.equal(data.products.length,54);
+  const data=await (await fetch(base+'/api/admin/catalog',{headers:{cookie}})).json();assert.equal(data.products.length,58);
   const put=(catalog,rev=data.revision)=>fetch(base+'/api/admin/catalog',{method:'PUT',headers:{Origin:origin,'Content-Type':'application/json',cookie},body:JSON.stringify({revision:rev,products:catalog})});
   const wall=data.products.find(isWall),renamed=structuredClone(data.products);renamed.find(p=>p.id===wall.id).name='Nytt valgnavn';
   const saved=await put(renamed);assert.equal(saved.status,200);let current=await saved.json();assert.ok(isWall(current.products.find(p=>p.id===wall.id)));
@@ -44,7 +44,7 @@ test('Admin setup, sessions, CSRF, revision conflicts, media assignment and wall
  }finally{await new Promise(r=>server.close(r));}
 });
 test('Product validation rejects invalid walls and preserves ordinary products without module settings',async()=>{
- const store=await memoryStore(),data=await store.readCatalog();const valid=validateCatalog(data.products);assert.equal(valid.length,54);
+ const store=await memoryStore(),data=await store.readCatalog();const valid=validateCatalog(data.products);assert.equal(valid.length,58);
  const table=valid.find(p=>p.name==='Charlie bord, svart');assert.equal(table.moduleSeries,'');assert.equal(table.moduleRole,'');
  const wall=valid.find(isWall);const changed=structuredClone(valid);changed.find(p=>p.id===wall.id).wallFrames=[{x:90,y:0,width:30,height:10}];assert.throws(()=>validateCatalog(changed),/Rammene/);
  assert.equal(presetFrames('quad').length,4);assert.equal(imageMime(Buffer.from('<html>not an image</html>')),null);

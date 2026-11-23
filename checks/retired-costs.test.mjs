@@ -22,6 +22,7 @@ test('Database startup physically removes retired fields under a row lock and ad
  const connection={async beginTransaction(){calls.push('begin');},async execute(sql,args){calls.push(sql);
   if(sql.includes('ku_site_settings')&&sql.startsWith('SELECT'))return [[{body:JSON.stringify({pricing:{monthPrice:.27,eventFactor:1.5,eventMonthPrice:.45}})}]];
   if(sql.startsWith('SELECT body'))return [[{body:JSON.stringify(rows)}]];
+  if(sql.startsWith('INSERT IGNORE INTO ku_catalog_migrations'))return [{affectedRows:0}];
   if(sql.startsWith('UPDATE ku_catalog')){rows=JSON.parse(args[0]);revision++;updates++;return [{}];}
   throw Error('Unexpected query');},async commit(){commits++;},async rollback(){throw Error('Unexpected rollback');},release(){releases++;}};
  const pool={async query(){},async execute(sql){if(sql.startsWith('INSERT IGNORE'))return [{}];if(sql.startsWith('SELECT revision,body'))return [[{revision,body:JSON.stringify(rows)}]];throw Error('Unexpected pool query');},async getConnection(){return connection;},async end(){}};

@@ -2,6 +2,9 @@ import {getSiteSettings} from './site-settings.js?v=fest20261114';
 // Known generated illustrations and edited assets; supplier photos remain unmarked.
 export const kiDisclosure='Bildet kan være retusjert eller generert med KI';
 const illustratedImages=new Set([
+ "/assets/skansnas-brun.webp",
+ "/assets/skansnas-lys.webp",
+ "/assets/hm-nattbord.webp",
  "/assets/foto-film-reklame-illustrasjon.jpg",
  "/media/2126a0ee94479443adf65bbadbbebc1d",
  "/media/8a1bc255c77178e023edd8c382221607",
