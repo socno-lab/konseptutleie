@@ -17,7 +17,13 @@ export function rentalModuleInitialState(series,products,{cart={},setups=[],edit
  const saved=setups.find(s=>s.id===editingId&&s.series===series),base=withoutSofas(cart,saved?[saved]:[]);
  const config=selection=>sofaConfiguration({series,selection,textileId:''},base,products);
  const modules=config({}).modules,pictured=sofaCardConfiguration(modules),fallback=modulePreset(modules,...(modules.every(p=>p.moduleRole==='middle')?[0,2]:[2,0]));
- const selection=saved?{...saved.selection}:moduleStartCandidates(modules,pictured?.selection,fallback).find(value=>value&&config(value).valid)||{};
+ let selection;
+ if(saved)selection={...saved.selection};
+ else if(pictured&&sofaConfiguration({series,selection:pictured.selection}, {},products).valid){
+  // Show the cover arrangement even when another setup in the cart uses its stock.
+  // The editor validates additions against the actual cart.
+  selection=pictured.selection;
+ }else selection=moduleStartCandidates(modules,null,fallback).find(value=>value&&config(value).valid)||{};
  return {series,selection,textile:!!saved?.textileId,editingId:saved?.id||'',base,number:saved?setups.indexOf(saved)+1:setups.length+1};
 }
 export function rentalModuleView(context,state){
@@ -53,7 +59,9 @@ function moduleTextileChoices(textile,config){
  if(references)references='<details><summary>Se produkt- og miljøbilder</summary><div class="module-reference-grid">'+references+'</div></details>';
  const choices=config.modules.map(p=>{const available=remaining(p.id,config.base,products),quantity=moduleSelection[p.id]||0,maximum=Math.min(available,moduleQuantityLimit(config.modules,moduleSelection,p));return `<div class="module-choice">${p.image?`<img class="module-thumb" src="${html(p.image)}" ${responsiveImageAttributes(p.image,'(max-width:640px) 50vw, (max-width:1000px) 33vw, 25vw')} alt="${html(productTitle(p))}">`:""}<div class="module-copy"><h3>${html(productTitle(p))}</h3>${isRentedOut(p)?'<strong class="rental-status-inline">UTLEID</strong>':''}${['left','right','end'].includes(p.moduleRole)?`<p class="module-end-note">${p.moduleRole==='end'?'Universell ende · maks to per sofa':p.moduleRole==='left'?'Venstre ende · maks én per sofa':'Høyre ende · maks én per sofa'}</p>`:''}<p>${html(p.material)} · ${requiredModuleQuantity(p)>0?'Minst '+requiredModuleQuantity(p)+' må inngå':available+' kan velges'}</p><p>${p.priceOnRequest?'Pris på forespørsel':priceMarkup(p.price)+'/døgn · '+priceMarkup(p.weekPrice)+'/uke · '+priceMarkup(p.monthPrice)+'/måned'}</p><details class="module-info"><summary>Om modulen</summary><p>${html(p.description)}</p></details></div><div class="quantity"><button type="button" data-module-change="${p.id}" data-module-delta="-1" aria-label="Færre ${html(productTitle(p))}" ${quantity>requiredModuleQuantity(p)?'':'disabled'}>−</button><output aria-label="Valgt antall ${html(productTitle(p))}">${quantity}</output><button type="button" data-module-change="${p.id}" data-module-delta="1" aria-label="Flere ${html(productTitle(p))}" ${quantity<maximum?'':'disabled'}>+</button></div></div>`;}).join('');
  const basePrices=`<p class="selection-total-label"><span>${config.count} moduler</span><span class="module-width">${config.widthKnown?'Samlet bredde: ca. '+new Intl.NumberFormat('nb-NO').format(config.width)+' cm':'Mål avklares'}</span></p>${moduleBasePricing(config)}`;
- const textileChoices=moduleTextileChoices(textile,config),summary=(config.valid?moduleSelectionPricing(config,moduleTextile?textile:null):'<p class="hint">Velg gyldig antall for å se samlet pris.</p>')+(config.minimum>1?'<p class="hint" role="status">Velg minst '+config.minimum+' moduler totalt fra denne serien. Tilvalg teller ikke.</p>':'')+'<p class="rate-caption">Bildevisningen viser en rett oppstilling. Skjøter og perspektiv kan avvike; dette er ikke en måltegning. Vi bekrefter kombinasjon og tilgjengelighet i tilbudet.</p>';
+ const usedInCart=config.modules.some(p=>(moduleSelection[p.id]||0)>remaining(p.id,config.base,products)&&remaining(p.id,config.base,products)<remaining(p.id,{},products));
+ const invalidMessage=usedInCart?'Kurven inneholder allerede moduler som trengs til dette oppsettet. Tilpass oppsettet eller endre antallet i kurven.':'Velg gyldig antall for å se samlet pris.';
+ const textileChoices=moduleTextileChoices(textile,config),summary=(config.valid?moduleSelectionPricing(config,moduleTextile?textile:null):'<p class="hint">'+invalidMessage+'</p>')+(config.minimum>1?'<p class="hint" role="status">Velg minst '+config.minimum+' moduler totalt fra denne serien. Tilvalg teller ikke.</p>':'')+'<p class="rate-caption">Bildevisningen viser en rett oppstilling. Skjøter og perspektiv kan avvike; dette er ikke en måltegning. Vi bekrefter kombinasjon og tilgjengelighet i tilbudet.</p>';
  return {config,guidance,preview,notice,presets:presetMarkup,references,choices,basePrices,textileChoices,summary,saveLabel:state.editingId?'Lagre oppsettet':'Legg til leieforespørsel',eyebrow:outdoorSeries(moduleSeries)?'UTEMODULER · DITT OPPSETT':'MODULSOFA · DITT OPPSETT'};
 }
 export function rentalModuleSurface(context,state){

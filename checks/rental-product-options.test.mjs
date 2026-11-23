@@ -87,3 +87,24 @@ test('example service description is already present once before the quantity co
  assert.ok(initial.indexOf('Tilpasset eksempelbeskrivelse')<initial.indexOf('class="product-quantity"'));
 });
 test('detail stock hint and maximum reflect reserved stock and recover for another period',()=>{const available={...chair,relatedAddOns:[],unavailable:4},options=rentalProductOptions({products:[available],cart:{}});assert.equal(options.productAvailabilityHint(available),'4 stk. kan legges til');assert.match(options.productOptions(available),/id="productQuantity"[^>]*max="4"/);const full=rentalProductOptions({products:[chair],cart:{}});assert.equal(full.productAvailabilityHint(chair),'8 stk. kan legges til');assert.match(full.productOptions(chair),/id="productQuantity"[^>]*max="8"/);const none={...chair,relatedAddOns:[],unavailable:8};assert.equal(rentalProductOptions({products:[none],cart:{}}).productAvailabilityHint(none),'0 stk. kan legges til');});
+
+test('Skibby opens with the pictured base pair and middle, while editing restores the saved sofa',()=>{
+ const series='JYSK SKIBBY, sand',gallery=['/media/9ed8bbde97fa7549978a7df6bdbbae45'];
+ const base={...chair,id:'obj_jysk_skibby_base_sand',moduleSeries:series,moduleRole:'base',rentalRequiredQuantity:1,rentalStartQuantity:1,gallery,stock:1};
+ const middle={...base,id:'obj_jysk_skibby_midt_sand',moduleRole:'middle',rentalRequiredQuantity:0,rentalStartQuantity:0};
+ const products=[base,middle],context={products,rentalScopeConfirmed:true},pictured={[base.id]:1,[middle.id]:1};
+ const initial=rentalModuleInitialState(series,products);
+ assert.deepEqual(initial.selection,pictured);
+ const view=rentalModuleView(context,initial);
+ assert.equal(view.config.count,3);
+ assert.equal(view.config.price,base.price+middle.price);
+ assert.equal(view.config.valid,true);
+ const saved={id:'one',series,selection:{[base.id]:1}},cart={[base.id]:1};
+ const edit=rentalModuleInitialState(series,products,{cart,setups:[saved],editingId:'one'});
+ assert.deepEqual(edit.selection,saved.selection);
+ const extra=rentalModuleInitialState(series,products,{cart,setups:[saved]});
+ assert.deepEqual(extra.selection,pictured);
+ const extraView=rentalModuleView(context,extra);
+ assert.equal(extraView.config.valid,false);
+ assert.match(extraView.summary,/Kurven inneholder allerede moduler/);
+});
