@@ -1608,7 +1608,8 @@
         "depth": 51,
         "height": 78,
         "seatHeight": 47
-      }
+      },
+      "subcategory": "Spisestoler"
     },
     {
       "isPackage": false,
@@ -1652,7 +1653,8 @@
         "depth": 51,
         "height": 78,
         "seatHeight": 47
-      }
+      },
+      "subcategory": "Spisestoler"
     },
     {
       "isPackage": false,
@@ -1734,7 +1736,8 @@
         "height": 81,
         "seatHeight": 48,
         "seatDepth": 40
-      }
+      },
+      "subcategory": "Spisestoler"
     }
   ]
 }

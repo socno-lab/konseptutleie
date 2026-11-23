@@ -56,6 +56,13 @@ export function createMysqlStore(env,seed){
       if(ids.has(item.id)&&!cleaned.some(existing=>existing.id===item.id))cleaned.push(item);
      }
     }
+    const [chairCategories]=await connection.execute('INSERT IGNORE INTO ku_catalog_migrations (name) VALUES (?)',['dining-chair-categories-20261123']);
+    if(chairCategories.affectedRows){
+     const chairIds=new Set(['obj_ikea_skansnas_brun','obj_ikea_skansnas_lys','obj_ikea_vihals_gronn']);
+     for(const item of cleaned){
+      if(chairIds.has(item.id)&&!item.subcategory)item.subcategory='Spisestoler';
+     }
+    }
     if(JSON.stringify(products)!==JSON.stringify(cleaned))
      await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(cleaned),new Date()]);
     if(products.some(p=>p.id===retiredOakTableId)){const [workflows]=await connection.execute('SELECT body FROM ku_workflow FOR UPDATE');
