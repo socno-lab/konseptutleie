@@ -72,6 +72,21 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  // All reservations and catalog stock edits serialize on this row.
  const [[catalog]]=await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');products=JSON.parse(catalog.body);const [[site]]=await c.execute('SELECT body FROM ku_site_settings WHERE id=1');configureSiteSettings(JSON.parse(site.body));
  const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');const all=rows.map(r=>JSON.parse(r.body)),current=all.find(r=>r.id===id);if(!current)fail('Henvendelsen finnes ikke.',404);if(input.revision!==current.revision)fail('Henvendelsen er endret. Last inn på nytt.');
+ if(action==='calendar'){
+  const issued=current.history.filter(h=>h.type==='confirmation').at(-1);
+  if(current.status!=='confirmed'||!issued?.document?.workflow)fail('Ordren må være bekreftet.');
+  if(!issued.sentAt){
+   const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel='customer' FOR UPDATE",[issued.id]);
+   if(job?.status!=='sent')fail('Ordrebekreftelsen må være sendt først.');
+  }
+  if(!issued.calendarVisits){
+   await queueTransportCalendar(c,current,issued,Date.now());
+   if(issued.calendarVisits.length!==2)fail('Ordrebekreftelsen mangler transportdatoer.');
+   current.revision++;
+   await c.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(current),id]);
+  }
+  await c.commit();return current;
+ }
  if(prior)current.lines=current.lines.map(l=>({...l,...(l.originalTotal==null&&prior.lines.find(p=>p.key===l.key)?.originalTotal!=null?{originalTotal:prior.lines.find(p=>p.key===l.key).originalTotal,originalQuantity:prior.lines.find(p=>p.key===l.key).originalQuantity}:{})}));
  current.customerType=current.customerType||prior?.customerType||'consumer';
  if(['confirmation','cancel','complete'].includes(action))for(const h of current.history.filter(h=>['reminder','invoice_reminder'].includes(h.type))){const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel=? FOR UPDATE",[h.id,h.type==='invoice_reminder'?'internal':'customer']);if(job?.status==='sending')fail('En påminnelse sendes nå. Vent til sendingen er ferdig før du endrer avtalen.');if(action==='complete')await c.execute("UPDATE ku_enquiry_mail SET status='cancelled' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[h.id]);}

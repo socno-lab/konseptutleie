@@ -192,3 +192,17 @@ test('sent confirmations queue internal calendar requests once, update the chang
  assert.deepEqual(calendar().slice(3).map(s=>[s.method,s.event.phase,s.sequence]),[['CANCEL','outbound',1],['CANCEL','return',2]]);
  assert.ok(calendar().every(s=>f.state.jobs.find(j=>j.id===s.id).channel==='internal'));
 });
+
+test('calendar backfill uses the sent confirmation once and never requeues customer mail',async()=>{
+ const f=fixture();
+ const r=await f.store.changeWorkflow('a',await input(f),'confirmation',[product]);
+ await assert.rejects(f.store.changeWorkflow('a',r,'calendar',[product]),/sendt først/);
+ f.state.jobs[0].status='sent';
+ const draft=await f.store.changeWorkflow('a',{...r,pickupDate:'2026-12-15'},'save',[product]);
+ const after=await f.store.changeWorkflow('a',draft,'calendar',[product]);
+ await f.store.changeWorkflow('a',after,'calendar',[product]);
+ assert.equal(f.state.jobs.filter(j=>j.channel==='customer').length,1);
+ assert.equal(f.state.jobs.filter(j=>j.channel==='internal').length,2);
+ assert.equal(after.history.at(-1).calendarVisits[1].event.date,r.pickupDate);
+ assert.equal(after.pickupDate,'2026-12-15');
+});
