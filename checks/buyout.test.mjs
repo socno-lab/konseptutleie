@@ -57,3 +57,23 @@ test('pickup credit uses the signed server tariff without another route call or 
  const s=snapshot(d,products,(...args)=>estimator.verifyQuote(...args,products));assert.match(fact(s,'Fratrekk for forhåndsbetalt henting'),/1 190 kr/);assert.equal(calls,1);
  d.details.deliveryToken+='tampered';assert.equal(fact(snapshot(d,products,(...args)=>estimator.verifyQuote(...args,products)),'Fratrekk for forhåndsbetalt henting'),undefined);
 });
+
+test('separate visit receipts bind each price to its address and credit the pickup tariff',async()=>{
+ const request=input();
+ const deliveryAddress='Leverveien 1, 0123 Oslo',pickupAddress='Returveien 2, 2010 Strømmen';
+ const estimator=createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'test-only'},async(url,{body})=>{
+  const duration=body.includes('Returveien')?'2100s':'1200s';
+  return Response.json({routes:[{legs:[{duration},{duration}]}]});
+ });
+ const tokens=await Promise.all([deliveryAddress,pickupAddress].map(async address=>(await estimator.estimate({address,basket:request.basket,visits:1},'test',products)).receipt));
+ Object.assign(request.details,{deliveryAddress,pickupAddress,deliveryToken:JSON.stringify(tokens)});
+ const submit=()=>snapshot(request,products,(...args)=>estimator.verifyQuote(...args,products));
+ const s=submit();
+ assert.equal(s.delivery.total,1190+1390);
+ assert.match(fact(s,'Fratrekk for forhåndsbetalt henting'),/1 390 kr/);
+ assert.equal(s.billingAddress,request.details.address);
+ assert.equal(fact(s,'Leveringsadresse'),deliveryAddress);
+ assert.equal(fact(s,'Henteadresse'),pickupAddress);
+ request.details.deliveryToken=JSON.stringify(tokens.reverse());
+ assert.equal(submit().delivery.total,null);
+});

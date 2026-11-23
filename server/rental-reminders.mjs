@@ -18,7 +18,7 @@ export function rentalReminderEvents(record,now=Date.now()){
   const self=first?['pickup','collectionOnly'].includes(r.deliveryMode):['pickup','deliveryOnly'].includes(r.deliveryMode);
   const label=self?(first?'Selvhenting':'Retur på lageret'):(first?'Levering':'Henting');
   const time=self?(first?r.pickupTime:r.returnTime)||'Tidspunkt må avtales – kontakt oss':r.logistics?'Se avtalt tidsrom nedenfor':'08.00–12.00';
-  const address=self?warehouseAddress:r.deliveryAddress;
+  const address=self?warehouseAddress:(!first&&r.pickupAddress)||r.deliveryAddress;
   if(!address)return [];
   const logistics=workflowCopy(r).logistics;
   const key=createHash('sha256').update(JSON.stringify({phase,date,label,time,address,logistics})).digest('hex');

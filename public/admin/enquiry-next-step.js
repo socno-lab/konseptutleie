@@ -2,7 +2,7 @@ import {workflowCopy} from './offer-copy.js?v=replacement20261122';
 import {enquiryGroup} from './enquiries-model.js?v=returns20261121';
 export function hasConfirmationChanges(r,draft=r){
  const previous=r.history?.filter(h=>h.type==='confirmation').at(-1)?.document?.workflow;if(!previous)return false;
- const shape=x=>{const copy=workflowCopy({...x,lines:x.lines||[]}),clean=v=>String(v||'').trim().replace(/\s+/g,' ');return {fields:['start','end','deliveryDate','pickupDate','scope','deliveryMode','deliveryAddress','pickupTime','returnTime','transport','discount'].map(k=>x[k]??(k==='discount'?0:'')),reserve:x.reserve??x.reserved??false,copy:['confirmationIntro','logistics','payment'].map(k=>clean(copy[k])),lines:(x.lines||[]).map(l=>({id:l.id,quantity:l.quantity,total:l.total})).sort((a,b)=>a.id.localeCompare(b.id)||a.quantity-b.quantity||a.total-b.total)};};
+ const shape=x=>{const copy=workflowCopy({...x,lines:x.lines||[]}),clean=v=>String(v||'').trim().replace(/\s+/g,' ');return {fields:['start','end','deliveryDate','pickupDate','scope','deliveryMode','deliveryAddress','pickupAddress','pickupTime','returnTime','transport','discount'].map(k=>x[k]??(k==='discount'?0:'')),reserve:x.reserve??x.reserved??false,copy:['confirmationIntro','logistics','payment'].map(k=>clean(copy[k])),lines:(x.lines||[]).map(l=>({id:l.id,quantity:l.quantity,total:l.total})).sort((a,b)=>a.id.localeCompare(b.id)||a.quantity-b.quantity||a.total-b.total)};};
  return JSON.stringify(shape(previous))!==JSON.stringify(shape({...r,...draft}));
 }
 export function nextStep(r){

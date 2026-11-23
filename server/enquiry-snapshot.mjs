@@ -23,7 +23,7 @@ const date=(value,label)=>{if(!value)return '';if(parseDateOnly(value)===null)fa
 export function requestDetails(input){
  const d=input.details;if(!d||typeof d!=='object'||Array.isArray(d))fail('Last inn siden på nytt før du sender forespørselen.');
  const text=(key,max=300)=>{const v=d[key]??'';if(typeof v!=='string'||v.length>max||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(v))fail('Kontroller '+key+'.');return v.trim();};
- return {phone:text('phone',40),company:text('company',150),address:text('address',300),comment:text('notes',3000),occasion:text('occasion',100),delivery:text('delivery',100),start:date(d.start,'fra-dato'),end:date(d.end,'til-dato'),deliveryDate:date(d.deliveryDate,'leveringsdato'),pickupDate:date(d.pickupDate,'hentedato'),customText:text('customRequest',3000),stylingNotes:text('stylingNotes',2000),stylist:d.stylist==='yes',discountCode:text('discountCode',40),deliveryToken:text('deliveryToken',6000)};
+ return {phone:text('phone',40),company:text('company',150),address:text('address',300),deliveryAddress:text('deliveryAddress'),pickupAddress:text('pickupAddress'),comment:text('notes',3000),occasion:text('occasion',100),delivery:text('delivery',100),start:date(d.start,'fra-dato'),end:date(d.end,'til-dato'),deliveryDate:date(d.deliveryDate,'leveringsdato'),pickupDate:date(d.pickupDate,'hentedato'),customText:text('customRequest',3000),stylingNotes:text('stylingNotes',2000),stylist:d.stylist==='yes',discountCode:text('discountCode',40),deliveryToken:text('deliveryToken',6000)};
 }
 export function createEnquirySnapshot(value,input,products,{codes=[],verifyDelivery=()=>null,now=new Date()}={}){
  products=withPackageAddons(products);
@@ -113,8 +113,25 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
    [warehouseReturn?'Foreløpig retur på vårt lager':'Foreløpig henting hos deg',display(transportDates.pickupDate)],
   );
  }
- const receipt=hasRental&&!transportDates.manual&&!self&&!capacity.manual?verifyDelivery(d.deliveryToken,d.address,rent,value.customRequest,visits):null;
- const delivery={choice:deliveryChoice,label:included?'Levering og henting inkludert i fastprisen':self?deliveryChoice:capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':hasRental&&transportDates.manual&&!self?'Transport må beregnes i tilbudet':deliveryChoice,...(hasRental?{dates:{deliveryDate:transportDates.deliveryDate,pickupDate:transportDates.pickupDate}}:{}),total:included||self?0:receipt?.total??null};
+ const deliveryAddress=hasRental&&['delivery','deliveryOnly'].includes(mode)?d.deliveryAddress||d.address:'';
+ const pickupAddress=hasRental&&['delivery','collectionOnly'].includes(mode)?d.pickupAddress||d.address:'';
+ for(const [label,address] of [['Leveringsadresse',deliveryAddress],['Henteadresse',pickupAddress]]){
+  if(!address)continue;
+  if(!/^.{3,},?\s+[0-9]{4}\b[\s,]+\S.{1,}$/u.test(address))fail('Oppgi gateadresse, postnummer og poststed for '+label.toLowerCase()+'.');
+  facts.push([label,address]);
+ }
+ let receipt=null;
+ if(hasRental&&!transportDates.manual&&!self&&!capacity.manual&&mode!=='undecided'){
+  if(deliveryAddress&&pickupAddress&&deliveryAddress!==pickupAddress){
+   let tokens;try{tokens=JSON.parse(d.deliveryToken);}catch{}
+   if(Array.isArray(tokens)&&tokens.length===2){
+    const outbound=verifyDelivery(tokens[0],deliveryAddress,rent,value.customRequest,1);
+    const inbound=verifyDelivery(tokens[1],pickupAddress,rent,value.customRequest,1);
+    if(outbound&&inbound)receipt={total:outbound.total+inbound.total,perVisit:inbound.total};
+   }
+  }else receipt=verifyDelivery(d.deliveryToken,deliveryAddress||pickupAddress||d.address,rent,value.customRequest,visits);
+ }
+ const delivery={deliveryAddress,pickupAddress,choice:deliveryChoice,label:included?'Levering og henting inkludert i fastprisen':self?deliveryChoice:capacity.manual||deliveryChoice==='Avklares senere'?'Transport avklares i tilbudet':hasRental&&transportDates.manual&&!self?'Transport må beregnes i tilbudet':deliveryChoice,...(hasRental?{dates:{deliveryDate:transportDates.deliveryDate,pickupDate:transportDates.pickupDate}}:{}),total:included||self?0:receipt?.total??null};
  const tryGroups=groups.filter(g=>businessPurchaseEnabled(g.product)&&(g.custom?g.acquisition==='try':choices[g.packageId]==='try'));
  const purchaseOptions=tryGroups.map(g=>packageBuyoutOption({...g.product,purchasePrice:resolvedPackagePurchasePrice(g.product,products)},products,{quantity:g.quantity,custom:g.custom,extras:g.custom?Object.fromEntries(Object.entries(g.selection).filter(([id])=>isBuyoutAddon(products.find(p=>p.id===id)))):g.extras||{}}));
  // Only a complete buyout can remove the entire pickup; other rental goods keep it.
@@ -129,5 +146,5 @@ export function createEnquirySnapshot(value,input,products,{codes=[],verifyDeliv
  const hasUnpriced=lines.some(l=>l.total===null),subtotal=Math.round(lines.reduce((sum,l)=>sum+(l.total||0),0)*100)/100;
  const total=hasUnpriced||delivery.total===null?null:Math.round((subtotal-(discount?.discount||0)+delivery.total)*100)/100;
  for(const line of lines){const product=products.find(p=>p.id===line.id);const icon=/tekstil|pute|pledd/i.test(line.name)?'pillow':/dekor|blomst|vase/i.test(line.name)?'decor':'service';const image=line.addonFor?.length?'/assets/addon-'+icon+'.png':product?.image;if(typeof image==='string'&&/^\/(?:assets\/|media\/)/.test(image)&&!image.includes('..'))line.image=image;}
- return {id:value.id,kind:value.kind,acquisition,name:value.name,email:value.email,terms:value.terms,receivedAt:now.toISOString(),phone:d.phone,company:d.company,address:d.address,comment:d.comment,facts,purchaseOptions,lines,delivery,discount,total,vatIncluded:true};
+ return {id:value.id,kind:value.kind,acquisition,name:value.name,email:value.email,terms:value.terms,receivedAt:now.toISOString(),phone:d.phone,company:d.company,address:d.address,...(hasRental?{billingAddress:d.address}:{}),comment:d.comment,facts,purchaseOptions,lines,delivery,discount,total,vatIncluded:true};
 }
