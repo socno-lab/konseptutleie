@@ -29,17 +29,6 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  await c.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
  const [rows]=await c.execute('SELECT body FROM ku_workflow FOR UPDATE');let queued=0;
  for(const row of rows){const r=JSON.parse(row.body),events=[...rentalReminderEvents(r,now),...invoiceReminderEvents(r,now)];let changed=false;
- // Temporary one-order calendar backfill for a confirmation sent before calendar support.
- if(r.status==='confirmed'&&tokenHash(r.id)==='ecdf728681b638003894d1d2cf9ea296dbb3802cf786100530c7fc66a8b9479d'){
-  const issued=r.history.filter(h=>h.type==='confirmation').at(-1);
-  if(issued?.document?.workflow&&!issued.calendarVisits){
-   const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel='customer' FOR UPDATE",[issued.id]);
-   if(issued.sentAt||job?.status==='sent'){
-    await queueTransportCalendar(c,r,issued,now);
-    changed=true;
-   }
-  }
- }
  for(const event of events){const previous=r.history.filter(h=>['reminder','invoice_reminder'].includes(h.type)&&h.document?.reminder?.key===event.key).at(-1);if(previous){const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel=? FOR UPDATE",[previous.id,event.internal?'internal':'customer']);if(!job||!['cancelled','superseded'].includes(job.status))continue;}
  const id=randomUUID(),confirmation=r.history.filter(h=>h.type==='confirmation').at(-1).document;
  const snapshot={id,email:r.email,kind:'rental',documentType:event.internal?'invoice_reminder':'reminder',receivedAt:new Date(now).toISOString(),workflow:{...confirmation.workflow,history:[]},reminder:event,lines:[]};
