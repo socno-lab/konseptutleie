@@ -123,3 +123,11 @@ test('document product links carry purpose and price scope without exposing anot
   assert.equal(url.searchParams.get('bruk'),purpose);assert.equal(url.searchParams.get('prisbruk'),scope);
  }
 });
+
+test('legacy calendar jobs are cancelled before SMTP, including retries',async()=>{
+ const {createSubmissionSender}=await import('../server/submissions.mjs');
+ let status,sendCount=0;
+ const store={enabled:true,pendingEnquiryMail:async()=>[{id:'retired',channel:'internal',snapshot:{documentType:'transport_calendar'}}],claimEnquiryMail:async()=>true,finishEnquiryMail:async(_id,_channel,value)=>{status=value;}};
+ const sender=createSubmissionSender({SMTP_PASS:'fake'},store,async()=>{sendCount++;});
+ await sender.flush();assert.equal(sendCount,0);assert.equal(status,'cancelled');
+});

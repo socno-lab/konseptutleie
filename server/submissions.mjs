@@ -1,4 +1,3 @@
-import {calendarRecipient,transportCalendarMail} from './transport-calendar.mjs';
 import {rentalTermsPdf,rentalTermsFilename} from './rental-terms-pdf.mjs';
 import {workflowEmail,workflowAddonLine} from './enquiry-workflow.mjs';
 import {createProposalSnapshot,proposalEmail} from './proposal.mjs';
@@ -75,16 +74,15 @@ export function createSubmissionSender(env,store,sendOverride){
    let passes=0;do{flushAgain=false;const jobs=await store.pendingEnquiryMail(Date.now());if(jobs.length===10)flushAgain=true;
    for(const job of jobs){
     const claimed=['reminder','invoice_reminder'].includes(job.snapshot.documentType)?await store.claimWorkflowReminder(job.id,job.snapshot,Date.now()):await store.claimEnquiryMail(job.id,job.channel,Date.now());if(!claimed)continue;
-    const internal=job.channel==='internal',calendar=internal&&job.snapshot.documentType==='transport_calendar',to=calendar?calendarRecipient:internal?mailbox:job.snapshot.email;
+    if(job.snapshot.documentType==='transport_calendar'){
+     await store.finishEnquiryMail(job.id,job.channel,'cancelled',Date.now());
+     continue;
+    }
+    const internal=job.channel==='internal',to=internal?mailbox:job.snapshot.email;
     let status='uncertain';
     try{
-     let result;
-     if(calendar){
-      result=await send({...transportCalendarMail(job.snapshot),from:{name:'Konseptuell',address:mailbox},to,messageId:`<${job.id}.internal@konseptuell.no>`,disableFileAccess:true,disableUrlAccess:true});
-     }else{
      const terms=job.snapshot.rentalTerms,termsAttachment=terms&&['offer','confirmation'].includes(job.snapshot.documentType)?[{filename:rentalTermsFilename(terms),content:await rentalTermsPdf(terms),contentType:'application/pdf',contentDisposition:'attachment'}]:[];
-     const snapshot=['acceptance','offer_response','return','reminder','invoice_reminder'].includes(job.snapshot.documentType)?{...job.snapshot,lines:[]}:job.snapshot.documentType?{...job.snapshot,lines:job.snapshot.lines.map(l=>workflowAddonLine(l))}:job.snapshot;const pictures=await illustrated(snapshot),message=job.snapshot.documentType?workflowEmail({...pictures.snapshot,channel:job.channel,logoSrc:'cid:konseptuell-logo'}):job.snapshot.acquisition==='proposal'?proposalEmail(pictures.snapshot,job.channel):enquiryEmail(pictures.snapshot,job.channel);result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal&&job.snapshot.documentType!=='invoice_reminder'?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments,...termsAttachment],disableFileAccess:true,disableUrlAccess:true});
-     }
+     const snapshot=['acceptance','offer_response','return','reminder','invoice_reminder'].includes(job.snapshot.documentType)?{...job.snapshot,lines:[]}:job.snapshot.documentType?{...job.snapshot,lines:job.snapshot.lines.map(l=>workflowAddonLine(l))}:job.snapshot;const pictures=await illustrated(snapshot),message=job.snapshot.documentType?workflowEmail({...pictures.snapshot,channel:job.channel,logoSrc:'cid:konseptuell-logo'}):job.snapshot.acquisition==='proposal'?proposalEmail(pictures.snapshot,job.channel):enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal&&job.snapshot.documentType!=='invoice_reminder'?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments,...termsAttachment],disableFileAccess:true,disableUrlAccess:true});
      status=result.accepted?.some(address=>String(address).toLowerCase()===to.toLowerCase())?'sent':'pending';
     }catch(error){status=retryableMailError(error)?'pending':'uncertain';console.error('E-post '+job.channel+' '+job.id+': '+String(error.code||'SMTP').replace(/[^A-Z0-9_]/gi,''));}
     await store.finishEnquiryMail(job.id,job.channel,status,Date.now());

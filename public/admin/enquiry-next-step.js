@@ -10,7 +10,7 @@ export function nextStep(r){
  if(['completed','cancelled'].includes(r.status))return {closed:true,title:r.status==='completed'?'Leieforholdet er avsluttet':'Henvendelsen er avsluttet'};
  if(r.status==='confirmed'&&enquiryGroup(r)==='expired')return {action:'complete',title:'Bekreft retur',help:'Bekreft først når alle varene er returnert eller hentet. Da avsluttes leieforholdet og reservasjonen frigis.'};
  if(r.status==='confirmed')return {action:'confirmation',title:'Se gjennom og send oppdatert ordrebekreftelse',help:'Endre bestillingen ovenfor. Endringene oppsummeres automatisk i ordrebekreftelsen. Reservasjonen oppdateres først når du sender den nye ordrebekreftelsen.'};
- if(r.status==='accepted')return {action:'confirmation',title:'Se gjennom og bekreft ordre',help:'Kunden har akseptert. Kontroller avtalen og reservasjonen før du sender ordrebekreftelsen. Kalenderinvitasjoner for transporten sendes til post@konseptboligstyling.no.'};
+ if(r.status==='accepted')return {action:'confirmation',title:'Se gjennom og bekreft ordre',help:'Kunden har akseptert. Kontroller avtalen og reservasjonen før du sender ordrebekreftelsen.'};
  return {action:'offer',title:updated?'Se gjennom og send oppdatert tilbud':'Se gjennom og send tilbud',help:r.status==='offered'?'Venter på kundens svar. Ved endringer kan du sende et nytt tilbud som kunden må akseptere på nytt.':'Kontroller produkter, priser, datoer og transport. Du får se hele tilbudet før du sender.'};
 }
 export function returnActions(){return '<div class="return-actions"><button type="button" class="button button-outline" data-action="complete">Bekreft retur uten e-post</button><button type="button" class="button dark" data-action="complete-thanks">Bekreft retur og send takke-e-post</button></div>';}
