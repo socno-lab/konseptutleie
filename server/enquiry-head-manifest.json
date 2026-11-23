@@ -1,0 +1,30 @@
+{
+  "css": [
+    "/style.css",
+    "/commerce.css",
+    "/catalog-usage.css",
+    "/brand-tagline.css",
+    "/product-image-adjustments.css",
+    "/footer-contact.css",
+    "/product-dimensions.css",
+    "/catalog-empty.css",
+    "/catalog-search-alignment.css",
+    "/cart-usage-compact.css",
+    "/enquiry-review.css",
+    "/storefront-font.css",
+    "/header-tools.css",
+    "/cart-addons.css",
+    "/service-detail.css",
+    "/catalog-refinements.css",
+    "/rental-status.css",
+    "/primary-navigation.css",
+    "/price-display.css"
+  ],
+  "js": [
+    "/cart-badge-bootstrap.js",
+    "/price-display-first.js",
+    "/rental-period-first.js"
+  ],
+  "cssHash": "eac4f68729bc",
+  "jsHash": "32beb967550b"
+}

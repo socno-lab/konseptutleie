@@ -1,3 +1,4 @@
+import {buildEnquiryHead} from './server/enquiry-head.mjs';
 import {verifyEnquiryBundle} from './server/enquiry-bundle.mjs';
 import assert from 'node:assert/strict';
 import {assertPriceDisplayScript} from './server/price-display-script.mjs';
@@ -28,5 +29,6 @@ await assertStorefrontFont();
 await assertDesignLock();
 await assertPresentationLock();
 await verifyEnquiryBundle();
+await buildEnquiryHead();
 console.log('Godkjent uttrykk kontrollert.');
 console.log(`Katalog og bildelenker kontrollert: ${products.length} oppføringer. Node-serveren krever ingen kompilering.`);
