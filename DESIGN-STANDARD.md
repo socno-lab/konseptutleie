@@ -285,3 +285,21 @@ Fokusrammer bruker profilens grønne `--olive`, også i gallerier og admin. Brun
 22. november 2026 – transportkort i leieforespørselen. Hvert valg viser navn og pris eller prisstatus på første linje, med en kort forklaring under. «Kun levering» forklarer egen retur på lageret. «Vi henter ved leieslutt» forklarer at kunden henter på lageret ved leiestart. Foreløpige datoer og relevante varsler ligger i samme grønne kort som det valgte alternativet. Kontrollert lokalt ved 320, 390 og 1280 px.
 
 22. november 2026 – transportmerknad i leieforespørselen. Merknaden står rett under de foreløpige datoene i det valgte grønne kortet, med en tynn skillelinje og samme bakgrunn som kortet. Tilpassede hverdagsdatoer merkes med «i», mens individuell prisberegning merkes med «!» og en overskrift. Kontrollert lokalt ved 320, 390 og 1280 px.
+
+## Godkjent katalogtopp og leieforespørsel – 23. november 2026
+
+Eier har uttrykkelig godkjent disse løsningene som designstandard. Denne seksjonen erstatter tidligere beskrivelser av leieforespørselens oppsett der de er i konflikt.
+
+På desktop flukter underkanten av katalogens innledning til høyre med underkanten av hovedoverskriften til venstre. Overskrift og innledning har ingen ekstra bunnmarg inne i den felles raden. Feltet «Hva skal du bruke møblene til?» følger under med radens ordinære avstand. Dette gjelder alle kategorier og bruksområder i leiekatalogen. Mobil følger sitt eksisterende kompakte oppsett.
+
+Leieforespørselen bruker den godkjente enkeltsiden:
+- Tittel og kort innledning etterfulgt av grønn samlet oversikt for leieperiode og formål. Feltene står ved siden av hverandre på desktop og under hverandre på mobil. «Helt uforpliktende» vises bare på desktop.
+- «Dine produkter» og mva.-velger følger under oversikten. Produktprisene står under produktinformasjonen. «Fjern» står under prisen med felles typografi for alle produkttyper. Tekstilpakken følger produktoversiktens godkjente plassering og får bare relevante handlinger.
+- «+ Legg til flere produkter» følger produktene. Veiledende leiesum vises under produktoversikten. Den fjernede teksten om leiepriser og tilgjengelighet skal ikke gjeninnføres.
+- Kundens opplysninger og fakturaadresse følger videre på samme side. Ett valg åpner alternativ transportadresse.
+- Transportvalgene er kompakte kort. Valgt kort har grønn bakgrunn med datorader og full forklaring under datoene. Forklaringsavsnittene starter helt til venstre i kortets innholdsflate, under ikon og overskrift. Overskriften «Foreløpige datoer» er fjernet.
+- Transportforklaringen tilpasses valgt transport og faktiske turer. Lagerregler vises når kunden bruker lageret. Kl. 08.00–12.00 gjelder turer på hverdager. Dagens transportregler og prisberegning følger implementeringen.
+- Rabattkode åpnes i nedtrekk ved leiebetingelsene. De overflødige kontrollfeltene før innsending er fjernet. Prisoppsummeringen viser kjent leiesum pluss transport inntil transportpris foreligger, med tilstandsavhengig forklaring og klikkbar adressehjelp.
+- Behold eksisterende grønn/hvit profil, DM Sans, produktbildenes responsive størrelse, feltmål og lastestrategi.
+
+Referansebildene for toppen av katalogen og leieforespørselen ligger i reference/ med dato 2026-11-23. Lokal visningskontroll bruker offentlige produktdata, syntetisk kurv og ingen innsendinger. Katalogen er kontrollert ved 320, 390 og 1440 px og leieforespørselen ved 390 og 1440 px. Katalogens innledning og overskrift har samme underkant på desktop, bruksområdefeltet løftes 24 px, og mobilens plassering er identisk før og etter. Ingen horisontal scrolling ble målt.

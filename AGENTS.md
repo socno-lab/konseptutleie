@@ -32,3 +32,7 @@ Låsen er en regresjonskontroll, ikke tilgangskontroll eller en garanti mot alle
 Les [DESIGN-STANDARD.md](DESIGN-STANDARD.md) før endringer i kundevendt utforming, inkludert nye produkter, tjenester, tilvalg, kurv og bekreftelser. Gjenbruk godkjente komponenter og typografiskala. Ny funksjonalitet eller en tjeneste med mer tekst gir ikke i seg selv grunn til større fonter eller ny visningsprofil.
 
 `node build.mjs` kontrollerer også `reference/presentation-design-lock.json` gjennom `server/presentation-lock.mjs`. Låsen dekker kurvstil, tjenestetypografi, produktbilder, sofarader, rekkefølge på kvitteringer, bekreftelsesvisning og e-postmal. Bevisst endring krever visuell gjennomgang og dokumentert referanseoppdatering; aldri automatisk oppdatering for å omgå kontrollen. Vanlige adminendringer i pris, lager, bilder og innhold er fortsatt tillatt. Brukerens uttrykkelige nye designønsker går foran standarden.
+
+## Oppdatert designstandard 23. november 2026
+
+Katalogtoppens bunnjustering på desktop og gjeldende enkeltside for leieforespørsel er uttrykkelig godkjent av eier. Følg seksjonen «Godkjent katalogtopp og leieforespørsel» i DESIGN-STANDARD.md og referansebildene fra 2026-11-23. Presentasjonslåsen omfatter også enquiry-intro.css, enquiry-page.css og enquiry-review.css. Senere funksjonsarbeid skal bevare dette uttrykket med mindre eier bestiller en konkret designendring.
