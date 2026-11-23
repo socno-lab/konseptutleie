@@ -62,3 +62,5 @@
  .content-option-image:has(>a:focus-visible){outline:2px solid #414b38;outline-offset:4px}
  .content-page .production-services:has(>.content-option-image){gap:0}
 }
+
+@media(min-width:641px){body.occasion-page .content-page>.text-button:first-child{display:flex;align-items:center;width:fit-content;min-height:48px}}

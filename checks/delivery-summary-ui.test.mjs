@@ -295,3 +295,17 @@ test('each styling transport choice explains which leg moves and whose weekday s
  assert.match(ui.weekdayNotice.innerHTML,/Uthenting på lageret skjer på hverdager, og vi henter mandag til fredag/);
  assert.match(ui.weekdayNotice.innerHTML,/uthenting på lageret fredag 1\. november og henting hos deg mandag 4\. november/);
 });
+
+test('returning to a previously priced address immediately restores its unexpired tariff',async()=>{
+ const ui=await mountedDelivery();
+ ui.emit({chair:1});ui.choose(1);await ui.calculate();
+ ui.editAddress('Returveien 2');
+ ui.setQuote({manual:false,prices:{onePerson:890,twoPeople:1390},receipt:'second-route'});
+ await ui.calculate();assert.equal(ui.summary().total,1780);
+ ui.editAddress('Testveien 1');
+ assert.equal(ui.summary().total,1380);
+ assert.equal(ui.scheduled(),false);
+ assert.equal(ui.requests.filter(r=>r.init?.method==='POST').length,2);
+ ui.advance(300001);ui.editAddress('Testveien 1');
+ assert.equal(ui.summary().total,null);assert.equal(ui.scheduled(),true);
+});

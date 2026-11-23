@@ -86,7 +86,7 @@ function mountRentalDelivery(form){
   '<strong data-delivery-price="'+i+'">'+(visits===0?'0 kr':visits===null?'Avklares':'Adresse kreves')+'</strong></label></div>'
  ).join('')+'</div><p class="hint">Prisene inkluderer mva.</p><div role="status" aria-live="polite"></div>';
  select.closest('label').replaceWith(group);
- const transportFields=document.createElement('div');transportFields.className='rental-transport-dates';transportFields.innerHTML='<p class="transport-date-heading">Foreløpige datoer</p><label><span data-transport-label="deliveryDate">Ønsket leveringsdato</span><strong data-transport-value="deliveryDate"></strong><input hidden type="date" name="deliveryDate"></label><label><span data-transport-label="pickupDate">Ønsket hentedato</span><strong data-transport-value="pickupDate"></strong><input hidden type="date" name="pickupDate"></label>';group.append(transportFields);
+ const transportFields=document.createElement('div');transportFields.className='rental-transport-dates';transportFields.innerHTML='<label><span data-transport-label="deliveryDate">Ønsket leveringsdato</span><strong data-transport-value="deliveryDate"></strong><input hidden type="date" name="deliveryDate"></label><label><span data-transport-label="pickupDate">Ønsket hentedato</span><strong data-transport-value="pickupDate"></strong><input hidden type="date" name="pickupDate"></label>';group.append(transportFields);
  const pickupTimeNote=document.createElement('p');pickupTimeNote.className='hint';pickupTimeNote.textContent='Tidspunkt for uthenting på lageret avtales i tilbudet.';pickupTimeNote.hidden=true;transportFields.after(pickupTimeNote);
  const weekdayNotice=document.createElement('section');weekdayNotice.className='transport-note';weekdayNotice.hidden=true;transportFields.after(weekdayNotice);
  const transportInput=name=>transportFields.querySelector('[name="'+name+'"]');let previousTransportDefaults={},previousTransportMode;
@@ -188,34 +188,83 @@ function mountRentalDelivery(form){
  };
 
  const addressNotice=document.createElement('p');addressNotice.className='hint';addressNotice.textContent='Fakturaadressen brukes også til transport med mindre du oppgir en annen adresse. Kjøretiden beregnes med Google Maps.';addressNotice.id='rentalAddressPrivacy';address.setAttribute('aria-describedby',addressNotice.id);address.closest('label').after(addressNotice);
- const result=group.querySelector('[role="status"]'),dialog=form.closest('dialog');let enabled=null,revision=0,timer,controller,offer=null,pendingKey='',wasLocked=false,previousChoice=choices[0][0],retryAfter=0;
+ const result=group.querySelector('[role="status"]'),dialog=form.closest('dialog');let enabled=null,revision=0,timer,controller,pendingKey='',wasLocked=false,previousChoice=choices[0][0],retryAfter=0;
  // Autofill can update the whole address while the customer is still editing their name.
  const contactNames=new Set(['name','email','phone','company','address','postalCode','postalCity']);
  const editingContact=()=>matchMedia('(max-width:640px)').matches&&form.contains(document.activeElement)&&contactNames.has(document.activeElement.name);
  let deferredDelivery=false;
  const selected=()=>choices.find(([value])=>value===group.querySelector('[name="delivery"]:checked')?.value)||choices[0];
  const legs=['delivery','pickup'];
- const addressFor=leg=>form.elements.namedItem(leg+'Override')?.checked?form.elements.namedItem(leg+'Address').value.trim():completeAddress(form);
- const complete=value=>/^.{3,},?\s+[0-9]{4}\b[\s,]+\S.{1,}$/u.test(value);
+ const fieldFor=name=>form.elements.namedItem(name);
  const choiceLegs=choice=>choice===choices[1]?legs:choice===choices[2]?['delivery']:choice===choices[3]?['pickup']:[];
+ const overrideFor=leg=>{
+  const active=choiceLegs(selected());
+  if(active.includes(leg)&&fieldFor(leg+'Override')?.checked)return leg;
+  if(leg==='pickup'&&active.length===2&&fieldFor('deliveryOverride')?.checked)return 'delivery';
+  return '';
+ };
+ const addressFor=leg=>{
+  const override=overrideFor(leg);
+  return override?fieldFor(override+'Address').value.trim():completeAddress(form);
+ };
+ const complete=value=>/^.{3,},?\s+[0-9]{4}\b[\s,]+\S.{1,}$/u.test(value);
+ const pickupField=fieldFor('pickupAddress');
+ let pickupDetails,pickupSummary,pickupEdit,pickupHome;
+ if(pickupField){
+  pickupHome=pickupField.closest('label').parentElement;
+  pickupDetails=document.createElement('div');
+  pickupDetails.innerHTML='<span class="hint"></span> <button type="button" class="text-button">Endre henteadresse</button>';
+  pickupSummary=pickupDetails.querySelector('span');
+  pickupEdit=pickupDetails.querySelector('button');
+  pickupEdit.addEventListener('click',()=>{
+   const toggle=fieldFor('pickupOverride');
+   toggle.checked=!toggle.checked;
+   toggle.dispatchEvent(new Event('change',{bubbles:true}));
+   if(toggle.checked)pickupField.focus();
+  });
+  form.addEventListener('formdata',event=>{
+   for(const leg of legs){
+    if(!purchaseOnly()&&choiceLegs(selected()).includes(leg))event.formData.set(leg+'Address',addressFor(leg));
+    else event.formData.delete(leg+'Address');
+   }
+  });
+ }
  const syncAddresses=()=>{
+  const activeLegs=purchaseOnly()?[]:choiceLegs(selected());
+  const both=activeLegs.length===2;
+  if(pickupDetails){
+   pickupDetails.hidden=!both;
+   const parent=both?pickupDetails:pickupHome,label=pickupField.closest('label');
+   if(label.parentElement!==parent)parent.append(label);
+   pickupSummary.textContent=both&&complete(addressFor('pickup'))?'Henteadresse: '+addressFor('pickup'):'';
+   pickupEdit.textContent=fieldFor('pickupOverride').checked?'Bruk samme adresse som ved levering':'Endre henteadresse';
+   pickupEdit.setAttribute('aria-expanded',String(fieldFor('pickupOverride').checked));
+  }
   for(const leg of legs){
-   const field=form.elements.namedItem(leg+'Address');
+   const field=fieldFor(leg+'Address');
    if(!field)continue;
-   const toggle=form.elements.namedItem(leg+'Override'),active=!purchaseOnly()&&toggle.checked;
-   toggle.closest('label').hidden=purchaseOnly();
-   field.closest('label').hidden=!active;field.disabled=!active;
-   field.required=active&&choiceLegs(selected()).includes(leg);
-   field.setCustomValidity(field.required&&!complete(field.value.trim())?'Oppgi gateadresse, postnummer og poststed.':'');
+   const toggle=fieldFor(leg+'Override'),relevant=activeLegs.includes(leg);
+   toggle.closest('label').hidden=!relevant||(leg==='pickup'&&both);
+   const editing=relevant&&toggle.checked;
+   field.closest('label').hidden=!editing;field.disabled=!editing;field.required=editing;
+   field.setCustomValidity(editing&&!complete(field.value.trim())?'Oppgi gateadresse, postnummer og poststed.':'');
   }
  };
  const addressKey=()=>JSON.stringify(legs.map(addressFor));
- const readyFor=leg=>form.elements.namedItem(leg+'Override')?.checked?complete(addressFor(leg)):billingReady();
+ const readyFor=leg=>overrideFor(leg)?complete(addressFor(leg)):billingReady();
  const ready=()=>legs.some(readyFor);
  const billingReady=()=>address.value.trim().length>=3&&/^[0-9]{4}$/.test(form.querySelector('[name="postalCode"]').value)&&form.querySelector('[name="postalCity"]').value.trim().length>=2;
+ const tariffs=new Map();
+ const routeKey=address=>address.normalize('NFKC').trim().toLocaleLowerCase('nb-NO').replace(/[\s,]+/g,' ');
+ const cached=address=>{
+  const key=routeKey(address),entry=tariffs.get(key);
+  if(entry?.until>Date.now())return entry.quote;
+  tariffs.delete(key);
+  return null;
+ };
  const quoteFor=(choice,crew)=>{
-  const routes=choiceLegs(choice).map(leg=>offer?.routes[leg]);
-  if(!routes.length||routes.some(route=>!route)||offer.key!==addressKey()||offer.until<=Date.now())return null;
+  const routes=choiceLegs(choice).map(leg=>readyFor(leg)&&cached(addressFor(leg)));
+  if(!routes.length||routes.some(route=>!route))return null;
   if(routes.some(route=>route.manual))return {manual:true};
   const total=routes.reduce((sum,route)=>sum+route.prices[crew],0);
   const receipt=routes.length===1||addressFor(legs[0])===addressFor(legs[1])?routes[0].receipt:JSON.stringify(routes.map(route=>route.receipt));
@@ -226,7 +275,7 @@ function mountRentalDelivery(form){
  const capacity=()=>rentalDeliveryCapacity(deliverySelection?.basket||{},deliverySelection?.products||[],deliverySelection?.customRequest===true);
  const updated=()=>document.dispatchEvent?.(new Event('rental-delivery-updated'));
  const preserveChoiceHeight=()=>{const labels=[...group.querySelectorAll('[name=delivery]')].map(radio=>radio.closest('label'));const height=Math.max(0,...labels.filter(label=>!label.hidden&&!String(label.className).includes('has-route-credit')).map(label=>label.getBoundingClientRect?.().height||0));if(height)for(const label of labels)label.style.minHeight=height+'px';};
- const choiceDetails=document.createElement('div');choiceDetails.className='rental-delivery-details';choiceDetails.append(transportFields,weekdayNotice,result,pickupTimeNote);let detailsAnchor=null;
+ const choiceDetails=document.createElement('div');choiceDetails.className='rental-delivery-details';choiceDetails.append(transportFields,weekdayNotice,result,pickupTimeNote);if(pickupDetails)transportFields.after(pickupDetails);let detailsAnchor=null;
  const placeChoiceDetails=()=>{const anchor=group.querySelector('[name="delivery"]:checked')?.closest('label');if(anchor&&anchor!==detailsAnchor){anchor.after(choiceDetails);detailsAnchor=anchor;}};
  deliverySummaryProvider=()=>{
   const load=capacity(),choice=selected(),unknown=label=>({total:null,included:false,label});
@@ -282,32 +331,30 @@ function mountRentalDelivery(form){
   }finally{syncAddresses();placeChoiceDetails();updated();}
  };
  const schedule=()=>{
-  clearTimeout(timer);syncTransportDates();const key=addressKey();if(offer?.key!==key)offer=null;
+  clearTimeout(timer);syncTransportDates();const key=addressKey();
   if(pendingKey&&pendingKey!==key){revision++;controller?.abort();pendingKey='';}
   if(purchaseOnly()||!routeOptions()||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length){if(pendingKey){revision++;controller?.abort();pendingKey='';}render();return;}
   if(editingContact()){deferredDelivery=true;updated();}else render();
-  if(!enabled||!ready()||!dialog?.open||Date.now()<retryAfter||(offer?.key===key&&offer.until>Date.now())||pendingKey===key)return;
+  if(!enabled||!ready()||!dialog?.open||Date.now()<retryAfter||legs.filter(readyFor).every(leg=>cached(addressFor(leg)))||pendingKey===key)return;
   if(selected()[2]>0&&!transportPolicy().manual&&!editingContact())result.textContent='Beregner transportpris …';timer=setTimeout(calculate,1800);
  };
  async function calculate(){
   const options=routeOptions();if(!options||purchaseOnly()||!enabled||!ready()||!dialog?.open||capacity().includedOnly||capacity().manual||!Object.keys(deliverySelection?.basket||{}).length||Date.now()<retryAfter)return;const key=addressKey(),current=++revision;pendingKey=key;controller=new AbortController();render();
   try{
-   const addresses=legs.filter(readyFor).map(addressFor);
+   const addresses=legs.filter(readyFor).map(addressFor).filter(address=>!cached(address));
    const results=await Promise.allSettled([...new Set(addresses)].map(async address=>{
     const response=await fetch('/api/delivery-estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address,visits:1,...options,basket:deliverySelection.basket,customRequest:deliverySelection.customRequest===true}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(12000)])});
     const quote=await response.json();
     if(!response.ok){if(response.status===429)retryAfter=Date.now()+60000;throw Error(quote.error||'Transportpris avklares i tilbudet.');}
     if(!quote.manual&&(!Number.isFinite(quote.prices?.onePerson)||!Number.isFinite(quote.prices?.twoPeople)))throw Error('Transportpris avklares i tilbudet.');
-    return [address,quote];
+    if(current===revision)tariffs.set(routeKey(address),{quote,until:Date.now()+300000});
+    return quote;
    }));
    if(current!==revision)return;
-   const byAddress=new Map(results.filter(result=>result.status==='fulfilled').map(result=>result.value));
    const failure=results.find(result=>result.status==='rejected');
-   if(!byAddress.size&&failure)throw failure.reason;
-   if(failure)retryAfter=Math.max(retryAfter,Date.now()+30000);
-   if(routeOptions())offer={key,until:failure?retryAfter:Date.now()+300000,routes:Object.fromEntries(legs.map(leg=>[leg,byAddress.get(addressFor(leg))]))};
+   if(failure)throw failure.reason;
    pendingKey='';render();
-  }catch(error){if(current!==revision||error.name==='AbortError')return;pendingKey='';offer=null;retryAfter=Math.max(retryAfter,Date.now()+30000);render();result.textContent=error.name==='TimeoutError'?'Fraktberegningen tok for lang tid. Frakt avklares i tilbudet.':error.message||'Transportpris avklares i tilbudet.';}
+  }catch(error){if(current!==revision||error.name==='AbortError')return;pendingKey='';retryAfter=Math.max(retryAfter,Date.now()+30000);render();result.textContent=error.name==='TimeoutError'?'Fraktberegningen tok for lang tid. Frakt avklares i tilbudet.':error.message||'Transportpris avklares i tilbudet.';}
  }
  form.addEventListener('focusout',()=>{if(deferredDelivery)requestAnimationFrame(()=>{if(!editingContact())schedule();});});
  document.addEventListener('rental-delivery-selection',event=>{deliverySelection=event.detail;schedule();});
@@ -434,16 +481,15 @@ if(rentalForm){
   #requestForm .transport-note:has(> div > strong){row-gap:2px}
   #requestForm .transport-note:has(> div > strong) > div{display:contents}
   #requestForm .transport-note strong + p{grid-column:1/-1;margin-top:0}
-  #requestForm .rental-transport-dates .transport-date-heading{margin:0 0 6px;color:var(--muted);font-size:12px;font-weight:400}
   #requestForm .rental-transport-dates > label{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0;padding:6px 0;font-size:13px;line-height:1.5}
   #requestForm .rental-transport-dates > label + label{border-top:1px solid var(--line)}
   #requestForm .rental-transport-dates > label > span{min-width:0}
   #requestForm .rental-transport-dates strong{flex-shrink:0;font-size:13px;font-weight:600;white-space:nowrap}
+  #requestForm label[hidden],#requestForm .rental-delivery-details > [hidden],
   #requestForm .rental-transport-dates input[hidden]{display:none!important}
   #requestForm .rental-delivery-details > .hint{margin:0;font-size:12px;line-height:1.6}
   @media(min-width:641px){
    #requestForm .rental-transport-dates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-   #requestForm .rental-transport-dates .transport-date-heading{grid-column:1/-1}
    #requestForm .rental-transport-dates > label{display:grid;justify-content:start;gap:2px;padding:2px 12px 2px 0}
    #requestForm .rental-transport-dates > label + label{border-top:0;border-left:1px solid var(--line);padding-left:14px}
    #requestForm .rental-transport-dates > label > span{color:var(--muted);font-size:12px}
