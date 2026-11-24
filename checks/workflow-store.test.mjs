@@ -8,6 +8,7 @@ function fixture(catalog=[product]){
  const make=id=>({...workflowRecord({id,company:'Testbedrift',email:'test@example.invalid',kind:'rental',address:'Testveien 1, 2010 Strømmen',receivedAt:'2026-11-20',facts:[['Ønsket leieperiode','2026-12-05 til 2026-12-06']],lines:[{id:'chair',name:'Stol',quantity:2,total:400}],delivery:{total:0}}),status:'accepted',lines:[{key:'0',id:'chair',name:'Stol',originalId:'chair',originalName:'Stol',quantity:2,total:400,review:'ok',image:''}],changeReason:'',history:[{id:'offer-'+id,type:'offer'}]});
  let state={records:[make('a'),make('b')],settings:structuredClone(defaultSettings),jobs:[],enquiries:[]},failQueue=false,tail=Promise.resolve();
  const execute=async(db,sql,args=[])=>{
+  if(sql==='SELECT body FROM ku_enquiries WHERE id=?')return [db.enquiries.filter(e=>e.id===args[0]).map(e=>({body:JSON.stringify(e.snapshot)}))];
   if(sql==='SELECT body FROM ku_enquiries')return [db.enquiries.map(e=>({body:JSON.stringify(e.snapshot)}))];
   if(sql.startsWith('INSERT IGNORE INTO ku_workflow')){if(!db.records.some(r=>r.id===args[0]))db.records.push(JSON.parse(args[1]));return [{}];}
   if(sql==='SELECT body FROM ku_site_settings WHERE id=1')return [[{body:JSON.stringify(db.settings)}]];
@@ -16,9 +17,9 @@ function fixture(catalog=[product]){
   if(sql.startsWith('INSERT INTO ku_enquiries')){db.enquiries.push({id:args[0],snapshot:JSON.parse(args[2])});return [{}];}
   if(sql.startsWith('INSERT INTO ku_enquiry_mail')){if(failQueue===true||failQueue===(sql.includes("'internal'")?'internal':'customer'))throw Error('queue failure');db.jobs.push({id:args[0],status:'pending',channel:sql.includes('(?,?,?)')?args[1]:sql.includes("'internal'")?'internal':'customer'});return [{}];}
   if(sql.startsWith('UPDATE ku_workflow')){db.records=db.records.map(r=>r.id===args[1]?JSON.parse(args[0]):r);return [{}];}
-  if(sql.startsWith('SELECT status FROM ku_enquiry_mail'))return [[db.jobs.find(j=>j.id===args[0])].filter(Boolean)];
+  if(sql.startsWith('SELECT status FROM ku_enquiry_mail'))return [[db.jobs.find(j=>j.id===args[0]&&j.channel===(args[1]||(sql.includes("'internal'")?'internal':'customer')))].filter(Boolean)];
   if(sql.startsWith("UPDATE ku_enquiry_mail SET status='sending'")){const job=db.jobs.find(j=>j.id===args[1]&&j.channel===args[2]&&j.status==='pending');if(job)job.status='sending';return [{affectedRows:job?1:0}];}
-  if(sql.startsWith("UPDATE ku_enquiry_mail SET status='superseded'")){for(const j of db.jobs)if(j.id===args[0]&&j.status==='pending')j.status='superseded';return [{}];}
+  if(sql.startsWith("UPDATE ku_enquiry_mail SET status='superseded'")){for(const j of db.jobs)if(j.id===args[0]&&(!sql.includes("channel='internal'")||j.channel==='internal')&&j.status==='pending')j.status='superseded';return [{}];}
   if(sql.startsWith("UPDATE ku_enquiry_mail SET status='cancelled'")){for(const j of db.jobs)if(j.id===args[0]&&j.status==='pending')j.status='cancelled';return [{}];}
   if(sql==='DELETE FROM ku_enquiry_mail WHERE submission_id=?'){db.jobs=db.jobs.filter(j=>j.id!==args[0]);return [{}];}
   if(sql==='DELETE FROM ku_enquiries WHERE id=?'){db.enquiries=db.enquiries.filter(e=>e.id!==args[0]);return [{}];}

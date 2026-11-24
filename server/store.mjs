@@ -119,7 +119,23 @@ export function createMysqlStore(env,seed){
    return rows.map(row=>({id:row.id,channel:row.channel,snapshot:JSON.parse(row.body)}));
   },
   async claimEnquiryMail(id,channel,now){const [result]=await query("UPDATE ku_enquiry_mail SET status='sending',attempts=attempts+1,lease_until=? WHERE submission_id=? AND channel=? AND status='pending' AND attempts<5 AND next_at<=?",[now+120000,id,channel,now]);return result.affectedRows===1;},
-  async finishEnquiryMail(id,channel,status,now){
+  async finishEnquiryMail(id,channel,status,now,warehouseOrderId){
+   if(warehouseOrderId && channel==='customer' && status==='sent'){
+    const c=await pool.getConnection();
+    try{
+     await c.beginTransaction();
+     await c.execute('SELECT id FROM ku_catalog WHERE id=1 FOR UPDATE');
+     const [[row]]=await c.execute('SELECT body FROM ku_workflow WHERE id=? FOR UPDATE',[warehouseOrderId]);
+     const r=row && JSON.parse(row.body);
+     const [result]=await c.execute("UPDATE ku_enquiry_mail SET status='sent',lease_until=0 WHERE submission_id=? AND channel='customer' AND status='sending'",[id]);
+     if(result.affectedRows && r?.status==='confirmed' && r.history.filter(h=>h.type==='confirmation').at(-1)?.id===id){
+      await c.execute("INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,'internal',?)",[id,now]);
+     }
+     await c.commit();
+    }catch(error){await c.rollback();throw error;}finally{c.release();}
+    await workflow.recordWorkflowMailSent(id,now);
+    return;
+   }
    // Keep bound status values out of MySQL IF expressions: connection/table collations can differ.
    await query("UPDATE ku_enquiry_mail SET status=?,next_at=?,lease_until=0 WHERE submission_id=? AND channel=? AND status='sending'",[status,now+300000,id,channel]);
    if(status==='sent')await workflow.recordWorkflowMailSent(id,now);

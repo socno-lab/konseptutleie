@@ -1,3 +1,4 @@
+import {warehouseMessage} from './warehouse-documents.mjs';
 import {rentalTermsPdf,rentalTermsFilename} from './rental-terms-pdf.mjs';
 import {workflowEmail,workflowAddonLine} from './enquiry-workflow.mjs';
 import {createProposalSnapshot,proposalEmail} from './proposal.mjs';
@@ -40,7 +41,7 @@ export function createSubmissionSender(env,store,sendOverride){
  const transport=enabled&&!sendOverride?nodemailer.createTransport({host,port,secure:port===465,requireTLS:true,auth:{user,pass:env.SMTP_PASS},tls:{minVersion:'TLSv1.2',rejectUnauthorized:true},connectionTimeout:8000,greetingTimeout:8000,socketTimeout:15000,disableFileAccess:true,disableUrlAccess:true}):null;
  const send=sendOverride||((message)=>transport.sendMail(message));let active=0,draining=false,flushAgain=false,lastPruned=0;
  const assetsRoot=fileURLToPath(new URL('../public/assets/',import.meta.url));
- async function illustrated(snapshot){
+ async function illustrated(snapshot, size=112){
   const attachments=[],lines=[];let budget=4*1024*1024;
   const removed=snapshot.confirmationChanges?.removalDisplay==='rows'?snapshot.confirmationChanges.removed||[]:[];
   for(const [i,line] of [...snapshot.lines,...removed].entries()){
@@ -49,7 +50,7 @@ export function createSubmissionSender(env,store,sendOverride){
     if(line.image&&attachments.length<20){let image;
      if(/^\/media\/[a-f0-9]{32}$/.test(line.image))image=await store.media(line.image.slice(7));
      else if(line.image.startsWith('/assets/')){const filename=path.resolve(assetsRoot,line.image.slice(8));if(filename.startsWith(assetsRoot)){const body=await readFile(filename);image={body,mime:imageMime(body)};}}
-     if(image?.body?.length<=8*1024*1024&&['image/png','image/jpeg','image/webp','image/avif'].includes(image.mime)){const thumbnail=await sharp(image.body,{limitInputPixels:40000000}).resize({width:112,height:112,fit:'contain',background:'#ffffff'}).flatten({background:'#ffffff'}).jpeg({quality:82}).timeout({seconds:3}).toBuffer();if(thumbnail.length<=budget){const cid='product-'+i+'@konseptuell.no';attachments.push({filename:'produkt-'+(i+1)+'.jpg',content:thumbnail,contentType:'image/jpeg',cid,contentDisposition:'inline'});copy.imageSrc='cid:'+cid;budget-=thumbnail.length;}}
+     if(image?.body?.length<=8*1024*1024&&['image/png','image/jpeg','image/webp','image/avif'].includes(image.mime)){const thumbnail=await sharp(image.body,{limitInputPixels:40000000}).resize({width:size,height:size,fit:'contain',background:'#ffffff'}).flatten({background:'#ffffff'}).jpeg({quality:82}).timeout({seconds:3}).toBuffer();if(thumbnail.length<=budget){const cid='product-'+i+'@konseptuell.no';attachments.push({filename:'produkt-'+(i+1)+'.jpg',content:thumbnail,contentType:'image/jpeg',cid,contentDisposition:'inline'});copy.imageSrc='cid:'+cid;budget-=thumbnail.length;}}
     }
    }catch{/* A missing optional picture must not prevent the receipt. Use its public URL. */}
    lines.push(copy);
@@ -81,11 +82,24 @@ export function createSubmissionSender(env,store,sendOverride){
     const internal=job.channel==='internal',to=internal?mailbox:job.snapshot.email;
     let status='uncertain';
     try{
+     if(internal && job.snapshot.documentType==='confirmation' && job.snapshot.warehouse){
+      const images=new Map();
+      for(const image of new Set(job.snapshot.warehouse.items.map(item=>item.image).filter(Boolean))){
+       const result=await illustrated({lines:[{image}]},480);
+       if(result.attachments[0])images.set(image,result.attachments[0].content);
+      }
+      const message=await warehouseMessage(job.snapshot,images);
+      const result=await send({...message,from:{name:'Konseptuell',address:mailbox},to:mailbox,messageId:`<${job.id}.internal@konseptuell.no>`,disableFileAccess:true,disableUrlAccess:true});
+      status=result.accepted?.some(address=>String(address).toLowerCase()===mailbox)?'sent':'pending';
+     }else{
      const terms=job.snapshot.rentalTerms,termsAttachment=terms&&['offer','confirmation'].includes(job.snapshot.documentType)?[{filename:rentalTermsFilename(terms),content:await rentalTermsPdf(terms),contentType:'application/pdf',contentDisposition:'attachment'}]:[];
      const snapshot=['acceptance','offer_response','return','reminder','invoice_reminder'].includes(job.snapshot.documentType)?{...job.snapshot,lines:[]}:job.snapshot.documentType?{...job.snapshot,lines:job.snapshot.lines.map(l=>workflowAddonLine(l))}:job.snapshot;const pictures=await illustrated(snapshot),message=job.snapshot.documentType?workflowEmail({...pictures.snapshot,channel:job.channel,logoSrc:'cid:konseptuell-logo'}):job.snapshot.acquisition==='proposal'?proposalEmail(pictures.snapshot,job.channel):enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal&&job.snapshot.documentType!=='invoice_reminder'?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments,...termsAttachment],disableFileAccess:true,disableUrlAccess:true});
      status=result.accepted?.some(address=>String(address).toLowerCase()===to.toLowerCase())?'sent':'pending';
+     }
     }catch(error){status=retryableMailError(error)?'pending':'uncertain';console.error('E-post '+job.channel+' '+job.id+': '+String(error.code||'SMTP').replace(/[^A-Z0-9_]/gi,''));}
-    await store.finishEnquiryMail(job.id,job.channel,status,Date.now());
+    const warehouseOrderId=job.channel==='customer' && job.snapshot.warehouse && job.snapshot.workflow.id;
+    await store.finishEnquiryMail(job.id,job.channel,status,Date.now(),warehouseOrderId);
+    if(warehouseOrderId && status==='sent')flushAgain=true;
    }
    }while(flushAgain&&++passes<10);
   }catch(error){console.error('E-postkø: '+String(error.code||'STORE').replace(/[^A-Z0-9_]/gi,''));}finally{draining=false;}

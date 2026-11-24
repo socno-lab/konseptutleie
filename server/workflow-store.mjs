@@ -1,3 +1,4 @@
+import {warehouseItems} from './warehouse-documents.mjs';
 import {invoiceReminderEvents} from './invoice-reminder.mjs';
 import {confirmationChanges,confirmationBaseline} from './confirmation-changes.mjs';
 import {canConfirmReturn} from '../public/admin/return-eligibility.js';
@@ -70,6 +71,11 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  if(prior)current.lines=current.lines.map(l=>({...l,...(l.originalTotal==null&&prior.lines.find(p=>p.key===l.key)?.originalTotal!=null?{originalTotal:prior.lines.find(p=>p.key===l.key).originalTotal,originalQuantity:prior.lines.find(p=>p.key===l.key).originalQuantity}:{})}));
  current.customerType=current.customerType||prior?.customerType||'consumer';
  if(['confirmation','cancel','complete'].includes(action))for(const h of current.history.filter(h=>['reminder','invoice_reminder'].includes(h.type))){const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel=? FOR UPDATE",[h.id,h.type==='invoice_reminder'?'internal':'customer']);if(job?.status==='sending')fail('En påminnelse sendes nå. Vent til sendingen er ferdig før du endrer avtalen.');if(action==='complete')await c.execute("UPDATE ku_enquiry_mail SET status='cancelled' WHERE submission_id=? AND status IN ('pending','failed','uncertain')",[h.id]);}
+ if(['confirmation','complete','cancel'].includes(action))for(const h of current.history.filter(h=>h.type==='confirmation')){
+  const [[job]]=await c.execute("SELECT status FROM ku_enquiry_mail WHERE submission_id=? AND channel='internal' FOR UPDATE",[h.id]);
+  if(job?.status==='sending')fail('Lagerdokumentene sendes nå. Prøv igjen om et øyeblikk.');
+  await c.execute("UPDATE ku_enquiry_mail SET status='superseded' WHERE submission_id=? AND channel='internal' AND status IN ('pending','failed','uncertain')",[h.id]);
+ }
  if(action==='complete'&&current.status==='completed'){await c.commit();return current;}
  if(current.status==='completed')fail('Leieforholdet er avsluttet etter bekreftet retur.');
  if(action==='complete'&&current.status!=='confirmed')fail('Kun et ordrebekreftet leieforhold kan bekreftes returnert.');
@@ -95,7 +101,12 @@ export function workflowStore(init,pool,{today=osloToday}={}){
  snapshot.rentalTerms=preparedTerms;
  if(action==='confirmation')snapshot.confirmationChanges=confirmationChanges(await confirmationBaseline(current,c),next);
  if(action==='offer'){const token=randomBytes(32).toString('base64url');next.offerAcceptance={hash:tokenHash(token),offerId:messageId,expiresAt:Date.now()+14*86400000};snapshot.acceptUrl='https://konseptuell.no/aksepter-tilbud.html?token='+token;}
- next.history=[...current.history,{id:messageId,type:action,at:next.updatedAt,document:snapshot}];
+ next.history=[...current.history,{id:messageId,type:action,at:next.updatedAt,document:{...snapshot}}];
+ if(action==='confirmation'){
+  const [[source]]=await c.execute('SELECT body FROM ku_enquiries WHERE id=?',[current.id]);
+  const original=source?JSON.parse(source.body):{};
+  snapshot.warehouse={name:original.name,company:original.company,items:warehouseItems(copy.lines,products)};
+ }
  await c.execute('INSERT INTO ku_enquiries(id,fingerprint,body,created_at) VALUES (?,?,?,?)',[messageId,'workflow',JSON.stringify(snapshot),Date.now()]);await c.execute('INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,\'customer\',?)',[messageId,Date.now()]);
  }
  if(action==='complete'&&input.sendThanks===true){
