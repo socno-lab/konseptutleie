@@ -1,7 +1,7 @@
 import {shortageReplacementPrice} from './replacement-price.js?v=replacement20261122';
 import {canConfirmReturn} from './return-eligibility.js?v=returnstart20261121';
 import {nextStepMarkup,nextStepRequirements,nextStep,hasConfirmationChanges} from './enquiry-next-step.js?v=autosummary20261121';
-import {enquiryListRow} from './enquiry-list.js?v=addressfirst20261121';
+import {enquiryListRow} from './enquiry-list.js?v=lagerark20261124';
 import {activityMarkup,progressMarkup,activityDate} from './enquiry-activity.js?v=lagerark20261124';
 import {adminDateKeys,adminDateFieldMarkup,bindAdminDateFields,collectAdminDates,readAdminDateField,setAdminDateField} from './date-fields.js?v=datevalues20261121';
 import {enquiryLineTotal} from './enquiry-line-pricing.js?v=purposemodal20261122';
@@ -65,7 +65,28 @@ async function loadPickupSlots(){const id=record?.id,dates=[dateValue('deliveryD
 
 $('editor').addEventListener('input',event=>{if(event.target.matches('.admin-date-value'))updateLinePrices();});
 
-setInterval(async()=>{if(!record||busy||document.hidden)return;const id=record.id;try{const result=await api('/api/admin/enquiries');if(record?.id!==id||busy)return;mail=result.mail;const latest=result.records.find(r=>r.id===id);if(!latest)return;const view={...record,history:record.history.map(h=>({...h,sentAt:latest.history.find(x=>x.id===h.id)?.sentAt||h.sentAt}))};const progress=$('editor').querySelector('.enquiry-progress'),activity=$('editor').querySelector('.activity-history');if(progress)progress.outerHTML=progressMarkup(view,mail);if(activity){const open=activity.open;activity.outerHTML=activityMarkup(view,mail);$('editor').querySelector('.activity-history').open=open;}}catch{}},30000);
+async function refreshActivity(){
+ if(!record||busy||document.hidden)return;
+ const id=record.id;
+ try{
+  const result=await api('/api/admin/enquiries');
+  if(record?.id!==id||busy)return;
+  const latest=result.records.find(r=>r.id===id);
+  if(!latest)return;
+  mail=result.mail;
+  record.history=latest.history;
+  const progress=$('editor').querySelector('.enquiry-progress');
+  const activity=$('editor').querySelector('.activity-history');
+  if(progress)progress.outerHTML=progressMarkup(latest,mail);
+  if(activity){
+   const open=activity.open;
+   activity.outerHTML=activityMarkup(latest,mail);
+   $('editor').querySelector('.activity-history').open=open;
+  }
+ }catch{/* Keep the current history visible while offline. */}
+}
+setInterval(refreshActivity,30000);
+document.addEventListener('visibilitychange',refreshActivity);
 
 function updateNextStep(draft){
  for(const control of $('editor').querySelectorAll('[data-action="complete"],[data-action="complete-thanks"]')){control.disabled=!canConfirmReturn(record);control.title=control.disabled?'Retur kan bekreftes fra leieperiodens start.':'';}
