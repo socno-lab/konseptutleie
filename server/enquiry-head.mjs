@@ -12,7 +12,7 @@ const hash=text=>createHash('sha256').update(text).digest('hex').slice(0,12);
 const configuration=async()=>{
  const source=await readHtmlTemplate('utvalg.html');
  const css=tags(source,styles),js=tags(source,classic);
- const sheet=await join(css),script=await join([...js,'/request-route-bootstrap.js']);
+ const sheet=await join(css),script=await join(['/rental-checkout-recovery.js',...js,'/request-route-bootstrap.js']);
  return {css,js,sheet,script};
 };
 export async function buildEnquiryHead(write=false){

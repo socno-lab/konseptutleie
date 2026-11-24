@@ -302,7 +302,7 @@ export function createServer(options={}){
    }
    if(pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(part=>part.startsWith('.')))return await missing();
    if(pathname==='/tilpasset-foresporsel.html'&&['GET','HEAD'].includes(req.method))return send(200,initialSiteData(proposalPageHtml(await readHtmlTemplate('index.html')),await readPublicCatalog()),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});
-   if(pathname==='/foresporsel.html'&&['GET','HEAD'].includes(req.method)){const mode=url.searchParams.get('type')==='kjop'?'buy':'rent';return send(200,initialSiteData(enquiryPageHtml(await readHtmlTemplate(mode==='buy'?'kjop.html':'utvalg.html'),mode),await readPublicCatalog()),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});}
+   if(pathname==='/foresporsel.html'&&['GET','HEAD'].includes(req.method)){const mode=url.searchParams.get('type')==='kjop'?'buy':'rent';return send(200,initialSiteData(enquiryPageHtml(await readHtmlTemplate(mode==='buy'?'kjop.html':'utvalg.html'),mode,url.searchParams.has('kurvforsok')),await readPublicCatalog()),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});}
    if(pathname==='/om-oss.html'&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/om-oss'});
    if(pathname==='/leieprodukt.html'&&url.searchParams.get('produkt')===retiredOakTableId){url.searchParams.set('produkt',oakTableId);return send(301,'','text/plain',{Location:url.pathname+url.search});}
    const seoPaths=['/om-oss','/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
