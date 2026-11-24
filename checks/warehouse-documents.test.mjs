@@ -17,7 +17,7 @@ test('warehouse mail sends the printable files to the warehouse with a page per 
  assert.deepEqual(items.map(i=>i.physical),[true,true,true,true,false]);
  assert.deepEqual(items.slice(1,3).map(i=>i.context),['Møbelpakke / Skibby','Møbelpakke / Skibby']);
  let delivered;
- const store={enabled:true,pendingEnquiryMail:async()=>[{id:'test',channel:'internal',snapshot}],claimEnquiryMail:async()=>true,finishEnquiryMail:async(id,ch,status)=>assert.equal(status,'sent')};
+ const store={warehouseArchive:async()=>null,saveWarehouseArchive:async(order,id,files)=>({picklist:files[0].content,labels:files[1]?.content}),enabled:true,pendingEnquiryMail:async()=>[{id:'test',channel:'internal',snapshot}],claimEnquiryMail:async()=>true,finishEnquiryMail:async(id,ch,status)=>assert.equal(status,'sent')};
  await createSubmissionSender({SMTP_PASS:'test'},store,async msg=>{delivered=msg;return {accepted:[msg.to]};}).flush();
  assert.equal(delivered.to,'post@konseptuell.no');
  assert.match(delivered.text,/erstatter tidligere versjon/);

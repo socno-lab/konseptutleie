@@ -1,4 +1,4 @@
-import {warehouseMessage} from './warehouse-documents.mjs';
+import {warehouseMessage,warehouseMailText} from './warehouse-documents.mjs';
 import {rentalTermsPdf,rentalTermsFilename} from './rental-terms-pdf.mjs';
 import {workflowEmail,workflowAddonLine} from './enquiry-workflow.mjs';
 import {createProposalSnapshot,proposalEmail} from './proposal.mjs';
@@ -64,6 +64,22 @@ export function createSubmissionSender(env,store,sendOverride){
   }
   return {snapshot:{...snapshot,lines:lines.slice(0,snapshot.lines.length),delivery,...(removed.length?{confirmationChanges:{...snapshot.confirmationChanges,removed:lines.slice(snapshot.lines.length)}}:{})},attachments};
  }
+ async function archivedWarehouseMessage(snapshot){
+  const r=snapshot.workflow;
+  let archive=await store.warehouseArchive(r.id,snapshot.id);
+  if(!archive){
+   const images=new Map();
+   for(const image of new Set(snapshot.warehouse.items.map(item=>item.image).filter(Boolean))){
+    const result=await illustrated({lines:[{image}]},480);
+    if(result.attachments[0])images.set(image,result.attachments[0].content);
+   }
+   const message=await warehouseMessage(snapshot,images);
+   archive=await store.saveWarehouseArchive(r.id,snapshot.id,message.attachments);
+  }
+  const attachments=[{filename:'Plukkliste.pdf',content:archive.picklist,contentType:'application/pdf'}];
+  if(archive.labels)attachments.push({filename:'Reservasjonsark.pdf',content:archive.labels,contentType:'application/pdf'});
+  return {...warehouseMailText(snapshot),attachments};
+ }
  let logo;const logoBytes=()=>logo??=readFile(new URL('../public/assets/konseptuell-leie-og-kjop-logo.png',import.meta.url));
  async function flush(){
   // Retention is independent of SMTP: disabling mail must not retain customer data.
@@ -83,12 +99,9 @@ export function createSubmissionSender(env,store,sendOverride){
     let status='uncertain';
     try{
      if(internal && job.snapshot.documentType==='confirmation' && job.snapshot.warehouse){
-      const images=new Map();
-      for(const image of new Set(job.snapshot.warehouse.items.map(item=>item.image).filter(Boolean))){
-       const result=await illustrated({lines:[{image}]},480);
-       if(result.attachments[0])images.set(image,result.attachments[0].content);
-      }
-      const message=await warehouseMessage(job.snapshot,images);
+      status='pending';
+      const message=await archivedWarehouseMessage(job.snapshot);
+      status='uncertain';
       const result=await send({...message,from:{name:'Konseptuell',address:mailbox},to:mailbox,messageId:`<${job.id}.internal@konseptuell.no>`,disableFileAccess:true,disableUrlAccess:true});
       status=result.accepted?.some(address=>String(address).toLowerCase()===mailbox)?'sent':'pending';
      }else{
@@ -96,15 +109,15 @@ export function createSubmissionSender(env,store,sendOverride){
      const snapshot=['acceptance','offer_response','return','reminder','invoice_reminder'].includes(job.snapshot.documentType)?{...job.snapshot,lines:[]}:job.snapshot.documentType?{...job.snapshot,lines:job.snapshot.lines.map(l=>workflowAddonLine(l))}:job.snapshot;const pictures=await illustrated(snapshot),message=job.snapshot.documentType?workflowEmail({...pictures.snapshot,channel:job.channel,logoSrc:'cid:konseptuell-logo'}):job.snapshot.acquisition==='proposal'?proposalEmail(pictures.snapshot,job.channel):enquiryEmail(pictures.snapshot,job.channel),result=await send({...message,from:{name:'Konseptuell',address:mailbox},to,replyTo:internal&&job.snapshot.documentType!=='invoice_reminder'?{name:job.snapshot.name,address:job.snapshot.email}:{name:'Konseptuell',address:mailbox},messageId:`<${job.id}.${job.channel}@konseptuell.no>`,attachments:[{filename:'konseptuell-logo.png',content:await logoBytes(),cid:'konseptuell-logo',contentType:'image/png',contentDisposition:'inline'},...pictures.attachments,...termsAttachment],disableFileAccess:true,disableUrlAccess:true});
      status=result.accepted?.some(address=>String(address).toLowerCase()===to.toLowerCase())?'sent':'pending';
      }
-    }catch(error){status=retryableMailError(error)?'pending':'uncertain';console.error('E-post '+job.channel+' '+job.id+': '+String(error.code||'SMTP').replace(/[^A-Z0-9_]/gi,''));}
-    const warehouseOrderId=job.channel==='customer' && job.snapshot.warehouse && job.snapshot.workflow.id;
+    }catch(error){status=status==='pending'||retryableMailError(error)?'pending':'uncertain';console.error('E-post '+job.channel+' '+job.id+': '+String(error.code||'SMTP').replace(/[^A-Z0-9_]/gi,''));}
+    const warehouseOrderId=job.snapshot.warehouse && job.snapshot.workflow.id;
     await store.finishEnquiryMail(job.id,job.channel,status,Date.now(),warehouseOrderId);
-    if(warehouseOrderId && status==='sent')flushAgain=true;
+    if(warehouseOrderId && job.channel==='customer' && status==='sent')flushAgain=true;
    }
    }while(flushAgain&&++passes<10);
   }catch(error){console.error('E-postkø: '+String(error.code||'STORE').replace(/[^A-Z0-9_]/gi,''));}finally{draining=false;}
  }
- return {enabled,flush,async submit(input,products,client,context={}){
+ return {enabled,flush,archivedWarehouseMessage,async submit(input,products,client,context={}){
   if(!enabled)throw fail('E-postsending er ikke aktivert ennå. Kontakt post@konseptuell.no. Utvalget ditt er beholdt.',503);
   if(active>=2)throw fail('Mange sender samtidig. Vent litt før du prøver igjen.',429);
   active++;

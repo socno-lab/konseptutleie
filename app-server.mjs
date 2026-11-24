@@ -1,3 +1,4 @@
+import {historicalWarehouseItems} from './server/warehouse-documents.mjs';
 import {oakTableId,retiredOakTableId} from './server/oak-table-migration.mjs';
 import {enquiryLineTotal} from './public/admin/enquiry-line-pricing.js';
 import {rentalDayCount} from './public/rental-dates.js?v=launch20261024';
@@ -169,7 +170,38 @@ export function createServer(options={}){
      if(!submissions.enabled)throw error('E-postsending er ikke aktivert.',503);
      const input=await json(req,1000),result=await store.queueRentalReturnTest(input.email);void submissions.flush();return out(200,result);
     }
-    if(pathname==='/api/admin/enquiries'&&req.method==='GET')return out(200,{records:await store.workflowRecords(),mail:await store.enquiryMailStatus()});
+    if(pathname==='/api/admin/enquiries'&&req.method==='GET'){
+     const [records,mail,archives,catalog]=await Promise.all([store.workflowRecords(),store.enquiryMailStatus(),store.warehouseArchiveIndex(),readCatalog()]);
+     const index=new Map(archives.map(a=>[a.id,a]));
+     for(const r of records)for(const h of r.history||[]){
+      if(h.type!=='confirmation'||!h.document?.workflow)continue;
+      const archive=index.get(h.id);
+      h.warehouseView={hasLabels:archive?Boolean(archive.hasLabels):h.document.hasLabels??historicalWarehouseItems(h.document.workflow.lines||[],catalog.products).some(i=>i.physical),sentAt:archive?.sentAt||null};
+     }
+     return out(200,{records,mail});
+    }
+    const warehousePdf=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/warehouse\/([a-f0-9-]{36})\/(Plukkliste|Reservasjonsark)\.pdf$/);
+    if(warehousePdf&&req.method==='GET'){
+     const [,orderId,id,name]=warehousePdf;
+     let archive=await store.warehouseArchive(orderId,id);
+     if(!archive){
+      const order=(await store.workflowRecords()).find(r=>r.id===orderId);
+      const h=order?.history.find(h=>h.id===id&&h.type==='confirmation');
+      const doc=h?.document;
+      if(!doc?.workflow || doc.workflow.id!==orderId)throw error('Dokumentet finnes ikke.',404);
+      const saved=(await store.readEnquiry(id))?.snapshot;
+      let warehouse=saved?.warehouse;
+      if(!warehouse){
+       const original=(await store.readEnquiry(orderId))?.snapshot;
+       warehouse={name:original?.name,company:original?.company,items:historicalWarehouseItems(doc.workflow.lines,(await readCatalog()).products)};
+      }
+      const message=await submissions.archivedWarehouseMessage({...doc,id,warehouse});
+      archive={picklist:message.attachments[0].content,labels:message.attachments[1]?.content};
+     }
+     const pdf=name==='Plukkliste'?archive.picklist:archive.labels;
+     if(!pdf)throw error('Ordren har ingen fysiske enheter å merke.',404);
+     return send(200,pdf,'application/pdf',{'Content-Disposition':'inline; filename="'+name+'.pdf"'});
+    }
     const diagnostic=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/diagnostics$/);
     if(diagnostic&&req.method==='GET'){
      const r=(await store.workflowRecords()).find(r=>r.id===diagnostic[1]);if(!r)throw error('Henvendelsen finnes ikke.',404);

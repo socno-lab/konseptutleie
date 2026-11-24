@@ -106,6 +106,7 @@ export function workflowStore(init,pool,{today=osloToday}={}){
   const [[source]]=await c.execute('SELECT body FROM ku_enquiries WHERE id=?',[current.id]);
   const original=source?JSON.parse(source.body):{};
   snapshot.warehouse={name:original.name,company:original.company,items:warehouseItems(copy.lines,products)};
+  next.history.at(-1).document.hasLabels=snapshot.warehouse.items.some(i=>i.physical);
  }
  await c.execute('INSERT INTO ku_enquiries(id,fingerprint,body,created_at) VALUES (?,?,?,?)',[messageId,'workflow',JSON.stringify(snapshot),Date.now()]);await c.execute('INSERT INTO ku_enquiry_mail(submission_id,channel,next_at) VALUES (?,\'customer\',?)',[messageId,Date.now()]);
  }

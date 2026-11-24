@@ -9,7 +9,7 @@ import {memoryStore} from './helpers/memory-store.mjs';
 test('workflow endpoints require admin auth and same-origin mutations; public availability never exposes customer records',async t=>{
  const store=await memoryStore(),token=randomBytes(32).toString('base64url');await store.addSession(digest(token),Date.now()+60000);
  const product=(await store.readCatalog()).products.find(p=>p.active&&!p.isService&&!p.isPackage);
- store.workflowRecords=async()=>[{id:'private-reference',email:'private@example.invalid',intro:'Private content',reserved:true,reservation:{start:'2026-12-01',end:'2026-12-10'},requirements:[{id:product.id,quantity:2}]}];store.enquiryMailStatus=async()=>[];
+ store.workflowRecords=async()=>[{id:'private-reference',email:'private@example.invalid',intro:'Private content',reserved:true,reservation:{start:'2026-12-01',end:'2026-12-10'},requirements:[{id:product.id,quantity:2}]}];store.enquiryMailStatus=async()=>[];store.warehouseArchiveIndex=async()=>[];
  const origin='http://127.0.0.1:4198',server=createServer({store,origin,secureCookies:false,env:{}});server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>server.close());const base='http://127.0.0.1:'+server.address().port;
  assert.equal((await fetch(base+'/api/admin/enquiries')).status,401);
  const headers={Cookie:'konsept_session_mfa='+token};const admin=await fetch(base+'/api/admin/enquiries',{headers});assert.equal(admin.status,200);assert.equal((await admin.json()).records[0].email,'private@example.invalid');
@@ -36,4 +36,26 @@ test('targeted pricing diagnostics require login and expose only dates and line 
  const store=await memoryStore(),token=randomBytes(32).toString('base64url');await store.addSession(digest(token),Date.now()+60000);const p=(await store.readCatalog()).products.find(p=>p.active&&!p.isPackage&&!p.priceOnRequest),id='00000000-0000-0000-0000-000000000001';
  store.workflowRecords=async()=>[{id,email:'private@example.invalid',deliveryAddress:'Private street 1',intro:'Private message',revision:2,status:'accepted',start:'',end:'',deliveryDate:'',pickupDate:'',scope:'messe',lines:[{id:p.id,name:p.name,quantity:1,total:null}]}];const server=createServer({store,env:{},secureCookies:false});server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>server.close());const base='http://127.0.0.1:'+server.address().port,path='/api/admin/enquiries/'+id+'/diagnostics?start=2026-11-21&end=2026-11-21';
  assert.equal((await fetch(base+path)).status,401);const response=await fetch(base+path,{headers:{Cookie:'konsept_session_mfa='+token}});assert.equal(response.status,200);const body=await response.text();assert.doesNotMatch(body,/private@example|Private street|Private message|purchaseUnitPrice|acquisitionCost/);assert.equal(response.headers.get('x-konseptuell-version'),'20261122-enquiry-overview');const data=JSON.parse(body);assert.equal(data.storedDays,null);assert.equal(data.comparisonPeriod.start,'2026-11-21');assert.equal(data.lines[0].storedTotal,null);
+});
+
+test('opening legacy warehouse PDFs archives one pair for that confirmation without sending mail',async t=>{
+ const store=await memoryStore(),token=randomBytes(32).toString('base64url');
+ await store.addSession(digest(token),Date.now()+60000);
+ const orderId='00000000-0000-4000-8000-000000000001',id='00000000-0000-4000-8000-000000000002';
+ const lines=[{id:'old-chair',name:'Stol',quantity:4}],workflow={id:orderId,lines,email:'test@example.invalid',deliveryMode:'pickup',deliveryDate:'2026-12-04',pickupDate:'2026-12-07'};
+ store.workflowRecords=async()=>[{id:orderId,history:[{id,type:'confirmation',document:{version:1,workflow,lines}}]}];
+ store.readEnquiry=async()=>null;
+ let archive,writes=0;
+ store.warehouseArchive=async(order,version)=>order===orderId&&version===id?archive:null;
+ store.saveWarehouseArchive=async(order,version,files)=>{assert.equal(order,orderId);assert.equal(version,id);writes++;return archive={picklist:files[0].content,labels:files[1].content};};
+ const server=createServer({store,env:{},secureCookies:false});server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>server.close());
+ const url='http://127.0.0.1:'+server.address().port+'/api/admin/enquiries/'+orderId+'/warehouse/'+id+'/';
+ const headers={Cookie:'konsept_session_mfa='+token};
+ assert.equal((await fetch(url+'Plukkliste.pdf')).status,401);
+ for(const file of ['Plukkliste.pdf','Reservasjonsark.pdf']){
+  const response=await fetch(url+file,{headers});assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'application/pdf');
+  const pdf=Buffer.from(await response.arrayBuffer());assert.deepEqual(pdf,file==='Plukkliste.pdf'?archive.picklist:archive.labels);
+ }
+ assert.equal(writes,1);
+ assert.equal((await fetch(url.replace(orderId,id)+'Plukkliste.pdf',{headers})).status,404);
 });

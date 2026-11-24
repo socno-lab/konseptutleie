@@ -95,5 +95,22 @@ export async function warehouseMessage(s, images = new Map()) {
   });
   attachments.push({filename:'Reservasjonsark.pdf',content:labels,contentType:'application/pdf'});
  }
- return {subject:'Plukkliste · ' + r.id + ' · v' + s.version,text:customer + '\n' + transport + '\n' + version,attachments};
+ return {...warehouseMailText(s),attachments};
+}
+
+export function warehouseMailText(s){
+ const r=s.workflow,customer=[s.warehouse.company,s.warehouse.name].filter(Boolean).join(' · ')||r.email;
+ const transport=workflowTransport(r).dateLine;
+ const version='Versjon '+s.version+(s.version>1?' · Oppdatert – erstatter tidligere versjon':'');
+ return {subject:'Plukkliste · ' + r.id + ' · v' + s.version,text:customer + '\n' + transport + '\n' + version};
+}
+
+
+// Recreate old confirmations from their frozen order lines. Keep names and images
+// from that version even when the catalogue has changed since confirmation.
+export function historicalWarehouseItems(lines,products){
+ const catalog=new Map(products.map(p=>[p.id,p]));
+ for(const line of lines)catalog.set(line.id,{...catalog.get(line.id),id:line.id,name:line.name,image:line.image||catalog.get(line.id)?.image});
+ for(const p of catalog.values())if(p.isPackage && p.components?.some(c=>!catalog.has(c.id)))catalog.set(p.id,{...p,isPackage:false});
+ return warehouseItems(lines,[...catalog.values()]);
 }

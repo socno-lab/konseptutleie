@@ -21,6 +21,7 @@ export function createMysqlStore(env,seed){
    for(const sql of [
     'CREATE TABLE IF NOT EXISTS ku_catalog_migrations (name VARCHAR(100) PRIMARY KEY)',
     'CREATE TABLE IF NOT EXISTS ku_workflow (id CHAR(36) PRIMARY KEY, body LONGTEXT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_warehouse_documents (confirmation_id CHAR(36) PRIMARY KEY,order_id CHAR(36) NOT NULL,picklist LONGBLOB NOT NULL,labels LONGBLOB,sent_at BIGINT,FOREIGN KEY(order_id) REFERENCES ku_workflow(id) ON DELETE CASCADE)',
     'CREATE TABLE IF NOT EXISTS ku_site_settings (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_catalog (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL, updated_at DATETIME(3) NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_discounts (id INT PRIMARY KEY, revision INT NOT NULL, body LONGTEXT NOT NULL)',
@@ -85,6 +86,18 @@ export function createMysqlStore(env,seed){
  }
  const workflow=workflowStore(init,pool);
  return {...workflow,...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
+  async warehouseArchive(orderId,id){
+   const [[row]]=await query('SELECT picklist,labels FROM ku_warehouse_documents WHERE order_id=? AND confirmation_id=?',[orderId,id]);
+   return row;
+  },
+  async saveWarehouseArchive(orderId,id,attachments){
+   await query('INSERT INTO ku_warehouse_documents(order_id,confirmation_id,picklist,labels) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE confirmation_id=confirmation_id',[orderId,id,attachments[0].content,attachments[1]?.content||null]);
+   return this.warehouseArchive(orderId,id);
+  },
+  async warehouseArchiveIndex(){
+   const [rows]=await query('SELECT confirmation_id AS id,labels IS NOT NULL AS hasLabels,sent_at AS sentAt FROM ku_warehouse_documents');
+   return rows;
+  },
   async readEnquiry(id){
    const [[row]]=await query('SELECT fingerprint,body FROM ku_enquiries WHERE id=?',[id]);
    if(row)return {fingerprint:row.fingerprint,snapshot:JSON.parse(row.body)};
@@ -134,6 +147,10 @@ export function createMysqlStore(env,seed){
      await c.commit();
     }catch(error){await c.rollback();throw error;}finally{c.release();}
     await workflow.recordWorkflowMailSent(id,now);
+    return;
+   }
+   if(channel==='internal' && status==='sent' && warehouseOrderId){
+    await query("UPDATE ku_enquiry_mail m JOIN ku_warehouse_documents d ON d.confirmation_id=m.submission_id SET m.status='sent',m.lease_until=0,d.sent_at=? WHERE m.submission_id=? AND m.channel='internal' AND m.status='sending'",[now,id]);
     return;
    }
    // Keep bound status values out of MySQL IF expressions: connection/table collations can differ.

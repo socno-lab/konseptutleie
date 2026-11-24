@@ -5,3 +5,12 @@ test('queued documents do not complete sent steps; actual send time is preferred
 test('old sent status is shown without inventing send time or an offer-start event',()=>{const events=enquiryActivity(r(),[{reference:'offer',channel:'customer',status:'sent'}]);assert.equal(events.length,2);assert.match(events[0].status,/sendetidspunkt ikke registrert/);assert.equal(events.some(e=>e.key==='started'),false);});
 test('acceptance is a single event distinct from its email notification and outcomes remain alternatives',()=>{const x={...r(),acceptedAt:'2026-11-21T12:00Z',acceptanceSource:'customer'};assert.equal(enquiryActivity(x).filter(e=>e.key==='accepted').length,1);assert.equal(enquiryProgress({...x,status:'cancelled',customerReply:{action:'decline'}}).outcome,'Tilbud avslått');assert.equal(enquiryProgress({...r(),offerAcceptance:{expiresAt:1}},[],2).outcome,'Tilbud utløpt');assert.equal(enquiryProgress({...r(),status:'changes_requested'}).outcome,'Kunden ber om endring');});
 test('HTML escapes document labels and orders known events newest first',()=>{const x=r();x.history.push({id:'rem',type:'reminder',at:'2026-11-22T10:00Z',document:{reminder:{label:'<script>'}}});assert.equal(enquiryActivity(x)[0].key,'rem');assert.doesNotMatch(activityMarkup(x,[]),/<script>/);});
+test('warehouse activity distinguishes old on-demand documents from an internal send',()=>{
+ const h={id:'confirmation',type:'confirmation',at:'2026-12-01',sentAt:'2026-12-01',document:{version:1},warehouseView:{hasLabels:true}};
+ const order={id:'order',history:[h]};
+ const html=activityMarkup(order,[]);
+ assert.match(html,/Åpne plukkliste/);assert.match(html,/Åpne reservasjonsark/);assert.match(html,/Ingen registrert utsending/);
+ h.warehouseView={hasLabels:false,sentAt:Date.UTC(2026,11,2,10)};
+ const sent=activityMarkup(order,[]);
+ assert.match(sent,/Lagerdokumenter sendt/);assert.match(sent,/02.12.2026 kl. 11:00/);assert.match(sent,/post@konseptuell.no/);assert.doesNotMatch(sent,/Åpne reservasjonsark/);
+});
