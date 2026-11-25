@@ -39,6 +39,16 @@ export function stylingStore(init,pool,query){
     async stylingJob(address,actor){
       const id=randomUUID();await query('INSERT INTO ku_styling_jobs VALUES(?,?,?,?)',[id,address,actor,Date.now()]);return {id};
     },
+    async stylingDeleteJob(id){
+      try{
+        await query('DELETE FROM ku_styling_jobs WHERE id=?',[id]);
+      }catch(error){
+        if(error.code==='ER_ROW_IS_REFERENCED_2'){
+          throw stylingError('Skann inn alle møblene på oppdraget før du sletter det.',409);
+        }
+        throw error;
+      }
+    },
     async stylingRegister(product,count,actor){
       return transaction(async db=>{
         const ids=[];

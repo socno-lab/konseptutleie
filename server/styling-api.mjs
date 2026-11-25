@@ -67,6 +67,14 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     if(typeof data.address!=='string'||!data.address.trim()||data.address.length>200)throw stylingError('Fyll inn oppdragsadressen.');
     return out(201,await store.stylingJob(data.address.trim(),actor));
   }
+  if(post && route==='delete-job'){
+    if(!admin)throw stylingError('Dette krever administratortilgang.',403);
+    if(typeof data.id!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(data.id)){
+      throw stylingError('Velg et gyldig oppdrag.');
+    }
+    await store.stylingDeleteJob(data.id);
+    return out(200,{ok:true});
+  }
   if(post && route==='draft'){
     if(typeof data.name!=='string'||!data.name.trim()||data.name.length>100)throw stylingError('Skriv inn et produktnavn på inntil 100 tegn.');
     const name=data.name.trim(),catalog=await store.readCatalog();

@@ -102,7 +102,7 @@ function render(){
       html='<h1>Nytt stylingoppdrag</h1><form data-form="job"><label>Adresse<input name="address" maxlength="200" required></label><p>Ansvarlig stylist · '+escape(data.actor)+'</p>'+submit('Opprett oppdrag')+'</form>';
     }else if(page==='job'){
       const items=data.items.filter(i=>i.job===jobId);
-      html='<h1>'+escape(jobName(jobId))+'</h1><div class="job-meta"><span>Stylist<strong>'+escape(data.jobs.find(j=>j.id===jobId)?.stylist)+'</strong></span><span>Opprettet<strong>'+escape(date(data.jobs.find(j=>j.id===jobId)?.created))+'</strong></span></div><div class="actions">'+button('Skann ut','out','',true)+button('Skann inn','in')+button('Velg fra lager','pick')+button('Registrer møbler','register')+'</div><h2>På oppdraget · '+items.length+'</h2>'+items.map(listItem).join('');
+      html='<h1>'+escape(jobName(jobId))+'</h1><div class="job-meta"><span>Stylist<strong>'+escape(data.jobs.find(j=>j.id===jobId)?.stylist)+'</strong></span><span>Opprettet<strong>'+escape(date(data.jobs.find(j=>j.id===jobId)?.created))+'</strong></span></div><div class="actions">'+button('Skann ut','out','',true)+button('Skann inn','in')+button('Velg fra lager','pick')+button('Registrer møbler','register')+(data.admin&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div><h2>På oppdraget · '+items.length+'</h2>'+items.map(listItem).join('');
     }else if(page==='in'||page==='out'){
       html='<h1>'+ (page==='in'?'Skann inn':'Skann ut')+'</h1><p>'+escape(jobName(jobId))+'</p><div class="actions">'+button('Start kamera','camera','',true)+button('Til oppdraget','job',jobId)+'</div><video muted playsinline hidden></video><form data-form="scan"><label>Etikett-ID<input name="id" required autocomplete="off" autocapitalize="characters"></label>'+submit('Registrer ID')+'</form>';
     }else if(page==='stock'||page==='pick'){
@@ -213,6 +213,14 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-action]');if(!b)return;
   run(async()=>{
     const action=b.dataset.action,value=b.dataset.value;
+    if(action==='delete-job'&&data?.admin&&page==='job'&&jobId===value){
+      if(!confirm('Slett oppdraget «'+jobName(value)+'»? Dette kan ikke angres.'))return;
+      await api('delete-job',{id:value});
+      await load();
+      go('jobs');
+      status.textContent='Oppdraget er slettet.';
+      return;
+    }
     if(action==='usage'&&data?.admin){await loadUsage();return go('usage');}
     if(action==='reset-filters'){Object.assign(activeFilter(),page==='jobs'?jobDefaults:defaults);render();return;}
     if(action==='view'){activeFilter().view=value;refreshResults();return;}
