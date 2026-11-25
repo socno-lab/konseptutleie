@@ -10,7 +10,7 @@
   "sources": {
     "public/addon-model.js": "d30b905550cb69e3015247adfd7b98e22447f321d5e66b4e77ebef3edaa0c0a4",
     "public/addon-purchase-model.js": "2ad057c7debeb6fe820a8af2d2801b4b9ed17f6fc0b326e4d862f75ab60b6423",
-    "public/app.js": "79d240b41468255e6df6bc18e9d4caa35a97d19b6f6eba5771e98edbf5b639b5",
+    "public/app.js": "114c11bab960e29d7e44fe26ac4692296a55ca96eedc77bfde7d46b07d1eba89",
     "public/business-purchase-model.js": "6cb224c04230df8ec682dd7f2b2b1005c313326cbbef9f19f28e7637833fb071",
     "public/buyout-model.js": "ee22a9cd7f4faa2369599af5948f6c05300978f9cf9960035ab96c83c49e6f58",
     "public/card-favorite-markup.js": "01e2dca55f40694a911eedeb78b2ae51056cf9f0cbea812d09358e516e1e8cbb",
@@ -124,7 +124,7 @@
     "public/service-model.js": "84051d14506f8ce3065e03e7e00b6571b67238da1eec07df870de3af4ff1aa25",
     "public/site-settings.js": "9c841ffb2839d013eaa1a816367a8dff53f767ef048e8c78319ba245ff4e4090",
     "public/sofa-card-model.js": "3ef943f8a95363a51659ab28993bdfabf9154abc3bffaeefaf1a8379ba558d94",
-    "public/sofa-cart-row.js": "d4fa589a236a70776760077fc7ea94e5fa43425090f577ae953ade92bbd8f573",
+    "public/sofa-cart-row.js": "e80def0d26e28f3b0d1cd0ed9e1e42ceaaf2d53d8c6540192258e106233bd50b",
     "public/sofa-layout.js": "4a40855be691fc788562b702abd8fb852c77d69397195306f25ee3ad2f5efbef",
     "public/sofa-model.js": "abbf67ec007889e7f63681cac3808bd823a7c4b2032886b16a7d2a3f2ccd8b02",
     "public/stable-form-update.js": "382a26fda826446759c5f79a34b78a48e5dacc7afc5acee1e416db7330cd4d9b",
@@ -136,5 +136,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "public/weekend-rental.js": "5d650c1f38af7850221ed60719b403f31650eef9f9aebdd73cbd5da11bdbc955"
   },
-  "digest": "548fd129aec1bcf1e3ca20303c98f95ddd4b383533a69334205dcda3fd1b7d13"
+  "digest": "8675eb9b9d2717550478df75773f840865791fa652888e8235bd8607a07b3db7"
 }

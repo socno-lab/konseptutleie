@@ -238,3 +238,13 @@ body.enquiry-page #cart.enquiry-full .drawer-head h1 {
  #cart .cart-count-picker {grid-column:1/-1}
  #cart .cart-single-count {grid-column:2;justify-self:start}
 }
+
+#enquiryPage #cart.enquiry-full .cart-item:has(> .cart-line-sum):not(.cart-count-line) {
+ display:grid;
+ grid-template-columns:var(--cart-image-size) minmax(0,1fr) auto;
+}
+#cart .package-cart-card > .cart-line-sum {margin-top:12px}
+@media(max-width:640px){
+ #enquiryPage #cart.enquiry-full .cart-item:has(> .cart-line-sum):not(.cart-count-line) {grid-template-columns:var(--cart-image-size) minmax(0,1fr)}
+ #enquiryPage #cart .cart-item:has(> .cart-line-sum):not(.cart-count-line) > .quantity {grid-column:2}
+}
