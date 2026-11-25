@@ -1,3 +1,4 @@
+import {osloToday} from './rental-dates.js?v=launch20261024';
 const allowed=new Set(['start','end','deliveryDate','pickupDate','occasion','name','email','phone','company','address','postalCode','postalCity','deliveryOverride','pickupOverride','deliveryAddress','pickupAddress','notes','delivery','shipping','stylist','stylingNotes','customRequest']);
 export function mountEnquiryFlow({cartId,formId,mode}){
  const cart=document.getElementById(cartId),form=document.getElementById(formId),page=location.pathname==='/foresporsel.html',key='konsept-enquiry-draft-'+mode;
@@ -17,7 +18,7 @@ export function mountEnquiryFlow({cartId,formId,mode}){
  if(!page&&mode==='rent'){
   const more=document.createElement('a');more.href='/utvalg.html';more.className='text-button';more.textContent='+ Legg til flere produkter';preview.append(more);
  }
- let period,periodValue,periodButton;
+ let period,periodValue,periodButton,periodWarning;
  preview.append(note,next);
  if(page){
   document.body.classList.remove('catalog-page','home-page','occasion-page','buy-page');document.body.classList.add('enquiry-page');const host=document.getElementById('enquiryPage');cart.hidden=true;
@@ -44,7 +45,16 @@ export function mountEnquiryFlow({cartId,formId,mode}){
    const offerNote=document.createElement('p');
    offerNote.className='enquiry-offer-note';
    offerNote.textContent='Pris og tilgjengelighet bekreftes i tilbudet.';
-   intro.after(overview,offerNote);
+   periodWarning=document.createElement('p');
+   periodWarning.className='enquiry-period-warning';
+   periodWarning.hidden=true;
+   periodWarning.setAttribute('role','status');
+   const warningText=document.createTextNode('Fra-datoen har passert. Velg en ny leieperiode før du sender forespørselen. ');
+   const changePeriod=document.createElement('button');
+   changePeriod.type='button';changePeriod.className='text-button';changePeriod.textContent='Endre leieperiode';
+   changePeriod.addEventListener('click',()=>periodButton.click());
+   periodWarning.append(warningText,changePeriod);
+   intro.after(overview,periodWarning,offerNote);
    overview.append(period,document.getElementById('cartPricingScope'));
    const productsHeading=document.getElementById('customRequestProductsHeading');
    const productsToolbar=document.createElement('div');
@@ -68,6 +78,7 @@ export function mountEnquiryFlow({cartId,formId,mode}){
    if(periodValue.textContent!==dates)periodValue.textContent=dates;
    periodButton.setAttribute('aria-label',selected?'Endre leieperiode':'Velg leieperiode');
    period.hidden=document.getElementById('rentalDates')?.hidden??true;
+   if(periodWarning)periodWarning.hidden=period.hidden||!selected||form.elements.namedItem('start').value>=osloToday();
   }
   if(page)return;
   const rows=[];
