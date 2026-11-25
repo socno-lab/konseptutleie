@@ -248,3 +248,4 @@ body.enquiry-page #cart.enquiry-full .drawer-head h1 {
  #enquiryPage #cart.enquiry-full .cart-item:has(> .cart-line-sum):not(.cart-count-line) {grid-template-columns:var(--cart-image-size) minmax(0,1fr)}
  #enquiryPage #cart .cart-item:has(> .cart-line-sum):not(.cart-count-line) > .quantity {grid-column:2}
 }
+#enquiryPage #cart.enquiry-full #priceEstimate {border-radius:6px}
