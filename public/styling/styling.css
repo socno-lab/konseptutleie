@@ -113,3 +113,31 @@
 }
 
 @media screen and (max-width:380px){.filters,.filters.jobs{grid-template-columns:minmax(0,1fr)}}
+
+@media screen {
+ .job-detail {overflow-wrap:anywhere}
+ .job-totals {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0 0}
+ .job-totals div {display:grid;gap:3px;background:#edf0e4;border-radius:4px;padding:8px 10px}
+ .job-totals dt {font-size:13px}
+ .job-totals dd {margin:0;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+ #screen .job-review fieldset {min-inline-size:0;border:1px solid var(--line);border-radius:4px;margin:12px 0;padding:10px}
+ #screen .job-review legend {max-width:100%;padding:0 4px}
+ #screen .job-review textarea {box-sizing:border-box;width:100%;min-height:88px;padding:10px;border:1px solid #aeb8a5;border-radius:4px;background:#fcfbf8;color:var(--ink);font:inherit}
+ #screen .job-return-summary ul {padding-inline-start:20px}
+ #screen .job-return-summary li {margin:6px 0}
+ @media(max-width:660px){
+  #screen .job-list-heading>.button {width:100%}
+  #screen .filters.jobs {grid-template-columns:repeat(2,minmax(0,1fr))}
+  #screen .filters.jobs label:nth-child(2) {grid-column:1/-1}
+  #screen .filters.jobs input[type=date] {min-inline-size:0;max-inline-size:100%;appearance:none}
+  #screen .job-record {display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:12px}
+  #screen .job-record .button {width:100%}
+  #screen .job-detail .job-meta {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  #screen .job-detail .job-meta span+span {border:0}
+  #screen .job-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  #screen .job-actions .button,#screen .job-review .button {width:100%;margin:0}
+  #screen .job-totals {grid-template-columns:repeat(2,minmax(0,1fr))}
+  #screen .job-review textarea {font-size:16px}
+  #screen .job-detail :is(form,section) {padding:12px}
+ }
+}

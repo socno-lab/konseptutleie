@@ -1,4 +1,4 @@
-import {esc as escape,states,stockRows,stockControls,stockResults,jobControls,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=4';
+import {esc as escape,states,stockRows,stockControls,stockResults,jobControls,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=5';
 const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status');
 const itemPattern=/^K-[0-9A-F]{16}$/;
 const button=(label,action,value='',primary=false)=>'<button type="button" class="button '+(primary?'dark':'button-outline')+'" data-action="'+action+'" data-value="'+escape(value)+'">'+escape(label)+'</button>';
@@ -53,18 +53,20 @@ function returnOverview(job,missing){
   const returned=jobReturns.units.filter(unit=>unit.movement==='check');
   const pending=pendingReturns();
   const unitLabel=unit=>escape(productName(unit))+' · '+escape(unit.id);
-  return '<section><h2>Retur og avvik</h2><p>'+jobReturns.units.length+' enheter skannet ut · '+returned.length+' returnert · '+missing.length+' mangler · '+pending.length+' til kontroll</p>'
+  const totals=[['Skannet ut',jobReturns.units.length],['Returnert',returned.length],['Mangler',missing.length],['Til kontroll',pending.length]];
+  return '<section class="job-return-summary"><h2>Retur og avvik</h2><dl class="job-totals">'
+    +totals.map(([label,count])=>'<div><dt>'+label+'</dt><dd>'+count+'</dd></div>').join('')+'</dl>'
     +(missing.length?'<h3>Mangler</h3><ul>'+missing.map(unit=>'<li>'+unitLabel(unit)+' '+button('Åpne møbel','item',unit.id)+'</li>').join('')+'</ul>':'')
     +(jobReturns.deviations.length?'<h3>Registrerte avvik</h3><ul>'+jobReturns.deviations.map(entry=>{
       const unit=jobReturns.units.find(candidate=>candidate.id===entry.item);
       return '<li>'+(unit?unitLabel(unit):escape(entry.item))+' · '+(entry.kind==='damage'?'Skadet':'Meldt savnet')+' · '+escape(entry.note)+'</li>';
     }).join('')+'</ul>':'')
-    +(pending.length?'<form data-form="review-returns"><h3>Til returkontroll</h3><p>Kryss av enhetene som er i orden. Fyll inn en merknad for hver skadet enhet. Du kan lagre opptil 50 om gangen.</p>'+button('Velg inntil 50 uten merknad','select-returns')
+    +'</section>'+(pending.length?'<form class="job-review" data-form="review-returns"><h3>Til returkontroll</h3><p>Kryss av enhetene som er i orden. Fyll inn en merknad for hver skadet enhet. Du kan lagre opptil 50 om gangen.</p>'+button('Velg inntil 50 uten merknad','select-returns')
       +pending.map(unit=>'<fieldset><legend>'+unitLabel(unit)+'</legend><label class="queue-choice"><input type="checkbox" name="approved" value="'+unit.id+'"> I orden</label><label>Skade eller mangel ved møbelet<input name="note-'+unit.id+'" maxlength="500"></label></fieldset>').join('')
       +submit('Lagre returkontroll')+'</form>':'')
-    +(job.closed?'<p>Avsluttet '+escape(date(job.closed))+'</p>':'<form data-form="close-job"><h3>Avslutt oppdrag</h3>'
+    +(job.closed?'<p>Avsluttet '+escape(date(job.closed))+'</p>':'<form class="job-review" data-form="close-job"><h3>Avslutt oppdrag</h3>'
       +(missing.length?'<label>Merknad for møblene som mangler<textarea name="note" required maxlength="500"></textarea></label>':'')
-      +submit('Avslutt oppdrag')+'</form>')+'</section>';
+      +submit('Avslutt oppdrag')+'</form>');
 }
 function countLabel(p){return p?.pairedEnds?'Antall grunnsofaer (to etiketter per sofa)':'Antall nye eksemplarer';}
 function countField(p){
@@ -118,17 +120,17 @@ function render(){
     const tab=['staff','usage'].includes(page)?page:(['stock','register','labels','queue'].includes(page)||(page==='product' && source==='stock'))?'stock':'jobs';
     nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
     if(page==='jobs'){
-      html='<div class="page-heading"><h1>Stylingoppdrag</h1>'+button('Nytt stylingoppdrag','new','',true)+'</div>'+jobControls(data.jobs,jobFilter,button)+'<div id="results"></div>';
+      html='<div class="page-heading job-list-heading"><h1>Stylingoppdrag</h1>'+button('Nytt stylingoppdrag','new','',true)+'</div>'+jobControls(data.jobs,jobFilter,button)+'<div id="results"></div>';
     }else if(page==='new'){
       html='<h1>Nytt stylingoppdrag</h1><form data-form="job"><label>Adresse<input name="address" maxlength="200" required></label><p>Ansvarlig stylist · '+escape(data.actor)+'</p>'+submit('Opprett oppdrag')+'</form>';
     }else if(page==='job'){
       const job=data.jobs.find(j=>j.id===jobId);
       const items=data.items.filter(i=>i.job===jobId);
       if(!job){screen.innerHTML='<h1>Oppdraget finnes ikke lenger</h1>';return;}
-      html='<h1>'+escape(job.address)+'</h1><div class="job-meta"><span>Stylist<strong>'+escape(job.stylist)+'</strong></span><span>Opprettet<strong>'+escape(date(job.created))+'</strong></span></div>'
-        +'<div class="actions">'+(!job.closed?button('Skann ut','out','',true):'')+button('Skann inn','in')
+      html='<div class="job-detail"><h1>'+escape(job.address)+'</h1><div class="job-meta"><span>Stylist<strong>'+escape(job.stylist)+'</strong></span><span>Opprettet<strong>'+escape(date(job.created))+'</strong></span></div>'
+        +'<div class="actions job-actions">'+(!job.closed?button('Skann ut','out','',true):'')+button('Skann inn','in')
         +(!job.closed?button('Velg fra lager','pick')+button('Registrer møbler','register'):'')+(data.admin&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div>'
-        +returnOverview(job,items);
+        +returnOverview(job,items)+'</div>';
     }else if(page==='in'||page==='out'){
       html='<h1>'+ (page==='in'?'Skann inn':'Skann ut')+'</h1><p>'+escape(jobName(jobId))+'</p><div class="actions">'+button('Start kamera','camera','',true)+button('Til oppdraget','job',jobId)+'</div><video muted playsinline hidden></video><form data-form="scan"><label>Etikett-ID<input name="id" required autocomplete="off" autocapitalize="characters"></label>'+submit('Registrer ID')+'</form>';
     }else if(page==='stock'||page==='pick'){

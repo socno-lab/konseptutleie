@@ -61,5 +61,5 @@ export function jobResults(jobs,f,b){
     const day=dayFormat.format(new Date(Number(j.created)));
     return text(j.address).includes(text(f.term))&&(!f.stylist||j.stylist===f.stylist)&&(!f.from||day>=f.from)&&(!f.to||day<=f.to);
   }).sort((a,b)=>f.sort==='address'?compare(a.address,b.address):f.sort==='old'?a.created-b.created:b.created-a.created);
-  return '<div class="list-heading"><h2>Oppdrag <span class="count">'+hits.length+'</span></h2></div>'+hits.map(j=>'<section class="record"><div><h2>'+esc(j.address)+'</h2><p>'+esc(j.stylist)+' · Opprettet '+esc(fmt(j.created))+(j.closed?' · Avsluttet':' · Åpent')+'</p></div>'+b('Åpne oppdrag','job',j.id)+'</section>').join('')+(!hits.length?'<p>Ingen oppdrag å vise.</p>':'');
+  return '<div class="list-heading"><h2>Oppdrag <span class="count">'+hits.length+'</span></h2></div>'+hits.map(j=>'<section class="record job-record"><div><h2>'+esc(j.address)+'</h2><p>'+esc(j.stylist)+'</p><p>Opprettet '+esc(fmt(j.created))+' · '+(j.closed?'Avsluttet':'Åpent')+'</p></div>'+b('Åpne oppdrag','job',j.id)+'</section>').join('')+(!hits.length?'<p>Ingen oppdrag å vise.</p>':'');
 }
