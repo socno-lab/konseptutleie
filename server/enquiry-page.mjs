@@ -4,7 +4,7 @@ import manifest from './enquiry-bundle-manifest.json' with {type:'json'};
 import {bundleEnquiryHtml} from './enquiry-bundle.mjs';
 // Reuse the checkout markup and bootstrap of the corresponding storefront.
 export function enquiryPageHtml(source,mode='rent',retry=false){
- const rentalStyle=mode==='rent'?'<link rel="stylesheet" href="/enquiry-intro.css?v=sumweight20261125">':'';
+ const rentalStyle=mode==='rent'?'<link rel="stylesheet" href="/enquiry-intro.css?v=sumlabel20261125">':'';
  const title=mode==='buy'?'Din kjøpsforespørsel':'Din leieforespørsel';
  if(mode==='rent')source=streamlineHead(bundleEnquiryHtml(source,manifest),headManifest);
  if(mode==='rent'&&retry)source=source.replaceAll('/rental-enquiry.bundle.js?v='+manifest.digest.slice(0,12),'/rental-enquiry.bundle.js?v='+manifest.digest.slice(0,12)+'&amp;retry=1');
