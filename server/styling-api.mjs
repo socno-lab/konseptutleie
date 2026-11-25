@@ -1,3 +1,4 @@
+import {productSubcategory} from '../public/catalog-subcategories.js';
 import {validateCatalog} from './catalog.mjs';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {digest,sessionToken,expiredCookie,hashPassword,verifyPassword} from './auth.mjs';
@@ -35,8 +36,15 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
   const actor=admin?(await store.admin()).email:token.length===43&&await store.stylingSession(digest(token));
   if(!actor)throw stylingError('Logg inn for å fortsette.',401);
   if(!post && route==='overview'){
-    const [inventory,catalog]=await Promise.all([store.stylingOverview(),store.readCatalog()]);
-    return out(200,{...inventory,actor,admin,products:catalog.products.filter(physical).map(({id,name,stock})=>({id,name,stock})),staff:admin?await store.stylists():[]});
+    const [inventory,catalog,site]=await Promise.all([store.stylingOverview(),store.readCatalog(),store.readSiteSettings?.()]);
+    const categories=site?.settings?.categories||[];
+    const products=catalog.products.filter(physical).map(p=>{
+      const category=categories.find(c=>c.id===p.category);
+      const sub=p.subcategory||productSubcategory(p);
+      const label=category?.subcategories?.find(s=>s.id===sub)?.label||p.subcategory;
+      return {id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
+    });
+    return out(200,{...inventory,actor,admin,products,staff:admin?await store.stylists():[]});
   }
   if(post && ['invite','disable'].includes(route)){
     if(!admin)throw stylingError('Dette krever administratortilgang.',403);

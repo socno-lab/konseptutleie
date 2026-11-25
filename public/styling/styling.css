@@ -13,3 +13,66 @@
 #screen .label{border:1px dashed #777;display:grid;justify-items:center;width:60mm;max-width:100%;padding:3mm;break-inside:avoid;text-align:center}
 .label svg{width:29mm;height:29mm}
 @media print{@page{size:A4;margin:10mm}body header,#nav,#status,#screen>:not(.labels){display:none!important}.admin-main{width:100%;max-width:none;padding:0}.labels{display:block!important}.label{display:inline-grid!important;vertical-align:top;margin:1mm}body{background:white}}
+
+@media screen {
+ .admin-main{width:min(94%,1440px);max-width:none;padding:18px 0 56px;color:var(--ink)}
+ #nav{border-bottom:1px solid var(--line);gap:0;margin-bottom:24px}
+ #nav:empty,#status:empty{display:none}
+ #nav .button,#nav a{background:transparent;border:0;color:var(--ink);padding:12px 16px;border-radius:0;text-decoration:none}
+ #nav [aria-current=page]{box-shadow:inset 0 -2px var(--olive);font-weight:600}
+ #nav a,#nav [data-action=logout]{margin-left:auto}
+ #screen h1{font-size:clamp(30px,3.6vw,48px);font-weight:500;letter-spacing:-.045em;line-height:1.12;margin:8px 0 18px}
+ #screen h2{font-size:18px;margin:0;line-height:1.35}
+ #screen p{margin:7px 0 12px}
+ #screen .button{border-radius:4px;padding:9px 15px}
+ #screen .button:focus-visible,#nav button:focus-visible,#screen .product:focus-visible{outline:2px solid var(--olive);outline-offset:2px}
+ .page-heading,.list-heading,.record,.product-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+ .page-heading{margin:6px 0 16px}
+ #screen .page-heading h1{margin:0}
+ .list-heading{border-bottom:1px solid var(--line);padding:14px 0 9px;margin-bottom:8px}
+ .count{display:inline-block;vertical-align:middle;background:var(--olive);color:white;font-size:12px;padding:3px 7px;border-radius:12px}
+ .switch{display:flex}.switch .button{border-radius:0!important}
+ .filters,.job-meta{background:#e7ebdf;border-radius:6px;padding:14px;display:flex;align-items:end;flex-wrap:wrap;gap:10px}
+ #screen label{font-size:13px;font-weight:500}
+ #screen .filters label{flex:1 1 130px;min-width:0;margin:0}
+ #screen .filters label:first-child{flex-basis:210px}
+ #screen input,#screen select{border:1px solid #aeb8a5;background:#fcfbf8;color:var(--ink);border-radius:4px;min-width:0}
+ #screen .filters button{background:transparent;border:0;text-decoration:underline}
+ .job-meta{align-items:center;margin-bottom:15px}
+ .job-meta span{padding:3px 14px;color:var(--muted);font-size:13px}
+ .job-meta span+span{border-left:1px solid var(--line)}
+ .job-meta strong,.identity strong{display:block;color:var(--ink);font-weight:600}
+ .products{display:grid;gap:8px}
+ .tiles{grid-template-columns:repeat(auto-fill,minmax(min(100%,205px),1fr))}
+ .product{border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink);display:grid;align-items:center;text-align:left;padding:12px;gap:8px;min-width:0;cursor:pointer}
+ .product:hover{border-color:var(--olive)}
+ .product-photo{display:block;object-fit:contain;width:100%;height:110px;background:#fff}
+ .tiles .availability{align-self:end}
+ .identity,.record>div,.product-head>div{min-width:0;overflow-wrap:anywhere}
+ .identity small,.record p,.product-head p{color:var(--muted)}
+ .availability{background:#edf0e4;padding:6px 9px;border-radius:3px;font-size:13px}
+ .compact .product{grid-template-columns:64px 1fr auto;padding:5px 12px}
+ .compact .identity{grid-column:2}.compact .availability{grid-column:3}
+ .compact .product-photo{height:48px}
+ .product-head{justify-content:start;margin:16px 0}.product-head img{width:100px;height:76px}
+ #screen .record,#screen details,#screen form,#screen section{border-radius:5px}
+ #screen .record{padding:10px 16px;margin:6px 0}
+ #screen .record p{font-size:14px;margin:4px 0}
+ #screen form{max-width:760px}
+ #screen .actions{margin-bottom:14px}
+ #screen summary{cursor:pointer}
+ @media(max-width:660px){
+  .admin-main{width:calc(100% - 28px);padding-top:8px}
+  #nav{gap:0;flex-wrap:nowrap;justify-content:space-between;margin-bottom:16px}
+  #nav .button,#nav a{padding:9px 5px;font-size:13px}
+  .page-heading{align-items:start;flex-wrap:wrap}
+  .filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:10px}
+  #screen .filters label:first-child{grid-column:1/-1}
+  #screen input,#screen select{font-size:16px}
+  .compact .product{grid-template-columns:48px minmax(0,1fr);column-gap:8px}
+  .compact .product-photo{grid-row:1/3}
+  .compact .availability{grid-column:2;justify-self:start}
+  .record{flex-wrap:wrap}
+  .job-meta{align-items:stretch}.job-meta span{padding:2px 5px;overflow-wrap:anywhere}
+ }
+}
