@@ -10,7 +10,7 @@
   "sources": {
     "public/addon-model.js": "d30b905550cb69e3015247adfd7b98e22447f321d5e66b4e77ebef3edaa0c0a4",
     "public/addon-purchase-model.js": "2ad057c7debeb6fe820a8af2d2801b4b9ed17f6fc0b326e4d862f75ab60b6423",
-    "public/app.js": "41bbbeb2a80332b379391869c9841c2362ebb8ef9d0fe189c4d3cf63cf87e5ff",
+    "public/app.js": "12b719830b9909fdc9e7eb7c0721c7d4376cae7aff9ce763a1037503efa74309",
     "public/business-purchase-model.js": "6cb224c04230df8ec682dd7f2b2b1005c313326cbbef9f19f28e7637833fb071",
     "public/buyout-model.js": "ee22a9cd7f4faa2369599af5948f6c05300978f9cf9960035ab96c83c49e6f58",
     "public/card-favorite-markup.js": "01e2dca55f40694a911eedeb78b2ae51056cf9f0cbea812d09358e516e1e8cbb",
@@ -136,5 +136,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "public/weekend-rental.js": "5d650c1f38af7850221ed60719b403f31650eef9f9aebdd73cbd5da11bdbc955"
   },
-  "digest": "1b4a183706051a88f8d97f897afe1f53d244c0c8aea7c3ea2045bcbcca07d9a7"
+  "digest": "1df1dbeb7ea85ee8854668254e13f314e747ed1c92ae990fea6278ba21777a5c"
 }
