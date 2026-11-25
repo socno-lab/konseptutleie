@@ -65,14 +65,16 @@ test('Base sofas register distinct left/right labels and a legacy label can be s
     const {ids}=await store.stylingRegister(p,2,'stylist');
     assert.equal(new Set(ids).size,4);
     const job=await store.stylingJob('Testgata','stylist');
-    await store.stylingMove({id:ids[0],action:'out',revision:1,job:job.id},'stylist');
+    await store.stylingMove({id:ids[0],action:'ready',revision:1},'stylist');
+    await store.stylingMove({id:ids[0],action:'out',revision:2,job:job.id},'stylist');
     const {items}=await store.stylingOverview();
     assert.deepEqual(ids.map(id=>items.find(i=>i.id===id).side),['left','right','left','right']);
-    assert.equal(items.find(i=>i.id===ids[1]).state,'ready');
+    assert.equal(items.find(i=>i.id===ids[1]).state,'held');
     const legacy=(await store.stylingRegister({...p,moduleRole:''},1,'stylist')).ids[0];
-    const split=await store.stylingSplit(legacy,1,[p],'stylist');
+    await store.stylingMove({id:legacy,action:'ready',revision:1},'stylist');
+    const split=await store.stylingSplit(legacy,2,[p],'stylist');
     assert.equal(split.ids[0],legacy);assert.equal(split.ids.length,2);
-    await assert.rejects(store.stylingSplit(legacy,2,[p],'stylist'),{status:409});
+    await assert.rejects(store.stylingSplit(legacy,3,[p],'stylist'),{status:409});
     assert.equal((await store.stylingOverview()).items.length,6);
   }finally{sql.close();}
 });

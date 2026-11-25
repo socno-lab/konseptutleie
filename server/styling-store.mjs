@@ -23,11 +23,11 @@ export function stylingStore(init,pool,query){
     try{await db.beginTransaction();const result=await fn(db);await db.commit();return result;}
     catch(e){await db.rollback();throw e;}finally{db.release();}
   }
-  async function createItem(db,product,actor,side){
+  async function createItem(db,product,actor,side,state='held'){
     const id='K-'+randomUUID().replaceAll('-','').slice(0,16).toUpperCase();
-    await db.execute("INSERT INTO ku_styling_items(id,product,name,state) VALUES(?,?,?,'ready')",[id,product.id,product.name]);
+    await db.execute('INSERT INTO ku_styling_items(id,product,name,state) VALUES(?,?,?,?)',[id,product.id,product.name,state]);
     if(side)await db.execute('INSERT INTO ku_styling_item_sides(item,side) VALUES(?,?)',[id,side]);
-    await db.execute("INSERT INTO ku_styling_history(item,actor,state,created) VALUES(?,?,'ready',?)",[id,actor,Date.now()]);
+    await db.execute('INSERT INTO ku_styling_history(item,actor,state,created) VALUES(?,?,?,?)',[id,actor,state,Date.now()]);
     return id;
   }
   return {
@@ -56,7 +56,7 @@ export function stylingStore(init,pool,query){
         if(side)throw stylingError('Modulene er allerede registrert.',409);
         await db.execute("INSERT INTO ku_styling_item_sides(item,side) VALUES(?,'left')",[id]);
         await db.execute('UPDATE ku_styling_items SET revision=revision+1 WHERE id=?',[id]);
-        return {ids:[id,await createItem(db,product,actor,'right')]};
+        return {ids:[id,await createItem(db,product,actor,'right',item.state)]};
       });
     },
     async stylingMove(input,actor){
