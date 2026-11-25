@@ -4,6 +4,8 @@
 #screen h2{font-size:1.12rem}
 #screen label{display:grid;gap:6px;margin-bottom:12px}
 #screen input,#screen select{width:100%;min-width:0;padding:10px;font:inherit;min-height:44px}
+#screen form[data-form="register"] :is(select,input[type="number"]){box-sizing:border-box;height:44px;margin:0;line-height:1.25}
+#screen form[data-form="register"] select{appearance:none;-webkit-appearance:none;padding:0 30px 0 10px;background-image:linear-gradient(45deg,transparent 50%,var(--olive) 50%),linear-gradient(135deg,var(--olive) 50%,transparent 50%);background-position:right 16px center,right 11px center;background-size:5px 5px;background-repeat:no-repeat}
 #screen button,#nav button{min-height:44px}
 #nav,.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 #screen video{display:block;width:100%;max-height:280px;background:#20251d}
