@@ -42,7 +42,7 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
       const category=categories.find(c=>c.id===p.category);
       const sub=p.subcategory||productSubcategory(p);
       const label=category?.subcategories?.find(s=>s.id===sub)?.label||p.subcategory;
-      return {...(p.moduleRole==='base'?{pairedEnds:true}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
+      return {...(p.articleNumber?{articleNumber:p.articleNumber}:{}),...(p.moduleRole==='base'?{pairedEnds:true}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
     });
     return out(200,{...inventory,actor,admin,products,staff:admin?await store.stylists():[]});
   }
@@ -62,7 +62,7 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     const name=data.name.trim(),catalog=await store.readCatalog();
     if(catalog.products.some(p=>!p.deletedAt && p.name.toLowerCase()===name.toLowerCase()))throw stylingError('Navnet finnes allerede. Velg produktet i katalogen.',409);
     if(catalog.products.length>=500)throw stylingError('Katalogen er full.',409);
-    const [draft]=validateCatalog([{id:'obj_'+randomUUID().replaceAll('-',''),name,category:'Annet',material:'',description:'',price:0,weekPrice:0,monthPrice:0,priceOnRequest:true,isExample:false,isService:false,isPackage:false,active:false,type:'generic',color:'#b5ad99',stock:0,unavailable:0,image:'',gallery:[]}]);
+    const [draft]=validateCatalog([{id:'obj_'+randomUUID().replaceAll('-',''),name,articleNumber:data.articleNumber,category:'Annet',material:'',description:'',price:0,weekPrice:0,monthPrice:0,priceOnRequest:true,isExample:false,isService:false,isPackage:false,active:false,type:'generic',color:'#b5ad99',stock:0,unavailable:0,image:'',gallery:[]}]);
     const saved=await store.saveCatalog(catalog.revision,[...catalog.products,draft]);
     if(!saved)throw stylingError('Katalogen er endret. Prøv igjen.',409);
     return out(201,{id:draft.id});

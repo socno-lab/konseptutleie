@@ -36,3 +36,7 @@ Les [DESIGN-STANDARD.md](DESIGN-STANDARD.md) før endringer i kundevendt utformi
 ## Oppdatert designstandard 23. november 2026
 
 Katalogtoppens bunnjustering på desktop og gjeldende enkeltside for leieforespørsel er uttrykkelig godkjent av eier. Følg seksjonen «Godkjent katalogtopp og leieforespørsel» i DESIGN-STANDARD.md og referansebildene fra 2026-11-23. Presentasjonslåsen omfatter også enquiry-intro.css, enquiry-page.css og enquiry-review.css. Senere funksjonsarbeid skal bevare dette uttrykket med mindre eier bestiller en konkret designendring.
+
+## Nye katalogprodukter
+
+Registrer leverandørens artikkelnummer for den konkrete varianten fra produktlenke, etikett eller ordregrunnlag. Behold bokstaver, skilletegn og innledende nuller. Hvis nummeret ikke kan bekreftes, la feltet stå tomt og opplys eieren om det.
