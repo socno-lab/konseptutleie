@@ -1,0 +1,15 @@
+.admin-main{max-width:920px;margin:auto}
+#screen section,#screen form,#screen details{background:#fff;border:1px solid #d5d9cc;padding:18px;margin:12px 0;border-radius:8px}
+#screen h1{font-size:clamp(28px,5vw,46px);margin:12px 0 18px}
+#screen h2{font-size:1.12rem}
+#screen label{display:grid;gap:6px;margin-bottom:12px}
+#screen input,#screen select{width:100%;min-width:0;padding:10px;font:inherit;min-height:44px}
+#screen button,#nav button{min-height:44px}
+#nav,.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#screen video{display:block;width:100%;max-height:280px;background:#20251d}
+#screen video[hidden]{display:none}
+#status:not(:empty){background:#e7ebdf;padding:12px;border-radius:6px}
+#screen .labels{display:flex;flex-wrap:wrap;gap:4mm}
+#screen .label{border:1px dashed #777;display:grid;justify-items:center;width:60mm;max-width:100%;padding:3mm;break-inside:avoid;text-align:center}
+.label svg{width:29mm;height:29mm}
+@media print{@page{size:A4;margin:10mm}body header,#nav,#status,#screen>:not(.labels){display:none!important}.admin-main{width:100%;max-width:none;padding:0}.labels{display:block!important}.label{display:inline-grid!important;vertical-align:top;margin:1mm}body{background:white}}

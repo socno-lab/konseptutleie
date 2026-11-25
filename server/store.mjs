@@ -6,6 +6,7 @@ import {migrateCatalogDimensions} from './dimensions-migration.mjs';
 import {migrateStylingPricing} from './pricing-migration.mjs';
 import {defaultSettings} from '../public/site-settings.js?v=fest20261114';
 import {deliveryCallLimits} from './delivery.mjs';
+import {stylingStore,stylingSchema} from './styling-store.mjs';
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';
 import {migrateProducts} from './walls.mjs';
@@ -19,6 +20,7 @@ export function createMysqlStore(env,seed){
   if(!enabled)throw Error('Database er ikke konfigurert.');
   if(!ready)ready=(async()=>{
    for(const sql of [
+    ...stylingSchema,
     'CREATE TABLE IF NOT EXISTS ku_catalog_migrations (name VARCHAR(100) PRIMARY KEY)',
     'CREATE TABLE IF NOT EXISTS ku_workflow (id CHAR(36) PRIMARY KEY, body LONGTEXT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_warehouse_documents (confirmation_id CHAR(36) PRIMARY KEY,order_id CHAR(36) NOT NULL,picklist LONGBLOB NOT NULL,labels LONGBLOB,sent_at BIGINT,FOREIGN KEY(order_id) REFERENCES ku_workflow(id) ON DELETE CASCADE)',
@@ -85,7 +87,7 @@ export function createMysqlStore(env,seed){
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
  const workflow=workflowStore(init,pool);
- return {...workflow,...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
+ return {...workflow,...stylingStore(init,pool,query),...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
   async warehouseArchive(orderId,id){
    const [[row]]=await query('SELECT picklist,labels FROM ku_warehouse_documents WHERE order_id=? AND confirmation_id=?',[orderId,id]);
    return row;

@@ -1,3 +1,4 @@
+import {stylingApi} from './server/styling-api.mjs';
 import {historicalWarehouseItems} from './server/warehouse-documents.mjs';
 import {oakTableId,retiredOakTableId} from './server/oak-table-migration.mjs';
 import {enquiryLineTotal} from './public/admin/enquiry-line-pricing.js';
@@ -84,11 +85,13 @@ export function createServer(options={}){
     const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));
     if(!release)return out(429,{error:'For mange forespørsler. Vent litt og prøv igjen.'},{'Retry-After':'60'});
     res.once('finish',release);res.once('close',release);
-    if(['/api/admin/login','/api/admin/login/verify','/api/admin/setup','/api/admin/password'].includes(pathname)&&!['GET','HEAD'].includes(req.method)){
+    if(['/api/styling/login','/api/styling/claim','/api/admin/login','/api/admin/login/verify','/api/admin/setup','/api/admin/password'].includes(pathname)&&!['GET','HEAD'].includes(req.method)){
      const releaseAuth=enterAuth('auth');if(!releaseAuth)return out(429,{error:'Innlogging er opptatt. Vent litt og prøv igjen.'},{'Retry-After':'5'});
      res.once('finish',releaseAuth);res.once('close',releaseAuth);
     }
    }
+   if(pathname.startsWith('/api/styling/'))return await stylingApi({req,route:pathname.slice('/api/styling/'.length),store,origin,secure,authenticated,json,out});
+   if(pathname==='/styling/index.html' && ['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'styling/index.html')),'text/html; charset=utf-8',{'Permissions-Policy':'camera=(self), microphone=(), geolocation=()'});
    if(pathname==='/api/submissions'){
     if(req.method==='GET')return out(200,{enabled:submissions.enabled});
     if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
