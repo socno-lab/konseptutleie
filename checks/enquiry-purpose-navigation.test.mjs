@@ -13,7 +13,7 @@ function checkout(mode){
  cart.querySelector=selector=>selector==='.quote-cart-note'?intro:null;
  const context=vm.createContext({document:{getElementById:id=>nodes[id],createElement:node,querySelector:()=>null,head:node(),body:node(),addEventListener(){}},location:{pathname:'/foresporsel.html',origin:'https://konseptuell.no'},sessionStorage:{getItem:()=>null},window:{addEventListener(){}},performance:{getEntriesByType:()=>[{type:'back_forward'}]},MutationObserver:class{observe(){}},mode});
  const source=fs.readFileSync(new URL('../public/enquiry-flow.js',import.meta.url),'utf8');
- vm.runInContext(source.replace('export function mountEnquiryFlow','function mountEnquiryFlow')+"\nmountEnquiryFlow({cartId:'cart',formId:'requestForm',mode});",context);
+ vm.runInContext(source.replace(/^import .*;\n/gm,'').replace('export function mountEnquiryFlow','function mountEnquiryFlow')+"\nmountEnquiryFlow({cartId:'cart',formId:'requestForm',mode});",context);
  const overview=cart.children.find(child=>child.className==='enquiry-overview');
  if(mode==='rent'){
   assert.equal(overview.children[1],nodes.cartPricingScope);

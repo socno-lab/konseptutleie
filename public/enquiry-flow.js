@@ -1,3 +1,4 @@
+import {osloToday} from './rental-dates.js?v=launch20261024';
 const allowed=new Set(['start','end','deliveryDate','pickupDate','occasion','name','email','phone','company','address','postalCode','postalCity','deliveryOverride','pickupOverride','deliveryAddress','pickupAddress','notes','delivery','shipping','stylist','stylingNotes','customRequest']);
 export function mountEnquiryFlow({cartId,formId,mode}){
  const cart=document.getElementById(cartId),form=document.getElementById(formId),page=location.pathname==='/foresporsel.html',key='konsept-enquiry-draft-'+mode;
@@ -5,6 +6,11 @@ export function mountEnquiryFlow({cartId,formId,mode}){
  const css=document.createElement('link');css.rel='stylesheet';css.href='/enquiry-page.css?v=focusstable20261122';if(!document.querySelector('link[href="'+css.href.replace(location.origin,'')+'"]'))document.head.append(css);
  let saved={};try{const value=JSON.parse(sessionStorage.getItem(key)||'{}');if(value&&typeof value==='object'&&!Array.isArray(value))saved=value;}catch{}
  if(mode==='rent')try{const period=JSON.parse(localStorage.getItem('konsept-rental-period-v1')||'{}');for(const name of ['start','end'])if(!saved[name]&&typeof period[name]==='string')saved[name]=period[name];}catch{}
+ if(mode==='rent'&&typeof saved.start==='string'&&saved.start&&saved.start<osloToday()){
+  for(const name of ['start','end','deliveryDate','pickupDate'])saved[name]='';
+  try{sessionStorage.setItem(key,JSON.stringify(saved));}catch{}
+  try{localStorage.setItem('konsept-rental-period-v1',JSON.stringify({start:'',end:''}));}catch{}
+ }
  let confirmedOccasion=mode==='rent'&&saved.occasionConfirmed===true&&typeof saved.occasion==='string'&&saved.occasion.trim()?saved.occasion:'';
  const restored=new Set();
  for(const field of form.elements){if(!allowed.has(field.name))continue;if(mode==='rent'&&field.name==='occasion'&&!confirmedOccasion){field.value='';continue;}const value=saved[field.name];if(field.type==='checkbox'){if(typeof value!=='boolean')continue;field.checked=value;}else{if(typeof value!=='string')continue;if(field.type==='radio')field.checked=field.value===value;else field.value=value;}restored.add(field.name);}
