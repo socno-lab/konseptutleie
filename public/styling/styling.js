@@ -28,6 +28,12 @@ async function showItem(id){
 }
 function jobOptions(){return data.jobs.map(j=>'<option value="'+escape(j.id)+'" '+(j.id===jobId?'selected':'')+'>'+escape(j.address)+'</option>').join('');}
 function listItem(i){return '<section><h2>'+escape(productName(i))+'</h2><p>'+escape(i.id)+' · '+states[i.state]+'</p>'+button('Åpne møbel','item',i.id)+'</section>';}
+function countField(){
+  return '<label>Antall nye eksemplarer<input name="count" type="number" inputmode="numeric" value="1" min="1" max="50" required></label>';
+}
+function batchForm(p){
+  return '<form data-form="register"><input type="hidden" name="product" value="'+escape(p.id)+'">'+countField()+submit('Registrer og lag QR-etiketter')+'</form>';
+}
 function render(){
   nav.innerHTML='';let html='';
   if(!data){
@@ -55,13 +61,14 @@ function render(){
       if(p){
         html+='<div class="product-head">'+photo(p)+'<div><p>'+escape([p.category,p.subcategory].filter(Boolean).join(' · '))+'</p><h1>'+escape(p.name)+'</h1></div></div>'
           +'<div class="job-meta"><span>Ledige på lager<strong>'+p.available+' av '+p.items.length+' registrerte</strong></span><span>Manuelt antall på Konseptuell.no<strong>'+escape(p.stock??'–')+'</strong></span></div>'
-          +'<div class="list-heading"><h2>Eksemplarer</h2></div>'+p.items.map(i=>'<section class="record"><div><h2>'+escape(i.id)+'</h2><p>'+states[i.state]+' '+escape(jobName(i.job))+'</p></div>'+button(source==='pick'&&i.state==='ready'?'Velg eksemplar':'Åpne møbel','item',i.id)+'</section>').join('')
+          +(source==='stock'&&data.products.some(entry=>entry.id===p.id)?batchForm(p):'')
+          +'<div class="list-heading"><h2>Eksemplarer</h2></div>'+p.items.map(i=>'<section class="record"><div><h2>'+escape(i.id)+'</h2><p>'+states[i.state]+' '+escape(jobName(i.job))+'</p></div><div class="actions">'+button(source==='pick'&&i.state==='ready'?'Velg eksemplar':'Åpne møbel','item',i.id)+(source==='stock'?button('Skriv ut etikett på nytt','label',i.id):'')+'</div></section>').join('')
           +(!p.items.length?'<p>Ingen QR-registrerte eksemplarer.</p>':'');
       }
     }else if(page==='register'){
-      html='<h1>Registrer møbler</h1><form data-form="register"><label>Produkt i katalogen<select name="product" required><option value="">Velg produkt</option>'+data.products.map(p=>'<option value="'+escape(p.id)+'" '+(p.id===selectedProduct?'selected':'')+'>'+escape(p.name)+'</option>').join('')+'</select></label><label>Antall nye eksemplarer<input name="count" type="number" value="1" min="1" max="50" required></label>'+submit('Opprett eksemplarer og etiketter')+'</form><details><summary>Produktet mangler i katalogen</summary><form data-form="draft"><label>Produktnavn<input name="name" maxlength="100" required></label><p>Admin fullfører pris, bilde og antall før publisering.</p>'+submit('Opprett produktutkast')+'</form></details>';
+      html='<h1>Registrer møbler</h1><form data-form="register"><label>Produkt i katalogen<select name="product" required><option value="">Velg produkt</option>'+data.products.map(p=>'<option value="'+escape(p.id)+'" '+(p.id===selectedProduct?'selected':'')+'>'+escape(p.name)+'</option>').join('')+'</select></label>'+countField()+submit('Opprett eksemplarer og etiketter')+'</form><details><summary>Produktet mangler i katalogen</summary><form data-form="draft"><label>Produktnavn<input name="name" maxlength="100" required></label><p>Admin fullfører pris, bilde og antall før publisering.</p>'+submit('Opprett produktutkast')+'</form></details>';
     }else if(page==='labels'){
-      html='<h1>Etiketter</h1><div class="actions">'+button('Skriv ut på A4','print','',true)+(jobId?button('Skann ut på oppdrag','out'):'')+'</div><div class="labels">'+labels.map(id=>{
+      html='<h1>'+labels.length+(labels.length===1?' etikett':' etiketter')+'</h1><div class="actions">'+button('Skriv ut på A4','print','',true)+(jobId?button('Skann ut på oppdrag','out'):'')+'</div><div class="labels">'+labels.map(id=>{
         const qr=window.qrcode(0,'M');qr.addData(location.origin+'/styling/index.html?item='+id);qr.make();
         return '<div class="label"><b>KONSEPTUELL</b>'+qr.createSvgTag(4,16)+'<span>'+escape(productName(data.items.find(i=>i.id===id)))+'</span><strong>'+id+'</strong></div>';
       }).join('')+'</div>';
