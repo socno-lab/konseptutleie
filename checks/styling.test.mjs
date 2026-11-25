@@ -49,3 +49,30 @@ test('Warehouse filters combine category, subordinate category, state and availa
   assert.match(jobResults(jobs,{...jobDefaults,term:'gate',stylist:'Ella',from:'2026-11-25',to:'2026-11-25'},()=>''),/Gate 1/);
   assert.doesNotMatch(jobResults(jobs,{...jobDefaults,to:'2026-11-24'},()=>''),/Gate 1/);
 });
+
+test('Base sofas register distinct left/right labels and a legacy label can be split only once',async()=>{
+  const {DatabaseSync}=await import('node:sqlite');
+  const {stylingStore,stylingSchema}=await import('../server/styling-store.mjs');
+  const sql=new DatabaseSync(':memory:');
+  try{
+    for(const stmt of stylingSchema.filter(s=>s.includes('CREATE TABLE IF NOT EXISTS ku_styling_'))){
+      sql.exec(stmt.replace('BIGINT AUTO_INCREMENT PRIMARY KEY','INTEGER PRIMARY KEY').replace(/, INDEX\(\w+\)/g,''));
+    }
+    const db={beginTransaction:()=>sql.exec('BEGIN'),commit:()=>sql.exec('COMMIT'),rollback:()=>sql.exec('ROLLBACK'),release(){},
+      execute(statement,values=[]){const q=sql.prepare(statement.replace(' FOR UPDATE',''));return [/^SELECT/.test(statement)?q.all(...values):q.run(...values)];}};
+    const store=stylingStore(async()=>{},{getConnection:()=>db},db.execute);
+    const p={id:'stockholm',name:'STOCKHOLM 2025',moduleRole:'base'};
+    const {ids}=await store.stylingRegister(p,2,'stylist');
+    assert.equal(new Set(ids).size,4);
+    const job=await store.stylingJob('Testgata','stylist');
+    await store.stylingMove({id:ids[0],action:'out',revision:1,job:job.id},'stylist');
+    const {items}=await store.stylingOverview();
+    assert.deepEqual(ids.map(id=>items.find(i=>i.id===id).side),['left','right','left','right']);
+    assert.equal(items.find(i=>i.id===ids[1]).state,'ready');
+    const legacy=(await store.stylingRegister({...p,moduleRole:''},1,'stylist')).ids[0];
+    const split=await store.stylingSplit(legacy,1,[p],'stylist');
+    assert.equal(split.ids[0],legacy);assert.equal(split.ids.length,2);
+    await assert.rejects(store.stylingSplit(legacy,2,[p],'stylist'),{status:409});
+    assert.equal((await store.stylingOverview()).items.length,6);
+  }finally{sql.close();}
+});

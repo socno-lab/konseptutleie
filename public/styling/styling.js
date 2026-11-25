@@ -8,7 +8,11 @@ let invitation=params.get('invite'),itemId=new URLSearchParams(location.search).
 let data,jobId='',labels=[],selectedProduct='',history=[],inviteUrl='',stream,scanSession=0,working=false;
 const item=()=>data.items.find(i=>i.id===itemId);
 const jobName=id=>data.jobs.find(j=>j.id===id)?.address||'';
-const productName=i=>data.products.find(p=>p.id===i.product)?.name||i.name;
+const sideNames={left:'Venstre endemodul',right:'Høyre endemodul'};
+function productName(i){
+  const name=data.products.find(p=>p.id===i.product)?.name||i.name;
+  return i.side?name.replace(/grunnsofa med begge ender/i,'').replace(/–\s*,/g,',').replace(/\s+,/g,',')+' · '+sideNames[i.side]:name;
+}
 const date=t=>new Date(Number(t)).toLocaleString('nb-NO');
 const stockFilter={...defaults},pickFilter={...defaults},jobFilter={...jobDefaults};
 let source='stock',productId='',itemOrigin='',rows=[];
@@ -28,11 +32,12 @@ async function showItem(id){
 }
 function jobOptions(){return data.jobs.map(j=>'<option value="'+escape(j.id)+'" '+(j.id===jobId?'selected':'')+'>'+escape(j.address)+'</option>').join('');}
 function listItem(i){return '<section><h2>'+escape(productName(i))+'</h2><p>'+escape(i.id)+' · '+states[i.state]+'</p>'+button('Åpne møbel','item',i.id)+'</section>';}
-function countField(){
-  return '<label>Antall nye eksemplarer<input name="count" type="number" inputmode="numeric" value="1" min="1" max="50" required></label>';
+function countLabel(p){return p?.pairedEnds?'Antall grunnsofaer (to etiketter per sofa)':'Antall nye eksemplarer';}
+function countField(p){
+  return '<label><span data-count-label>'+countLabel(p)+'</span><input name="count" type="number" inputmode="numeric" value="1" min="1" max="50" required></label>';
 }
 function batchForm(p){
-  return '<form data-form="register"><input type="hidden" name="product" value="'+escape(p.id)+'">'+countField()+submit('Registrer og lag QR-etiketter')+'</form>';
+  return '<form data-form="register"><input type="hidden" name="product" value="'+escape(p.id)+'">'+countField(p)+submit('Registrer og lag QR-etiketter')+'</form>';
 }
 function render(){
   nav.innerHTML='';let html='';
@@ -62,11 +67,11 @@ function render(){
         html+='<div class="product-head">'+photo(p)+'<div><p>'+escape([p.category,p.subcategory].filter(Boolean).join(' · '))+'</p><h1>'+escape(p.name)+'</h1></div></div>'
           +'<div class="job-meta"><span>Ledige på lager<strong>'+p.available+' av '+p.items.length+' registrerte</strong></span><span>Manuelt antall på Konseptuell.no<strong>'+escape(p.stock??'–')+'</strong></span></div>'
           +(source==='stock'&&data.products.some(entry=>entry.id===p.id)?batchForm(p):'')
-          +'<div class="list-heading"><h2>Eksemplarer</h2></div>'+p.items.map(i=>'<section class="record"><div><h2>'+escape(i.id)+'</h2><p>'+states[i.state]+' '+escape(jobName(i.job))+'</p></div><div class="actions">'+button(source==='pick'&&i.state==='ready'?'Velg eksemplar':'Åpne møbel','item',i.id)+(source==='stock'?button('Skriv ut etikett på nytt','label',i.id):'')+'</div></section>').join('')
+          +'<div class="list-heading"><h2>Eksemplarer</h2></div>'+p.items.map(i=>'<section class="record"><div><h2>'+escape(sideNames[i.side]||i.id)+'</h2><p>'+(i.side?escape(i.id)+' · ':'')+states[i.state]+' '+escape(jobName(i.job))+'</p></div><div class="actions">'+button(source==='pick'&&i.state==='ready'?'Velg eksemplar':'Åpne møbel','item',i.id)+(source==='stock'?button('Skriv ut etikett på nytt','label',i.id):'')+(p.pairedEnds&&!i.side&&i.state==='ready'?button('Del i to endemoduler','split',i.id):'')+'</div></section>').join('')
           +(!p.items.length?'<p>Ingen QR-registrerte eksemplarer.</p>':'');
       }
     }else if(page==='register'){
-      html='<h1>Registrer møbler</h1><form data-form="register"><label>Produkt i katalogen<select name="product" required><option value="">Velg produkt</option>'+data.products.map(p=>'<option value="'+escape(p.id)+'" '+(p.id===selectedProduct?'selected':'')+'>'+escape(p.name)+'</option>').join('')+'</select></label>'+countField()+submit('Opprett eksemplarer og etiketter')+'</form><details><summary>Produktet mangler i katalogen</summary><form data-form="draft"><label>Produktnavn<input name="name" maxlength="100" required></label><p>Admin fullfører pris, bilde og antall før publisering.</p>'+submit('Opprett produktutkast')+'</form></details>';
+      html='<h1>Registrer møbler</h1><form data-form="register"><label>Produkt i katalogen<select name="product" required><option value="">Velg produkt</option>'+data.products.map(p=>'<option value="'+escape(p.id)+'" '+(p.id===selectedProduct?'selected':'')+'>'+escape(p.name)+'</option>').join('')+'</select></label>'+countField(data.products.find(p=>p.id===selectedProduct))+submit('Opprett eksemplarer og etiketter')+'</form><details><summary>Produktet mangler i katalogen</summary><form data-form="draft"><label>Produktnavn<input name="name" maxlength="100" required></label><p>Admin fullfører pris, bilde og antall før publisering.</p>'+submit('Opprett produktutkast')+'</form></details>';
     }else if(page==='labels'){
       html='<h1>'+labels.length+(labels.length===1?' etikett':' etiketter')+'</h1><div class="actions">'+button('Skriv ut på A4','print','',true)+(jobId?button('Skann ut på oppdrag','out'):'')+'</div><div class="labels">'+labels.map(id=>{
         const qr=window.qrcode(0,'M');qr.addData(location.origin+'/styling/index.html?item='+id);qr.make();
@@ -93,6 +98,9 @@ function refreshResults(){
   results.innerHTML=page==='jobs'?jobResults(data.jobs,jobFilter,button):stockResults(rows,activeFilter(),button);
 }
 screen.oninput=e=>{
+  if(e.target.name==='product'&&e.target.form?.dataset.form==='register'){
+    e.target.form.querySelector('[data-count-label]').textContent=countLabel(data.products.find(p=>p.id===e.target.value));
+  }
   const key=e.target.dataset.field;if(!key)return;
   const f=activeFilter();f[key]=e.target.value;
   if(key==='category'){f.sub='';render();screen.querySelector('[data-field="category"]').focus();}
@@ -149,6 +157,11 @@ document.addEventListener('click',e=>{
     if(action==='camera'){if(!navigator.mediaDevices?.getUserMedia)throw Error('Bruk etikett-ID eller åpne siden med HTTPS for kamera.');return camera();}
     if(action==='print')return window.print();
     if(action==='item'){itemOrigin=page;return showItem(value);}
+    if(action==='split'){
+      const unit=data.items.find(i=>i.id===value);
+      if(!confirm('Del grunnsofaen i to? Den eksisterende etiketten blir venstre endemodul. Høyre ende får en ny etikett.'))return;
+      labels=(await api('split',{id:value,revision:unit.revision})).ids;await load();return go('labels');
+    }
     if(action==='label'){labels=[value];return go('labels');}
     if(action==='job')jobId=value;
     if(['ready','hold','return'].includes(action)){await move(item(),action==='return'?'in':action,item().job);return showItem(itemId);}

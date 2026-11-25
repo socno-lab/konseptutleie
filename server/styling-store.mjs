@@ -5,6 +5,7 @@ export const stylingSchema = [
   'CREATE TABLE IF NOT EXISTS ku_stylist_sessions (token CHAR(64) PRIMARY KEY, email VARCHAR(254) NOT NULL, expires BIGINT NOT NULL, INDEX(email), INDEX(expires))',
   'CREATE TABLE IF NOT EXISTS ku_styling_jobs (id CHAR(36) PRIMARY KEY, address VARCHAR(200) NOT NULL, stylist VARCHAR(254) NOT NULL, created BIGINT NOT NULL)',
   'CREATE TABLE IF NOT EXISTS ku_styling_items (id VARCHAR(18) PRIMARY KEY, product VARCHAR(120) NOT NULL, name VARCHAR(200) NOT NULL, state VARCHAR(20) NOT NULL, job CHAR(36), revision INT NOT NULL DEFAULT 1, INDEX(product), FOREIGN KEY(job) REFERENCES ku_styling_jobs(id))',
+  'CREATE TABLE IF NOT EXISTS ku_styling_item_sides (item VARCHAR(18) PRIMARY KEY, side VARCHAR(5) NOT NULL, FOREIGN KEY(item) REFERENCES ku_styling_items(id))',
   'CREATE TABLE IF NOT EXISTS ku_styling_history (id BIGINT AUTO_INCREMENT PRIMARY KEY, item VARCHAR(18) NOT NULL, actor VARCHAR(254) NOT NULL, state VARCHAR(20) NOT NULL, job CHAR(36), created BIGINT NOT NULL, INDEX(item))'
 ];
 
@@ -22,9 +23,16 @@ export function stylingStore(init,pool,query){
     try{await db.beginTransaction();const result=await fn(db);await db.commit();return result;}
     catch(e){await db.rollback();throw e;}finally{db.release();}
   }
+  async function createItem(db,product,actor,side){
+    const id='K-'+randomUUID().replaceAll('-','').slice(0,16).toUpperCase();
+    await db.execute("INSERT INTO ku_styling_items(id,product,name,state) VALUES(?,?,?,'ready')",[id,product.id,product.name]);
+    if(side)await db.execute('INSERT INTO ku_styling_item_sides(item,side) VALUES(?,?)',[id,side]);
+    await db.execute("INSERT INTO ku_styling_history(item,actor,state,created) VALUES(?,?,'ready',?)",[id,actor,Date.now()]);
+    return id;
+  }
   return {
     async stylingOverview(){
-      const [jobs,items]=await Promise.all([query('SELECT * FROM ku_styling_jobs ORDER BY created DESC'),query('SELECT * FROM ku_styling_items ORDER BY name,id')]);
+      const [jobs,items]=await Promise.all([query('SELECT * FROM ku_styling_jobs ORDER BY created DESC'),query('SELECT i.*,s.side FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,s.side,i.id')]);
       return {jobs:jobs[0],items:items[0]};
     },
     async stylingJob(address,actor){
@@ -34,11 +42,21 @@ export function stylingStore(init,pool,query){
       return transaction(async db=>{
         const ids=[];
         for(let n=0;n<count;n++){
-          const id='K-'+randomUUID().replaceAll('-','').slice(0,16).toUpperCase();
-          await db.execute("INSERT INTO ku_styling_items(id,product,name,state) VALUES(?,?,?,'ready')",[id,product.id,product.name]);
-          await db.execute("INSERT INTO ku_styling_history(item,actor,state,created) VALUES(?,?,'ready',?)",[id,actor,Date.now()]);ids.push(id);
+          for(const side of product.moduleRole==='base'?['left','right']:[null])ids.push(await createItem(db,product,actor,side));
         }
         return {ids};
+      });
+    },
+    async stylingSplit(id,revision,products,actor){
+      return transaction(async db=>{
+        const [[item]]=await db.execute('SELECT * FROM ku_styling_items WHERE id=? FOR UPDATE',[id]);
+        const product=products.find(p=>p.id===item?.product);
+        if(!item||product?.moduleRole!=='base'||item.state!=='ready'||item.revision!==revision)throw stylingError('Kontroller at grunnsofaen står på lager.',409);
+        const [[side]]=await db.execute('SELECT side FROM ku_styling_item_sides WHERE item=? FOR UPDATE',[id]);
+        if(side)throw stylingError('Modulene er allerede registrert.',409);
+        await db.execute("INSERT INTO ku_styling_item_sides(item,side) VALUES(?,'left')",[id]);
+        await db.execute('UPDATE ku_styling_items SET revision=revision+1 WHERE id=?',[id]);
+        return {ids:[id,await createItem(db,product,actor,'right')]};
       });
     },
     async stylingMove(input,actor){

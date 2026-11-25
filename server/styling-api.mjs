@@ -42,7 +42,7 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
       const category=categories.find(c=>c.id===p.category);
       const sub=p.subcategory||productSubcategory(p);
       const label=category?.subcategories?.find(s=>s.id===sub)?.label||p.subcategory;
-      return {id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
+      return {...(p.moduleRole==='base'?{pairedEnds:true}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
     });
     return out(200,{...inventory,actor,admin,products,staff:admin?await store.stylists():[]});
   }
@@ -71,6 +71,10 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     const product=(await store.readCatalog()).products.find(p=>p.id===data.product&&physical(p));
     if(!product||!Number.isInteger(data.count)||data.count<1||data.count>50)throw stylingError('Velg et produkt og mellom 1 og 50 etiketter.');
     return out(201,await store.stylingRegister(product,data.count,actor));
+  }
+  if(post && route==='split'){
+    if(!itemId.test(data.id)||!Number.isInteger(data.revision))throw stylingError('Velg grunnsofa.');
+    return out(201,await store.stylingSplit(data.id,data.revision,(await store.readCatalog()).products.filter(physical),actor));
   }
   if(post && route==='move'){
     if(!itemId.test(data.id)||!Number.isInteger(data.revision)|| (['in','out'].includes(data.action)&& !/^[a-f0-9-]{36}$/.test(data.job)))throw stylingError('Velg oppdrag og møbel.');
