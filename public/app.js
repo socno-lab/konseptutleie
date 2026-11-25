@@ -74,7 +74,7 @@ setRentalPeriodImpact((start,end,previousStart,previousEnd)=>periodChangeNotice(
 function rentalOptionsContext(){return {products,cart,purpose,rentalScope,rentalScopeConfirmed,businessChoices,productLink,days:selectedRentalDays(),mode:el('businessAcquisition')?.value||'rent'};}
 function rentalOptions(){return rentalProductOptions(rentalOptionsContext());}
 function cartPricingEnd(start=el('start').value,end=el('end').value){const form=el('requestForm'),delivery=form.querySelector('[name="delivery"]:checked')?.value||'Henter og returnerer selv',mode=delivery==='Henter og returnerer selv'?'pickup':delivery.startsWith('Kun levering')?'deliveryOnly':delivery.startsWith('Kun henting')?'collectionOnly':'delivery';return weekendRentalEnd({start,end,scope:rentalScope,mode,deliveryDate:form.elements.namedItem('deliveryDate')?.value||'',pickupDate:form.elements.namedItem('pickupDate')?.value||''});}
-function selectedRentalDays(){return productPeriodState(el('start')?.value||'',cartPricingEnd(el('start')?.value||'',el('end')?.value||'')).days;}
+function selectedRentalDays(){return rentalDays(el('start')?.value||'',cartPricingEnd(el('start')?.value||'',el('end')?.value||''));}
 const submitSummary=mountSubmitSummary(document.getElementById('requestForm'));
 const isCatalogPage=location.pathname==='/utvalg.html';
 const isOccasionPage=location.pathname==='/anledning.html';
