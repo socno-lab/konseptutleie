@@ -8,7 +8,7 @@ import {stylingError} from './styling-store.mjs';
 const cookie='ku_stylist';
 const itemId=/^K-[A-F0-9]{16}$/;
 const physical=p=>!p.deletedAt&&!p.isService&&!p.isPackage&&!p.isExample;
-export async function stylingApi({req,route,store,origin,secure,authenticated,json,out}){
+export async function stylingApi({req,route,store,origin,secure,authenticated,json,out,invalidatePublic=()=>{}}){
   if(!store.enabled)throw stylingError('Lagerdatabasen er utilgjengelig.',503);
   const post=req.method==='POST';
   if(!post && req.method!=='GET')throw stylingError('Metoden støttes ikke.',405);
@@ -42,7 +42,7 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
       const category=categories.find(c=>c.id===p.category);
       const sub=p.subcategory||productSubcategory(p);
       const label=category?.subcategories?.find(s=>s.id===sub)?.label||p.subcategory;
-      return {...(p.articleNumber?{articleNumber:p.articleNumber}:{}),...(p.moduleRole==='base'?{pairedEnds:true}:{}),...(p.imageBounds?{imageBounds:p.imageBounds}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
+      return {...(p.articleNumber?{articleNumber:p.articleNumber}:{}),...(p.moduleRole==='base'&&!p.qrStock?{pairedEnds:true}:{}),...(p.qrStock?{qrStock:true}:{}),...(p.imageBounds?{imageBounds:p.imageBounds}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
     });
     const deletedProducts=new Set(catalog.products.filter(p=>p.deletedAt).map(p=>p.id));
     const items=inventory.items.filter(item=>item.state!=='held'||!deletedProducts.has(item.product));
@@ -72,7 +72,9 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
   if(post && route==='items'){
     const product=(await store.readCatalog()).products.find(p=>p.id===data.product&&physical(p));
     if(!product||!Number.isInteger(data.count)||data.count<1||data.count>50)throw stylingError('Velg et produkt og mellom 1 og 50 etiketter.');
-    return out(201,await store.stylingRegister(product,data.count,actor));
+    const result=await store.stylingRegister(product,data.count,actor);
+    if(product.qrStock)invalidatePublic();
+    return out(201,result);
   }
   if(post && route==='split'){
     if(!itemId.test(data.id)||!Number.isInteger(data.revision))throw stylingError('Velg grunnsofa.');
@@ -80,7 +82,9 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
   }
   if(post && route==='move'){
     if(!itemId.test(data.id)||!Number.isInteger(data.revision)|| (['in','out'].includes(data.action)&& !/^[a-f0-9-]{36}$/.test(data.job)))throw stylingError('Velg oppdrag og møbel.');
-    return out(200,await store.stylingMove(data,actor));
+    const result=await store.stylingMove(data,actor);
+    invalidatePublic();
+    return out(200,result);
   }
   if(!post && route.startsWith('history/') && itemId.test(route.slice(8)))return out(200,await store.stylingHistory(route.slice(8)));
   throw stylingError('Fant ikke handlingen.',404);

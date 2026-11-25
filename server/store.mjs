@@ -6,7 +6,7 @@ import {migrateCatalogDimensions} from './dimensions-migration.mjs';
 import {migrateStylingPricing} from './pricing-migration.mjs';
 import {defaultSettings} from '../public/site-settings.js?v=fest20261114';
 import {deliveryCallLimits} from './delivery.mjs';
-import {stylingStore,stylingSchema} from './styling-store.mjs';
+import {stylingStore,stylingSchema,createStylingItem} from './styling-store.mjs';
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';
 import {migrateProducts} from './walls.mjs';
@@ -77,14 +77,20 @@ export function createMysqlStore(env,seed){
   return ready;
  }
  async function query(sql,args=[]){await init();return pool.execute(sql,args);}
- async function mutateCatalog(revision,products,urls){
+ async function mutateCatalog(revision,products,urls,registration){
   products=removeRetiredCosts(products);
   await init();const connection=await pool.getConnection(),updatedAt=new Date();
   try{await connection.beginTransaction();const [[current]]=await connection.execute('SELECT revision FROM ku_catalog WHERE id=1 FOR UPDATE');if(current.revision!==revision){await connection.rollback();return null;}
    const [purged]=await connection.execute('SELECT url FROM ku_media_purged');const unavailable=new Set([...purged.map(row=>row.url),...urls]);
    if(products.some(p=>[p.image,p.wallCover,p.builderImage,...(p.gallery||[])].some(url=>unavailable.has(url))))throw Object.assign(Error('Et bilde er slettet permanent. Velg et annet bilde og lagre på nytt.'),{status:409});
    for(const url of urls){const [[trash]]=await connection.execute('SELECT url FROM ku_media_state WHERE url=? FOR UPDATE',[url]);if(!trash)throw Object.assign(Error('Papirkurven er endret. Last inn på nytt.'),{status:409});await connection.execute('INSERT IGNORE INTO ku_media_purged(url) VALUES (?)',[url]);if(/^\/media\/[a-f0-9]{32}$/.test(url))await connection.execute('DELETE FROM ku_media WHERE id=?',[url.slice(7)]);await connection.execute('DELETE FROM ku_media_state WHERE url=?',[url]);}
-   await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(products),updatedAt]);await connection.commit();return {revision:revision+1,products,updatedAt};
+   const ids=[];
+   if(registration){
+    const {product,count,actor}=registration;
+    await connection.execute('INSERT INTO ku_styling_catalog_stock(product) VALUES (?)',[product.id]);
+    for(let i=0;i<count;i++)ids.push(await createStylingItem(connection,product,actor));
+   }
+   await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(products),updatedAt]);await connection.commit();return {revision:revision+1,products,updatedAt,...(registration?{ids}:{})};
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
  const workflow=workflowStore(init,pool);
@@ -214,15 +220,22 @@ export function createMysqlStore(env,seed){
   async readSiteSettings(){const [[r]]=await query('SELECT revision,body FROM ku_site_settings WHERE id=1');return {revision:r.revision,settings:JSON.parse(r.body)};},
   async saveSiteSettings(revision,settings){const [r]=await query('UPDATE ku_site_settings SET revision=revision+1,body=? WHERE id=1 AND revision=?',[JSON.stringify(settings),revision]);return r.affectedRows?{revision:revision+1,settings}:null;},
   async readCatalog(){
-   const [[[r]],[profiles]]=await Promise.all([query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1'),query('SELECT id,bounds FROM ku_media_bounds')]);
+   const [[[r]],[profiles],[inventory]]=await Promise.all([
+    query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1'),
+    query('SELECT id,bounds FROM ku_media_bounds'),
+    query("SELECT s.product,COUNT(i.id) AS total,SUM(CASE WHEN i.state='ready' THEN 1 ELSE 0 END) AS ready FROM ku_styling_catalog_stock s LEFT JOIN ku_styling_items i ON i.product=s.product GROUP BY s.product")
+   ]);
    const bounds=new Map(profiles.map(row=>['/media/'+row.id,JSON.parse(row.bounds)]));
-   const products=migrateProducts(removeRetiredCosts(JSON.parse(r.body))).map(({imageBounds,...product})=>{
+   const stock=new Map(inventory.map(row=>[row.product,row]));
+   const products=migrateProducts(removeRetiredCosts(JSON.parse(r.body))).map(({imageBounds,qrStock,...product})=>{
     const frame=bounds.get(product.image);
-    return frame?{...product,imageBounds:frame}:product;
+    const managed=stock.get(product.id);
+    return {...product,...(frame?{imageBounds:frame}:{}),...(managed?{qrStock:true,stock:Number(managed.total),unavailable:Number(managed.total)-Number(managed.ready)}:{})};
    });
    return {revision:r.revision,products,updatedAt:r.updated_at};
   },
   async saveCatalog(revision,products){return mutateCatalog(revision,products,[]);},
+  async saveCatalogWithStyling(revision,products,registration){return mutateCatalog(revision,products,[],registration);},
   async purgeTrash(revision,products,urls){return mutateCatalog(revision,products,urls);},
   async purgedMedia(){const [rows]=await query('SELECT url FROM ku_media_purged');return rows.map(row=>row.url);},
   async mediaPurged(url){const [[row]]=await query('SELECT url FROM ku_media_purged WHERE url=? LIMIT 1',[url]);return !!row;},

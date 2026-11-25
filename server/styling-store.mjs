@@ -6,10 +6,18 @@ export const stylingSchema = [
   'CREATE TABLE IF NOT EXISTS ku_styling_jobs (id CHAR(36) PRIMARY KEY, address VARCHAR(200) NOT NULL, stylist VARCHAR(254) NOT NULL, created BIGINT NOT NULL)',
   'CREATE TABLE IF NOT EXISTS ku_styling_items (id VARCHAR(18) PRIMARY KEY, product VARCHAR(120) NOT NULL, name VARCHAR(200) NOT NULL, state VARCHAR(20) NOT NULL, job CHAR(36), revision INT NOT NULL DEFAULT 1, INDEX(product), FOREIGN KEY(job) REFERENCES ku_styling_jobs(id))',
   'CREATE TABLE IF NOT EXISTS ku_styling_item_sides (item VARCHAR(18) PRIMARY KEY, side VARCHAR(5) NOT NULL, FOREIGN KEY(item) REFERENCES ku_styling_items(id))',
+  'CREATE TABLE IF NOT EXISTS ku_styling_catalog_stock (product VARCHAR(120) PRIMARY KEY)',
   'CREATE TABLE IF NOT EXISTS ku_styling_history (id BIGINT AUTO_INCREMENT PRIMARY KEY, item VARCHAR(18) NOT NULL, actor VARCHAR(254) NOT NULL, state VARCHAR(20) NOT NULL, job CHAR(36), created BIGINT NOT NULL, INDEX(item))'
 ];
 
 export function stylingError(message,status=400){return Object.assign(new Error(message),{status});}
+export async function createStylingItem(db,product,actor,side,state='held'){
+ const id='K-'+randomUUID().replaceAll('-','').slice(0,16).toUpperCase();
+ await db.execute('INSERT INTO ku_styling_items(id,product,name,state) VALUES(?,?,?,?)',[id,product.id,product.name,state]);
+ if(side)await db.execute('INSERT INTO ku_styling_item_sides(item,side) VALUES(?,?)',[id,side]);
+ await db.execute('INSERT INTO ku_styling_history(item,actor,state,created) VALUES(?,?,?,?)',[id,actor,state,Date.now()]);
+ return id;
+}
 export function nextMovement(item,action,job){
   if(action==='out' && item.state==='ready' && job)return {state:'out',job};
   if(action==='in' && item.state==='out' && item.job===job)return {state:'check',job:null};
@@ -23,13 +31,6 @@ export function stylingStore(init,pool,query){
     try{await db.beginTransaction();const result=await fn(db);await db.commit();return result;}
     catch(e){await db.rollback();throw e;}finally{db.release();}
   }
-  async function createItem(db,product,actor,side,state='held'){
-    const id='K-'+randomUUID().replaceAll('-','').slice(0,16).toUpperCase();
-    await db.execute('INSERT INTO ku_styling_items(id,product,name,state) VALUES(?,?,?,?)',[id,product.id,product.name,state]);
-    if(side)await db.execute('INSERT INTO ku_styling_item_sides(item,side) VALUES(?,?)',[id,side]);
-    await db.execute('INSERT INTO ku_styling_history(item,actor,state,created) VALUES(?,?,?,?)',[id,actor,state,Date.now()]);
-    return id;
-  }
   return {
     async stylingOverview(){
       const [jobs,items]=await Promise.all([query('SELECT * FROM ku_styling_jobs ORDER BY created DESC'),query('SELECT i.*,s.side FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,s.side,i.id')]);
@@ -42,7 +43,7 @@ export function stylingStore(init,pool,query){
       return transaction(async db=>{
         const ids=[];
         for(let n=0;n<count;n++){
-          for(const side of product.moduleRole==='base'?['left','right']:[null])ids.push(await createItem(db,product,actor,side));
+          for(const side of product.moduleRole==='base'&&!product.qrStock?['left','right']:[null])ids.push(await createStylingItem(db,product,actor,side));
         }
         return {ids};
       });
@@ -51,12 +52,12 @@ export function stylingStore(init,pool,query){
       return transaction(async db=>{
         const [[item]]=await db.execute('SELECT * FROM ku_styling_items WHERE id=? FOR UPDATE',[id]);
         const product=products.find(p=>p.id===item?.product);
-        if(!item||product?.moduleRole!=='base'||item.state!=='ready'||item.revision!==revision)throw stylingError('Kontroller at grunnsofaen står på lager.',409);
+        if(!item||product?.moduleRole!=='base'||product.qrStock||item.state!=='ready'||item.revision!==revision)throw stylingError('Kontroller at grunnsofaen kan deles og står på lager.',409);
         const [[side]]=await db.execute('SELECT side FROM ku_styling_item_sides WHERE item=? FOR UPDATE',[id]);
         if(side)throw stylingError('Modulene er allerede registrert.',409);
         await db.execute("INSERT INTO ku_styling_item_sides(item,side) VALUES(?,'left')",[id]);
         await db.execute('UPDATE ku_styling_items SET revision=revision+1 WHERE id=?',[id]);
-        return {ids:[id,await createItem(db,product,actor,'right',item.state)]};
+        return {ids:[id,await createStylingItem(db,product,actor,'right',item.state)]};
       });
     },
     async stylingMove(input,actor){

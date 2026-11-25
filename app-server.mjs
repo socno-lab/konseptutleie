@@ -92,7 +92,7 @@ export function createServer(options={}){
      res.once('finish',releaseAuth);res.once('close',releaseAuth);
     }
    }
-   if(pathname.startsWith('/api/styling/'))return await stylingApi({req,route:pathname.slice('/api/styling/'.length),store,origin,secure,authenticated,json,out});
+   if(pathname.startsWith('/api/styling/'))return await stylingApi({req,route:pathname.slice('/api/styling/'.length),store,origin,secure,authenticated,json,out,invalidatePublic});
    if(pathname==='/styling/index.html' && ['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'styling/index.html')),'text/html; charset=utf-8',{'Permissions-Policy':'camera=(self), microphone=(), geolocation=()'});
    if(pathname==='/api/submissions'){
     if(req.method==='GET')return out(200,{enabled:submissions.enabled});
@@ -249,7 +249,26 @@ export function createServer(options={}){
     }
     if(pathname==='/api/admin/catalog'){
      if(req.method==='GET')return out(200,await readCatalog());
-     if(req.method==='PUT'){const data=await json(req);if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');const current=await readCatalog();const products=validateCatalog(data.products,current.products);const result=await store.saveCatalog(data.revision,products);if(result)invalidatePublic();return result?out(200,result):out(409,{error:'Katalogen er endret av en annen administrator. Last inn på nytt før du lagrer.'});}
+     if(req.method==='PUT'){
+      const data=await json(req);
+      if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');
+      const current=await readCatalog();
+      const products=validateCatalog(data.products,current.products);
+      let result;
+      if(data.registerStock!==undefined){
+       const {id,count}=data.registerStock??{};
+       const product=products.find(p=>p.id===id);
+       if(!product||product.deletedAt||product.isService||product.isPackage||product.isExample||product.addonOnly||product.wallGroup||!Number.isInteger(count)||count<1||count>50)throw error('Velg et fysisk produkt og mellom 1 og 50 eksemplarer.');
+       const key=value=>String(value??'').trim().normalize('NFKC').toLocaleLowerCase('nb');
+       if(current.products.some(p=>p.id===id||!p.deletedAt&&(key(p.name)===key(product.name)||product.articleNumber&&key(p.articleNumber)===key(product.articleNumber))))throw error('Produktet finnes allerede. Registrer eksemplarer på det eksisterende produktet.',409);
+       if(!store.saveCatalogWithStyling)throw error('QR-lageret er utilgjengelig.',503);
+       product.stock=0;product.unavailable=0;
+       result=await store.saveCatalogWithStyling(data.revision,products,{product,count,actor:(await store.admin()).email});
+      }else result=await store.saveCatalog(data.revision,products);
+      if(!result)return out(409,{error:'Katalogen er endret av en annen administrator. Last inn på nytt før du lagrer.'});
+      invalidatePublic();
+      return out(200,store.saveCatalogWithStyling?{...result,products:(await readCatalog()).products}:result);
+     }
     }
     if(['/api/admin/media/trash','/api/admin/media/restore'].includes(pathname)&&req.method==='POST'){
      const input=await json(req,5000);if(typeof input.url!=='string'||input.url.length>500)return out(400,{error:'Ugyldig bildelenke.'});images??=staticImages(publicRoot);const purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)),image=all.find(m=>m.url===input.url);if(!image)return out(404,{error:'Bildet finnes ikke.'});
