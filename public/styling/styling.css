@@ -66,6 +66,12 @@
  .product{border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink);display:grid;align-items:center;text-align:left;padding:12px;gap:8px;min-width:0;cursor:pointer}
  .product:hover{border-color:var(--olive)}
  .product-photo{display:block;object-fit:contain;width:100%;height:110px;background:#fff}
+ .stock-photo-frame{display:block;position:relative;height:110px;overflow:hidden}
+ .tiles .product:has(.product-photo){grid-template-rows:110px 1fr auto}
+ @supports(width:1cqw){
+  .stock-photo-frame{container-type:size}
+  .stock-photo-frame img[data-image-frame]{position:absolute;left:50%;bottom:var(--frame-bottom);width:min(var(--frame-width),var(--frame-height));height:auto;max-width:none;transform:translate(var(--frame-x),var(--frame-y))}
+ }
  .tiles .availability{align-self:end}
  .identity,.record>div,.product-head>div{min-width:0;overflow-wrap:anywhere}
  .identity small,.record p,.product-head p{color:var(--muted)}

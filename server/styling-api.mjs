@@ -42,7 +42,7 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
       const category=categories.find(c=>c.id===p.category);
       const sub=p.subcategory||productSubcategory(p);
       const label=category?.subcategories?.find(s=>s.id===sub)?.label||p.subcategory;
-      return {...(p.articleNumber?{articleNumber:p.articleNumber}:{}),...(p.moduleRole==='base'?{pairedEnds:true}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
+      return {...(p.articleNumber?{articleNumber:p.articleNumber}:{}),...(p.moduleRole==='base'?{pairedEnds:true}:{}),...(p.imageBounds?{imageBounds:p.imageBounds}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
     });
     const deletedProducts=new Set(catalog.products.filter(p=>p.deletedAt).map(p=>p.id));
     const items=inventory.items.filter(item=>item.state!=='held'||!deletedProducts.has(item.product));

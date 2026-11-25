@@ -38,7 +38,8 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_submission_limits (bucket VARCHAR(90) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_media_purged (url VARCHAR(500) PRIMARY KEY)',
     'CREATE TABLE IF NOT EXISTS ku_media_state (url VARCHAR(500) PRIMARY KEY, deleted_at DATETIME(3) NOT NULL)',
-    'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)'
+    'CREATE TABLE IF NOT EXISTS ku_media (id CHAR(32) PRIMARY KEY, digest CHAR(64) UNIQUE NOT NULL, name VARCHAR(200) NOT NULL, mime VARCHAR(50) NOT NULL, bytes INT NOT NULL, body LONGBLOB NOT NULL, created_at DATETIME(3) NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS ku_media_bounds (id CHAR(32) PRIMARY KEY, bounds VARCHAR(100) NOT NULL, FOREIGN KEY(id) REFERENCES ku_media(id) ON DELETE CASCADE)'
    ])await pool.query(sql);
    await pool.execute("INSERT IGNORE INTO ku_discounts (id,revision,body) VALUES (1,1,'[]')");
    await pool.execute('INSERT IGNORE INTO ku_site_settings(id,revision,body) VALUES(1,1,?)',[JSON.stringify(defaultSettings)]);
@@ -212,7 +213,15 @@ export function createMysqlStore(env,seed){
   async saveDiscountCodes(revision,codes){const [r]=await query('UPDATE ku_discounts SET revision=revision+1,body=? WHERE id=1 AND revision=?',[JSON.stringify(codes),revision]);return r.affectedRows?{revision:revision+1,codes}:null;},
   async readSiteSettings(){const [[r]]=await query('SELECT revision,body FROM ku_site_settings WHERE id=1');return {revision:r.revision,settings:JSON.parse(r.body)};},
   async saveSiteSettings(revision,settings){const [r]=await query('UPDATE ku_site_settings SET revision=revision+1,body=? WHERE id=1 AND revision=?',[JSON.stringify(settings),revision]);return r.affectedRows?{revision:revision+1,settings}:null;},
-  async readCatalog(){const [[r]]=await query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1');return {revision:r.revision,products:migrateProducts(removeRetiredCosts(JSON.parse(r.body))),updatedAt:r.updated_at};},
+  async readCatalog(){
+   const [[[r]],[profiles]]=await Promise.all([query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1'),query('SELECT id,bounds FROM ku_media_bounds')]);
+   const bounds=new Map(profiles.map(row=>['/media/'+row.id,JSON.parse(row.bounds)]));
+   const products=migrateProducts(removeRetiredCosts(JSON.parse(r.body))).map(({imageBounds,...product})=>{
+    const frame=bounds.get(product.image);
+    return frame?{...product,imageBounds:frame}:product;
+   });
+   return {revision:r.revision,products,updatedAt:r.updated_at};
+  },
   async saveCatalog(revision,products){return mutateCatalog(revision,products,[]);},
   async purgeTrash(revision,products,urls){return mutateCatalog(revision,products,urls);},
   async purgedMedia(){const [rows]=await query('SELECT url FROM ku_media_purged');return rows.map(row=>row.url);},
@@ -233,6 +242,7 @@ export function createMysqlStore(env,seed){
   async restoreMedia(url){await query('DELETE FROM ku_media_state WHERE url=?',[url]);},
   async mediaList(){const [r]=await query('SELECT id,name,mime,bytes,created_at AS createdAt FROM ku_media ORDER BY created_at DESC LIMIT 2000');return r.map(x=>({...x,url:'/media/'+x.id,source:'upload'}));},
   async media(id){const [[r]]=await query('SELECT mime,body FROM ku_media WHERE id=?',[id]);return r||null;},
+  async saveMediaBounds(id,bounds){await query('INSERT INTO ku_media_bounds(id,bounds) VALUES (?,?) ON DUPLICATE KEY UPDATE bounds=VALUES(bounds)',[id,JSON.stringify(bounds)]);},
   async addMedia(name,mime,body){const digest=createHash('sha256').update(body).digest('hex'),id=randomBytes(16).toString('hex');await query('INSERT IGNORE INTO ku_media(id,digest,name,mime,bytes,body,created_at) VALUES (?,?,?,?,?,?,?)',[id,digest,name,mime,body.length,body,new Date()]);const [[r]]=await query('SELECT id,name,mime,bytes,created_at AS createdAt FROM ku_media WHERE digest=?',[digest]);return {...r,url:'/media/'+r.id,source:'upload'};}
  };
 }

@@ -1,4 +1,4 @@
-import {frameCatalogMarkup} from './catalog-image-framing.js?v=frames20261105';
+import {frameCatalogMarkup} from './catalog-image-framing.js?v=frames20261125';
 import {favoriteCardButton} from './card-favorite-markup.js?v=hearts20261105';
 import {stableRentalPeriodMarkup} from './rental-period-slots.js?v=choicesfirst20261119';
 // Stable key survives arrow icons, favorite controls and product-link hydration.

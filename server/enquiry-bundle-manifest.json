@@ -16,11 +16,11 @@
     "public/card-favorite-markup.js": "01e2dca55f40694a911eedeb78b2ae51056cf9f0cbea812d09358e516e1e8cbb",
     "public/card-favorites.js": "7bc42d8e5918990b74c1a41a26a0322be017151f3bea521d9d4b8d588292cf4f",
     "public/cart-thumbnail.js": "deef4cb0e6d49f42b77313d8821ea8db0ea54a2707c3dbfba5ca4f6d91d3f162",
-    "public/catalog-card-markup.js": "3c530d40204da2f90f1836ecf9aab64806f2dda3ecb1858fced25076a37720cb",
+    "public/catalog-card-markup.js": "f90ce1a907a86da94e36162b2e2d744d5c489c4e1460b965838905381b68cce7",
     "public/catalog-filter-count.js": "5298e5b646ad1fb89114280715688ae15e31c84357763cb573980993b57b2be4",
     "public/catalog-filters.js": "d98adda961859f9d88787d30f60c14acd381adee96b0b51b08995b2eaf5c2dad",
     "public/catalog-image-bounds.js": "cbf308b20a7669a2e36d5e09ad4ed7e08311502fd8178d984bf52b3a4e9894d9",
-    "public/catalog-image-framing.js": "1558c96770ebe9bbd703cc438a5ef5eb1b6debd05aeb3c0395a6a7e1052a1687",
+    "public/catalog-image-framing.js": "1315b05ce2c37e52f1d558b52b92f88fb974bc1cd0da11e1c40dfad2eaa128a4",
     "public/catalog-intro.js": "a6476fe06caaa9bc272b6881778234d4eea32c9dfcd19a93f03b098bcacf2061",
     "public/catalog-link-target.js": "bb5af6a6a1e7f17d753d449fc5f8080a37fe7212d05bea56f7f32a49dc01a949",
     "public/catalog-manual-order.js": "e45ea33c57ed6dc59cb9fcb2603fe55c017ba4107be5e9a86de24b54393b1e54",
@@ -136,5 +136,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "public/weekend-rental.js": "5d650c1f38af7850221ed60719b403f31650eef9f9aebdd73cbd5da11bdbc955"
   },
-  "digest": "100178335728f48e4aaaee68cc1e424e4080ddbb9d211632efc8a82df4927ea1"
+  "digest": "3ed6a0a567fa280c616fbce4b1baf465a06ac9d7e69e6630a19ca180dcdd407c"
 }

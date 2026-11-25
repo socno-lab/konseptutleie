@@ -1,3 +1,4 @@
+import {catalogImageFrameAttributes} from '../catalog-image-framing.js?v=frames20261125';
 export const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const states={ready:'På lager',out:'Ute på styling',check:'Venter på kontroll',held:'Holdt tilbake'};
 const compare=new Intl.Collator('nb',{numeric:true,sensitivity:'base'}).compare;
@@ -39,10 +40,14 @@ export function stockControls(rows,f,b){
     +b('Nullstill filtre','reset-filters')+'</div>';
 }
 export const photo=p=>p?.image?'<img class="product-photo" src="'+esc(p.image)+'" alt="" loading="lazy">':'';
+const tilePhoto=p=>{
+ const frame=catalogImageFrameAttributes(p);
+ return frame?'<span class="stock-photo-frame"><img class="product-photo" '+frame+' src="'+esc(p.image)+'" alt="" loading="lazy"></span>':photo(p);
+};
 export function stockResults(rows,f,b){
   const hits=filtered(rows,f);
   return '<div class="list-heading"><h2>Produkter <span class="count">'+hits.length+'</span></h2><div class="switch">'+['cards','list'].map((v,i)=>b(i?'Liste':'Kort','view',v,f.view===v).replace('type="button"','type="button" aria-pressed="'+(f.view===v)+'"')).join('')+'</div></div>'
-    +'<div class="products '+(f.view==='cards'?'tiles':'compact')+'">'+hits.map(p=>'<button type="button" class="product" data-action="product" data-value="'+esc(p.id)+'">'+photo(p)+'<span class="identity"><small>'+esc([p.category,p.subcategory].filter(Boolean).join(' · '))+'</small><strong>'+esc(p.name)+'</strong></span><span class="availability">'+p.available+' ledige av '+p.items.length+' registrerte</span></button>').join('')+'</div>'+(!hits.length?'<p>Ingen produkter passer filtrene.</p>':'');
+    +'<div class="products '+(f.view==='cards'?'tiles':'compact')+'">'+hits.map(p=>'<button type="button" class="product" data-action="product" data-value="'+esc(p.id)+'">'+(f.view==='cards'?tilePhoto(p):photo(p))+'<span class="identity"><small>'+esc([p.category,p.subcategory].filter(Boolean).join(' · '))+'</small><strong>'+esc(p.name)+'</strong></span><span class="availability">'+p.available+' ledige av '+p.items.length+' registrerte</span></button>').join('')+'</div>'+(!hits.length?'<p>Ingen produkter passer filtrene.</p>':'');
 }
 export function jobControls(jobs,f,b){
   return '<div class="filters jobs">'+input('Søk etter adresse','term',f.term,'search')

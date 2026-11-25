@@ -14,6 +14,7 @@ import {enquiryHealth} from './server/enquiry-health.mjs';
 import {enquiryPageHtml} from './server/enquiry-page.mjs';
 import {addonBuyoutPrice} from './public/buyout-model.js';
 import {createCatalogThumbnailer} from './server/catalog-thumbnails.mjs';
+import {measureCatalogMotif} from './server/catalog-motif.mjs';
 import {createPublicCatalogCache} from './server/public-catalog-cache.mjs';
 import {withPackageAddons} from './public/package-addon-model.js';
 import {readHtmlTemplate} from './server/html-templates.mjs';
@@ -259,7 +260,10 @@ export function createServer(options={}){
      if(req.method==='POST'){
       const body=await bytes(req,8*1024*1024),mime=imageMime(body);if(!mime)throw error('Velg JPG, PNG, WebP eller AVIF. SVG og andre filtyper støttes ikke.',415);
       let name;try{name=decodeURIComponent(req.headers['x-filename']||'bilde');}catch{name='bilde';}name=name.replace(/[\x00-\x1f/\\]/g,'').slice(0,180)||'bilde';
-      const saved=await store.addMedia(name,mime,body);await store.restoreMedia(saved.url);thumbnails.clear();return out(201,saved);
+      const bounds=store.saveMediaBounds?await measureCatalogMotif(body).catch(()=>null):null;
+      const saved=await store.addMedia(name,mime,body);
+      if(bounds)await store.saveMediaBounds(saved.id,bounds);
+      await store.restoreMedia(saved.url);thumbnails.clear();invalidatePublic();return out(201,saved);
      }
     }
     if(pathname.startsWith('/api/admin/'))return out(405,{error:'Metoden eller adressen støttes ikke.'});
