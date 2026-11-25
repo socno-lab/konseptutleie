@@ -7,6 +7,8 @@ export const stylingSchema = [
   'CREATE TABLE IF NOT EXISTS ku_styling_items (id VARCHAR(18) PRIMARY KEY, product VARCHAR(120) NOT NULL, name VARCHAR(200) NOT NULL, state VARCHAR(20) NOT NULL, job CHAR(36), revision INT NOT NULL DEFAULT 1, INDEX(product), FOREIGN KEY(job) REFERENCES ku_styling_jobs(id))',
   'CREATE TABLE IF NOT EXISTS ku_styling_item_sides (item VARCHAR(18) PRIMARY KEY, side VARCHAR(5) NOT NULL, FOREIGN KEY(item) REFERENCES ku_styling_items(id))',
   'CREATE TABLE IF NOT EXISTS ku_styling_catalog_stock (product VARCHAR(120) PRIMARY KEY)',
+  'CREATE TABLE IF NOT EXISTS ku_styling_job_closures (job CHAR(36) PRIMARY KEY, closed BIGINT NOT NULL, actor VARCHAR(254) NOT NULL, FOREIGN KEY(job) REFERENCES ku_styling_jobs(id) ON DELETE CASCADE)',
+  'CREATE TABLE IF NOT EXISTS ku_styling_job_deviations (job CHAR(36) NOT NULL, item VARCHAR(18) NOT NULL, kind VARCHAR(10) NOT NULL, note VARCHAR(500) NOT NULL, PRIMARY KEY(job,item,kind), FOREIGN KEY(job) REFERENCES ku_styling_jobs(id) ON DELETE CASCADE)',
   'CREATE TABLE IF NOT EXISTS ku_styling_history (id BIGINT AUTO_INCREMENT PRIMARY KEY, item VARCHAR(18) NOT NULL, actor VARCHAR(254) NOT NULL, state VARCHAR(20) NOT NULL, job CHAR(36), created BIGINT NOT NULL, INDEX(item))'
 ];
 
@@ -31,9 +33,19 @@ export function stylingStore(init,pool,query){
     try{await db.beginTransaction();const result=await fn(db);await db.commit();return result;}
     catch(e){await db.rollback();throw e;}finally{db.release();}
   }
+  async function lockJob(db,id){
+    const [[job]]=await db.execute('SELECT id FROM ku_styling_jobs WHERE id=? FOR UPDATE',[id]);
+    if(!job)throw stylingError('Oppdraget finnes ikke lenger.',409);
+    const [[closure]]=await db.execute('SELECT closed FROM ku_styling_job_closures WHERE job=?',[id]);
+    return closure;
+  }
+  async function recordMove(db,item,move,actor,job){
+    await db.execute('UPDATE ku_styling_items SET state=?,job=?,revision=revision+1 WHERE id=?',[move.state,move.job,item.id]);
+    await db.execute('INSERT INTO ku_styling_history(item,actor,state,job,created) VALUES(?,?,?,?,?)',[item.id,actor,move.state,job,Date.now()]);
+  }
   return {
     async stylingOverview(){
-      const [jobs,items]=await Promise.all([query('SELECT * FROM ku_styling_jobs ORDER BY created DESC'),query('SELECT i.*,s.side FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,s.side,i.id')]);
+      const [jobs,items]=await Promise.all([query('SELECT j.*,c.closed FROM ku_styling_jobs j LEFT JOIN ku_styling_job_closures c ON c.job=j.id ORDER BY j.created DESC'),query('SELECT i.*,s.side FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,s.side,i.id')]);
       return {jobs:jobs[0],items:items[0]};
     },
     async stylingJob(address,actor){
@@ -48,6 +60,41 @@ export function stylingStore(init,pool,query){
         }
         throw error;
       }
+    },
+    async stylingJobReturns(id){
+      const [units]=await query(`SELECT i.id,i.product,i.name,i.state,i.revision,i.job,s.side,
+        h.state AS movement,h.id=(SELECT MAX(latest.id) FROM ku_styling_history latest WHERE latest.item=i.id) AS is_latest
+        FROM (SELECT item,MAX(id) AS history_id FROM ku_styling_history WHERE job=? AND state IN ('out','check') GROUP BY item) movements
+        JOIN ku_styling_history h ON h.id=movements.history_id
+        JOIN ku_styling_items i ON i.id=h.item
+        LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,i.id`,[id]);
+      const [deviations]=await query('SELECT item,kind,note FROM ku_styling_job_deviations WHERE job=? ORDER BY item,kind',[id]);
+      return {units,deviations};
+    },
+    async stylingReviewReturns(id,units,actor){
+      return transaction(async db=>{
+        await lockJob(db,id);
+        for(const unit of [...units].sort((a,b)=>a.id.localeCompare(b.id))){
+          const [[item]]=await db.execute('SELECT * FROM ku_styling_items WHERE id=? FOR UPDATE',[unit.id]);
+          const [[latest]]=await db.execute('SELECT job,state FROM ku_styling_history WHERE item=? ORDER BY id DESC LIMIT 1',[unit.id]);
+          if(!item||item.state!=='check'||item.revision!==unit.revision||latest?.job!==id||latest.state!=='check'){
+            throw stylingError('Returlisten er endret. Oppdater valget og prøv igjen.',409);
+          }
+          await recordMove(db,item,nextMovement(item,unit.note?'hold':'ready'),actor,id);
+          if(unit.note)await db.execute("INSERT INTO ku_styling_job_deviations(job,item,kind,note) VALUES(?,?,'damage',?) ON DUPLICATE KEY UPDATE note=?",[id,item.id,unit.note,unit.note]);
+        }
+      });
+    },
+    async stylingCloseJob(id,missingNote,actor){
+      return transaction(async db=>{
+        if(await lockJob(db,id))return;
+        const [items]=await db.execute('SELECT id FROM ku_styling_items WHERE job=?',[id]);
+        if(items.length&&!missingNote)throw stylingError('Beskriv avviket for møblene som fortsatt mangler.',409);
+        for(const item of items){
+          await db.execute("INSERT INTO ku_styling_job_deviations(job,item,kind,note) VALUES(?,?,'missing',?)",[id,item.id,missingNote]);
+        }
+        await db.execute('INSERT INTO ku_styling_job_closures(job,closed,actor) VALUES(?,?,?)',[id,Date.now(),actor]);
+      });
     },
     async stylingRegister(product,count,actor){
       return transaction(async db=>{
@@ -72,12 +119,14 @@ export function stylingStore(init,pool,query){
     },
     async stylingMove(input,actor){
       return transaction(async db=>{
+        if(['in','out'].includes(input.action)){
+          const closure=await lockJob(db,input.job);
+          if(closure&&input.action==='out')throw stylingError('Oppdraget er avsluttet.',409);
+        }
         const [[item]]=await db.execute('SELECT * FROM ku_styling_items WHERE id=? FOR UPDATE',[input.id]);
         if(!item || item.revision!==input.revision)throw stylingError('Møbelet er endret. Kontroller status og prøv igjen.',409);
         const move=nextMovement(item,input.action,input.job);
-        if(move.job){const [[job]]=await db.execute('SELECT id FROM ku_styling_jobs WHERE id=?',[move.job]);if(!job)throw stylingError('Oppdraget finnes ikke.');}
-        await db.execute('UPDATE ku_styling_items SET state=?,job=?,revision=revision+1 WHERE id=?',[move.state,move.job,item.id]);
-        await db.execute('INSERT INTO ku_styling_history(item,actor,state,job,created) VALUES(?,?,?,?,?)',[item.id,actor,move.state,move.job||item.job,Date.now()]);
+        await recordMove(db,item,move,actor,move.job||item.job);
         return move;
       });
     },

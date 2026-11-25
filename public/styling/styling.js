@@ -1,4 +1,4 @@
-import {esc as escape,states,stockRows,stockControls,stockResults,jobControls,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=3';
+import {esc as escape,states,stockRows,stockControls,stockResults,jobControls,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=4';
 const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status');
 const itemPattern=/^K-[0-9A-F]{16}$/;
 const button=(label,action,value='',primary=false)=>'<button type="button" class="button '+(primary?'dark':'button-outline')+'" data-action="'+action+'" data-value="'+escape(value)+'">'+escape(label)+'</button>';
@@ -43,8 +43,29 @@ function go(next){stopCamera();page=next;status.textContent='';render();}
 async function showItem(id){
   itemId=id;history=await api('history/'+encodeURIComponent(id));go('item');
 }
-function jobOptions(){return data.jobs.map(j=>'<option value="'+escape(j.id)+'" '+(j.id===jobId?'selected':'')+'>'+escape(j.address)+'</option>').join('');}
+const openJobs=()=>data.jobs.filter(job=>!job.closed);
+function jobOptions(){return openJobs().map(j=>'<option value="'+escape(j.id)+'" '+(j.id===jobId?'selected':'')+'>'+escape(j.address)+'</option>').join('');}
 function listItem(i){return '<section><h2>'+escape(productName(i))+'</h2><p>'+escape(i.id)+' · '+states[i.state]+'</p>'+button('Åpne møbel','item',i.id)+'</section>';}
+let jobReturns={units:[],deviations:[]};
+async function loadJobReturns(){jobReturns=await api('job-returns/'+jobId);}
+const pendingReturns=()=>jobReturns.units.filter(unit=>unit.movement==='check'&&unit.is_latest&&unit.state==='check');
+function returnOverview(job,missing){
+  const returned=jobReturns.units.filter(unit=>unit.movement==='check');
+  const pending=pendingReturns();
+  const unitLabel=unit=>escape(productName(unit))+' · '+escape(unit.id);
+  return '<section><h2>Retur og avvik</h2><p>'+jobReturns.units.length+' enheter skannet ut · '+returned.length+' returnert · '+missing.length+' mangler · '+pending.length+' til kontroll</p>'
+    +(missing.length?'<h3>Mangler</h3><ul>'+missing.map(unit=>'<li>'+unitLabel(unit)+' '+button('Åpne møbel','item',unit.id)+'</li>').join('')+'</ul>':'')
+    +(jobReturns.deviations.length?'<h3>Registrerte avvik</h3><ul>'+jobReturns.deviations.map(entry=>{
+      const unit=jobReturns.units.find(candidate=>candidate.id===entry.item);
+      return '<li>'+(unit?unitLabel(unit):escape(entry.item))+' · '+(entry.kind==='damage'?'Skadet':'Meldt savnet')+' · '+escape(entry.note)+'</li>';
+    }).join('')+'</ul>':'')
+    +(pending.length?'<form data-form="review-returns"><h3>Til returkontroll</h3><p>Kryss av enhetene som er i orden. Fyll inn en merknad for hver skadet enhet. Du kan lagre opptil 50 om gangen.</p>'+button('Velg inntil 50 uten merknad','select-returns')
+      +pending.map(unit=>'<fieldset><legend>'+unitLabel(unit)+'</legend><label class="queue-choice"><input type="checkbox" name="approved" value="'+unit.id+'"> I orden</label><label>Skade eller mangel ved møbelet<input name="note-'+unit.id+'" maxlength="500"></label></fieldset>').join('')
+      +submit('Lagre returkontroll')+'</form>':'')
+    +(job.closed?'<p>Avsluttet '+escape(date(job.closed))+'</p>':'<form data-form="close-job"><h3>Avslutt oppdrag</h3>'
+      +(missing.length?'<label>Merknad for møblene som mangler<textarea name="note" required maxlength="500"></textarea></label>':'')
+      +submit('Avslutt oppdrag')+'</form>')+'</section>';
+}
 function countLabel(p){return p?.pairedEnds?'Antall grunnsofaer (to etiketter per sofa)':'Antall nye eksemplarer';}
 function countField(p){
   return '<label><span data-count-label>'+countLabel(p)+'</span><input name="count" type="number" inputmode="numeric" value="1" min="1" max="50" required></label>';
@@ -101,8 +122,13 @@ function render(){
     }else if(page==='new'){
       html='<h1>Nytt stylingoppdrag</h1><form data-form="job"><label>Adresse<input name="address" maxlength="200" required></label><p>Ansvarlig stylist · '+escape(data.actor)+'</p>'+submit('Opprett oppdrag')+'</form>';
     }else if(page==='job'){
+      const job=data.jobs.find(j=>j.id===jobId);
       const items=data.items.filter(i=>i.job===jobId);
-      html='<h1>'+escape(jobName(jobId))+'</h1><div class="job-meta"><span>Stylist<strong>'+escape(data.jobs.find(j=>j.id===jobId)?.stylist)+'</strong></span><span>Opprettet<strong>'+escape(date(data.jobs.find(j=>j.id===jobId)?.created))+'</strong></span></div><div class="actions">'+button('Skann ut','out','',true)+button('Skann inn','in')+button('Velg fra lager','pick')+button('Registrer møbler','register')+(data.admin&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div><h2>På oppdraget · '+items.length+'</h2>'+items.map(listItem).join('');
+      if(!job){screen.innerHTML='<h1>Oppdraget finnes ikke lenger</h1>';return;}
+      html='<h1>'+escape(job.address)+'</h1><div class="job-meta"><span>Stylist<strong>'+escape(job.stylist)+'</strong></span><span>Opprettet<strong>'+escape(date(job.created))+'</strong></span></div>'
+        +'<div class="actions">'+(!job.closed?button('Skann ut','out','',true):'')+button('Skann inn','in')
+        +(!job.closed?button('Velg fra lager','pick')+button('Registrer møbler','register'):'')+(data.admin&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div>'
+        +returnOverview(job,items);
     }else if(page==='in'||page==='out'){
       html='<h1>'+ (page==='in'?'Skann inn':'Skann ut')+'</h1><p>'+escape(jobName(jobId))+'</p><div class="actions">'+button('Start kamera','camera','',true)+button('Til oppdraget','job',jobId)+'</div><video muted playsinline hidden></video><form data-form="scan"><label>Etikett-ID<input name="id" required autocomplete="off" autocapitalize="characters"></label>'+submit('Registrer ID')+'</form>';
     }else if(page==='stock'||page==='pick'){
@@ -128,7 +154,7 @@ function render(){
     }else if(page==='item'){
       const i=item();html=i?'<h1>'+escape(productName(i))+'</h1><section><h2>'+states[i.state]+'</h2><p>'+escape(i.id)+' '+escape(jobName(i.job))+'</p>'+button('Skriv ut etikett','label',i.id)+'</section>':'<h1>Ukjent etikett</h1>';
       if(itemOrigin==='product')html=button('← Til produktet','product',productId)+html;
-      if(i?.state==='ready')html+=data.jobs.length?'<form data-form="checkout"><label>Stylingoppdrag<select name="job">'+jobOptions()+'</select></label>'+submit('Sjekk ut på oppdrag')+'</form>':button('Nytt stylingoppdrag','new');
+      if(i?.state==='ready')html+=openJobs().length?'<form data-form="checkout"><label>Stylingoppdrag<select name="job">'+jobOptions()+'</select></label>'+submit('Sjekk ut på oppdrag')+'</form>':button('Nytt stylingoppdrag','new');
       if(i?.state==='out')html+=button('Registrer retur','return');
       if(i&&['check','held'].includes(i.state))html+=button('Godkjenn for lager','ready');
       if(i&&['check','ready'].includes(i.state))html+=button('Hold tilbake','hold');
@@ -205,7 +231,7 @@ async function run(fn){
   if(working)return;working=true;
   try{await fn();}catch(e){
     if(e.status===401){stopCamera();data=null;render();}
-    if(e.status===409){await load();if(page!=='in'&&page!=='out')render();}
+    if(e.status===409){await load();if(page==='job'&&data.jobs.some(job=>job.id===jobId))await loadJobReturns();if(page!=='in'&&page!=='out')render();}
     status.textContent=e.name==='NotAllowedError'?'Kameratilgang mangler. Tillat kamera eller skriv inn etikett-ID.':e.message;
   }finally{working=false;}
 }
@@ -219,6 +245,15 @@ document.addEventListener('click',e=>{
       await load();
       go('jobs');
       status.textContent='Oppdraget er slettet.';
+      return;
+    }
+    if(action==='select-returns'){
+      const form=b.closest('form');
+      let remaining=50;
+      for(const choice of form.querySelectorAll('input[name="approved"]')){
+        choice.checked=remaining>0&&!form.elements.namedItem('note-'+choice.value).value.trim();
+        if(choice.checked)remaining--;
+      }
       return;
     }
     if(action==='usage'&&data?.admin){await loadUsage();return go('usage');}
@@ -243,7 +278,7 @@ document.addEventListener('click',e=>{
       labels=(await api('split',{id:value,revision:unit.revision})).ids;await load();return go('labels');
     }
     if(action==='label'){labels=[value];return go('labels');}
-    if(action==='job')jobId=value;
+    if(action==='job'){jobId=value;await load();await loadJobReturns();}
     if(['ready','hold','return'].includes(action)){await move(item(),action==='return'?'in':action,item().job);return showItem(itemId);}
     if(action==='disable'){if(!confirm('Deaktiver tilgangen for '+value+'?'))return;await api('disable',{email:value});await load();inviteUrl='';return go('staff');}
     if(action==='logout'){await api('logout',{});data=null;return go('jobs');}
@@ -256,10 +291,28 @@ screen.onsubmit=e=>{
     switch(form.dataset.form){
       case 'claim':await api('claim',{invitation,password:fields.password});invitation=null;window.history.replaceState(null,'',location.pathname+location.search);render();status.textContent='Kontoen er aktiv. Logg inn med e-post og passord.';break;
       case 'login':await api('login',fields);await load();if(itemId)await showItem(itemId);else go('jobs');break;
-      case 'job':jobId=(await api('jobs',fields)).id;await load();go('job');break;
+      case 'job':jobId=(await api('jobs',fields)).id;await load();await loadJobReturns();go('job');break;
       case 'draft':selectedProduct=(await api('draft',fields)).id;await load();go('register');status.textContent='Produktutkastet er valgt. Angi antall eksemplarer.';break;
       case 'register':labels=(await api('items',{product:fields.product,count:Number(fields.count)})).ids;await load();go('labels');break;
       case 'scan':await scan(fields.id);form.reset();break;
+      case 'review-returns':{
+        const approved=new Set(new FormData(form).getAll('approved'));
+        const units=pendingReturns().flatMap(unit=>{
+          const note=fields['note-'+unit.id]?.trim();
+          return note||approved.has(unit.id)?[{id:unit.id,revision:unit.revision,...(note?{note}:{})}]:[];
+        });
+        if(!units.length||units.length>50)throw Error('Velg mellom 1 og 50 enheter om gangen.');
+        await api('review-returns',{id:jobId,units});
+        await load();await loadJobReturns();go('job');
+        status.textContent='Returkontrollen er lagret.';
+        break;
+      }
+      case 'close-job':
+        if(!confirm('Avslutt dette oppdraget? Det stenges for nye utsjekkinger.'))return;
+        await api('close-job',{id:jobId,note:fields.note||''});
+        await load();await loadJobReturns();go('job');
+        status.textContent='Oppdraget er avsluttet.';
+        break;
       case 'checkout':await move(item(),'out',fields.job);await showItem(itemId);break;
       case 'invite':if(data.staff.some(s=>s.email===fields.email.trim().toLowerCase()&&s.active)&&!confirm('Erstatt eksisterende tilgang med en ny invitasjon?'))return;inviteUrl=(await api('invite',fields)).url;await load();go('staff');break;
     }

@@ -7,6 +7,7 @@ import {stylingError} from './styling-store.mjs';
 import {stylingUsage,usagePeriods} from './styling-usage.mjs';
 
 const cookie='ku_stylist';
+const jobId=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 const itemId=/^K-[A-F0-9]{16}$/;
 const physical=p=>!p.deletedAt&&!p.isService&&!p.isPackage&&!p.isExample;
 export async function stylingApi({req,route,store,origin,secure,authenticated,json,out,invalidatePublic=()=>{}}){
@@ -14,7 +15,7 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
   const post=req.method==='POST';
   if(!post && req.method!=='GET')throw stylingError('Metoden støttes ikke.',405);
   if(post && req.headers.origin!==origin)throw stylingError('Last inn siden på nytt.',403);
-  const data=post?await json(req,4000):{};
+  const data=post?await json(req,route==='review-returns'?40000:4000):{};
   const email=typeof data.email==='string'?data.email.trim().toLowerCase():'';
   const token=sessionToken(req,cookie);
   if(post && ['login','claim'].includes(route)){
@@ -67,9 +68,30 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     if(typeof data.address!=='string'||!data.address.trim()||data.address.length>200)throw stylingError('Fyll inn oppdragsadressen.');
     return out(201,await store.stylingJob(data.address.trim(),actor));
   }
+  if(!post&&route.startsWith('job-returns/')&&jobId.test(route.slice(12))){
+    return out(200,await store.stylingJobReturns(route.slice(12)));
+  }
+  if(post&&route==='review-returns'){
+    if(typeof data.id!=='string'||!jobId.test(data.id)||!Array.isArray(data.units)||data.units.length<1||data.units.length>50||
+        data.units.some(unit=>!unit||typeof unit.id!=='string'||!itemId.test(unit.id)||!Number.isInteger(unit.revision)||
+          (unit.note!==undefined&&(typeof unit.note!=='string'||!unit.note.trim()||unit.note.length>500)))||
+        new Set(data.units.map(unit=>unit.id)).size!==data.units.length){
+      throw stylingError('Velg opptil 50 returer og skriv en merknad for skadde møbler.');
+    }
+    await store.stylingReviewReturns(data.id,data.units,actor);
+    invalidatePublic();
+    return out(200,{ok:true});
+  }
+  if(post&&route==='close-job'){
+    if(typeof data.id!=='string'||!jobId.test(data.id)||typeof data.note!=='string'||data.note.length>500){
+      throw stylingError('Velg et gyldig oppdrag og bruk inntil 500 tegn i merknaden.');
+    }
+    await store.stylingCloseJob(data.id,data.note.trim(),actor);
+    return out(200,{ok:true});
+  }
   if(post && route==='delete-job'){
     if(!admin)throw stylingError('Dette krever administratortilgang.',403);
-    if(typeof data.id!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(data.id)){
+    if(typeof data.id!=='string'||!jobId.test(data.id)){
       throw stylingError('Velg et gyldig oppdrag.');
     }
     await store.stylingDeleteJob(data.id);
