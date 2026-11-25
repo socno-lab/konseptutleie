@@ -62,7 +62,7 @@ export function createServer(options={}){
  async function readPublicCatalog(){const data=await publicCache.get();configureSiteSettings(data.settings);return data;}
  const thumbnails=createCatalogThumbnailer(options.thumbnailOptions);let mediaActive=0;
  const invalidatePublic=()=>publicCache.invalidate();
- let images;const enterRequest=createRequestGuard(options.requestGuard),enterAuth=createRequestGuard({maxActive:2,maxClientActive:2});
+ let images;const enterRequest=createRequestGuard(options.requestGuard),enterInternalRequest=createRequestGuard(options.requestGuard),enterAuth=createRequestGuard({maxActive:2,maxClientActive:2});
  const server=http.createServer(async(req,res)=>{
   const send=(status,body,type='text/plain; charset=utf-8',headers={})=>{res.writeHead(status,{'Content-Type':type,'X-Konseptuell-Version':'20261122-enquiry-overview','Content-Security-Policy':contentPolicy+"; frame-ancestors 'none'",'Permissions-Policy':'camera=(), microphone=(), geolocation=()','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'DENY','X-Robots-Tag':'noindex, nofollow, noarchive','Cache-Control':'no-store',...transportSecurity,...headers});res.end(req.method==='HEAD'?undefined:body);};
   const out=(status,data,headers)=>send(status,JSON.stringify(data),'application/json; charset=utf-8',headers);
@@ -82,7 +82,8 @@ export function createServer(options={}){
    if(['GET','HEAD'].includes(req.method)&&hosts.includes('konseptuell.no')&&req.headers['x-forwarded-proto']==='http')return send(308,'','text/plain',{Location:'https://konseptuell.no'+url.pathname+url.search});
    if(pathname==='/robots.txt'&&['GET','HEAD'].includes(req.method))return send(200,robots(indexing));
    if(pathname.startsWith('/api/')){
-    const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));
+    const guard=pathname.startsWith('/api/styling/')||pathname.startsWith('/api/admin/')?enterInternalRequest:enterRequest;
+    const release=guard(digest(String(req.socket.remoteAddress||'shared')));
     if(!release)return out(429,{error:'For mange forespørsler. Vent litt og prøv igjen.'},{'Retry-After':'60'});
     res.once('finish',release);res.once('close',release);
     if(['/api/styling/login','/api/styling/claim','/api/admin/login','/api/admin/login/verify','/api/admin/setup','/api/admin/password'].includes(pathname)&&!['GET','HEAD'].includes(req.method)){

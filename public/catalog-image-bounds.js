@@ -1,5 +1,12 @@
 // Source-bound extents with safety halo: [width,height,left,top,right,bottom].
 export const catalogImageBounds={
+ "/media/f534df898a148e1a43ea5c01cd4a3e88": [320,400,80,103,240,297],
+ "/media/98ccceac391ae092109fba8cdc39e741": [400,242,58,21,343,222],
+ "/media/83f85bb511fb43eccc97fc453a82ff47": [306,400,85,159,234,362],
+ "/media/0a4216513f64ae54c978279086acc220": [320,400,90,96,237,305],
+ "/media/f2e78d20bae9b80c2c60eee59eab1deb": [318,400,70,121,251,364],
+ "/media/2d2625ec34c9578e8ea922410ca6548b": [318,400,88,107,231,317],
+ "/media/58ccfe1f64ecfa75b9891785635da3e2": [318,400,71,122,256,365],
  "/media/192817af1c1368c0890367547d7787bd": [
   400,
   400,

@@ -19,7 +19,7 @@
     "public/catalog-card-markup.js": "3c530d40204da2f90f1836ecf9aab64806f2dda3ecb1858fced25076a37720cb",
     "public/catalog-filter-count.js": "5298e5b646ad1fb89114280715688ae15e31c84357763cb573980993b57b2be4",
     "public/catalog-filters.js": "d98adda961859f9d88787d30f60c14acd381adee96b0b51b08995b2eaf5c2dad",
-    "public/catalog-image-bounds.js": "8817a39542a960971e610422991cf5978b1b5053b29102513542a1e70c362b13",
+    "public/catalog-image-bounds.js": "cbf308b20a7669a2e36d5e09ad4ed7e08311502fd8178d984bf52b3a4e9894d9",
     "public/catalog-image-framing.js": "1558c96770ebe9bbd703cc438a5ef5eb1b6debd05aeb3c0395a6a7e1052a1687",
     "public/catalog-intro.js": "a6476fe06caaa9bc272b6881778234d4eea32c9dfcd19a93f03b098bcacf2061",
     "public/catalog-link-target.js": "bb5af6a6a1e7f17d753d449fc5f8080a37fe7212d05bea56f7f32a49dc01a949",
@@ -136,5 +136,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "public/weekend-rental.js": "5d650c1f38af7850221ed60719b403f31650eef9f9aebdd73cbd5da11bdbc955"
   },
-  "digest": "833571a19a82c94c803bf1aa4e388a258bfbbed711d66fee251b15ecc7d899de"
+  "digest": "100178335728f48e4aaaee68cc1e424e4080ddbb9d211632efc8a82df4927ea1"
 }

@@ -43,6 +43,21 @@ test('API flood is rejected before database work, forwarding headers cannot bypa
  const denied=await fetch(base+'/api/catalog');assert.equal(denied.status,429);assert.equal(denied.headers.get('retry-after'),'60');assert.equal(reads,beforeDenied,'rate-limited requests must not reach storage, including with catalog caching');
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
+test('A full styling request quota leaves the home page and public catalog available',async()=>{
+ const server=createServer({requestGuard:{now:()=>0}});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const base='http://127.0.0.1:'+server.address().port;
+ try{
+  for(let i=0;i<120;i++){
+   const response=await fetch(base+'/api/styling/overview');
+   if(response.status===429)break;
+   await response.arrayBuffer();
+  }
+  assert.equal((await fetch(base+'/api/styling/overview')).status,429);
+  assert.equal((await fetch(base+'/')).status,200);
+  assert.equal((await fetch(base+'/api/catalog')).status,200);
+ }finally{await new Promise(resolve=>server.close(resolve));}
+});
 test('Empty baskets and invalid JSON never reach paid Google routing',async()=>{
  let calls=0;const estimator=createDeliveryEstimator({GOOGLE_MAPS_API_KEY:'not-real'},async()=>{calls++;throw Error('must not call');});
  for(const basket of [{},[],null])await assert.rejects(()=>estimator.estimate({address:'Gate 1, 2010 Strømmen',visits:1,basket}),{status:400});assert.equal(calls,0);
