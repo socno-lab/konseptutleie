@@ -213,3 +213,28 @@ body.enquiry-page #cart.enquiry-full .drawer-head h1 {
 #cart .cart-more-products {margin-block:8px 12px}
 #cart .discount-code summary {cursor:pointer}
 #cart .discount-code details[open] > summary {margin-bottom:12px}
+
+#enquiryPage #cart.enquiry-full .cart-product-group > .cart-count-line {
+ display:grid;grid-template-columns:var(--cart-image-size) minmax(0,1fr) minmax(180px,260px);align-items:center;gap:14px;
+}
+#cart .cart-count-picker {min-width:0}
+#cart .cart-count-label,#cart .cart-count-controls {display:flex;align-items:center;justify-content:space-between;gap:8px}
+#cart .cart-count-label {margin-bottom:4px;font-weight:600}
+#cart .cart-count-label small,#cart .cart-line-sum small {font-weight:400;color:var(--muted)}
+#cart .cart-count-controls button,#cart .cart-count-controls input[type=number] {
+ box-sizing:border-box;margin:0;flex:0 0 44px;width:44px;height:44px;padding:0;text-align:center;border:1px solid var(--line);background:white;color:var(--ink);font-size:17px;border-radius:50%;
+}
+#cart .cart-count-controls button:disabled {opacity:.45}
+#cart .cart-count-controls input[type=number] {border-radius:6px;appearance:textfield}
+#cart .cart-count-controls input::-webkit-inner-spin-button {appearance:none}
+#cart .cart-count-controls input[type=range] {min-width:0;flex:1;width:100%;height:44px;margin:0;padding:0;accent-color:var(--olive);background:transparent;border:0}
+#cart .cart-line-sum {grid-column:1/-1;display:grid;grid-template-columns:1fr auto;align-items:baseline;background:#ecefe5;padding:10px 14px;border-radius:6px;font-weight:600}
+#cart .cart-line-sum > div {display:contents}
+#cart .cart-line-sum strong {text-align:right;font-size:18px}
+#cart .cart-line-sum small {grid-column:1/-1}
+#cart .cart-single-count {justify-self:end}
+@media(max-width:640px){
+ #enquiryPage #cart.enquiry-full .cart-product-group > .cart-count-line {grid-template-columns:var(--cart-image-size) minmax(0,1fr);gap:12px}
+ #cart .cart-count-picker {grid-column:1/-1}
+ #cart .cart-single-count {grid-column:2;justify-self:start}
+}

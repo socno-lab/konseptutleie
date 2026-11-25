@@ -28,9 +28,13 @@ test('rental-cart terms follow rental, purchase and mixed contents without a hid
 test('pure business purchase and mixed rental/purchase submit their required terms and server-priced receipt',async()=>{
  const chair={id:'chair',name:'Stol',category:'Stoler',active:true,stock:10,unavailable:0,price:100,weekPrice:300,monthPrice:500,rentalPricingMode:'manual'};
  const pack={id:'pack',name:'Bedriftspakke',category:'Pakker',active:true,isPackage:true,components:[{id:'chair',quantity:2}],businessPurchase:true,purchasePriceMode:'manual',purchasePrice:6000,price:200,weekPrice:600,monthPrice:1000,rentalPricingMode:'manual'};
+ // Use a future Wednesday so the one-day rental fixture is independent of weekend pricing.
+ const today=osloToday();
+ const weekday=new Date(today+'T12:00:00Z').getUTCDay();
+ const rentalDate=addDateDays(today,7+(3-weekday+7)%7);
  const nativeFormData=globalThis.FormData,oldFetch=globalThis.fetch,oldStorage=globalThis.sessionStorage;
  globalThis.sessionStorage={getItem:()=>null,setItem:()=>{}};
- globalThis.FormData=class{constructor(form){this.entries={name:'Lokal kontroll',email:'preview@example.invalid',phone:'00000000',address:'Eksempelveien 1, 1470 Eksempelsted',occasion:'Boligfoto og visning',delivery:'Henter og returnerer selv',start:form.rental?addDateDays(osloToday(),3):'',end:form.rental?addDateDays(osloToday(),3):''};for(const [name,field] of Object.entries(form.fields))if(!field.disabled&&field.checked)this.entries[name]=field.value;}[Symbol.iterator](){return Object.entries(this.entries)[Symbol.iterator]();}};
+ globalThis.FormData=class{constructor(form){this.entries={name:'Lokal kontroll',email:'preview@example.invalid',phone:'00000000',address:'Eksempelveien 1, 1470 Eksempelsted',occasion:'Boligfoto og visning',delivery:'Henter og returnerer selv',start:form.rental?rentalDate:'',end:form.rental?rentalDate:''};for(const [name,field] of Object.entries(form.fields))if(!field.disabled&&field.checked)this.entries[name]=field.value;}[Symbol.iterator](){return Object.entries(this.entries)[Symbol.iterator]();}};
  try{
   for(const rental of [false,true]){
    const form=formFixture();form.rental=rental;syncEnquiryTerms(form,{rental,purchase:true});
