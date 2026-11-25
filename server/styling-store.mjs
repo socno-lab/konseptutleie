@@ -72,6 +72,7 @@ export function stylingStore(init,pool,query){
       });
     },
     async stylingHistory(id){return (await query('SELECT actor,state,job,created FROM ku_styling_history WHERE item=? ORDER BY id DESC',[id]))[0];},
+    async stylingUsageHistory(){return (await query("SELECT h.item,i.product,h.state,h.job,h.created FROM ku_styling_history h JOIN ku_styling_items i ON i.id=h.item ORDER BY h.item,h.id"))[0];},
     async stylists(){return (await query('SELECT email,active,password_hash IS NOT NULL AS registered FROM ku_stylists ORDER BY email'))[0];},
     async stylingInvite(email,hash){
       await transaction(async db=>{

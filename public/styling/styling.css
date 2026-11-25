@@ -5,6 +5,11 @@
 #screen label{display:grid;gap:6px;margin-bottom:12px}
 #screen input,#screen select{width:100%;min-width:0;padding:10px;font:inherit;min-height:44px}
 #screen form[data-form="register"] :is(select,input[type="number"]){box-sizing:border-box;height:44px;margin:0;line-height:1.25}
+#screen .usage-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));max-width:32rem}
+.usage-table{overflow-x:auto}
+.usage-table table{width:100%;border-collapse:collapse;background:#fff}
+.usage-table th,.usage-table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+.usage-table td{white-space:nowrap;font-variant-numeric:tabular-nums}
 #screen form[data-form="register"] select{appearance:none;-webkit-appearance:none;padding:0 30px 0 10px;background-image:linear-gradient(45deg,transparent 50%,var(--olive) 50%),linear-gradient(135deg,var(--olive) 50%,transparent 50%);background-position:right 16px center,right 11px center;background-size:5px 5px;background-repeat:no-repeat}
 #screen button,#nav button{min-height:44px}
 #nav,.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}

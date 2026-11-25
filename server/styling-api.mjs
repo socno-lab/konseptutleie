@@ -4,6 +4,7 @@ import {randomBytes,randomUUID} from 'node:crypto';
 import {digest,sessionToken,expiredCookie,hashPassword,verifyPassword} from './auth.mjs';
 import {adminCookie} from './admin-email-code.mjs';
 import {stylingError} from './styling-store.mjs';
+import {stylingUsage,usagePeriods} from './styling-usage.mjs';
 
 const cookie='ku_stylist';
 const itemId=/^K-[A-F0-9]{16}$/;
@@ -35,6 +36,13 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
   const admin=await authenticated();
   const actor=admin?(await store.admin()).email:token.length===43&&await store.stylingSession(digest(token));
   if(!actor)throw stylingError('Logg inn for å fortsette.',401);
+  if(!post&&route.startsWith('usage/')){
+   if(!admin)throw stylingError('Dette krever administratortilgang.',403);
+   const period=route.slice(6);
+   if(!usagePeriods.has(period))throw stylingError('Velg en gyldig periode.');
+   const [catalog,history]=await Promise.all([store.readCatalog(),store.stylingUsageHistory()]);
+   return out(200,{products:stylingUsage(catalog.products.filter(physical),history,period)});
+  }
   if(!post && route==='overview'){
     const [inventory,catalog,site]=await Promise.all([store.stylingOverview(),store.readCatalog(),store.readSiteSettings?.()]);
     const categories=site?.settings?.categories||[];

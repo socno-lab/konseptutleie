@@ -14,6 +14,19 @@ function productName(i){
   return i.side?name.replace(/grunnsofa med begge ender/i,'').replace(/–\s*,/g,',').replace(/\s+,/g,',')+' · '+sideNames[i.side]:name;
 }
 const date=t=>new Date(Number(t)).toLocaleString('nb-NO');
+let usagePeriod='90',usageOrder='most',usageProducts=[];
+const usageNumber=new Intl.NumberFormat('nb-NO',{maximumFractionDigits:1});
+async function loadUsage(){usageProducts=(await api('usage/'+usagePeriod)).products;}
+function usageView(){
+ const products=usageProducts.filter(p=>usageOrder==='never'?!p.everUsed:p.everUsed);
+ const compare=(a,b)=>a.jobs-b.jobs||a.checkouts-b.checkouts||a.days-b.days;
+ products.sort((a,b)=>(usageOrder==='least'?compare(a,b):compare(b,a))||a.name.localeCompare(b.name,'nb'));
+ const options=(values,selected)=>values.map(([value,label])=>'<option value="'+value+'" '+(value===selected?'selected':'')+'>'+label+'</option>').join('');
+ return '<h1>Bruksstatistikk</h1><div class="filters usage-filters"><label>Periode<select data-usage="period">'+options([['30','Siste 30 dager'],['90','Siste 90 dager'],['365','Siste 365 dager'],['all','Hele historikken']],usagePeriod)+'</select></label><label>Visning<select data-usage="order">'+options([['most','Mest brukt'],['least','Minst brukt'],['never','Aldri brukt']],usageOrder)+'</select></label></div>'
+  +'<p>Oppdrag og utsjekkinger telles i valgt periode. Dager ute omfatter også pågående oppdrag i perioden. Dager per enhet fordeles på enheter som har vært godkjent for lager.</p>'
+  +(usageOrder==='never'?'<p>Aldri brukt betyr ingen utsjekking i hele QR-historikken etter at produktet ble tilgjengelig.</p>':'')
+  +(products.length?'<div class="usage-table" tabindex="0" role="region" aria-label="Bruksstatistikk per produkt"><table><thead><tr><th scope="col">Produkt</th><th scope="col">Oppdrag</th><th scope="col">Enheter brukt</th><th scope="col">Utsjekkinger</th><th scope="col">Dager ute</th><th scope="col">Dager per enhet</th><th scope="col">Først tilgjengelig</th></tr></thead><tbody>'+products.map(p=>'<tr><th scope="row">'+escape(p.name)+'</th><td>'+p.jobs+'</td><td>'+p.unitsUsed+'</td><td>'+p.checkouts+'</td><td>'+usageNumber.format(p.days)+'</td><td>'+usageNumber.format(p.daysPerUnit)+'</td><td>'+new Date(p.first).toLocaleDateString('nb-NO')+'</td></tr>').join('')+'</tbody></table></div>':'<p>Ingen produkter i denne visningen ennå.</p>');
+}
 const stockFilter={...defaults},pickFilter={...defaults},jobFilter={...jobDefaults};
 let source='stock',productId='',itemOrigin='',rows=[];
 function activeFilter(){return page==='jobs'?jobFilter:page==='pick'?pickFilter:stockFilter;}
@@ -80,8 +93,8 @@ function render(){
   if(!data){
     html=invitation?'<h1>Aktiver stylistkonto</h1><form data-form="claim"><label>Velg passord<input name="password" type="password" minlength="12" maxlength="128" required autocomplete="new-password"></label>'+submit('Aktiver konto')+'</form>':'<h1>Logg inn som stylist</h1><form data-form="login"><label>E-post<input name="email" type="email" required autocomplete="username"></label><label>Passord<input name="password" type="password" required autocomplete="current-password"></label>'+submit('Logg inn')+'</form><a href="/admin/login?to=styling'+(itemPattern.test(itemId)?'&amp;item='+itemId:'')+'">Administratorinnlogging</a>';
   }else{
-    nav.innerHTML=button('Oppdrag','jobs')+button('Lager','stock')+(data.admin?button('Stylister','staff')+'<a href="/admin/">Administrasjon</a>':button('Logg ut','logout'));
-    const tab=page==='staff'?'staff':(['stock','register','labels','queue'].includes(page)||(page==='product' && source==='stock'))?'stock':'jobs';
+    nav.innerHTML=button('Oppdrag','jobs')+button('Lager','stock')+(data.admin?button('Bruksstatistikk','usage')+button('Stylister','staff')+'<a href="/admin/">Administrasjon</a>':button('Logg ut','logout'));
+    const tab=['staff','usage'].includes(page)?page:(['stock','register','labels','queue'].includes(page)||(page==='product' && source==='stock'))?'stock':'jobs';
     nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
     if(page==='jobs'){
       html='<div class="page-heading"><h1>Stylingoppdrag</h1>'+button('Nytt stylingoppdrag','new','',true)+'</div>'+jobControls(data.jobs,jobFilter,button)+'<div id="results"></div>';
@@ -120,6 +133,8 @@ function render(){
       if(i&&['check','held'].includes(i.state))html+=button('Godkjenn for lager','ready');
       if(i&&['check','ready'].includes(i.state))html+=button('Hold tilbake','hold');
       if(i)html+='<details><summary>Historikk</summary>'+history.map(h=>'<p>'+escape(date(h.created))+' · '+states[h.state]+' · '+escape(h.actor)+' '+escape(jobName(h.job))+'</p>').join('')+'</details>';
+    }else if(page==='usage'&&data.admin){
+      html=usageView();
     }else if(page==='staff' && data.admin){
       html='<div class="page-heading"><h1>Stylister</h1></div><form data-form="invite"><label>Stylistens e-post<input type="email" name="email" required></label>'+submit('Lag invitasjonslenke')+'</form>';
       if(inviteUrl)html+='<label>Del med stylisten · gyldig i 24 timer<input readonly value="'+escape(inviteUrl)+'"></label>';
@@ -133,6 +148,15 @@ function refreshResults(){
   results.innerHTML=page==='jobs'?jobResults(data.jobs,jobFilter,button):stockResults(rows,activeFilter(),button);
 }
 screen.oninput=e=>{
+  const usage=e.target.dataset.usage;
+  if(usage){
+    const value=e.target.value;
+    run(async()=>{
+      if(usage==='period'){usagePeriod=value;await loadUsage();}else usageOrder=value;
+      render();screen.querySelector('[data-usage="'+usage+'"]').focus();
+    });
+    return;
+  }
   if(e.target.matches('[data-group],[data-unit]')){
     const ids=e.target.dataset.group?rows.find(p=>p.id===e.target.dataset.group).items.map(i=>i.id):[e.target.dataset.unit];
     for(const id of ids){if(e.target.checked)queue.add(id);else queue.delete(id);}
@@ -189,6 +213,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-action]');if(!b)return;
   run(async()=>{
     const action=b.dataset.action,value=b.dataset.value;
+    if(action==='usage'&&data?.admin){await loadUsage();return go('usage');}
     if(action==='reset-filters'){Object.assign(activeFilter(),page==='jobs'?jobDefaults:defaults);render();return;}
     if(action==='view'){activeFilter().view=value;refreshResults();return;}
     if(action==='product'){
