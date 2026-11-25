@@ -39,13 +39,49 @@ function countField(p){
 function batchForm(p){
   return '<form data-form="register"><input type="hidden" name="product" value="'+escape(p.id)+'">'+countField(p)+submit('Registrer og lag QR-etiketter')+'</form>';
 }
+const sheetCapacity=24;
+let queue=new Set();
+const queueKey=()=>'ku-label-selection:'+data.actor;
+function restoreQueue(){
+  try{queue=new Set(JSON.parse(sessionStorage.getItem(queueKey())||'[]').filter(id=>data.items.some(i=>i.id===id)));}catch{queue=new Set();}
+}
+function queueView(){
+  const groups=rows.filter(p=>p.items.length);
+  return '<h1>Samle etiketter</h1><p>Velg registrerte møbler til samme utskrift. Hvert ark har 24 plasser.</p>'
+    +'<div class="actions"><strong id="queue-count" role="status"></strong>'+button('Vis utskrift','queue-preview','',true)+'</div>'
+    +groups.map(p=>'<section><label class="queue-choice"><input type="checkbox" data-group="'+escape(p.id)+'"><strong>'+escape(p.name)+' · '+p.items.length+'</strong></label><details><summary>Velg enkelte eksemplarer</summary>'
+      +p.items.map(i=>'<label class="queue-choice"><input type="checkbox" data-unit="'+escape(i.id)+'">'+escape(i.id)+' · '+escape(sideNames[i.side]||states[i.state])+'</label>').join('')+'</details></section>').join('')
+    +(!groups.length?'<p>Ingen registrerte eksemplarer ennå.</p>':'');
+}
+function updateQueue(){
+  for(const box of screen.querySelectorAll('[data-unit]'))box.checked=queue.has(box.dataset.unit);
+  for(const box of screen.querySelectorAll('[data-group]')){
+    const items=rows.find(p=>p.id===box.dataset.group).items;
+    const count=items.filter(i=>queue.has(i.id)).length;
+    box.checked=count===items.length;box.indeterminate=count>0&&!box.checked;
+  }
+  document.querySelector('#queue-count').textContent=queue.size+' valgt · '+Math.ceil(queue.size/sheetCapacity)+' ark';
+  screen.querySelector('[data-action="queue-preview"]').disabled=!queue.size;
+}
+function sheets(ids){
+  const result=[];
+  const items=new Map(data.items.map(i=>[i.id,i]));
+  for(let start=0;start<ids.length;start+=sheetCapacity){
+    const cells=ids.slice(start,start+sheetCapacity).map(id=>{
+      const qr=window.qrcode(0,'M');qr.addData(location.origin+'/styling/index.html?item='+id);qr.make();
+      return '<div class="label">'+qr.createSvgTag(4,16)+'<div><b>KONSEPTUELL</b><span>'+escape(productName(items.get(id)))+'</span><strong>'+escape(id)+'</strong></div></div>';
+    });
+    result.push('<div class="label-sheet">'+cells.join('')+'</div>');
+  }
+  return '<div class="labels">'+result.join('')+'</div>';
+}
 function render(){
   nav.innerHTML='';let html='';
   if(!data){
     html=invitation?'<h1>Aktiver stylistkonto</h1><form data-form="claim"><label>Velg passord<input name="password" type="password" minlength="12" maxlength="128" required autocomplete="new-password"></label>'+submit('Aktiver konto')+'</form>':'<h1>Logg inn som stylist</h1><form data-form="login"><label>E-post<input name="email" type="email" required autocomplete="username"></label><label>Passord<input name="password" type="password" required autocomplete="current-password"></label>'+submit('Logg inn')+'</form><a href="/admin/login?to=styling'+(itemPattern.test(itemId)?'&amp;item='+itemId:'')+'">Administratorinnlogging</a>';
   }else{
     nav.innerHTML=button('Oppdrag','jobs')+button('Lager','stock')+(data.admin?button('Stylister','staff')+'<a href="/admin/">Administrasjon</a>':button('Logg ut','logout'));
-    const tab=page==='staff'?'staff':(['stock','register','labels'].includes(page)||(page==='product' && source==='stock'))?'stock':'jobs';
+    const tab=page==='staff'?'staff':(['stock','register','labels','queue'].includes(page)||(page==='product' && source==='stock'))?'stock':'jobs';
     nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
     if(page==='jobs'){
       html='<div class="page-heading"><h1>Stylingoppdrag</h1>'+button('Nytt stylingoppdrag','new','',true)+'</div>'+jobControls(data.jobs,jobFilter,button)+'<div id="results"></div>';
@@ -58,7 +94,7 @@ function render(){
       html='<h1>'+ (page==='in'?'Skann inn':'Skann ut')+'</h1><p>'+escape(jobName(jobId))+'</p><div class="actions">'+button('Start kamera','camera','',true)+button('Til oppdraget','job',jobId)+'</div><video muted playsinline hidden></video><form data-form="scan"><label>Etikett-ID<input name="id" required autocomplete="off" autocapitalize="characters"></label>'+submit('Registrer ID')+'</form>';
     }else if(page==='stock'||page==='pick'){
       const picking=page==='pick';
-      html=(picking?button('← Til oppdraget','job',jobId):'')+'<div class="page-heading"><h1>'+(picking?'Velg fra lager':'Lagerbeholdning')+'</h1>'+(!picking?button('Registrer møbler','register','',true):'')+'</div>'
+      html=(picking?button('← Til oppdraget','job',jobId):'')+'<div class="page-heading"><h1>'+(picking?'Velg fra lager':'Lagerbeholdning')+'</h1>'+(!picking?'<div class="actions">'+button('Samle etiketter','queue')+button('Registrer møbler','register','',true)+'</div>':'')+'</div>'
         +(!picking&&data.admin?'<p><a href="/admin/">Opprett katalogprodukt</a></p>':'')+(picking?'<p>'+escape(jobName(jobId))+'</p>':'')+stockControls(rows,activeFilter(),button)+'<div id="results"></div>';
     }else if(page==='product'){
       const p=rows.find(r=>r.id===productId);
@@ -72,11 +108,10 @@ function render(){
       }
     }else if(page==='register'){
       html='<h1>Registrer møbler</h1><form data-form="register"><label>Produkt i katalogen<select name="product" required><option value="">Velg produkt</option>'+data.products.map(p=>'<option value="'+escape(p.id)+'" '+(p.id===selectedProduct?'selected':'')+'>'+escape(p.name)+'</option>').join('')+'</select></label>'+countField(data.products.find(p=>p.id===selectedProduct))+submit('Opprett eksemplarer og etiketter')+'</form><details><summary>Produktet mangler i katalogen</summary><form data-form="draft"><label>Produktnavn<input name="name" maxlength="100" required></label><label>Leverandørens artikkelnummer (valgfritt)<input type="text" maxlength="80" spellcheck="false" name="articleNumber"></label><p>Admin fullfører pris, bilde og antall før publisering.</p>'+submit('Opprett produktutkast')+'</form></details>';
+    }else if(page==='queue'){
+      html=queueView();
     }else if(page==='labels'){
-      html='<h1>'+labels.length+(labels.length===1?' etikett':' etiketter')+'</h1><div class="actions">'+button('Skriv ut på A4','print','',true)+(jobId?button('Skann ut på oppdrag','out'):'')+'</div><div class="labels">'+labels.map(id=>{
-        const qr=window.qrcode(0,'M');qr.addData(location.origin+'/styling/index.html?item='+id);qr.make();
-        return '<div class="label"><b>KONSEPTUELL</b>'+qr.createSvgTag(4,16)+'<span>'+escape(productName(data.items.find(i=>i.id===id)))+'</span><strong>'+id+'</strong></div>';
-      }).join('')+'</div>';
+      html='<h1>'+labels.length+(labels.length===1?' etikett':' etiketter')+'</h1><p>Hama 70 × 37 mm · A4 · 24 etiketter per ark. Skriv ut i 100 % størrelse uten topp- og bunntekst.</p><div class="actions">'+button('Skriv ut på A4','print','',true)+button('Samle flere etiketter','extend-queue')+(jobId?button('Skann ut på oppdrag','out'):'')+'</div>'+sheets(labels);
     }else if(page==='item'){
       const i=item();html=i?'<h1>'+escape(productName(i))+'</h1><section><h2>'+states[i.state]+'</h2><p>'+escape(i.id)+' '+escape(jobName(i.job))+'</p>'+button('Skriv ut etikett','label',i.id)+'</section>':'<h1>Ukjent etikett</h1>';
       if(itemOrigin==='product')html=button('← Til produktet','product',productId)+html;
@@ -91,13 +126,19 @@ function render(){
       html+='<div class="list-heading"><h2>Stylistkontoer <span class="count">'+data.staff.length+'</span></h2></div>'+data.staff.map(s=>'<section class="record"><div><h2>'+escape(s.email)+'</h2><p>'+(!s.active?'Deaktivert':s.registered?'Aktiv':'Invitert')+'</p></div>'+(s.active?button('Deaktiver','disable',s.email):'')+'</section>').join('');
     }
   }
-  screen.innerHTML=html;refreshResults();
+  screen.innerHTML=html;refreshResults();if(data&&page==='queue')updateQueue();
 }
 function refreshResults(){
   const results=screen.querySelector('#results');if(!results||!data)return;
   results.innerHTML=page==='jobs'?jobResults(data.jobs,jobFilter,button):stockResults(rows,activeFilter(),button);
 }
 screen.oninput=e=>{
+  if(e.target.matches('[data-group],[data-unit]')){
+    const ids=e.target.dataset.group?rows.find(p=>p.id===e.target.dataset.group).items.map(i=>i.id):[e.target.dataset.unit];
+    for(const id of ids){if(e.target.checked)queue.add(id);else queue.delete(id);}
+    try{sessionStorage.setItem(queueKey(),JSON.stringify([...queue]));}catch{}
+    updateQueue();return;
+  }
   if(e.target.name==='product'&&e.target.form?.dataset.form==='register'){
     e.target.form.querySelector('[data-count-label]').textContent=countLabel(data.products.find(p=>p.id===e.target.value));
   }
@@ -155,6 +196,12 @@ document.addEventListener('click',e=>{
       productId=value;return go('product');
     }
     if(action==='camera'){if(!navigator.mediaDevices?.getUserMedia)throw Error('Bruk etikett-ID eller åpne siden med HTTPS for kamera.');return camera();}
+    if(action==='queue'||action==='extend-queue'){
+      restoreQueue();
+      if(action==='extend-queue'){for(const id of labels)queue.add(id);try{sessionStorage.setItem(queueKey(),JSON.stringify([...queue]));}catch{}}
+      return go('queue');
+    }
+    if(action==='queue-preview'){labels=[...queue];return go('labels');}
     if(action==='print')return window.print();
     if(action==='item'){itemOrigin=page;return showItem(value);}
     if(action==='split'){

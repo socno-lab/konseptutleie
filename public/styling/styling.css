@@ -9,10 +9,24 @@
 #screen video{display:block;width:100%;max-height:280px;background:#20251d}
 #screen video[hidden]{display:none}
 #status:not(:empty){background:#e7ebdf;padding:12px;border-radius:6px}
-#screen .labels{display:flex;flex-wrap:wrap;gap:4mm}
-#screen .label{border:1px dashed #777;display:grid;justify-items:center;width:60mm;max-width:100%;padding:3mm;break-inside:avoid;text-align:center}
-.label svg{width:29mm;height:29mm}
-@media print{@page{size:A4;margin:10mm}body header,#nav,#status,#screen>:not(.labels){display:none!important}.admin-main{width:100%;max-width:none;padding:0}.labels{display:block!important}.label{display:inline-grid!important;vertical-align:top;margin:1mm}body{background:white}}
+#screen .queue-choice{display:flex;align-items:center;gap:10px;min-height:44px;margin:0}
+#screen .queue-choice input{width:20px;height:20px;min-height:0;accent-color:var(--olive)}
+#screen .labels{display:grid;gap:20px}
+.label-sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,65mm),1fr));gap:6px}
+#screen .label{display:flex;align-items:center;gap:2mm;padding:3mm;box-sizing:border-box;min-width:0;border:1px solid var(--line);color:#111;background:white}
+.label svg{width:25mm;height:25mm;flex:none}
+.label div{display:grid;gap:1mm;min-width:0;overflow-wrap:anywhere;font:9pt/1.18 Arial,sans-serif}
+.label b{font:8pt Georgia,serif;letter-spacing:.06em}
+.label strong{font-size:8pt}
+@media print{
+ @page{size:A4 portrait;margin:0}
+ html,body,.admin-main,#screen{width:210mm!important;max-width:none!important;padding:0!important;margin:0!important;background:white}
+ body header,#nav,#status,#screen>:not(.labels){display:none!important}
+ #screen .labels{display:block}
+ .label-sheet{box-sizing:border-box;width:210mm;height:297mm;padding:0.5mm 0;display:grid;grid-template-columns:repeat(3,70mm);grid-template-rows:repeat(8,37mm);gap:0;break-inside:avoid}
+ .label-sheet+.label-sheet{break-before:page}
+ #screen .label{width:70mm;height:37mm;padding:3mm 4mm;border:0;overflow:hidden;break-inside:avoid}
+}
 
 @media screen {
  .admin-main{width:min(94%,1440px);max-width:none;padding:18px 0 56px;color:var(--ink)}
