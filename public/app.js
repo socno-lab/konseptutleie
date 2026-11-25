@@ -285,7 +285,9 @@ function basketPeriodAmount(selection,days){
  }
  return amount;
 }
+function periodHasPassed(){return !!el('start')?.value&&el('start').value<osloToday();}
 function periodSummary(days,amount,detail=''){
+ if(periodHasPassed())return '<div class="cart-line-sum"><span>Leiesum</span><strong>Fra-datoen har passert</strong></div>';
  const value=Number.isFinite(amount)?priceMarkup(amount):days?'Pris på forespørsel':'Velg leieperiode';
  return `<div class="cart-line-sum"><span>Leiesum${days?' for '+days+' døgn':''}</span><strong>${value}</strong>${days&&detail?'<small>'+html(detail)+'</small>':''}</div>`;
 }
@@ -353,6 +355,7 @@ function enquiryQuantity(product, quantity){
  <input type="range" min="1" max="${max}" value="${quantity}" aria-label="Velg antall ${name}">
  <input id="count-${id}" type="number" inputmode="numeric" min="1" max="${max}" value="${quantity}" aria-label="Skriv antall ${name}">
  <button type="button" data-quantity="${id}" data-delta="1" aria-label="Flere ${name}" ${quantity>=max?'disabled':''}>+</button></div></div>`;
+ if(periodHasPassed())return picker+periodSummary(days,null);
  return picker+`<div class="cart-line-sum"><span>Leiesum${days?' for '+days+' døgn':''}</span><div ${plan?'data-period-unit="'+plan.total+'"':''}>${plan?quantitySummary(plan.total,quantity):product.priceOnRequest?'Pris på forespørsel':days?'Avklares i tilbudet':'Velg leieperiode'}</div></div>`;
 }
 document.addEventListener('input',event=>{
