@@ -165,6 +165,6 @@
 }
 
 @media screen and (max-width:660px) {
- .styling-menu-card {min-height:88px;padding:18px 20px}
+ #screen .styling-menu-card {min-height:88px;padding:18px 20px}
  .styling-menu-card strong {font-size:18px}
 }
