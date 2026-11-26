@@ -6,6 +6,7 @@ import {stylingApi} from '../server/styling-api.mjs';
 import {nextMovement} from '../server/styling-store.mjs';
 import {createAdminCodeSender} from '../server/admin-email-code.mjs';
 import {digest} from '../server/auth.mjs';
+import {stylingUsage} from '../server/styling-usage.mjs';
 
 test('One physical unit can be out on only one job and returns through inspection',()=>{
   let item={state:'ready',job:null};
@@ -80,7 +81,7 @@ test('Warehouse filters combine category, subordinate category, state and availa
   assert.doesNotMatch(jobResults(jobs,{...jobDefaults,to:'2026-11-24'},()=>''),/Gate 1/);
 });
 
-test('Base sofas register distinct left/right labels and a legacy label can be split only once',async()=>{
+test('Warehouse preserves label identity across sofa splits and address transfers',async()=>{
   const {DatabaseSync}=await import('node:sqlite');
   const {stylingStore,stylingSchema}=await import('../server/styling-store.mjs');
   const sql=new DatabaseSync(':memory:');
@@ -110,5 +111,21 @@ test('Base sofas register distinct left/right labels and a legacy label can be s
     assert.equal(split.ids[0],legacy);assert.equal(split.ids.length,2);
     await assert.rejects(store.stylingSplit(legacy,3,[p],'stylist'),{status:409});
     assert.equal((await store.stylingOverview()).items.length,6);
+
+    await store.stylingMove({id:legacy,action:'assign',revision:3,job:job.id},'stylist');
+    await assert.rejects(store.stylingTransferAll({fromJob:job.id,address:'Ny testadresse',count:1,outCount:1},'stylist'),{status:409});
+    assert.equal((await store.stylingOverview()).jobs.length,1);
+    const moved=await store.stylingTransferAll({fromJob:job.id,address:'Ny testadresse',count:2,outCount:1},'stylist');
+    const snapshot=await store.stylingOverview();
+    assert.equal(snapshot.jobs.find(j=>j.id===moved.job).address,'Ny testadresse');
+    assert.deepEqual(snapshot.items.filter(i=>i.job===moved.job).map(i=>i.state).sort(),['assigned','out']);
+    assert.equal((await store.stylingJobReturns(job.id)).units[0].movement,'transferred');
+    assert.equal((await store.stylingJobReturns(moved.job)).units[0].movement,'transferred-in');
+    const [usage]=stylingUsage([p],await store.stylingUsageHistory(),'all');
+    assert.equal(usage.checkouts,1);
+    assert.equal(usage.jobs,2);
+    const existing=await store.stylingTransferAll({fromJob:moved.job,job:job.id,count:2,outCount:1},'stylist');
+    assert.equal(existing.job,job.id);
+    assert.equal((await store.stylingOverview()).items.filter(i=>i.job===job.id).length,2);
   }finally{sql.close();}
 });

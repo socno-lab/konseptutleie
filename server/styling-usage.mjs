@@ -20,12 +20,16 @@ export function stylingUsage(products,history,period,now=Date.now()){
   for(const event of events){
    if(event.created>now)continue;
    if(event.state==='ready'&&first===null)first=event.created;
-   if(event.state!=='out'){addTime(event.created);start=null;continue;}
+   if(event.state!=='out'&&event.state!=='transferred-in'){addTime(event.created);start=null;continue;}
    stat.everUsed=true;
    first??=event.created;
    if(start!==null)continue;
    start=event.created;
-   if(event.created>=from){stat.checkouts++;usedInPeriod=true;if(event.job)stat.jobs.add(event.job);}
+   if(event.created>=from){
+    if(event.state==='out')stat.checkouts++;
+    usedInPeriod=true;
+    if(event.job)stat.jobs.add(event.job);
+   }
   }
   addTime(now);
   if(usedInPeriod)stat.unitsUsed++;

@@ -1,6 +1,6 @@
 import {esc as escape,states,stockRows,stockControls,stockResults,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=8';
 const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status'),stylistMenu=document.querySelector('#stylistMenu');
-const historyLabels={...states,transferred:'Flyttet til annet oppdrag',unassigned:'Fjernet fra oppdrag'};
+const historyLabels={...states,transferred:'Flyttet til annet oppdrag','transferred-in':'Flyttet hit fra annet oppdrag',unassigned:'Fjernet fra oppdrag'};
 const itemPattern=/^K-[0-9A-F]{16}$/;
 const button=(label,action,value='',primary=false)=>'<button type="button" class="button '+(primary?'dark':'button-outline')+'" data-action="'+action+'" data-value="'+escape(value)+'">'+escape(label)+'</button>';
 const submit=label=>'<button class="button dark">'+label+'</button>';
@@ -73,7 +73,11 @@ async function showItem(id){
 }
 const openJobs=()=>data.jobs.filter(job=>!job.closed);
 function jobOptions(){return openJobs().map(j=>'<option value="'+escape(j.id)+'" '+(j.id===jobId?'selected':'')+'>'+escape(j.address)+'</option>').join('');}
-function listItem(i){return '<section><h2>'+escape(productName(i))+'</h2><p>'+escape(i.id)+' · '+states[i.state]+'</p>'+button('Åpne møbel','item',i.id)+'</section>';}
+function listItem(i){
+  return '<section class="record"><div class="scan-identity">'+itemPhoto(i)+'<div><h2>'+escape(productName(i))+'</h2><p>'+escape(i.id)+' · '+states[i.state]+'</p></div></div>'
+    +'<div class="actions">'+button('Åpne møbel','item',i.id)
+    +(i.state==='assigned'?button('Fjern fra oppdraget','unassign',i.id):'')+'</div></section>';
+}
 let jobReturns={units:[],deviations:[]};
 async function loadJobReturns(){jobReturns=await api('job-returns/'+jobId);}
 const pendingReturns=()=>jobReturns.units.filter(unit=>unit.movement==='check'&&unit.is_latest&&unit.state==='check');
@@ -134,7 +138,7 @@ function queueView(){
   const groups=rows.map(p=>({...p,items:p.items.filter(pendingLabel)})).filter(p=>p.items.length);
   return '<h1>Samle etiketter</h1><p>Velg eksemplarer som venter på første innsjekking. Hvert ark har 24 plasser.</p>'
     +'<div class="actions"><strong id="queue-count" role="status"></strong>'+button('Vis utskrift','queue-preview','',true)+'</div>'
-    +groups.map(p=>'<section><label class="queue-choice"><input type="checkbox" data-group="'+escape(p.id)+'"><strong>'+escape(p.name)+' · '+p.items.length+'</strong></label><details><summary>Velg enkelte eksemplarer</summary>'
+    +groups.map(p=>'<section><label class="queue-choice scan-identity"><input type="checkbox" data-group="'+escape(p.id)+'">'+photo(p)+'<strong>'+escape(p.name)+' · '+p.items.length+'</strong></label><details><summary>Velg enkelte eksemplarer</summary>'
       +p.items.map(i=>'<label class="queue-choice"><input type="checkbox" data-unit="'+escape(i.id)+'">'+escape(i.id)+' · '+escape(sideNames[i.side]||states[i.state])+'</label>').join('')+'</details></section>').join('')
     +(!groups.length?'<p>Ingen etiketter venter på første innsjekking.</p>':'');
 }
@@ -202,12 +206,23 @@ function render(){
       html='<div class="job-detail"><h1>'+escape(job.address)+'</h1>'
         +'<div class="actions job-scan-primary">'+button('Skann QR','start-job-scan','scan-job',true)+'</div>'
         +'<details><summary>Møbler på oppdraget · '+items.length+'</summary>'
-        +items.map(unit=>listItem(unit)+(unit.state==='assigned'?button('Fjern fra oppdraget','unassign',unit.id):'')).join('')
+        +items.map(listItem).join('')
         +'</details>'
         +(!job.closed||isAdminView()&&items.length===0?'<details><summary>Flere valg</summary><div class="actions job-actions">'
-          +(!job.closed?button('Registrer møbler','register')+(assigned.length?button('Sjekk ut alle ('+assigned.length+')','checkout-all'):'<button type="button" class="button button-outline" disabled>Sjekk ut alle</button>')+(isAdminView()?button('Velg fra lager','pick'):''):'')
+          +(!job.closed?button('Registrer møbler','register')+(assigned.length?button('Sjekk ut alle ('+assigned.length+')','checkout-all'):'<button type="button" class="button button-outline" disabled>Sjekk ut alle</button>')
+            +(assigned.length||missing.length?button('Flytt til annen adresse','transfer-all'):'<button type="button" class="button button-outline" disabled>Flytt til annen adresse</button>')
+            +(isAdminView()?button('Velg fra lager','pick'):''):'')
           +(isAdminView()&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div></details>':'')
         +returnOverview(job,missing,assigned.length)+'</div>';
+    }else if(page==='transfer-all'){
+      const items=data.items.filter(i=>i.job===jobId&&['assigned','out'].includes(i.state));
+      const outCount=items.filter(i=>i.state==='out').length;
+      html=button('← Til oppdraget','job',jobId)+'<h1>Flytt til annen adresse</h1>'
+        +'<p>Fra '+escape(jobName(jobId))+' · '+items.length+' møbler ('+outCount+' ute og '+(items.length-outCount)+' klargjort).</p>'
+        +(items.length?'<form data-form="transfer-all" data-count="'+items.length+'" data-out-count="'+outCount+'"><label>Flytt til<select name="destination" required>'
+          +'<option value="">Velg oppdrag</option>'+openJobs().filter(j=>j.id!==jobId).map(j=>'<option value="'+escape(j.id)+'">'+escape(j.address)+'</option>').join('')
+          +'<option value="new">Opprett oppdrag på ny adresse</option></select></label>'
+          +'<label hidden>Ny adresse<input name="address" maxlength="200" disabled></label>'+submit('Flytt alle møblene')+'</form>':'<p>Det er ingen møbler igjen å flytte.</p>');
     }else if(['in','out','scan-job'].includes(page)){
       const title=page==='in'?'Skann retur':page==='out'?'Skann ut':'Skann QR';
       html='<h1>'+title+'</h1><p>'+escape(jobName(jobId))+'</p>'
@@ -259,6 +274,14 @@ function refreshResults(){
   results.innerHTML=['jobs','archive'].includes(page)?jobResults(page==='jobs'?openJobs():archivedJobs(),jobFilter,button):stockResults(rows,activeFilter(),button);
 }
 screen.oninput=e=>{
+  if(e.target.name==='destination'&&e.target.form?.dataset.form==='transfer-all'){
+    const address=e.target.form.elements.address;
+    const create=e.target.value==='new';
+    address.closest('label').hidden=!create;
+    address.disabled=!create;
+    address.required=create;
+    return;
+  }
   const usage=e.target.dataset.usage;
   if(usage){
     const value=e.target.value;
@@ -290,7 +313,7 @@ function refreshScannerItems(){
   if(!list||!data)return;
   const items=data.items.filter(unit=>unit.job===jobId);
   list.parentElement.querySelector('summary').textContent='Møbler på oppdraget · '+items.length;
-  list.innerHTML=items.length?'<ul>'+items.map(unit=>'<li>'+escape(productName(unit))+' · '+escape(states[unit.state])+'</li>').join('')+'</ul>':'<p>Ingen møbler lagt til ennå.</p>';
+  list.innerHTML=items.length?'<ul>'+items.map(unit=>'<li><div class="scan-identity">'+itemPhoto(unit)+'<span>'+escape(productName(unit))+' · '+escape(states[unit.state])+'</span></div></li>').join('')+'</ul>':'<p>Ingen møbler lagt til ennå.</p>';
 }
 async function openScanner(mode){
   go(mode);
@@ -401,6 +424,7 @@ document.addEventListener('click',e=>{
       status.textContent=count+' møbler sjekket ut.';
       return;
     }
+    if(action==='transfer-all'&&page==='job')return go('transfer-all');
     if(action==='unassign'&&page==='job'){
       await move(data.items.find(i=>i.id===value),'unassign',jobId);
       await loadJobReturns();return go('job');
@@ -457,6 +481,18 @@ screen.onsubmit=e=>{
         break;
       }
       case 'scan':await scan(fields.id);form.reset();break;
+      case 'transfer-all':{
+        const count=Number(form.dataset.count),outCount=Number(form.dataset.outCount);
+        const create=fields.destination==='new';
+        const address=create?fields.address.trim():jobName(fields.destination);
+        if(!address)throw Error('Velg oppdraget eller oppgi den nye adressen.');
+        if(!confirm('Flytt '+count+' møbler fra «'+jobName(jobId)+'» til «'+address+'»?'))return;
+        const result=await api('transfer-all',{fromJob:jobId,count,outCount,...(create?{address}:{job:fields.destination})});
+        jobId=result.job;
+        await load();await loadJobReturns();go('job');
+        status.textContent=result.count+' møbler flyttet til '+jobName(jobId)+'.';
+        break;
+      }
       case 'review-returns':{
         const approved=new Set(new FormData(form).getAll('approved'));
         const units=pendingReturns().flatMap(unit=>{

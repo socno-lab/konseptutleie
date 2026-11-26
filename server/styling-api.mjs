@@ -144,6 +144,17 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     invalidatePublic();
     return out(200,result);
   }
+  if(post&&route==='transfer-all'){
+    const address=typeof data.address==='string'?data.address.trim():'';
+    if(typeof data.fromJob!=='string'||!jobId.test(data.fromJob)||!Number.isSafeInteger(data.count)||data.count<1||
+        !Number.isSafeInteger(data.outCount)||data.outCount<0||data.outCount>data.count||
+        (data.job!==undefined?(typeof data.job!=='string'||!jobId.test(data.job)||data.fromJob===data.job||Boolean(address)):(!address||address.length>200))){
+      throw stylingError('Velg et annet aktivt oppdrag eller fyll inn den nye adressen.');
+    }
+    const result=await store.stylingTransferAll({...data,address},actor);
+    invalidatePublic();
+    return out(200,result);
+  }
   if(post && route==='move'){
     if(!itemId.test(data.id)||!Number.isInteger(data.revision)|| (['in','out','scan','assign','unassign'].includes(data.action)&& !jobId.test(data.job)))throw stylingError('Velg oppdrag og møbel.');
     const result=await store.stylingMove(data,actor);
