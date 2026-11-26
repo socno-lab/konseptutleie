@@ -1,3 +1,4 @@
+import './navigation.js?v=2';
 import {foldProductSearch} from '../product-brand.js';
 import {dimensionFields} from '../product-dimensions.js?v=optionimages20261108';
 import {mountWorkflow,refreshWorkflow,packageCapacity} from './workflow.js?v=dimensions20261108';
@@ -278,3 +279,10 @@ let namingImage=null;
 document.addEventListener('click',event=>{const button=event.target.closest('[data-media-name]');if(!button)return;namingImage=media.find(x=>x.url===button.dataset.mediaName);el('mediaDisplayName').value=mediaName(namingImage);el('mediaNameStatus').textContent='';el('mediaNameDialog').showModal();});
 el('cancelMediaName').onclick=()=>el('mediaNameDialog').close();
 el('mediaNameForm').onsubmit=async event=>{event.preventDefault();if(!namingImage)return;const button=el('saveMediaName'),m=namingImage,name=el('mediaDisplayName').value.trim();button.disabled=true;try{const current=await api('/api/admin/site-settings'),imageNames=(current.settings.imageNames||[]).filter(x=>x.url!==m.url);if(name)imageNames.push({url:m.url,name});const saved=await api('/api/admin/site-settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:current.revision,settings:{...current.settings,imageNames}})});configureSiteSettings(saved.settings);renderMedia();el('libraryStatus').textContent='Visningsnavn lagret.';el('mediaNameDialog').close();}catch(error){el('mediaNameStatus').textContent=error.message;}finally{button.disabled=false;}};
+
+const accountUrl=new URL(location.href);
+if(accountUrl.searchParams.get('konto')==='1'){
+  accountUrl.searchParams.delete('konto');
+  window.history.replaceState(null,'',accountUrl);
+  el('openAccount').click();
+}

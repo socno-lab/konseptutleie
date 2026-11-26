@@ -44,7 +44,21 @@ async function api(route,body){
   if(!response.ok)throw Object.assign(Error(result.error||'Kunne ikke kontakte lageret.'),{status:response.status});
   return result;
 }
-async function load(){data=await api('overview');rows=stockRows(data);}
+async function load(){
+  data=await api('overview');
+  rows=stockRows(data);
+  if(isAdminView()&&!document.querySelector('.admin-shell nav')){
+    const {mountAdminNavigation}=await import('/admin/navigation.js?v=2');
+    const shell=document.querySelector('.admin-shell');
+    const css=document.createElement('link');
+    css.rel='stylesheet';
+    css.href='/admin/navigation.css?v=2';
+    const loaded=new Promise(resolve=>{css.onload=css.onerror=resolve;});
+    document.head.append(css);
+    await loaded;
+    mountAdminNavigation(shell);
+  }
+}
 function go(next){stopCamera();page=next;status.textContent='';render();}
 async function showItem(id){
   itemId=id;history=await api('history/'+encodeURIComponent(id));go('item');
@@ -120,6 +134,8 @@ function sheets(ids){
   return '<div class="labels">'+result.join('')+'</div>';
 }
 function render(){
+  document.querySelector('.admin-shell').hidden=!isAdminView();
+  document.querySelector('.styling-header').hidden=Boolean(isAdminView());
   nav.innerHTML='';
   stylistMenu.innerHTML='';
   let html='';
@@ -135,7 +151,7 @@ function render(){
         +button('Lager','stock')+button('Avsluttede oppdrag','archive')+(isPreview()?'<a class="button" href="/admin/">Til administrasjon</a>':button('Logg ut','logout'))+'</div></details>';
     }else{
       nav.innerHTML=button('Oppdrag','jobs')+button('Lager','stock')+button('Avsluttede oppdrag','archive')
-        +button('Bruksstatistikk','usage')+button('Stylister','staff')+'<a href="/styling/index.html?visning=stylist" target="_blank" rel="noopener">Forhåndsvis stylistvisning</a><a href="/admin/">Administrasjon</a>';
+        +button('Bruksstatistikk','usage')+button('Stylister','staff')+'<a href="/styling/index.html?visning=stylist" target="_blank" rel="noopener">Forhåndsvis stylistvisning</a>';
       const tab=['stock','register','labels','queue'].includes(page)||(page==='product'&&source==='stock')?'stock':
         ['usage','staff','archive'].includes(page)?page:'jobs';
       nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
