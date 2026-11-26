@@ -1,3 +1,5 @@
+@import url("/brand-tagline.css?v=20261108");
+
 .admin-navigation {
   display:flex;
   flex-wrap:wrap;
@@ -30,16 +32,15 @@
 .admin-shell-header {border-bottom:1px solid var(--line)}
 .admin-shell-row,.admin-shell>.admin-navigation,.admin-shell-status {width:min(calc(100% - 40px),1350px);margin-inline:auto}
 .admin-shell-row {display:flex;gap:12px 20px;align-items:center;justify-content:space-between;min-height:106px}
-.admin-shell-brand {display:flex;flex-direction:column;align-items:center;width:min(35vw,280px);flex-shrink:0;color:var(--ink);text-decoration:none}
-.admin-shell-brand img {display:block;width:100%;height:auto}
-.admin-shell-brand span {font-size:10px;letter-spacing:.12em;text-align:center}
+.admin-shell-brand {width:min(35vw,250px);text-decoration:none}
+.admin-shell-brand img {width:100%}
 .admin-shell-actions {display:flex;align-items:center;justify-content:flex-end;gap:4px 16px;flex-wrap:wrap}
 .admin-shell-actions a,.admin-shell-actions button {display:inline-flex;align-items:center;min-height:44px;padding:0;border:0;background:none;color:var(--ink);font:inherit;font-size:14px;text-decoration:none;cursor:pointer}
 .admin-shell>.admin-navigation {padding-block:8px;margin-bottom:0}
 @media(max-width:660px){
   .admin-shell-row,.admin-shell>.admin-navigation,.admin-shell-status {width:calc(100% - 28px)}
   .admin-shell-row {min-height:84px}
-  .admin-shell-brand span {font-size:8px}
+  .admin-shell-brand {width:min(35vw,175px)}
   .admin-shell-actions {gap:0 8px}
   .admin-shell-actions a,.admin-shell-actions button,.admin-navigation a {font-size:12px}
   .admin-navigation a {padding-inline:8px}

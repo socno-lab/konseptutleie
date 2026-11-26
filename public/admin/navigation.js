@@ -11,7 +11,7 @@ export function mountAdminNavigation(shell){
   const active=section==='settings'&&new URLSearchParams(location.search).get('panel')==='home'?'content':section;
   const catalog=section==='catalog';
   shell.innerHTML='<div class="admin-shell-header"><div class="admin-shell-row">'
-    +'<a class="admin-shell-brand" href="/" aria-label="Konseptuell – Møbler til anledningen"><img src="/assets/konseptuell-leie-og-kjop-logo.png" alt=""><span>MØBLER TIL ANLEDNINGEN</span></a>'
+    +'<a class="brand admin-shell-brand" href="/" aria-label="Konseptuell – Møbler til anledningen"><img src="/assets/konseptuell-leie-og-kjop-logo.png" alt="" width="2172" height="724"><span class="brand-tagline" aria-hidden="true">MØBLER TIL ANLEDNINGEN</span></a>'
     +'<div class="admin-shell-actions"><a href="/">Se nettsiden ↗</a>'
     +(catalog?'<button type="button" id="openAccount">Konto og innlogging</button>':'<a href="/admin?konto=1">Konto og innlogging</a>')
     +'<button type="button" id="'+(catalog?'logout':'adminShellLogout')+'">Logg ut</button></div></div></div>'
