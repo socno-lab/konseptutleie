@@ -82,12 +82,15 @@ function listItem(i){
 let jobReturns={units:[],deviations:[]};
 async function loadJobReturns(){jobReturns=await api('job-returns/'+jobId);}
 const pendingReturns=()=>jobReturns.units.filter(unit=>unit.movement==='check'&&unit.is_latest&&unit.state==='check');
-function returnOverview(job,missing,assigned){
+function returnOverview(job,out,assigned){
   const returned=jobReturns.units.filter(unit=>unit.movement==='check');
   const pending=pendingReturns();
   const transferred=jobReturns.units.filter(unit=>unit.movement==='transferred').length;
+  const reportedMissing=new Set(jobReturns.deviations.filter(entry=>entry.kind==='missing').map(entry=>entry.item));
+  const missing=out.filter(unit=>reportedMissing.has(unit.id));
   const unitLabel=unit=>escape(productName(unit))+' · '+escape(unit.id);
-  const totals=[['Skannet ut',jobReturns.units.length],['Returnert',returned.length],['Mangler',missing.length],['Til kontroll',pending.length]];
+  const totals=[['Skannet ut',jobReturns.units.length],['Ute på styling',out.length-missing.length],['Returnert',returned.length],['Til kontroll',pending.length]];
+  if(missing.length)totals.push(['Mangler',missing.length]);
   if(transferred)totals.push(['Flyttet',transferred]);
   return '<section class="job-return-summary"><h2>Retur og avvik</h2><dl class="job-totals">'
     +totals.map(([label,count])=>'<div><dt>'+label+'</dt><dd>'+count+'</dd></div>').join('')+'</dl>'
@@ -100,7 +103,7 @@ function returnOverview(job,missing,assigned){
       +pending.map(unit=>'<fieldset><legend>'+unitLabel(unit)+'</legend><label class="queue-choice"><input type="checkbox" name="approved" value="'+unit.id+'"> I orden</label><label>Skade eller mangel ved møbelet<input name="note-'+unit.id+'" maxlength="500"></label></fieldset>').join('')
       +submit('Lagre returkontroll')+'</form>':'')
     +(job.closed?'<p>Avsluttet '+escape(date(job.closed))+'</p>':assigned?'<p>Sjekk ut eller fjern de tillagte møblene før du avslutter.</p>':'<form class="job-review" data-form="close-job"><h3>Avslutt oppdrag</h3>'
-      +(missing.length?'<label>Merknad for møblene som mangler<textarea name="note" required maxlength="500"></textarea></label>':'')
+      +(out.length?'<label>Merknad for møbler som fortsatt er ute<textarea name="note" required maxlength="500"></textarea></label><p>Ved avslutning registreres møbler som fortsatt er ute som savnet.</p>':'')
       +submit('Avslutt oppdrag')+'</form>');
 }
 function countLabel(p){return p?.pairedEnds?'Antall grunnsofaer (to etiketter per sofa)':'Antall nye eksemplarer';}
@@ -216,7 +219,7 @@ function render(){
       const items=data.items.filter(i=>i.job===jobId);
       if(!job){screen.innerHTML='<h1>Oppdraget finnes ikke lenger</h1>';return;}
       const assigned=items.filter(i=>i.state==='assigned');
-      const missing=items.filter(i=>i.state==='out');
+      const out=items.filter(i=>i.state==='out');
       html='<div class="job-detail"><h1>'+escape(job.address)+'</h1>'
         +'<div class="actions job-scan-primary">'+button('Skann QR','start-job-scan','scan-job',true)+'</div>'
         +'<details><summary>Møbler på oppdraget · '+items.length+'</summary>'
@@ -224,10 +227,10 @@ function render(){
         +'</details>'
         +(!job.closed||isAdminView()&&items.length===0?'<details><summary>Flere valg</summary><div class="actions job-actions">'
           +(!job.closed?button('Registrer møbler','register')+(assigned.length?button('Sjekk ut alle ('+assigned.length+')','checkout-all'):'<button type="button" class="button button-outline" disabled>Sjekk ut alle</button>')
-            +(assigned.length||missing.length?button('Flytt til annen adresse','transfer-all'):'<button type="button" class="button button-outline" disabled>Flytt til annen adresse</button>')
+            +(assigned.length||out.length?button('Flytt til annen adresse','transfer-all'):'<button type="button" class="button button-outline" disabled>Flytt til annen adresse</button>')
             +(isAdminView()?button('Velg fra lager','pick'):''):'')
           +(isAdminView()&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div></details>':'')
-        +returnOverview(job,missing,assigned.length)+'</div>';
+        +returnOverview(job,out,assigned.length)+'</div>';
     }else if(page==='transfer-all'){
       const items=data.items.filter(i=>i.job===jobId&&['assigned','out'].includes(i.state));
       const outCount=items.filter(i=>i.state==='out').length;
@@ -364,8 +367,9 @@ async function scan(raw){
   Object.assign(i,result,{revision:i.revision+1});
   rows=stockRows(data);
   refreshScannerItems();
-  const resultLabel=route==='transfer'?'flyttet hit':({assigned:'lagt til på oppdraget',out:'skannet ut',check:'returnert til kontroll'}[result.state]||states[result.state]);
-  status.innerHTML='<span class="scan-identity">'+itemPhoto(i)+'<span>'+escape(productName(i)+' · '+resultLabel)+'</span></span>';
+  const resultLabel=route==='transfer'?'flyttet hit':({assigned:'lagt til på oppdraget',out:'skannet ut',check:'retur registrert, venter på lagergodkjenning'}[result.state]||states[result.state]);
+  status.innerHTML='<span class="scan-identity">'+itemPhoto(i)+'<span>'+escape(productName(i)+' · '+resultLabel)+'</span>'
+    +(result.state==='check'?button('Åpne returkontroll','job',jobId):'')+'</span>';
 }
 async function camera(){
   stopCamera();const session=scanSession,video=screen.querySelector('video');
