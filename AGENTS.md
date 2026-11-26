@@ -40,3 +40,7 @@ Katalogtoppens bunnjustering på desktop og gjeldende enkeltside for leieforesp�
 ## Nye katalogprodukter
 
 Registrer leverandørens artikkelnummer for den konkrete varianten fra produktlenke, etikett eller ordregrunnlag. Behold bokstaver, skilletegn og innledende nuller. Hvis nummeret ikke kan bekreftes, la feltet stå tomt og opplys eieren om det.
+
+## Styling og lager på desktop
+
+Behold den horisontale administrasjonsmenyen på skjermer over 660 px. La Oppdrag være startvisningen, med direkte tilgang til Lager og, for administratorer, Bruksstatistikk, Stylister og Administrasjon. Den kortbaserte hovedmenyen med store trykkflater brukes på mobil. Endringer i mobilmenyen skal bevare desktopnavigasjonen.
