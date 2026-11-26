@@ -142,5 +142,20 @@ test('Warehouse preserves label identity across sofa splits and address transfer
     await store.stylingReviewReturns(job.id,damage,'stylist');
     assert.equal((await store.stylingOverview()).items.find(i=>i.id===chair).state,'held');
     assert.equal((await store.stylingJobReturns(job.id)).deviations[0].kind,'damage');
+    const inspected=ids[3];
+    const step=(action,revision)=>store.stylingMove({id:inspected,action,revision,job:job.id},'stylist');
+    await step('ready',1);
+    await step('out',2);
+    await step('in',3);
+    await step('ready',4);
+    const inspectionHistory=()=>store.stylingJobReturns(job.id).then(report=>report.history.filter(row=>row.id===inspected).map(row=>row.state));
+    assert.equal((await store.stylingHistory(inspected))[0].job,job.id);
+    assert.deepEqual(await inspectionHistory(),['ready','check','out']);
+    // Older approvals from the item detail screen had no job reference.
+    sql.prepare("UPDATE ku_styling_history SET job=NULL WHERE item=? AND state='ready'").run(inspected);
+    await step('hold',5);
+    await step('ready',6);
+    assert.deepEqual(await inspectionHistory(),['ready','check','out']);
+    assert.ok(!(await store.stylingJobReturns(moved.job)).history.some(row=>row.id===inspected));
   }finally{sql.close();}
 });

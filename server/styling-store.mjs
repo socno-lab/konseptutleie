@@ -84,7 +84,10 @@ export function stylingStore(init,pool,query){
       const [history]=await query(`SELECT h.item AS id,i.name,i.product,s.side,h.state,h.created,h.actor
         FROM ku_styling_history h JOIN ku_styling_items i ON i.id=h.item
         LEFT JOIN ku_styling_item_sides s ON s.item=i.id
-        WHERE h.job=? ORDER BY h.created DESC,h.id DESC`,[id]);
+        WHERE h.job=? OR (h.job IS NULL AND h.state IN ('ready','held') AND h.id IN (
+          SELECT (SELECT MIN(n.id) FROM ku_styling_history n WHERE n.item=c.item AND n.id>c.id)
+          FROM ku_styling_history c WHERE c.job=? AND c.state='check'
+        )) ORDER BY h.created DESC,h.id DESC`,[id,id]);
       return {units,deviations,history};
     },
     async stylingReviewReturns(id,units,actor){
@@ -214,7 +217,12 @@ export function stylingStore(init,pool,query){
         const move=nextMovement(item,input.action,input.job);
         const returned=input.action==='scan'&&move.state==='ready';
         if(closure&&input.action==='scan'&&!returned)throw stylingError('Oppdraget er avsluttet.',409);
-        await recordMove(db,item,move,actor,move.job||item.job,returned?'returned':move.state);
+        let historyJob=move.job||item.job;
+        if(item.state==='check'){
+          const [[inspection]]=await db.execute('SELECT job FROM ku_styling_history WHERE item=? ORDER BY id DESC LIMIT 1',[item.id]);
+          historyJob=inspection?.job??null;
+        }
+        await recordMove(db,item,move,actor,historyJob,returned?'returned':move.state);
         return move;
       });
     },
