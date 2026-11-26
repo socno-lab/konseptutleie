@@ -21,7 +21,13 @@ export async function createStylingItem(db,product,actor,side,state='held'){
  return id;
 }
 export function nextMovement(item,action,job){
-  if(action==='out' && item.state==='ready' && job)return {state:'out',job};
+  if(['assign','scan'].includes(action)&&item.state==='ready'&&job)return {state:'assigned',job};
+  if(action==='scan'){
+    if(item.state==='assigned'&&item.job===job)return {state:'out',job};
+    if(item.state==='out'&&item.job===job)throw stylingError('Møbelet er allerede ute. Bruk Skann retur når det kommer tilbake.',409);
+  }
+  if(action==='out'&&job&&(item.state==='ready'||(item.state==='assigned'&&item.job===job)))return {state:'out',job};
+  if(action==='unassign'&&item.state==='assigned'&&item.job===job)return {state:'ready',job:null};
   if(action==='in' && item.state==='out' && item.job===job)return {state:'check',job:null};
   if(action==='ready' && ['check','held'].includes(item.state))return {state:'ready',job:null};
   if(action==='hold' && ['check','ready'].includes(item.state))return {state:'held',job:null};
@@ -88,7 +94,8 @@ export function stylingStore(init,pool,query){
     async stylingCloseJob(id,missingNote,actor){
       return transaction(async db=>{
         if(await lockJob(db,id))return;
-        const [items]=await db.execute('SELECT id FROM ku_styling_items WHERE job=?',[id]);
+        const [items]=await db.execute('SELECT id,state FROM ku_styling_items WHERE job=?',[id]);
+        if(items.some(item=>item.state==='assigned'))throw stylingError('Sjekk ut eller fjern møblene som er lagt til før du avslutter oppdraget.',409);
         if(items.length&&!missingNote)throw stylingError('Beskriv avviket for møblene som fortsatt mangler.',409);
         for(const item of items){
           await db.execute("INSERT INTO ku_styling_job_deviations(job,item,kind,note) VALUES(?,?,'missing',?)",[id,item.id,missingNote]);
@@ -117,11 +124,19 @@ export function stylingStore(init,pool,query){
         return {ids:[id,await createStylingItem(db,product,actor,'right',item.state)]};
       });
     },
+    async stylingCheckoutAll(job,actor){
+      return transaction(async db=>{
+        if(await lockJob(db,job))throw stylingError('Oppdraget er avsluttet.',409);
+        const [items]=await db.execute("SELECT id,state,job FROM ku_styling_items WHERE job=? AND state='assigned' ORDER BY id FOR UPDATE",[job]);
+        for(const item of items)await recordMove(db,item,nextMovement(item,'out',job),actor,job);
+        return {count:items.length};
+      });
+    },
     async stylingMove(input,actor){
       return transaction(async db=>{
-        if(['in','out'].includes(input.action)){
+        if(['in','out','scan','assign','unassign'].includes(input.action)){
           const closure=await lockJob(db,input.job);
-          if(closure&&input.action==='out')throw stylingError('Oppdraget er avsluttet.',409);
+          if(closure&&input.action!=='in')throw stylingError('Oppdraget er avsluttet.',409);
         }
         const [[item]]=await db.execute('SELECT * FROM ku_styling_items WHERE id=? FOR UPDATE',[input.id]);
         if(!item || item.revision!==input.revision)throw stylingError('Møbelet er endret. Kontroller status og prøv igjen.',409);

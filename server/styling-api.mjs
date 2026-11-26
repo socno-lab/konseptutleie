@@ -118,8 +118,15 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     if(!itemId.test(data.id)||!Number.isInteger(data.revision))throw stylingError('Velg grunnsofa.');
     return out(201,await store.stylingSplit(data.id,data.revision,(await store.readCatalog()).products.filter(physical),actor));
   }
+  if(post&&route==='checkout-all'){
+    if(!admin)throw stylingError('Dette krever administratortilgang.',403);
+    if(typeof data.id!=='string'||!jobId.test(data.id))throw stylingError('Velg et gyldig oppdrag.');
+    const result=await store.stylingCheckoutAll(data.id,actor);
+    invalidatePublic();
+    return out(200,result);
+  }
   if(post && route==='move'){
-    if(!itemId.test(data.id)||!Number.isInteger(data.revision)|| (['in','out'].includes(data.action)&& !/^[a-f0-9-]{36}$/.test(data.job)))throw stylingError('Velg oppdrag og møbel.');
+    if(!itemId.test(data.id)||!Number.isInteger(data.revision)|| (['in','out','scan','assign','unassign'].includes(data.action)&& !jobId.test(data.job)))throw stylingError('Velg oppdrag og møbel.');
     const result=await store.stylingMove(data,actor);
     invalidatePublic();
     return out(200,result);

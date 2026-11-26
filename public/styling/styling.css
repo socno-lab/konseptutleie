@@ -141,3 +141,9 @@
   #screen .job-detail :is(form,section) {padding:12px}
  }
 }
+
+@media screen {
+ #screen .job-scan-primary .button {width:100%;max-width:28rem;min-height:52px}
+ #screen .job-detail details>summary {font-weight:600}
+ #screen .job-detail details>.actions {margin-top:12px}
+}

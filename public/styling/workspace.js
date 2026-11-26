@@ -1,6 +1,6 @@
 import {catalogImageFrameAttributes} from '../catalog-image-framing.js?v=frames20261125';
 export const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export const states={ready:'På lager',out:'Ute på styling',check:'Venter på kontroll',held:'Holdt tilbake'};
+export const states={ready:'På lager',assigned:'Lagt til på oppdrag',out:'Ute på styling',check:'Venter på kontroll',held:'Holdt tilbake'};
 const compare=new Intl.Collator('nb',{numeric:true,sensitivity:'base'}).compare;
 const unique=values=>[...new Set(values.filter(Boolean))].sort(compare);
 const text=value=>String(value||'').toLocaleLowerCase('nb').trim();
