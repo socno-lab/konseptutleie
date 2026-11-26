@@ -1,5 +1,12 @@
 // Source-bound extents with safety halo: [width,height,left,top,right,bottom].
 export const catalogImageBounds={
+ "/assets/skansnas-lys.webp": [400,400,95,17,339,386],
+ "/assets/skansnas-brun.webp": [400,400,95,17,338,386],
+ "/media/5b3fc5442dea0fba8e635126819decda": [400,400,58,40,345,375],
+ "/media/5b5190ab9d4894d9f758588473996daa": [400,400,58,39,344,375],
+ "/media/8bd2fbed40a8b584ed4978c92efaa049": [400,400,59,54,335,372],
+ "/media/a9267e9c97099f634eed55bb7821f0e8": [400,400,112,46,295,373],
+ "/media/b64144b87c4daa5d0a6d9c479774dd54": [400,400,42,23,352,367],
  "/media/f534df898a148e1a43ea5c01cd4a3e88": [320,400,80,103,240,297],
  "/media/98ccceac391ae092109fba8cdc39e741": [400,242,58,21,343,222],
  "/media/83f85bb511fb43eccc97fc453a82ff47": [306,400,85,159,234,362],

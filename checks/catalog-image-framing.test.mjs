@@ -25,3 +25,18 @@ test('framing exists in the first paint hash, retains image priority and is stab
  const a=renderCatalogCard(card,0);assert.match(a,/data-image-frame="chair"/);assert.match(a,/loading="eager"/);assert.match(a,/fetchpriority="high"/);assert.equal(a,renderCatalogCard(card,0));
  assert.notEqual(renderCatalogCard({...card,product:{...p,category:'Bord'}},0),a);
 });
+
+test('a new studio upload keeps its measured framing when its card is loaded later',async()=>{
+ const {default:sharp}=await import('sharp');
+ const {measureCatalogMotif}=await import('../server/catalog-motif.mjs');
+ const body=await sharp({create:{width:320,height:400,channels:3,background:'white'}})
+  .composite([{input:{create:{width:80,height:160,channels:3,background:'#554433'}},left:140,top:180}])
+  .png().toBuffer();
+ const imageBounds=await measureCatalogMotif(body);
+ assert.deepEqual(imageBounds,[320,400,136,176,224,344]);
+ const product={category:'Stoler',name:'Ny stol',image:'/media/new-chair',imageBounds};
+ const card={product,render:()=>'<article><img src="'+product.image+'" loading="lazy"></article>'};
+ const frame=catalogImageFrame(product);
+ assert.equal(frame.bottom,imageFrameRules.chair.bottom);
+ for(const index of [0,40])assert.match(renderCatalogCard(card,index),/data-image-frame="chair"/);
+});

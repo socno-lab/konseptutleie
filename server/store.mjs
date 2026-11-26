@@ -10,6 +10,7 @@ import {stylingStore,stylingSchema,createStylingItem} from './styling-store.mjs'
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';
 import {migrateProducts} from './walls.mjs';
+import {catalogImageBounds} from '../public/catalog-image-bounds.js';
 import {backfillProductBrands} from '../public/product-brand.js';
 import {removeRetiredCosts} from './catalog.mjs';
 
@@ -230,7 +231,7 @@ export function createMysqlStore(env,seed){
    const bounds=new Map(profiles.map(row=>['/media/'+row.id,JSON.parse(row.bounds)]));
    const stock=new Map(inventory.map(row=>[row.product,row]));
    const products=migrateProducts(removeRetiredCosts(JSON.parse(r.body))).map(({imageBounds,qrStock,...product})=>{
-    const frame=bounds.get(product.image);
+    const frame=bounds.get(product.image)??catalogImageBounds[product.image];
     const managed=stock.get(product.id);
     return {...product,...(frame?{imageBounds:frame}:{}),...(managed?{qrStock:true,stock:Number(managed.total),unavailable:Number(managed.total)-Number(managed.ready)}:{})};
    });

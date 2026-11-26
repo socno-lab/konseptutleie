@@ -6,7 +6,7 @@ import {scopeForOccasion} from './rental-pricing-model.js?v=fest20261114';
 import {customerFooterLinksMarkup} from './footer-links-markup.js?v=loadstable20261119';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {customerInformationPages} from './customer-information-content.js?v=focusstable20261122';
-import {readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
+import {readInitialCatalog} from './catalog-card-markup.js?v=motif20261126';
 import {mountMobileRentalDates} from './mobile-rental-dates.js?v=enquiryoverview20261122';
 import {mountStorageNotice} from './storage-notice.js?v=launch20261024';
 mountStorageNotice();

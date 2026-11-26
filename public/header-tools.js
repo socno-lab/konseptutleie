@@ -1,4 +1,4 @@
-import {readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';
+import {readInitialCatalog} from './catalog-card-markup.js?v=motif20261126';
 import {mountCardFavorites} from './card-favorites.js?v=hearts20261105';
 import {buildHeaderCatalog,searchHeaderCatalog,searchHeaderCategories,cleanFavoriteIds} from './header-catalog-model.js?v=product-brand1';
 import {parseSharedFavorites,favoriteShareUrl,resolveSharedFavorites,mergeSharedFavorites} from './favorite-sharing.js?v=share20261119';

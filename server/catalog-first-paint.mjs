@@ -1,6 +1,6 @@
 import {catalogRefinementsMarkup} from '../public/catalog-refinements.js?v=compactsort20261119b';
 import {rentalCatalogView} from '../public/rental-catalog-view.js?v=choicesfirst20261119';
-import {renderCatalogCard} from '../public/catalog-card-markup.js?v=choicesfirst20261119';
+import {renderCatalogCard} from '../public/catalog-card-markup.js?v=motif20261126';
 import {catalogPaginationMarkup} from '../public/catalog-pagination.js?v=choicesfirst20261119';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';

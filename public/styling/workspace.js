@@ -1,5 +1,5 @@
 import {foldProductSearch} from '../product-brand.js';
-import {catalogImageFrameAttributes} from '../catalog-image-framing.js?v=frames20261125';
+import {catalogImageFrameAttributes} from '../catalog-image-framing.js?v=motif20261126';
 export const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const states={ready:'På lager',assigned:'Lagt til på oppdrag',out:'Ute på styling',check:'Venter på kontroll',held:'Holdt tilbake'};
 const compare=new Intl.Collator('nb',{numeric:true,sensitivity:'base'}).compare;

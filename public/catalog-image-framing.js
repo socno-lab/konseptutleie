@@ -1,4 +1,4 @@
-import {catalogImageBounds} from './catalog-image-bounds.js?v=frames20261125';
+import {catalogImageBounds} from './catalog-image-bounds.js?v=motif20261126';
 // Visible furniture dimensions, not source-canvas dimensions. Percent of card.
 export const imageFrameRules={
  chair:{width:78,height:68,bottom:14},
@@ -24,7 +24,7 @@ export function productImageType(p){
 export function catalogImageFrame(p,src=p?.image){
  const type=productImageType(p);
  if(!type)return null;
- const bounds=catalogImageBounds[src]??(src===p.image?p.imageBounds:null);
+ const bounds=(src===p.image?p.imageBounds:null)??catalogImageBounds[src];
  if(!bounds)return null;
  const [w,h,l,t,r,b]=bounds,rule=imageFrameRules[type];
  return {type,bounds,width:rule.width*w/(r-l),height:rule.height*w/(b-t),x:-50*(l+r)/w,y:100*(h-b)/h,bottom:rule.bottom};
