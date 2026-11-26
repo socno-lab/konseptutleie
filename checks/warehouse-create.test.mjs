@@ -48,11 +48,11 @@ test('warehouse editor creates one catalog entry and QR stock controls rental av
   assert.equal(new Set(result.ids).size,2);
   let rows=await publicProducts();
   let item=rows.find(p=>p.id===product.id);
-  assert.equal(item.stock,2);assert.equal(item.unavailable,2);assert.equal(item.maxQuantity,0);
+  assert.equal(item.stock,2);assert.equal(item.unavailable,2);assert.equal(item.maxQuantity,0);assert.equal(item.rentalRentedOut,true);
   assert.equal((await request('/api/styling/move','POST',{id:result.ids[0],action:'ready',revision:1})).status,200);
   rows=await publicProducts();
   item=rows.find(p=>p.id===product.id);
-  assert.equal(item.stock,2);assert.equal(item.unavailable,1);assert.equal(item.maxQuantity,1);
+  assert.equal(item.stock,2);assert.equal(item.unavailable,1);assert.equal(item.maxQuantity,1);assert.equal(item.rentalRentedOut,false);
   assert.equal(rows.find(p=>p.id===manual.id).stock,manual.stock);
   const duplicate={...product,id:'obj_other_qr_stock',name:'Annet navn'};
   const current=await store.readCatalog();

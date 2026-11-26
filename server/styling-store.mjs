@@ -34,7 +34,7 @@ export function nextMovement(item,action,job){
   if(action==='hold' && ['check','ready'].includes(item.state))return {state:'held',job:null};
   throw stylingError('Kontroller oppdraget og møbelets lagerstatus.',409);
 }
-export function stylingStore(init,pool,query){
+export function stylingStore(init,pool,query,lockStockCatalog){
   async function transaction(fn){
     await init();const db=await pool.getConnection();
     try{await db.beginTransaction();const result=await fn(db);await db.commit();return result;}
@@ -220,6 +220,7 @@ export function stylingStore(init,pool,query){
     },
     async stylingMove(input,actor){
       return transaction(async db=>{
+        const afterApproval=input.action==='ready'&&lockStockCatalog?await lockStockCatalog(db):null;
         let closure;
         if(['in','out','scan','assign','unassign'].includes(input.action)){
           closure=await lockJob(db,input.job);
@@ -236,6 +237,7 @@ export function stylingStore(init,pool,query){
           historyJob=inspection?.job??null;
         }
         await recordMove(db,item,move,actor,historyJob,returned?'returned':move.state);
+        if(afterApproval)await afterApproval(item.product);
         return move;
       });
     },

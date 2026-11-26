@@ -81,6 +81,35 @@ test('Warehouse filters combine category, subordinate category, state and availa
   assert.doesNotMatch(jobResults(jobs,{...jobDefaults,to:'2026-11-24'},()=>''),/Gate 1/);
 });
 
+test('QR takeover counts confirmed physical units once and stays active after checkout',async()=>{
+  const {DatabaseSync}=await import('node:sqlite');
+  const {stylingSchema}=await import('../server/styling-store.mjs');
+  const {promoteConfirmedStock,inventoryCounts}=await import('../server/qr-catalog-stock.mjs');
+  const sql=new DatabaseSync(':memory:');
+  try{
+    for(const stmt of stylingSchema.filter(s=>s.includes('CREATE TABLE IF NOT EXISTS ku_styling_')))
+      sql.exec(stmt.replace('BIGINT AUTO_INCREMENT PRIMARY KEY','INTEGER PRIMARY KEY').replace(/, INDEX\(\w+\)/g,''));
+    const db={execute(statement,args){
+      const q=sql.prepare(statement.replace('INSERT IGNORE','INSERT OR IGNORE'));
+      return [statement.startsWith('SELECT')?q.all(...args):q.run(...args)];
+    }};
+    const products=[{id:'chair',stock:2},{id:'other',stock:1}];
+    sql.exec("INSERT INTO ku_styling_items(id,product,name,state) VALUES ('a','chair','Stol','out'),('b','chair','Stol','held'),('c','chair','Stol','held')");
+    const event=id=>sql.prepare("INSERT INTO ku_styling_history(item,state,actor,created) VALUES (?,'ready','stylist',1)").run(id);
+    const managed=()=>sql.prepare('SELECT product FROM ku_styling_catalog_stock').all().map(row=>row.product);
+    event('a');event('a');
+    await promoteConfirmedStock(db,products);
+    assert.deepEqual(managed(),[]);
+    event('b');
+    await promoteConfirmedStock(db,products,'chair');
+    assert.deepEqual(managed(),['chair']);
+    sql.exec("UPDATE ku_styling_items SET state='withdrawn'");
+    await promoteConfirmedStock(db,products);
+    assert.deepEqual(managed(),['chair']);
+    assert.deepEqual(inventoryCounts([{product:'base',side:'left',total:4,ready:3},{product:'base',side:'right',total:3,ready:1}]).get('base'),{total:3,ready:1,confirmed:0});
+  }finally{sql.close();}
+});
+
 test('Warehouse preserves label identity across sofa splits and address transfers',async()=>{
   const {DatabaseSync}=await import('node:sqlite');
   const {stylingStore,stylingSchema}=await import('../server/styling-store.mjs');

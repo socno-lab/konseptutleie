@@ -1,3 +1,4 @@
+import {inventoryCounts,physicalRentalProduct,promoteConfirmedStock} from './qr-catalog-stock.mjs';
 import {mergeOakTables,mergeOakWorkflow,retiredOakTableId} from './oak-table-migration.mjs';
 import {workflowRecord,rentalWorkflowSource} from './enquiry-workflow.mjs';
 import {workflowStore} from './workflow-store.mjs';
@@ -74,6 +75,7 @@ export function createMysqlStore(env,seed){
      await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(branded),new Date()]);
     if(products.some(p=>p.id===retiredOakTableId)){const [workflows]=await connection.execute('SELECT body FROM ku_workflow FOR UPDATE');
     for(const row of workflows){const r=JSON.parse(row.body),next=mergeOakWorkflow(r);if(next!==r)await connection.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(next),r.id]);}}
+    await promoteConfirmedStock(connection,branded);
     await connection.commit();
    }catch(error){await connection.rollback();throw error;}finally{connection.release();}
   })().catch(error=>{ready=null;throw error;});
@@ -83,21 +85,29 @@ export function createMysqlStore(env,seed){
  async function mutateCatalog(revision,products,urls,registration){
   products=removeRetiredCosts(products);
   await init();const connection=await pool.getConnection(),updatedAt=new Date();
-  try{await connection.beginTransaction();const [[current]]=await connection.execute('SELECT revision FROM ku_catalog WHERE id=1 FOR UPDATE');if(current.revision!==revision){await connection.rollback();return null;}
+  try{await connection.beginTransaction();const [[current]]=await connection.execute('SELECT revision,body FROM ku_catalog WHERE id=1 FOR UPDATE');if(current.revision!==revision){await connection.rollback();return null;}
    const [purged]=await connection.execute('SELECT url FROM ku_media_purged');const unavailable=new Set([...purged.map(row=>row.url),...urls]);
    if(products.some(p=>[p.image,p.wallCover,p.builderImage,...(p.gallery||[])].some(url=>unavailable.has(url))))throw Object.assign(Error('Et bilde er slettet permanent. Velg et annet bilde og lagre på nytt.'),{status:409});
    for(const url of urls){const [[trash]]=await connection.execute('SELECT url FROM ku_media_state WHERE url=? FOR UPDATE',[url]);if(!trash)throw Object.assign(Error('Papirkurven er endret. Last inn på nytt.'),{status:409});await connection.execute('INSERT IGNORE INTO ku_media_purged(url) VALUES (?)',[url]);if(/^\/media\/[a-f0-9]{32}$/.test(url))await connection.execute('DELETE FROM ku_media WHERE id=?',[url.slice(7)]);await connection.execute('DELETE FROM ku_media_state WHERE url=?',[url]);}
    const ids=[];
-   if(registration){
-    const {product,count,actor}=registration;
-    await connection.execute('INSERT INTO ku_styling_catalog_stock(product) VALUES (?)',[product.id]);
-    for(let i=0;i<count;i++)ids.push(await createStylingItem(connection,product,actor));
+   const previous=new Set(JSON.parse(current.body).map(p=>p.id));
+   for(const product of products){
+    const explicit=registration?.product.id===product.id;
+    if(!explicit&&(previous.has(product.id)||!physicalRentalProduct(product)))continue;
+    const count=explicit?registration.count:product.stock;
+    const [added]=await connection.execute('INSERT IGNORE INTO ku_styling_catalog_stock(product) VALUES (?)',[product.id]);
+    if(!added.affectedRows)continue;
+    for(let i=0;i<count;i++)ids.push(await createStylingItem(connection,product,explicit?registration.actor:'Katalogregistrering'));
    }
+   await promoteConfirmedStock(connection,products);
    await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(products),updatedAt]);await connection.commit();return {revision:revision+1,products,updatedAt,...(registration?{ids}:{})};
   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
  }
  const workflow=workflowStore(init,pool);
- return {...workflow,...stylingStore(init,pool,query),...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
+ return {...workflow,...stylingStore(init,pool,query,async db=>{
+   const [[catalog]]=await db.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
+   return product=>promoteConfirmedStock(db,JSON.parse(catalog.body),product);
+  }),...adminCodeStore(init,pool),enabled,init,async close(){if(pool)await pool.end();},
   async warehouseArchive(orderId,id){
    const [[row]]=await query('SELECT picklist,labels FROM ku_warehouse_documents WHERE order_id=? AND confirmation_id=?',[orderId,id]);
    return row;
@@ -226,10 +236,10 @@ export function createMysqlStore(env,seed){
    const [[[r]],[profiles],[inventory]]=await Promise.all([
     query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1'),
     query('SELECT id,bounds FROM ku_media_bounds'),
-    query("SELECT s.product,COUNT(i.id) AS total,SUM(CASE WHEN i.state='ready' THEN 1 ELSE 0 END) AS ready FROM ku_styling_catalog_stock s LEFT JOIN ku_styling_items i ON i.product=s.product AND i.state<>'withdrawn' GROUP BY s.product")
+    query("SELECT s.product,side.side,COUNT(i.id) AS total,SUM(CASE WHEN i.state='ready' THEN 1 ELSE 0 END) AS ready FROM ku_styling_catalog_stock s LEFT JOIN ku_styling_items i ON i.product=s.product AND i.state<>'withdrawn' LEFT JOIN ku_styling_item_sides side ON side.item=i.id GROUP BY s.product,side.side")
    ]);
    const bounds=new Map(profiles.map(row=>['/media/'+row.id,JSON.parse(row.bounds)]));
-   const stock=new Map(inventory.map(row=>[row.product,row]));
+   const stock=inventoryCounts(inventory);
    const products=migrateProducts(removeRetiredCosts(JSON.parse(r.body))).map(({imageBounds,qrStock,...product})=>{
     const frame=bounds.get(product.image)??catalogImageBounds[product.image];
     const managed=stock.get(product.id);

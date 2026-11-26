@@ -21,6 +21,7 @@ test('Database startup physically removes retired fields under a row lock and ad
  let revision=7,updates=0,commits=0,releases=0;const calls=[];
  const connection={async beginTransaction(){calls.push('begin');},async execute(sql,args){calls.push(sql);
   if(sql.includes('ku_site_settings')&&sql.startsWith('SELECT'))return [[{body:JSON.stringify({pricing:{monthPrice:.27,eventFactor:1.5,eventMonthPrice:.45}})}]];
+  if(sql.includes('COUNT(*) AS confirmed'))return [[]];
   if(sql.startsWith('SELECT body'))return [[{body:JSON.stringify(rows)}]];
   if(sql.startsWith('INSERT IGNORE INTO ku_catalog_migrations'))return [{affectedRows:0}];
   if(sql.startsWith('UPDATE ku_catalog')){rows=JSON.parse(args[0]);revision++;updates++;return [{}];}
