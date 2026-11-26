@@ -193,8 +193,14 @@
  }
  .stylist-landing .styling-menu {width:min(100%,360px)}
  #screen .stylist-landing .button {
-  display:grid;
-  place-items:center;
+  appearance:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  margin:0;
+  padding:12px;
+  line-height:1.2;
   border-radius:22px;
   text-align:center;
  }
