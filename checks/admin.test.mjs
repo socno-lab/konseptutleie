@@ -63,7 +63,8 @@ test('Account lookup and password change require a session, revoke old sessions 
   assert.equal((await request('/api/admin/password',{password:nextPassword,confirmation:nextPassword},first,'PUT','https://foreign.invalid')).status,403);
   assert.equal((await request('/api/admin/password',{password:nextPassword,confirmation:'different'},first,'PUT')).status,400);
   assert.equal((await request('/api/admin/password',{password:'short',confirmation:'short'},first,'PUT')).status,400);
-  const changed=await request('/api/admin/password',{password:nextPassword,confirmation:nextPassword},first,'PUT');assert.equal(changed.status,200);const fresh=changed.headers.get('set-cookie').split(';')[0];assert.notEqual(fresh,first);
+  assert.equal((await request('/api/admin/password',{password:nextPassword,confirmation:nextPassword},first,'PUT')).status,403);
+  const changed=await request('/api/admin/password',{currentPassword:password,password:nextPassword,confirmation:nextPassword},first,'PUT');assert.equal(changed.status,200);const fresh=changed.headers.get('set-cookie').split(';')[0];assert.notEqual(fresh,first);
   for(const cookie of [first,second])assert.equal((await fetch(base+'/api/admin/account',{headers:{cookie}})).status,401);
   assert.equal((await fetch(base+'/api/admin/account',{headers:{cookie:fresh}})).status,200);
   assert.equal((await request('/api/admin/login',{email:'owner@example.invalid',password})).status,401);

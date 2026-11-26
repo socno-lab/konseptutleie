@@ -1,3 +1,4 @@
+import {migrateOfferAccess,offerLink} from './offer-access.mjs';
 import {inventoryCounts,physicalRentalProduct,promoteConfirmedStock} from './qr-catalog-stock.mjs';
 import {mergeOakTables,mergeOakWorkflow,retiredOakTableId} from './oak-table-migration.mjs';
 import {workflowRecord,rentalWorkflowSource} from './enquiry-workflow.mjs';
@@ -36,6 +37,8 @@ export function createMysqlStore(env,seed){
     'CREATE TABLE IF NOT EXISTS ku_login_limits (bucket CHAR(64) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_delivery_limits (bucket VARCHAR(16) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
     'CREATE TABLE IF NOT EXISTS ku_enquiries (id CHAR(36) PRIMARY KEY, fingerprint CHAR(64) NOT NULL, body LONGTEXT NOT NULL, created_at BIGINT NOT NULL, INDEX(created_at))',
+    "CREATE TABLE IF NOT EXISTS ku_offer_access (order_id CHAR(36) NOT NULL,offer_id CHAR(36) NOT NULL,kind VARCHAR(8) NOT NULL,expires BIGINT NOT NULL,token_hash CHAR(64) NOT NULL UNIQUE,PRIMARY KEY(order_id,kind),FOREIGN KEY(order_id) REFERENCES ku_workflow(id) ON DELETE CASCADE)",
+    "CREATE TABLE IF NOT EXISTS ku_offer_mail_secret (message_id CHAR(36) PRIMARY KEY,token CHAR(43) NOT NULL,FOREIGN KEY(message_id) REFERENCES ku_enquiries(id) ON DELETE CASCADE)",
     "CREATE TABLE IF NOT EXISTS ku_enquiry_mail (submission_id CHAR(36) NOT NULL, channel VARCHAR(12) NOT NULL, status VARCHAR(16) NOT NULL DEFAULT 'pending', attempts INT NOT NULL DEFAULT 0, next_at BIGINT NOT NULL, lease_until BIGINT NOT NULL DEFAULT 0, PRIMARY KEY(submission_id,channel), INDEX(status,next_at))",
     'CREATE TABLE IF NOT EXISTS ku_submissions (id CHAR(36) PRIMARY KEY, fingerprint CHAR(64) NOT NULL, status VARCHAR(16) NOT NULL, created_at BIGINT NOT NULL, INDEX(created_at))',
     'CREATE TABLE IF NOT EXISTS ku_submission_limits (bucket VARCHAR(90) PRIMARY KEY, attempts INT NOT NULL, reset_at BIGINT NOT NULL)',
@@ -56,6 +59,7 @@ export function createMysqlStore(env,seed){
     if(nextSettings!==currentSettings)await connection.execute('UPDATE ku_site_settings SET revision=revision+1,body=? WHERE id=1',[JSON.stringify(nextSettings)]);
     const [[row]]=await connection.execute('SELECT body FROM ku_catalog WHERE id=1 FOR UPDATE');
     const products=JSON.parse(row.body),cleaned=mergeOakTables(migrateCatalogDimensions(removeRetiredCosts(products)));
+    await migrateOfferAccess(connection);
     const [addition]=await connection.execute('INSERT IGNORE INTO ku_catalog_migrations (name) VALUES (?)',['rental-furniture-20261123']);
     if(addition.affectedRows){
      const ids=new Set(['obj_ikea_skansnas_brun','obj_ikea_skansnas_lys','obj_hm_nattbord_1108352003','obj_ikea_vihals_gronn']);
@@ -160,8 +164,8 @@ export function createMysqlStore(env,seed){
   async pendingEnquiryMail(now){
    // A process may have stopped after SMTP accepted DATA. Never blindly resend an expired lease.
    await query("UPDATE ku_enquiry_mail SET status='uncertain' WHERE status='sending' AND lease_until<?",[now]);
-   const [rows]=await query("SELECT m.submission_id AS id,m.channel,e.body FROM ku_enquiry_mail m JOIN ku_enquiries e ON e.id=m.submission_id WHERE m.status='pending' AND m.attempts<5 AND m.next_at<=? ORDER BY m.next_at LIMIT 10",[now]);
-   return rows.map(row=>({id:row.id,channel:row.channel,snapshot:JSON.parse(row.body)}));
+   const [rows]=await query("SELECT m.submission_id AS id,m.channel,e.body,k.token FROM ku_enquiry_mail m JOIN ku_enquiries e ON e.id=m.submission_id LEFT JOIN ku_offer_mail_secret k ON k.message_id=e.id AND m.channel='customer' WHERE m.status='pending' AND m.attempts<5 AND m.next_at<=? ORDER BY m.next_at LIMIT 10",[now]);
+   return rows.map(row=>({id:row.id,channel:row.channel,snapshot:{...JSON.parse(row.body),...(row.token?{acceptUrl:offerLink(row.token)}:{})}}));
   },
   async claimEnquiryMail(id,channel,now){const [result]=await query("UPDATE ku_enquiry_mail SET status='sending',attempts=attempts+1,lease_until=? WHERE submission_id=? AND channel=? AND status='pending' AND attempts<5 AND next_at<=?",[now+120000,id,channel,now]);return result.affectedRows===1;},
   async finishEnquiryMail(id,channel,status,now,warehouseOrderId){
@@ -187,6 +191,7 @@ export function createMysqlStore(env,seed){
    }
    // Keep bound status values out of MySQL IF expressions: connection/table collations can differ.
    await query("UPDATE ku_enquiry_mail SET status=?,next_at=?,lease_until=0 WHERE submission_id=? AND channel=? AND status='sending'",[status,now+300000,id,channel]);
+   if(status==='sent'&&channel==='customer')await query('DELETE FROM ku_offer_mail_secret WHERE message_id=?',[id]);
    if(status==='sent')await workflow.recordWorkflowMailSent(id,now);
    if(status==='pending')await query("UPDATE ku_enquiry_mail SET status='failed' WHERE submission_id=? AND channel=? AND status='pending' AND attempts>=5",[id,channel]);
   },
@@ -198,6 +203,7 @@ export function createMysqlStore(env,seed){
   async retryEnquiryMail(id,channel,acknowledgeUncertain){const [result]=await query("UPDATE ku_enquiry_mail SET status='pending',attempts=0,next_at=0 WHERE submission_id=? AND channel=? AND (status='failed' OR (status='uncertain' AND ?=1))",[id,channel,acknowledgeUncertain?1:0]);return result.affectedRows===1;},
   async pruneEnquiries(now){
    await workflow.pruneWorkflow(now);
+   await query("DELETE k FROM ku_offer_mail_secret k LEFT JOIN ku_enquiry_mail m ON m.submission_id=k.message_id AND m.channel='customer' WHERE m.status IS NULL OR m.status IN ('sent','superseded','cancelled')");
    await query('DELETE m FROM ku_enquiry_mail m JOIN ku_enquiries e ON e.id=m.submission_id WHERE e.created_at<?',[now-30*86400000]);
    await query('DELETE FROM ku_enquiries WHERE created_at<?',[now-30*86400000]);
    await query('DELETE FROM ku_submissions WHERE created_at<? LIMIT 100',[now-30*86400000]);

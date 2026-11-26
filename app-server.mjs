@@ -41,6 +41,7 @@ import {migrateProducts} from './server/walls.mjs';
 import {digest,secretEqual,hashPassword,verifyPassword,sessionToken,issueSession,expiredCookie} from './server/auth.mjs';
 import {staticImages,imageMime,mediaUsage} from './server/images.mjs';
 
+function offerRequestToken(req,url){return req.headers.authorization?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1]??url.searchParams.get('token');}
 const root=path.dirname(fileURLToPath(import.meta.url)),publicRoot=path.join(root,'public');
 const seed=JSON.parse(await readFile(path.join(root,'data/catalog-export-2026-10-17.json'),'utf8'));
 seed.products=migrateProducts(removeRetiredCosts(seed.products));
@@ -94,7 +95,7 @@ export function createServer(options={}){
     }
    }
    if(pathname.startsWith('/api/styling/'))return await stylingApi({req,route:pathname.slice('/api/styling/'.length),store,origin,secure,authenticated,json,out,invalidatePublic,sendInvitation:adminCodes.sendStylistInvitation});
-   if(pathname==='/styling/index.html' && ['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'styling/index.html')),'text/html; charset=utf-8',{'Permissions-Policy':'camera=(self), microphone=(), geolocation=()'});
+   if(pathname==='/styling/index.html' && ['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(root,'server/templates/styling.html')),'text/html; charset=utf-8',{'Permissions-Policy':'camera=(self), microphone=(), geolocation=()'});
    if(pathname==='/api/submissions'){
     if(req.method==='GET')return out(200,{enabled:submissions.enabled});
     if(req.method!=='POST')return out(405,{error:'Metoden støttes ikke.'});
@@ -102,17 +103,17 @@ export function createServer(options={}){
     const input=await json(req,90000),catalog=store.enabled?await readCatalog():seed;
     return out(200,await submissions.submit(input,catalog.products,digest(String(req.socket.remoteAddress||'shared')),{verifyDelivery:(...args)=>delivery.verifyQuote(...args,catalog.products)}));
    }
-   if(pathname==='/aksepter-tilbud.html'&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'aksepter-tilbud.html')),'text/html; charset=utf-8',{'Referrer-Policy':'no-referrer'});
+   if(pathname==='/aksepter-tilbud.html'&&['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(root,'server/templates/offer.html')),'text/html; charset=utf-8',{'Referrer-Policy':'no-referrer'});
    if(pathname==='/api/offer-terms'&&req.method==='GET'){
     if(!store.enabled||!store.offerAcceptance)return out(503,{error:'Tilbudet er midlertidig utilgjengelig.'});
-    const result=await store.offerAcceptance(url.searchParams.get('token')),terms=result.rentalTerms;if(!terms)throw error('Dette tilbudet har ikke lagrede leiebetingelser.',404);
+    const result=await store.offerAcceptance(offerRequestToken(req,url),false,{},true),terms=result.rentalTerms;if(!terms)throw error('Dette tilbudet har ikke lagrede leiebetingelser.',404);
     return send(200,await rentalTermsPdf(terms),'application/pdf',{'Content-Disposition':'attachment; filename="'+rentalTermsFilename(terms)+'"','Referrer-Policy':'no-referrer'});
    }
    if(pathname==='/api/offer-acceptance'){
     if(!store.enabled||!store.offerAcceptance)return out(503,{error:'Tilbudet er midlertidig utilgjengelig.'});
     if(!['GET','POST'].includes(req.method))return out(405,{error:'Metoden støttes ikke.'});
     if(req.method==='POST'&&req.headers.origin!==origin)return out(403,{error:'Last inn tilbudssiden på nytt.'});
-    const input=req.method==='POST'?await json(req,15000):{},token=req.method==='POST'?input.token:url.searchParams.get('token');
+    const input=req.method==='POST'?await json(req,15000):{},token=req.method==='POST'?input.token:offerRequestToken(req,url);
     const result=await store.offerAcceptance(token,req.method==='POST',input);if(req.method==='POST')void submissions.flush();
     return out(200,result,{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});
    }
@@ -215,6 +216,8 @@ export function createServer(options={}){
      const requested={start:url.searchParams.get('start')||r.start,end:url.searchParams.get('end')||r.end,scope:r.scope};
      return out(200,{revision:r.revision,status:r.status,storedDates:{start:r.start,end:r.end,deliveryDate:r.deliveryDate,pickupDate:r.pickupDate},storedDays:rentalDayCount(r.start,r.end),scope:r.scope,comparisonPeriod:requested,lines:r.lines.map(l=>{const p=catalog.products.find(p=>p.id===l.id);return {name:l.name,quantity:l.quantity,storedTotal:l.total,calculatedStoredPeriod:enquiryLineTotal(p,{...r,quantity:l.quantity},catalog.products),calculatedComparisonPeriod:enquiryLineTotal(p,{...requested,quantity:l.quantity},catalog.products)};})});
     }
+    const readLink=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/read-link$/);
+    if(readLink&&req.method==='POST'){const input=await json(req,1000);return out(200,await store.renewOfferReadLink(readLink[1],input.revision));}
     const workflow=pathname.match(/^\/api\/admin\/enquiries\/([a-f0-9-]{36})\/(save|preview|offer|accept|confirmation|cancel|complete|document)$/);
     if(workflow&&req.method==='POST'){
      const input=await json(req,200000),catalog=await readCatalog(),action=workflow[2];configureWorkflowPricing(catalog.settings);
@@ -232,7 +235,11 @@ export function createServer(options={}){
     if(pathname==='/api/admin/account'&&req.method==='GET'){const user=await store.admin();return out(200,{email:user.email});}
     if(pathname==='/api/admin/password'&&req.method==='PUT'){
      const data=await json(req,5000);if(typeof data.password!=='string'||data.password.length<12||data.password.length>128||data.password!==data.confirmation)return out(400,{error:'Passordene må være like og ha 12–128 tegn.'});
-     const token=sessionToken(req,cookieName);const changed=await store.changePassword(digest(token),await hashPassword(data.password));if(!changed)return out(401,{error:'Innloggingen er utløpt. Logg inn på nytt.'});return out(200,{ok:true},{'Set-Cookie':await issueSession(store,cookieName,secure)});
+     const user=await store.admin();
+     if(!await store.attempt(digest('change-password:'+user.email)))return out(429,{error:'For mange forsøk. Vent 15 minutter.'});
+     if(typeof data.currentPassword!=='string'||!data.currentPassword||data.currentPassword.length>128||!await verifyPassword(data.currentPassword,user.passwordHash))return out(403,{error:'Skriv inn riktig nåværende passord.'});
+     await store.resetAttempts(digest('change-password:'+user.email));
+     const token=sessionToken(req,cookieName);const changed=await store.changePassword(digest(token),await hashPassword(data.password));if(!changed)return out(401,{error:'Innloggingen er utløpt. Logg inn på nytt.'});return out(200,{ok:true,notificationSent:await adminCodes.notifyPasswordChanged(user.email)},{'Set-Cookie':await issueSession(store,cookieName,secure)});
     }
     if(pathname==='/api/admin/trash/purge'&&req.method==='POST'){
      const input=await json(req,400000),current=await readCatalog();if(input.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});images??=staticImages(publicRoot);const trash=await store.mediaTrashState(),purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)).map(m=>({...m,deletedAt:trash[m.url]||''}));const plan=planTrashPurge(current,all,input),products=validateCatalog(plan.products),saved=await store.purgeTrash(current.revision,products,plan.mediaUrls);if(saved){invalidatePublic();thumbnails.clear();}return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});

@@ -22,7 +22,13 @@ export function createAdminCodeSender(env,store,sendOverride){
  const enabled=Boolean(store.enabled&&env.SMTP_PASS&&user==='post@konseptuell.no'&&[465,587].includes(port));
  const transport=enabled&&!sendOverride?nodemailer.createTransport({host:env.SMTP_HOST||'smtp.hostinger.com',port,secure:port===465,requireTLS:true,auth:{user,pass:env.SMTP_PASS},tls:{minVersion:'TLSv1.2',rejectUnauthorized:true},connectionTimeout:8000,greetingTimeout:8000,socketTimeout:15000,disableFileAccess:true,disableUrlAccess:true}):null;
  const send=sendOverride||(message=>transport.sendMail(message));
- return {enabled,close(){transport?.close();},async sendStylistInvitation(email,url){
+ return {enabled,close(){transport?.close();},async notifyPasswordChanged(email){
+  if(!enabled)return false;
+  try{
+   const result=await send({from:{name:'Konseptuell',address:user},to:email,subject:'Administratorpassordet er endret',text:'Passordet til administrasjonen på Konseptuell.no er endret. Kontakt den ansvarlige for nettstedet straks dersom du ikke gjorde dette.',disableFileAccess:true,disableUrlAccess:true});
+   return Boolean(result?.accepted?.some(address=>String(address).toLowerCase()===email.toLowerCase()));
+  }catch{return false;}
+ },async sendStylistInvitation(email,url){
   if(!enabled)return false;
   try{
    const result=await send({
