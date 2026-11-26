@@ -61,6 +61,13 @@ async function load(){
   }
 }
 function go(next){stopCamera();page=next;status.textContent='';render();}
+async function sendStylistInvite(email,replace=false){
+  const invitation=await api('invite',{email,replace});
+  inviteUrl=invitation.sent?'':invitation.url;
+  await load();
+  go('staff');
+  status.textContent=invitation.sent?'Invitasjon sendt til '+email+'.':'E-posten kunne ikke bekreftes sendt. Kopier invitasjonslenken nedenfor eller prøv å sende på nytt.';
+}
 async function showItem(id){
   itemId=id;history=await api('history/'+encodeURIComponent(id));go('item');
 }
@@ -238,9 +245,11 @@ function render(){
     }else if(page==='usage'&&isAdminView()){
       html=usageView();
     }else if(page==='staff' && isAdminView()){
-      html='<div class="page-heading"><h1>Stylister</h1></div><form data-form="invite"><label>Stylistens e-post<input type="email" name="email" required></label>'+submit('Lag invitasjonslenke')+'</form>';
+      html='<div class="page-heading"><h1>Stylister</h1></div><form data-form="invite"><label>Stylistens e-post<input type="email" name="email" required></label>'+submit('Send invitasjon')+'</form>';
       if(inviteUrl)html+='<label>Del med stylisten · gyldig i 24 timer<input readonly value="'+escape(inviteUrl)+'"></label>';
-      html+='<div class="list-heading"><h2>Stylistkontoer <span class="count">'+data.staff.length+'</span></h2></div>'+data.staff.map(s=>'<section class="record"><div><h2>'+escape(s.email)+'</h2><p>'+(!s.active?'Deaktivert':s.registered?'Aktiv':'Invitert')+'</p></div>'+(s.active?button('Deaktiver','disable',s.email):'')+'</section>').join('');
+      html+='<div class="list-heading"><h2>Stylistkontoer <span class="count">'+data.staff.length+'</span></h2></div>'+data.staff.map(s=>'<section class="record"><div><h2>'+escape(s.email)+'</h2><p>'+(!s.active?'Deaktivert':s.registered?'Aktiv':'Invitert')+'</p></div><div class="actions">'
+        +(!s.active?button('Aktiver og send invitasjon','resend-invite',s.email):!s.registered?button('Send ny invitasjon','resend-invite',s.email):'')
+        +(s.active?button('Deaktiver','disable',s.email):'')+'</div></section>').join('');
     }
   }
   screen.innerHTML=(isPreview()?'<p class="stylist-preview">Forhåndsvisning som stylist. Registreringer lagres i det aktive lageret.</p>':'')+html;refreshResults();refreshScannerItems();if(data&&page==='queue')updateQueue();
@@ -426,6 +435,7 @@ document.addEventListener('click',e=>{
     }
     if(['ready','hold','return'].includes(action)){await move(item(),action==='return'?'in':action,item().job);return showItem(itemId);}
     if(action==='disable'){if(!confirm('Deaktiver tilgangen for '+value+'?'))return;await api('disable',{email:value});await load();inviteUrl='';return go('staff');}
+    if(action==='resend-invite')return sendStylistInvite(value);
     if(action==='logout'){await api('logout',{});data=null;return go('home');}
     go(action);
   });
@@ -466,7 +476,13 @@ screen.onsubmit=e=>{
         status.textContent='Oppdraget er avsluttet.';
         break;
       case 'checkout':await move(item(),source==='pick'&&itemOrigin==='product'?'assign':'out',fields.job);await showItem(itemId);break;
-      case 'invite':if(data.staff.some(s=>s.email===fields.email.trim().toLowerCase()&&s.active)&&!confirm('Erstatt eksisterende tilgang med en ny invitasjon?'))return;inviteUrl=(await api('invite',fields)).url;await load();go('staff');break;
+      case 'invite':{
+        const email=fields.email.trim().toLowerCase();
+        const replace=data.staff.some(s=>s.email===email&&s.active&&s.registered);
+        if(replace&&!confirm('Erstatt eksisterende tilgang med en ny invitasjon?'))return;
+        await sendStylistInvite(email,replace);
+        break;
+      }
     }
   });
 };

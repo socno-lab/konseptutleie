@@ -189,8 +189,10 @@ export function stylingStore(init,pool,query){
     async stylingHistory(id){return (await query('SELECT actor,state,job,created FROM ku_styling_history WHERE item=? ORDER BY id DESC',[id]))[0];},
     async stylingUsageHistory(){return (await query("SELECT h.item,i.product,h.state,h.job,h.created FROM ku_styling_history h JOIN ku_styling_items i ON i.id=h.item ORDER BY h.item,h.id"))[0];},
     async stylists(){return (await query('SELECT email,active,password_hash IS NOT NULL AS registered FROM ku_stylists ORDER BY email'))[0];},
-    async stylingInvite(email,hash){
+    async stylingInvite(email,hash,replace=false){
       await transaction(async db=>{
+        const [[current]]=await db.execute('SELECT active,password_hash IS NOT NULL AS registered FROM ku_stylists WHERE email=? FOR UPDATE',[email]);
+        if(current?.active&&current.registered&&!replace)throw stylingError('Stylisten har allerede en aktiv konto.',409);
         await db.execute('INSERT INTO ku_stylists(email,invitation,expires) VALUES(?,?,?) ON DUPLICATE KEY UPDATE invitation=VALUES(invitation),expires=VALUES(expires),active=TRUE,password_hash=NULL',[email,hash,Date.now()+86400000]);
         await db.execute('DELETE FROM ku_stylist_sessions WHERE email=?',[email]);
       });

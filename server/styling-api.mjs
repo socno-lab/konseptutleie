@@ -10,7 +10,7 @@ const cookie='ku_stylist';
 const jobId=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 const itemId=/^K-[A-F0-9]{16}$/;
 const physical=p=>!p.deletedAt&&!p.isService&&!p.isPackage&&!p.isExample;
-export async function stylingApi({req,route,store,origin,secure,authenticated,json,out,invalidatePublic=()=>{}}){
+export async function stylingApi({req,route,store,origin,secure,authenticated,json,out,invalidatePublic=()=>{},sendInvitation=async()=>false}){
   if(!store.enabled)throw stylingError('Lagerdatabasen er utilgjengelig.',503);
   const post=req.method==='POST';
   if(!post && req.method!=='GET')throw stylingError('Metoden støttes ikke.',405);
@@ -60,10 +60,11 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
   }
   if(post && ['invite','disable'].includes(route)){
     if(!admin)throw stylingError('Dette krever administratortilgang.',403);
-    if(!/^\S+@\S+\.\S+$/.test(email)||email.length>254)throw stylingError('Oppgi en gyldig e-postadresse.');
+    if(!/^[^\s@<>,;:"()\[\]\\]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+$/i.test(email)||email.length>254)throw stylingError('Oppgi en gyldig e-postadresse.');
     if(route==='disable'){await store.stylingDisable(email);return out(200,{ok:true});}
-    const key=randomBytes(32).toString('base64url');await store.stylingInvite(email,digest(key));
-    return out(201,{url:origin+'/styling/index.html#invite='+key});
+    const key=randomBytes(32).toString('base64url');await store.stylingInvite(email,digest(key),data.replace===true);
+    const url=origin+'/styling/index.html#invite='+key;
+    return out(201,{url,sent:await sendInvitation(email,url)});
   }
   if(post && route==='jobs'){
     if(typeof data.address!=='string'||!data.address.trim()||data.address.length>200)throw stylingError('Fyll inn oppdragsadressen.');

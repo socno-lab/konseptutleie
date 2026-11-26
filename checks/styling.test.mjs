@@ -4,6 +4,8 @@ import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {stylingApi} from '../server/styling-api.mjs';
 import {nextMovement} from '../server/styling-store.mjs';
+import {createAdminCodeSender} from '../server/admin-email-code.mjs';
+import {digest} from '../server/auth.mjs';
 
 test('One physical unit can be out on only one job and returns through inspection',()=>{
   let item={state:'ready',job:null};
@@ -37,6 +39,34 @@ test('Stylist API separates public numbers, personnel administration and movemen
   await assert.rejects(stylingApi({...base,route:'invite',json:async()=>({email:'user@example.invalid'})}),{status:403});
   req.headers.origin='https://other.invalid';await assert.rejects(stylingApi({...base,route:'jobs'}),{status:403});
   req.method='GET';req.headers.cookie='';await assert.rejects(stylingApi({...base,route:'overview'}),{status:401});
+});
+
+test('Stylist invitation sends a personal activation link and retains a fallback on mail failure',async()=>{
+  const email='stylist@example.invalid',origin='https://example.invalid';
+  const messages=[];
+  let saved,accepted=true;
+  const store={enabled:true,admin:async()=>({email:'admin@example.invalid'}),stylingInvite:async(...input)=>{saved=input;}};
+  const sender=createAdminCodeSender({SMTP_PASS:'test'},store,async message=>{
+    messages.push(message);
+    assert.ok(saved);
+    return {accepted:accepted?[email]:[]};
+  });
+  const invite=value=>stylingApi({
+    req:{method:'POST',headers:{origin}},route:'invite',store,origin,
+    json:async()=>({email:value}),authenticated:async()=>true,out:(_status,body)=>body,
+    sendInvitation:sender.sendStylistInvitation
+  });
+  const sent=await invite(email);
+  assert.equal(sent.sent,true);
+  assert.deepEqual(saved,[email,digest(new URL(sent.url).hash.slice('#invite='.length)),false]);
+  assert.equal(messages[0].to,email);
+  assert.ok(messages[0].text.includes(sent.url));
+  accepted=false;
+  const fallback=await invite(email);
+  assert.equal(fallback.sent,false);
+  assert.notEqual(fallback.url,sent.url);
+  await assert.rejects(invite('other@example.invalid,'+email),{status:400});
+  assert.equal(messages.length,2);
 });
 
 test('Warehouse filters combine category, subordinate category, state and available QR units',async()=>{

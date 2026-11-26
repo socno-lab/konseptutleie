@@ -92,7 +92,7 @@ export function createServer(options={}){
      res.once('finish',releaseAuth);res.once('close',releaseAuth);
     }
    }
-   if(pathname.startsWith('/api/styling/'))return await stylingApi({req,route:pathname.slice('/api/styling/'.length),store,origin,secure,authenticated,json,out,invalidatePublic});
+   if(pathname.startsWith('/api/styling/'))return await stylingApi({req,route:pathname.slice('/api/styling/'.length),store,origin,secure,authenticated,json,out,invalidatePublic,sendInvitation:adminCodes.sendStylistInvitation});
    if(pathname==='/styling/index.html' && ['GET','HEAD'].includes(req.method))return send(200,await readFile(path.join(publicRoot,'styling/index.html')),'text/html; charset=utf-8',{'Permissions-Policy':'camera=(self), microphone=(), geolocation=()'});
    if(pathname==='/api/submissions'){
     if(req.method==='GET')return out(200,{enabled:submissions.enabled});
