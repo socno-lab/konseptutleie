@@ -180,3 +180,5 @@
  #screen .stylist-start .button {min-height:88px;font-size:18px}
  .scanner-items li {margin-block:6px;overflow-wrap:anywhere}
 }
+
+#screen .stylist-preview {padding:8px 10px;border-radius:4px;background:#e7ebdf;font-size:13px}
