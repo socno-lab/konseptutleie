@@ -333,6 +333,7 @@ export function createServer(options={}){
    if(pathname==='/foresporsel.html'&&['GET','HEAD'].includes(req.method)){const mode=url.searchParams.get('type')==='kjop'?'buy':'rent';return send(200,initialSiteData(enquiryPageHtml(await readHtmlTemplate(mode==='buy'?'kjop.html':'utvalg.html'),mode,url.searchParams.has('kurvforsok')),await readPublicCatalog()),'text/html; charset=utf-8',{'X-Robots-Tag':'noindex, nofollow, noarchive'});}
    if(pathname==='/om-oss.html'&&['GET','HEAD'].includes(req.method))return send(308,'','text/plain',{Location:'/om-oss'});
    if(pathname==='/leieprodukt.html'&&url.searchParams.get('produkt')===retiredOakTableId){url.searchParams.set('produkt',oakTableId);return send(301,'','text/plain',{Location:url.pathname+url.search});}
+   if(pathname==='/utvalg.html'&&url.searchParams.get('kategori')==='Servise'&&['GET','HEAD'].includes(req.method))return send(301,'','text/plain',{Location:'/leieprodukt.html?produkt=obj_b3af6675a38744e0bc567acc3c547849'});
    const seoPaths=['/om-oss','/','/utvalg.html','/anledning.html','/kjop.html','/leieprodukt.html','/kjopsprodukt.html','/kundeinfo.html','/midlertidig-moblering.html','/sitemap.xml'];
    if(seoPaths.includes(pathname)&&['GET','HEAD'].includes(req.method)){
     const release=enterRequest(digest(String(req.socket.remoteAddress||'shared')));if(!release)return send(429,'For mange forespørsler. Prøv igjen senere.','text/plain',{'Retry-After':'60'});res.once('finish',release);res.once('close',release);

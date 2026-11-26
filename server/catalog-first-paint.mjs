@@ -7,6 +7,7 @@ import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?
 import {countedSubcategoryButtons as subcategoryButtons} from '../public/catalog-filter-count.js?v=counts20261118';
 import {rentalSubcategoryCounts} from '../public/catalog-filters.js?v=choicesfirst20261119';
 import {renderArrowIcons} from './arrow-icons.mjs';
+import {decorHeading} from '../public/catalog-intro.js';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function catalogFirstPaint(html,model,catalogProducts,settings){
  const previous=getSiteSettings();configureSiteSettings(settings);
@@ -15,7 +16,7 @@ export function catalogFirstPaint(html,model,catalogProducts,settings){
   let filter=model.catalogCategory==='Modulsofaer'?'Sofaer':model.catalogCategory;
   if(!['Alle','Enkeltprodukter'].includes(filter)&&!settings.categories.some(c=>c.id===filter))filter='Alle';
   if(model.catalogUsage.purpose==='boligsalg'&&filter==='Pakker')filter='Enkeltprodukter';
-  const heading=escape(filter==='Pakker'?'Loungepakker og ferdige møbelpakker':!['Alle','Enkeltprodukter'].includes(filter)?(settings.categories.find(c=>c.id===filter)?.label||filter)+' til leie':model.catalogUsage.purpose==='boligsalg'?'Møbelleie ved boligsalg':'Møbler til leie');
+  const heading=escape(filter==='Dekor'?decorHeading:filter==='Pakker'?'Loungepakker og ferdige møbelpakker':!['Alle','Enkeltprodukter'].includes(filter)?(settings.categories.find(c=>c.id===filter)?.label||filter)+' til leie':model.catalogUsage.purpose==='boligsalg'?'Møbelleie ved boligsalg':'Møbler til leie');
   html=html.replace(/(<section\b[^>]*\bid="utvalg"[^>]*>[\s\S]*?<div class="section-head">[\s\S]*?<h[12]\b[^>]*>)[\s\S]*?(<\/h[12]>)/,(_,open,close)=>open+'<span class="desktop-catalog-title">'+heading+'</span><span class="mobile-catalog-title">'+heading+'</span>'+close);
   html=html.replace(/<input\b(?=[^>]*\bid="search")[^>]*>/,input=>input.replace(/\svalue(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?(?=[\s/>])/gi,'').replace(/\s*\/?>$/,()=>' value="'+escape(model.catalogQuery)+'">'));
   const view=rentalCatalogView({products,settings,purpose:model.catalogUsage.purpose,filter,tableFilter:model.catalogCategory==='Modulsofaer'?'Modulsofaer':model.catalogSubcategory,query:model.catalogQuery,rentalScopeConfirmed:model.catalogUsage.confirmed,rentalScope:model.catalogUsage.scope,refinement:model.catalogRefinement});
