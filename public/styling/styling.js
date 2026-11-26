@@ -1,12 +1,12 @@
 import {esc as escape,states,stockRows,stockControls,stockResults,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=7';
-const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status');
+const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status'),stylistMenu=document.querySelector('#stylistMenu');
 const itemPattern=/^K-[0-9A-F]{16}$/;
 const button=(label,action,value='',primary=false)=>'<button type="button" class="button '+(primary?'dark':'button-outline')+'" data-action="'+action+'" data-value="'+escape(value)+'">'+escape(label)+'</button>';
 const submit=label=>'<button class="button dark">'+label+'</button>';
 const mobileMenu=matchMedia('(max-width:660px)');
-const landingPage=()=>mobileMenu.matches?'home':'jobs';
+const landingPage=()=>!data?.admin?'stylist-home':mobileMenu.matches?'home':'jobs';
 const params=new URLSearchParams(location.hash.slice(1));
-let invitation=params.get('invite'),itemId=new URLSearchParams(location.search).get('item'),page=itemId?'item':landingPage();
+let invitation=params.get('invite'),itemId=new URLSearchParams(location.search).get('item'),page=itemId?'item':'stylist-home';
 let data,jobId='',labels=[],selectedProduct='',history=[],inviteUrl='',stream,scanSession=0,working=false;
 const item=()=>data.items.find(i=>i.id===itemId);
 const jobName=id=>data.jobs.find(j=>j.id===id)?.address||'';
@@ -115,11 +115,18 @@ function sheets(ids){
   return '<div class="labels">'+result.join('')+'</div>';
 }
 function render(){
-  nav.innerHTML='';let html='';
+  nav.innerHTML='';
+  stylistMenu.innerHTML='';
+  let html='';
   if(!data){
     html=invitation?'<h1>Aktiver stylistkonto</h1><form data-form="claim"><label>Velg passord<input name="password" type="password" minlength="12" maxlength="128" required autocomplete="new-password"></label>'+submit('Aktiver konto')+'</form>':'<h1>Logg inn som stylist</h1><form data-form="login"><label>E-post<input name="email" type="email" required autocomplete="username"></label><label>Passord<input name="password" type="password" required autocomplete="current-password"></label>'+submit('Logg inn')+'</form><a href="/admin/login?to=styling'+(itemPattern.test(itemId)?'&amp;item='+itemId:'')+'">Administratorinnlogging</a>';
   }else{
-    if(mobileMenu.matches){
+    if(!data.admin){
+      const inJob=['job','scan-job','in','out'].includes(page)&&data.jobs.some(job=>job.id===jobId);
+      stylistMenu.innerHTML='<details><summary aria-label="Meny"><span aria-hidden="true">☰</span> Meny</summary><div class="stylist-menu-options">'
+        +button('Startside','stylist-home')+(inJob?button('Skann retur','start-job-scan','in')+button('Returkontroll og oppdrag','job',jobId):'')
+        +button('Lager','stock')+button('Avsluttede oppdrag','archive')+button('Logg ut','logout')+'</div></details>';
+    }else if(mobileMenu.matches){
       if(page!=='home')nav.innerHTML=button('← Tilbake til hovedmeny','home');
     }else{
       nav.innerHTML=button('Oppdrag','jobs')+button('Lager','stock')+button('Mer','more')
@@ -128,13 +135,17 @@ function render(){
         ['usage','staff','more'].includes(page)?page:'jobs';
       nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
     }
-    if(page==='home'){
+    if(page==='stylist-home'||page==='stylist-registration'){
+      const options=page==='stylist-home'?[['Start registrering','stylist-registration']]:[['Velg oppdrag','jobs'],['Nytt oppdrag','new']];
+      html='<div class="styling-home stylist-start"><h1>'+(page==='stylist-home'?'Styling og lager':'Start registrering')+'</h1><div class="styling-menu">'
+        +options.map(([label,action])=>button(label,action,'',action!=='new')).join('')+'</div></div>';
+    }else if(page==='home'){
       const options=[['Velg oppdrag','jobs'],['Nytt oppdrag','new'],['Mer','more','Lager og avsluttede oppdrag'+(data.admin?' · Administrasjon':'')]];
       html='<div class="styling-home"><h1>Styling og lager</h1><div class="styling-menu">'
         +options.map(([label,action,description])=>'<button type="button" class="styling-menu-card" data-action="'+action+'"><span><strong>'+label+'</strong>'
           +(description?'<small>'+description+'</small>':'')+'</span><span class="styling-menu-arrow" aria-hidden="true"></span></button>').join('')+'</div></div>';
     }else if(page==='jobs'||page==='archive'){
-      html='<div class="page-heading job-list-heading"><h1>'+(page==='jobs'?'Velg oppdrag':'Avsluttede oppdrag')+'</h1>'+(!mobileMenu.matches&&page==='jobs'?button('Nytt oppdrag','new','',true):'')+'</div>'
+      html='<div class="page-heading job-list-heading"><h1>'+(page==='jobs'?'Velg oppdrag':'Avsluttede oppdrag')+'</h1>'+(data.admin&&!mobileMenu.matches&&page==='jobs'?button('Nytt oppdrag','new','',true):'')+'</div>'
         +'<div class="filters jobs"><label>Søk etter navn eller adresse<input type="search" data-field="term" value="'+escape(jobFilter.term)+'"></label></div><div id="results"></div>';
     }else if(page==='more'){
       html='<h1>Mer</h1><div class="actions job-actions">'+button('Lager','stock')+button('Avsluttede oppdrag','archive')
@@ -160,7 +171,8 @@ function render(){
       const title=page==='in'?'Skann retur':page==='out'?'Skann ut':'Skann QR';
       html='<h1>'+title+'</h1><p>'+escape(jobName(jobId))+'</p>'
         +(page==='scan-job'?'<p>Skann for å legge til. Skann igjen ved henting for å sjekke ut.</p>':'')
-        +'<div class="actions">'+button('Start kamera','camera','',true)+button('Til oppdraget','job',jobId)+'</div><video muted playsinline hidden></video><form data-form="scan"><label>Etikett-ID<input name="id" required autocomplete="off" autocapitalize="characters"></label>'+submit('Registrer ID')+'</form>';
+        +'<div class="actions">'+button('Start kamera','camera','',true)+button('Til oppdraget','job',jobId)+'</div><video muted playsinline hidden></video><form data-form="scan"><label>Etikett-ID<input name="id" required autocomplete="off" autocapitalize="characters"></label>'+submit('Registrer ID')+'</form>'
+        +(!data.admin?'<details class="scanner-items"><summary>Møbler på oppdraget</summary><div id="scannerItems"></div></details>':'');
     }else if(page==='stock'||page==='pick'){
       const picking=page==='pick';
       html=(picking?button('← Til oppdraget','job',jobId):'')+'<div class="page-heading"><h1>'+(picking?'Velg fra lager':'Lagerbeholdning')+'</h1>'+(!picking?'<div class="actions stock-actions">'+button('Samle etiketter','queue')+(data.admin?'<a class="button button-outline" href="/admin/?new=warehouse">Nytt produkt</a>':'')+button('Registrer møbler','register','',true)+'</div>':'')+'</div>'
@@ -197,7 +209,7 @@ function render(){
       html+='<div class="list-heading"><h2>Stylistkontoer <span class="count">'+data.staff.length+'</span></h2></div>'+data.staff.map(s=>'<section class="record"><div><h2>'+escape(s.email)+'</h2><p>'+(!s.active?'Deaktivert':s.registered?'Aktiv':'Invitert')+'</p></div>'+(s.active?button('Deaktiver','disable',s.email):'')+'</section>').join('');
     }
   }
-  screen.innerHTML=html;refreshResults();if(data&&page==='queue')updateQueue();
+  screen.innerHTML=html;refreshResults();refreshScannerItems();if(data&&page==='queue')updateQueue();
 }
 function refreshResults(){
   const results=screen.querySelector('#results');if(!results||!data)return;
@@ -230,6 +242,17 @@ screen.oninput=e=>{
 async function move(i,action,job){
   await api('move',{id:i.id,revision:i.revision,action,job});await load();
 }
+function refreshScannerItems(){
+  const list=screen.querySelector('#scannerItems');
+  if(!list||!data)return;
+  const items=data.items.filter(unit=>unit.job===jobId);
+  list.parentElement.querySelector('summary').textContent='Møbler på oppdraget · '+items.length;
+  list.innerHTML=items.length?'<ul>'+items.map(unit=>'<li>'+escape(productName(unit))+' · '+escape(states[unit.state])+'</li>').join('')+'</ul>':'<p>Ingen møbler lagt til ennå.</p>';
+}
+async function openScanner(mode){
+  go(mode);
+  if(navigator.mediaDevices?.getUserMedia)await camera();
+}
 async function scan(raw){
   let id=raw.trim().toUpperCase();
   if(!itemPattern.test(id)){try{const url=new URL(raw);if(url.origin===location.origin&&url.pathname==='/styling/index.html')id=url.searchParams.get('item');}catch{}}
@@ -238,6 +261,7 @@ async function scan(raw){
   const result=await api('move',{id:i.id,revision:i.revision,action:page==='scan-job'?'scan':page,job:jobId});
   Object.assign(i,result,{revision:i.revision+1});
   rows=stockRows(data);
+  refreshScannerItems();
   status.textContent=productName(i)+' · '+({assigned:'lagt til på oppdraget',out:'skannet ut',check:'returnert til kontroll'}[result.state]);
 }
 async function camera(){
@@ -250,7 +274,7 @@ async function camera(){
   async function frame(){
     if(session!==scanSession)return;
     try{
-      if(video.readyState>=2&&!working){
+      if(video.readyState>=2&&!working&&!stylistMenu.querySelector("details[open]")){
         canvas.width=Math.min(video.videoWidth,720);canvas.height=Math.round(video.videoHeight*canvas.width/video.videoWidth);
         ctx.drawImage(video,0,0,canvas.width,canvas.height);
         const img=ctx.getImageData(0,0,canvas.width,canvas.height),code=window.jsQR(img.data,img.width,img.height)?.data;
@@ -264,7 +288,7 @@ async function run(fn){
   if(working)return;working=true;
   try{await fn();}catch(e){
     if(e.status===401){stopCamera();data=null;render();}
-    if(e.status===409){await load();if(page==='job'&&data.jobs.some(job=>job.id===jobId))await loadJobReturns();if(!['in','out','scan-job'].includes(page))render();}
+    if(e.status===409){await load();refreshScannerItems();if(page==='job'&&data.jobs.some(job=>job.id===jobId))await loadJobReturns();if(!['in','out','scan-job'].includes(page))render();}
     status.textContent=e.name==='NotAllowedError'?'Kameratilgang mangler. Tillat kamera eller skriv inn etikett-ID.':e.message;
   }finally{working=false;}
 }
@@ -307,11 +331,7 @@ document.addEventListener('click',e=>{
       await move(data.items.find(i=>i.id===value),'unassign',jobId);
       await loadJobReturns();return go('job');
     }
-    if(action==='start-job-scan'){
-      go(value);
-      if(navigator.mediaDevices?.getUserMedia)await camera();
-      return;
-    }
+    if(action==='start-job-scan')return openScanner(value);
     if(action==='camera'){if(!navigator.mediaDevices?.getUserMedia)throw Error('Bruk etikett-ID eller åpne siden med HTTPS for kamera.');return camera();}
     if(action==='queue'||action==='extend-queue'){
       restoreQueue();
@@ -327,7 +347,12 @@ document.addEventListener('click',e=>{
       labels=(await api('split',{id:value,revision:unit.revision})).ids;await load();return go('labels');
     }
     if(action==='label'){labels=[value];return go('labels');}
-    if(action==='job'){jobId=value;await load();await loadJobReturns();}
+    if(action==='job'){
+      const starting=!data.admin&&page==='jobs';
+      jobId=value;await load();
+      if(starting&&data.jobs.some(job=>job.id===jobId&&!job.closed))return openScanner('scan-job');
+      await loadJobReturns();
+    }
     if(['ready','hold','return'].includes(action)){await move(item(),action==='return'?'in':action,item().job);return showItem(itemId);}
     if(action==='disable'){if(!confirm('Deaktiver tilgangen for '+value+'?'))return;await api('disable',{email:value});await load();inviteUrl='';return go('staff');}
     if(action==='logout'){await api('logout',{});data=null;return go('home');}
@@ -340,7 +365,7 @@ screen.onsubmit=e=>{
     switch(form.dataset.form){
       case 'claim':await api('claim',{invitation,password:fields.password});invitation=null;window.history.replaceState(null,'',location.pathname+location.search);render();status.textContent='Kontoen er aktiv. Logg inn med e-post og passord.';break;
       case 'login':await api('login',fields);await load();if(itemId)await showItem(itemId);else go(landingPage());break;
-      case 'job':jobId=(await api('jobs',fields)).id;await load();await loadJobReturns();go('job');break;
+      case 'job':jobId=(await api('jobs',fields)).id;await load();if(!data.admin)return openScanner('scan-job');await loadJobReturns();go('job');break;
       case 'draft':selectedProduct=(await api('draft',fields)).id;await load();go('register');status.textContent='Produktutkastet er valgt. Angi antall eksemplarer.';break;
       case 'register':labels=(await api('items',{product:fields.product,count:Number(fields.count)})).ids;await load();go('labels');break;
       case 'scan':await scan(fields.id);form.reset();break;
@@ -372,7 +397,7 @@ window.addEventListener('popstate',e=>{
   jobId=e.state.jobId||jobId;productId=e.state.productId||productId;source=e.state.source||source;go(e.state.page);
 });
 mobileMenu.addEventListener('change',()=>{
-  if(page==='home'&&!mobileMenu.matches)go('jobs');
+  if(data?.admin&&page==='home'&&!mobileMenu.matches)go('jobs');
   else if(!stream&&!working)render();
 });
-if(invitation)render();else await run(async()=>{await load();const product=new URLSearchParams(location.search).get('labelsFor');if(itemId)await showItem(itemId);else if(product){labels=data.items.filter(i=>i.product===product).map(i=>i.id);if(labels.length)go('labels');else go('stock');}else render();});
+if(invitation)render();else await run(async()=>{await load();const product=new URLSearchParams(location.search).get('labelsFor');if(itemId)await showItem(itemId);else if(product){labels=data.items.filter(i=>i.product===product).map(i=>i.id);if(labels.length)go('labels');else go('stock');}else go(landingPage());});

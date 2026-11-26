@@ -168,3 +168,15 @@
  #screen .styling-menu-card {min-height:88px;padding:18px 20px}
  .styling-menu-card strong {font-size:18px}
 }
+
+@media screen {
+ .styling-header:has(#stylistMenu details) {position:relative}
+ #stylistMenu {position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);z-index:2}
+ #stylistMenu:empty {display:none}
+ #stylistMenu summary {display:flex;align-items:center;gap:6px;min-height:44px;padding-inline:6px;cursor:pointer;font-size:14px}
+ #stylistMenu summary::-webkit-details-marker {display:none}
+ .stylist-menu-options {position:absolute;top:100%;inset-inline-start:0;display:grid;min-width:210px;padding:6px;border:1px solid var(--line);border-radius:6px;background:#fcfbf8}
+ .stylist-menu-options .button {min-height:44px;text-align:left;background:transparent;border:0;color:var(--ink)}
+ #screen .stylist-start .button {min-height:88px;font-size:18px}
+ .scanner-items li {margin-block:6px;overflow-wrap:anywhere}
+}
