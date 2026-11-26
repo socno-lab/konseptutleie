@@ -1,3 +1,4 @@
+import {controlSchema,inventoryControl} from './inventory-control.mjs';
 import {confirmedCheckInSQL} from './qr-catalog-stock.mjs';
 import {randomUUID} from 'node:crypto';
 
@@ -11,7 +12,8 @@ export const stylingSchema = [
   'CREATE TABLE IF NOT EXISTS ku_styling_catalog_stock (product VARCHAR(120) PRIMARY KEY)',
   'CREATE TABLE IF NOT EXISTS ku_styling_job_closures (job CHAR(36) PRIMARY KEY, closed BIGINT NOT NULL, actor VARCHAR(254) NOT NULL, FOREIGN KEY(job) REFERENCES ku_styling_jobs(id) ON DELETE CASCADE)',
   'CREATE TABLE IF NOT EXISTS ku_styling_job_deviations (job CHAR(36) NOT NULL, item VARCHAR(18) NOT NULL, kind VARCHAR(10) NOT NULL, note VARCHAR(500) NOT NULL, PRIMARY KEY(job,item,kind), FOREIGN KEY(job) REFERENCES ku_styling_jobs(id) ON DELETE CASCADE)',
-  'CREATE TABLE IF NOT EXISTS ku_styling_history (id BIGINT AUTO_INCREMENT PRIMARY KEY, item VARCHAR(18) NOT NULL, actor VARCHAR(254) NOT NULL, state VARCHAR(20) NOT NULL, job CHAR(36), created BIGINT NOT NULL, INDEX(item))'
+  'CREATE TABLE IF NOT EXISTS ku_styling_history (id BIGINT AUTO_INCREMENT PRIMARY KEY, item VARCHAR(18) NOT NULL, actor VARCHAR(254) NOT NULL, state VARCHAR(20) NOT NULL, job CHAR(36), created BIGINT NOT NULL, INDEX(item))',
+  ...controlSchema
 ];
 
 export function stylingError(message,status=400){return Object.assign(new Error(message),{status});}
@@ -52,13 +54,15 @@ export function stylingStore(init,pool,query,lockStockCatalog){
     await db.execute('INSERT INTO ku_styling_history(item,actor,state,job,created) VALUES(?,?,?,?,?)',[item.id,actor,historyState,job,at]);
   }
   return {
+    ...inventoryControl(transaction,query,recordMove),
     async stylingOverview(){
       const [jobs,items]=await Promise.all([
         query('SELECT j.*,c.closed FROM ku_styling_jobs j LEFT JOIN ku_styling_job_closures c ON c.job=j.id ORDER BY j.created DESC'),
-        query(`SELECT i.*,s.side,p.printed AS labelPrinted,i.state='held' AND NOT ${confirmedCheckInSQL} AND NOT EXISTS (
+        query(`SELECT i.*,s.side,p.printed AS labelPrinted,r.reason AS retiredReason,
+          ${confirmedCheckInSQL} AS checkedIn,i.state='held' AND NOT ${confirmedCheckInSQL} AND NOT EXISTS (
           SELECT 1 FROM ku_styling_history used WHERE used.item=i.id AND used.job IS NOT NULL AND used.state IN ('assigned','out','check')
         ) AS labelPending
-        FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id LEFT JOIN ku_styling_printed_labels p ON p.item=i.id ORDER BY i.name,s.side,i.id`)
+        FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id LEFT JOIN ku_styling_printed_labels p ON p.item=i.id LEFT JOIN ku_stock_retirements r ON r.item=i.id ORDER BY i.name,s.side,i.id`)
       ]);
       return {jobs:jobs[0],items:items[0]};
     },
@@ -90,7 +94,7 @@ export function stylingStore(init,pool,query,lockStockCatalog){
     async stylingJobReturns(id){
       const [units]=await query(`SELECT i.id,i.product,i.name,i.state,i.revision,i.job,s.side,
         h.state AS movement,h.id=(SELECT MAX(latest.id) FROM ku_styling_history latest WHERE latest.item=i.id) AS is_latest
-        FROM (SELECT item,MAX(id) AS history_id FROM ku_styling_history WHERE job=? AND state IN ('out','check','returned','transferred','transferred-in') GROUP BY item) movements
+        FROM (SELECT item,MAX(id) AS history_id FROM ku_styling_history WHERE job=? AND state IN ('out','check','returned','transferred','transferred-in','sold','scrapped','lost') GROUP BY item) movements
         JOIN ku_styling_history h ON h.id=movements.history_id
         JOIN ku_styling_items i ON i.id=h.item
         LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,i.id`,[id]);
@@ -137,7 +141,7 @@ export function stylingStore(init,pool,query,lockStockCatalog){
         const from=restore?'withdrawn':'held';
         const to=restore?'held':'withdrawn';
         const [items]=await db.execute(
-          'SELECT id,revision FROM ku_styling_items WHERE product=? AND state=? AND job IS NULL ORDER BY id FOR UPDATE',
+          'SELECT id,revision FROM ku_styling_items WHERE product=? AND state=? AND job IS NULL AND NOT EXISTS (SELECT 1 FROM ku_stock_retirements r WHERE r.item=ku_styling_items.id) ORDER BY id FOR UPDATE',
           [product,from]
         );
         const eligible=restore?items:items.filter(item=>item.revision===1);

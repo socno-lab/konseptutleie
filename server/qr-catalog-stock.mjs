@@ -34,7 +34,9 @@ export async function promoteConfirmedStock(db,products,onlyProduct){
    ${onlyProduct?'AND i.product=?':''} GROUP BY i.product,s.side`,onlyProduct?[onlyProduct]:[]);
  const counts=inventoryCounts(rows);
  for(const product of candidates){
-  if((counts.get(product.id)?.confirmed||0)>=Math.max(1,product.stock||0))
+  if((counts.get(product.id)?.confirmed||0)>=Math.max(1,product.stock||0)){
    await db.execute('INSERT IGNORE INTO ku_styling_catalog_stock(product) VALUES (?)',[product.id]);
+   await db.execute('INSERT IGNORE INTO ku_stock_baselines(product,quantity) VALUES (?,?)',[product.id,product.stock||0]);
+  }
  }
 }

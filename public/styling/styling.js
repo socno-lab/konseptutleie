@@ -1,7 +1,9 @@
+import {reasons,transitionTable,countingReport} from './inventory-control.js';
 import {esc as escape,states,stockRows,stockControls,stockResults,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=8';
 import {foldProductSearch,inferProductBrand} from '../product-brand.js';
 const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status'),stylistMenu=document.querySelector('#stylistMenu');
-const historyLabels={...states,returned:'Returnert til lager',transferred:'Flyttet til annet oppdrag','transferred-in':'Flyttet hit fra annet oppdrag',unassigned:'Fjernet fra oppdrag'};
+let sessions=[],countSession=null;
+const historyLabels={...states,...reasons,returned:'Returnert til lager',transferred:'Flyttet til annet oppdrag','transferred-in':'Flyttet hit fra annet oppdrag',unassigned:'Fjernet fra oppdrag'};
 const itemPattern=/^K-[0-9A-F]{16}$/;
 const button=(label,action,value='',primary=false)=>'<button type="button" class="button '+(primary?'dark':'button-outline')+'" data-action="'+action+'" data-value="'+escape(value)+'">'+escape(label)+'</button>';
 const submit=label=>'<button class="button dark">'+label+'</button>';
@@ -122,6 +124,8 @@ function returnOverview(job,out,assigned){
   const unitLabel=unit=>escape(productName(unit))+' · '+escape(unit.id);
   const totals=[['Skannet ut',jobReturns.units.length],['Ute på styling',out.length-missing.length],['Returnert',returned.length],['Til kontroll',pending.length]];
   if(missing.length)totals.push(['Mangler',missing.length]);
+  const retired=jobReturns.units.filter(unit=>Object.hasOwn(reasons,unit.movement)).length;
+  if(retired)totals.push(['Tatt ut av drift',retired]);
   if(transferred)totals.push(['Flyttet',transferred]);
   return '<section class="job-return-summary"><h2>Retur og avvik</h2><dl class="job-totals">'
     +totals.map(([label,count])=>'<div><dt>'+label+'</dt><dd>'+count+'</dd></div>').join('')+'</dl>'
@@ -253,7 +257,7 @@ function render(){
     }else{
       nav.innerHTML=button('Oppdrag','jobs')+button('Lager','stock')+button('Avsluttede oppdrag','archive')
         +button('Bruksstatistikk','usage')+button('Stylister','staff')+'<a href="/styling/index.html?visning=stylist" target="_blank" rel="noopener">Forhåndsvis stylistvisning</a>';
-      const tab=['stock','register','labels','queue'].includes(page)||(page==='product'&&source==='stock')?'stock':
+      const tab=['stock','register','labels','queue','counts','count','transition','retire-scan'].includes(page)||(page==='product'&&source==='stock')?'stock':
         ['usage','staff','archive'].includes(page)?page:'jobs';
       nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
     }
@@ -302,7 +306,20 @@ function render(){
     }else if(page==='stock'||page==='pick'){
       const picking=page==='pick';
       html=(picking?button('← Til oppdraget','job',jobId):'')+'<div class="page-heading"><h1>'+(picking?'Velg fra lager':'Lagerbeholdning')+'</h1>'+(!picking?'<div class="actions stock-actions">'+button('Samle etiketter','queue')+(isAdminView()?'<a class="button button-outline" href="/admin/?new=warehouse">Nytt produkt</a>':'')+button('Registrer møbler','register','',true)+'</div>':'')+'</div>'
+         +(!picking&&isAdminView()?'<div class="actions" aria-label="Lagerkontroll">'+button('Tell lager','counts')+button('Overgang til QR-lager','transition')+button('Ta ut av drift','retire-scan')+'</div>':'')
          +(picking?'<p>'+escape(jobName(jobId))+'</p>':'')+stockControls(rows,activeFilter(),button)+'<div id="results"></div>';
+    }else if(isAdminView()&&page==='transition'){
+      html=button('← Til lageret','stock')+transitionTable(data.products,data.items,data.baselines);
+    }else if(isAdminView()&&page==='counts'){
+      const categories=new Map(data.products.filter(p=>p.rentalStock).map(p=>[p.categoryId,p.category]));
+      const categoryName=id=>categories.get(id)||id||'Hele lageret';
+      html=button('← Til lageret','stock')+'<h1>Tell lager</h1><form data-form="count-start"><label>Kategori<select name="category"><option value="">Hele lageret</option>'+[...categories].sort((a,b)=>a[1].localeCompare(b[1],'nb')).map(([id,name])=>'<option value="'+escape(id)+'">'+escape(name)+'</option>').join('')+'</select></label>'+submit('Start ny telling')+'</form><h2>Tellinger</h2>'+sessions.map(c=>'<p>'+button(categoryName(c.category)+' · '+date(c.started)+' · '+(c.closed?'Avsluttet':'Pågår'),'open-count',c.id)+'</p>').join('');
+    }else if(isAdminView()&&page==='count'&&countSession){
+      html=button('← Til tellinger','counts')+'<h1>Varetelling</h1><p>Forventet beholdning ved tellestart '+escape(date(countSession.started))+'. En observasjon endrer ingen lagerstatus.</p>'
+        +(countSession.closed?'':scannerForm())+'<section id="countReport">'+countingReport(countSession,[...data.items,...data.retired],button)+'</section>'
+        +(countSession.closed?'':button('Avslutt telling','count-close'));
+    }else if(isAdminView()&&page==='retire-scan'){
+      html=button('← Til lageret','stock')+'<h1>Ta ut av drift</h1><p>Skann etiketten for å velge møbelet og bekrefte årsaken.</p>'+scannerForm();
     }else if(page==='product'){
       const p=rows.find(r=>r.id===productId);
       html=button(source==='pick'?'← Til produktvalget':'← Til lageret',source);
@@ -311,7 +328,9 @@ function render(){
           +'<div class="job-meta"><span>Ledige på lager<strong>'+p.available+' av '+p.items.length+' registrerte</strong></span><span>'+(p.qrStock?'Beholdning på Konseptuell.no (QR-lager)':'Manuelt antall på Konseptuell.no')+'<strong>'+escape(p.stock??'–')+'</strong></span></div>'
           +(source==='stock'&&data.products.some(entry=>entry.id===p.id)?batchForm(p)+(isAdminView()?unusedCorrection(p):''):'')
           +'<div class="list-heading"><h2>Eksemplarer</h2></div>'+p.items.map(i=>'<section class="record"><div><h2>'+escape(sideNames[i.side]||i.id)+'</h2><p>'+(i.side?escape(i.id)+' · ':'')+states[i.state]+' '+escape(jobName(i.job))+'</p></div><div class="actions">'+button(source==='pick'&&i.state==='ready'?'Velg eksemplar':'Åpne møbel','item',i.id)+(source==='stock'?button('Skriv ut etikett på nytt','label',i.id):'')+(p.pairedEnds&&!i.side&&i.state==='ready'?button('Del i to endemoduler','split',i.id):'')+'</div></section>').join('')
-          +(!p.items.length?'<p>Ingen QR-registrerte eksemplarer.</p>':'');
+          +(!p.items.length?'<p>Ingen aktive QR-eksemplarer.</p>':'');
+        const retired=data.retired.filter(i=>i.product===p.id);
+        if(isAdminView()&&retired.length)html+='<details><summary>Tatt ut av drift · '+retired.length+'</summary>'+retired.map(i=>'<p>'+button(i.id+' · '+reasons[i.retiredReason],'item',i.id)+'</p>').join('')+'</details>';
       }
     }else if(page==='register'){
       html='<h1>Registrer møbler</h1><form data-form="register"><label>Produkt i katalogen<select name="product" required><option value="">Velg produkt</option>'+data.products.map(p=>'<option value="'+escape(p.id)+'" '+(p.id===selectedProduct?'selected':'')+'>'+escape(p.name)+'</option>').join('')+'</select></label>'+countField(data.products.find(p=>p.id===selectedProduct))+submit('Opprett eksemplarer og etiketter')+'</form>'+(isAdminView()?'<p><a href="/admin/?new=warehouse">Opprett nytt produkt og QR-etiketter</a></p>':'<p>Be en administrator opprette produktet hvis det mangler.</p>')+'';
@@ -326,7 +345,11 @@ function render(){
       if(i?.state==='out')html+=button('Registrer retur','return');
       if(i&&['check','held'].includes(i.state))html+=button('Godkjenn for lager','ready');
       if(i&&['check','ready'].includes(i.state))html+=button('Hold tilbake','hold');
-      if(i)html+='<details><summary>Historikk</summary>'+history.map(h=>'<p>'+escape(date(h.created))+' · '+escape(historyLabels[h.state])+' · '+escape(h.actor)+' '+escape(jobName(h.job))+'</p>').join('')+'</details>';
+      const retired=data.retired?.find(unit=>unit.id===itemId);
+      if(retired)html='<h1>'+escape(productName(retired))+'</h1><p>'+escape(itemId)+' · Tatt ut av drift · '+escape(reasons[retired.retiredReason])+'</p>';
+      if(i&&isAdminView())html+='<form data-form="retire"><label>Ta ut av drift<select name="reason" required><option value="">Velg årsak</option>'+Object.entries(reasons).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></label>'+submit('Ta dette eksemplaret ut av drift')+'</form>';
+      if(itemOrigin==='count'&&countSession)html+=button('← Til tellingen','open-count',countSession.id);
+      if(i||retired)html+='<details><summary>Historikk</summary>'+history.map(h=>'<p>'+escape(date(h.created))+' · '+escape(historyLabels[h.state])+' · '+escape(h.actor)+' '+escape(jobName(h.job))+'</p>').join('')+'</details>';
     }else if(page==='usage'&&isAdminView()){
       html=usageView();
     }else if(page==='staff' && isAdminView()){
@@ -344,6 +367,11 @@ function refreshResults(){
   results.innerHTML=['jobs','archive'].includes(page)?jobResults(page==='jobs'?openJobs():archivedJobs(),jobFilter,button):stockResults(rows,activeFilter(),button);
 }
 screen.oninput=e=>{
+  if(e.target.id==='transitionSearch'){
+    const term=foldProductSearch(e.target.value);
+    for(const row of screen.querySelectorAll('#transitionRows tr'))row.hidden=!foldProductSearch(row.cells[0].textContent).includes(term);
+    return;
+  }
   if(e.target.matches('[data-queue-search]')){
     queueSearch=e.target.value;
     filterQueue();
@@ -394,11 +422,23 @@ async function openScanner(mode){
   go(mode);
   if(navigator.mediaDevices?.getUserMedia)await camera();
 }
+function scannerForm(){
+  return '<div class="actions">'+button('Start kamera','camera','',true)+'</div><video muted playsinline hidden></video><form data-form="scan"><label>Etikett-ID<input name="id" required autocomplete="off" autocapitalize="characters"></label>'+submit('Registrer ID')+'</form>';
+}
 async function scan(raw){
   let id=raw.trim().toUpperCase();
   if(!itemPattern.test(id)){try{const url=new URL(raw);if(url.origin===location.origin&&url.pathname==='/styling/index.html')id=url.searchParams.get('item');}catch{}}
   const i=data.items.find(i=>i.id===id);
+  const retired=data.retired?.find(unit=>unit.id===id);
+  if(retired)throw Error(productName(retired)+' er tatt ut av drift · '+reasons[retired.retiredReason]+'.');
   if(!i)throw Error('Ukjent etikett. Kontroller ID-en.');
+  if(page==='retire-scan'){itemOrigin=page;return showItem(id);}
+  if(page==='count'){
+    const result=await api('count-scan',{id:countSession.id,item:id});
+    if(!countSession.seen.includes(id))countSession.seen.push(id);
+    screen.querySelector('#countReport').innerHTML=countingReport(countSession,[...data.items,...data.retired],button);
+    status.textContent=productName(i)+(result.already?' · allerede telt':' · registrert i tellingen');return;
+  }
   const request={id:i.id,revision:i.revision,job:jobId};
   let route='move',action=page==='scan-job'?'scan':page;
   if(page==='scan-job'&&i.job&&i.job!==jobId&&['assigned','out'].includes(i.state)){
@@ -471,6 +511,13 @@ document.addEventListener('click',e=>{
   if(isAdminView()&&nav.contains(b)){openAdminPage(b.dataset.action);return;}
   run(async()=>{
     const action=b.dataset.action,value=b.dataset.value;
+    if(action==='counts'){sessions=await api('counts');return go('counts');}
+    if(action==='transition'){await load();return go('transition');}
+    if(action==='open-count'){await load();countSession=await api('count/'+value);return go('count');}
+    if(action==='count-close'){
+      if(!confirm('Avslutt tellingen og lagre avvikene? Beholdningen endres ikke.'))return;
+      await api('count-close',{id:countSession.id});countSession=await api('count/'+countSession.id);return go('count');
+    }
     if(action==='delete-job'&&isAdminView()&&page==='job'&&jobId===value){
       if(!confirm('Slett oppdraget «'+jobName(value)+'»? Dette kan ikke angres.'))return;
       await api('delete-job',{id:value});
@@ -570,6 +617,14 @@ screen.onsubmit=e=>{
   e.preventDefault();const form=e.target,fields=Object.fromEntries(new FormData(form));
   run(async()=>{
     switch(form.dataset.form){
+      case 'count-start':{
+        const {id}=await api('count-start',{category:fields.category});countSession=await api('count/'+id);go('count');break;
+      }
+      case 'retire':{
+        const unit=item(),reason=fields.reason;
+        if(!unit||!confirm('Ta '+productName(unit)+' ('+unit.id+') ut av drift som '+reasons[reason].toLowerCase()+'? '+(unit.job?'Enheten fjernes fra '+jobName(unit.job)+'. ':'')+'Beholdningen oppdateres og etiketten sperres.'))return;
+        await api('retire',{id:unit.id,revision:unit.revision,reason});await load();await showItem(unit.id);break;
+      }
       case 'claim':await api('claim',{invitation,password:fields.password});invitation=null;window.history.replaceState(null,'',location.pathname+location.search);render();status.textContent='Kontoen er aktiv. Logg inn med e-post og passord.';break;
       case 'login':await api('login',fields);await load();if(itemId)await showItem(itemId);else go(landingPage());break;
       case 'job':jobId=(await api('jobs',fields)).id;await load();await loadJobReturns();go('job');break;

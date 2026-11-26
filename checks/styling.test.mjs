@@ -38,6 +38,7 @@ test('Stylist API separates public numbers, personnel administration and movemen
   const view=await stylingApi({...base,route:'overview'});assert.deepEqual(view.products,[catalog[0]]);assert.deepEqual(view.staff,[]);
   req.method='POST';req.headers.origin=base.origin;
   await assert.rejects(stylingApi({...base,route:'invite',json:async()=>({email:'user@example.invalid'})}),{status:403});
+  for(const route of ['count-start','count-scan','count-close','retire'])await assert.rejects(stylingApi({...base,route,json:async()=>({})}),{status:403});
   req.headers.origin='https://other.invalid';await assert.rejects(stylingApi({...base,route:'jobs'}),{status:403});
   req.method='GET';req.headers.cookie='';await assert.rejects(stylingApi({...base,route:'overview'}),{status:401});
 });
@@ -87,7 +88,7 @@ test('QR takeover counts confirmed physical units once and stays active after ch
   const {promoteConfirmedStock,inventoryCounts}=await import('../server/qr-catalog-stock.mjs');
   const sql=new DatabaseSync(':memory:');
   try{
-    for(const stmt of stylingSchema.filter(s=>s.includes('CREATE TABLE IF NOT EXISTS ku_styling_')))
+    for(const stmt of stylingSchema.filter(s=>/CREATE TABLE IF NOT EXISTS ku_(styling|stock)_/.test(s)))
       sql.exec(stmt.replace('BIGINT AUTO_INCREMENT PRIMARY KEY','INTEGER PRIMARY KEY').replace(/, INDEX\(\w+\)/g,''));
     const db={execute(statement,args){
       const q=sql.prepare(statement.replace('INSERT IGNORE','INSERT OR IGNORE'));
@@ -118,7 +119,7 @@ test('Warehouse preserves label identity across sofa splits and address transfer
   const {stylingStore,stylingSchema}=await import('../server/styling-store.mjs');
   const sql=new DatabaseSync(':memory:');
   try{
-    for(const stmt of stylingSchema.filter(s=>s.includes('CREATE TABLE IF NOT EXISTS ku_styling_'))){
+    for(const stmt of stylingSchema.filter(s=>/CREATE TABLE IF NOT EXISTS ku_(styling|stock)_/.test(s))){
       sql.exec(stmt.replace('BIGINT AUTO_INCREMENT PRIMARY KEY','INTEGER PRIMARY KEY').replace(/, INDEX\(\w+\)/g,''));
     }
     const db={beginTransaction:()=>sql.exec('BEGIN'),commit:()=>sql.exec('COMMIT'),rollback:()=>sql.exec('ROLLBACK'),release(){},

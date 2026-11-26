@@ -1,3 +1,4 @@
+import {physicalRentalProduct} from './qr-catalog-stock.mjs';
 import {productSubcategory} from '../public/catalog-subcategories.js';
 import {validateCatalog} from './catalog.mjs';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -37,6 +38,18 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
   const admin=await authenticated();
   const actor=admin?(await store.admin()).email:token.length===43&&await store.stylingSession(digest(token));
   if(!actor)throw stylingError('Logg inn for å fortsette.',401);
+  if(['counts','count-start','count-scan','count-close','retire'].includes(route)||route.startsWith('count/')){
+   if(!admin)throw stylingError('Dette krever administratortilgang.',403);
+   if(!post&&route==='counts')return out(200,await store.countSessions());
+   if(!post&&route.startsWith('count/')&&jobId.test(route.slice(6)))return out(200,await store.countDetails(route.slice(6)));
+   if(post&&route==='count-start'&&typeof data.category==='string'&&data.category.length<=200)return out(201,await store.countStart(data.category,actor));
+   if(post&&route==='count-scan'&&jobId.test(data.id)&&itemId.test(data.item))return out(200,await store.countRecord(data.id,data.item));
+   if(post&&route==='count-close'&&jobId.test(data.id))return out(200,await store.countClose(data.id));
+   if(post&&route==='retire'&&itemId.test(data.id)&&Number.isInteger(data.revision)&&typeof data.reason==='string'){
+    const result=await store.retireUnit(data,actor);invalidatePublic();return out(200,result);
+   }
+   throw stylingError('Ugyldig lagerhandling.');
+  }
   if(!post&&route.startsWith('usage/')){
    if(!admin)throw stylingError('Dette krever administratortilgang.',403);
    const period=route.slice(6);
@@ -51,12 +64,12 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
       const category=categories.find(c=>c.id===p.category);
       const sub=p.subcategory||productSubcategory(p);
       const label=category?.subcategories?.find(s=>s.id===sub)?.label||p.subcategory;
-      return {...(p.brand?{brand:p.brand}:{}),...(p.articleNumber?{articleNumber:p.articleNumber}:{}),...(p.moduleRole==='base'&&!p.qrStock?{pairedEnds:true}:{}),...(p.qrStock?{qrStock:true}:{}),...(p.imageBounds?{imageBounds:p.imageBounds}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
+      return {...(p.brand?{brand:p.brand}:{}),...(p.articleNumber?{articleNumber:p.articleNumber}:{}),...(p.moduleRole==='base'&&!p.qrStock?{pairedEnds:true}:{}),...(p.qrStock?{qrStock:true}:{}),...(p.imageBounds?{imageBounds:p.imageBounds}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,...(admin?{rentalStock:physicalRentalProduct(p),categoryId:p.category}:{}),category:category?.label||p.category,subcategory:label};
     });
     const deletedProducts=new Set(catalog.products.filter(p=>p.deletedAt).map(p=>p.id));
     const items=inventory.items.filter(item=>item.state!=='withdrawn'&&(item.state!=='held'||!deletedProducts.has(item.product)));
-    const withdrawn=admin?inventory.items.filter(item=>item.state==='withdrawn').map(item=>item.product):[];
-    return out(200,{...inventory,items,withdrawn,actor,admin,products,staff:admin?await store.stylists():[]});
+    const withdrawn=admin?inventory.items.filter(item=>item.state==='withdrawn'&&!item.retiredReason).map(item=>item.product):[];
+    return out(200,{...inventory,items,withdrawn,retired:inventory.items.filter(i=>i.retiredReason).map(({id,name,product,retiredReason,side})=>({id,name,product,retiredReason,side})),baselines:admin&&store.stockBaselines?await store.stockBaselines():{},actor,admin,products,staff:admin?await store.stylists():[]});
   }
   if(post && ['invite','disable'].includes(route)){
     if(!admin)throw stylingError('Dette krever administratortilgang.',403);
