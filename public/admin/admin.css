@@ -39,3 +39,35 @@
 
 /* Underlines follow text rather than the bottom edge of tall click targets. */
 .admin-body .text-button{border-bottom:0;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-skip-ink:auto}.admin-body .text-button:disabled{cursor:default;opacity:.5}.admin-body .text-button:hover{text-underline-offset:3px}
+
+/* Desktop editing controls share a height; their column determines the width. */
+@media screen and (min-width:661px) {
+  body.admin-body:not(:has(> .admin-shell[hidden])) :is(
+    input:not([type]), input:is([type=text],[type=search],[type=email],[type=url],[type=tel],[type=password],[type=number],[type=date],[type=time],[type=datetime-local]),
+    select:not([multiple]):not([size])
+  ) {
+    box-sizing:border-box;
+    min-height:48px;
+    max-width:100%;
+    padding-inline:12px;
+  }
+  body.admin-body:not(:has(> .admin-shell[hidden])) select:not([multiple]):not([size]) {
+    appearance:none;
+    padding-right:32px;
+    background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+    background-position:right 15px center,right 10px center;
+    background-size:5px 5px;
+    background-repeat:no-repeat;
+  }
+  body.admin-body:not(:has(> .admin-shell[hidden])) label > :is(input:not([type]),input[type=text],input[type=email],input[type=url],input[type=search],select,textarea) {
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
+  }
+}
+@media screen and (min-width:661px) and (forced-colors:active) {
+  body.admin-body:not(:has(> .admin-shell[hidden])) select:not([multiple]):not([size]) {
+    appearance:auto;
+    background-image:none;
+  }
+}
