@@ -140,7 +140,8 @@ function render(){
     }
     if(page==='stylist-home'||page==='stylist-registration'){
       const options=page==='stylist-home'?[['Start registrering','stylist-registration']]:[['Velg oppdrag','jobs'],['Nytt oppdrag','new']];
-      html='<div class="styling-home stylist-start"><h1>'+(page==='stylist-home'?'Styling og lager':'Start registrering')+'</h1><div class="styling-menu">'
+      html='<div class="styling-home stylist-start'+(page==='stylist-home'?' stylist-landing':'')+'">'
+        +(page==='stylist-home'?'':'<h1>Start registrering</h1>')+'<div class="styling-menu">'
         +options.map(([label,action])=>button(label,action,'',action!=='new')).join('')+'</div></div>';
     }else if(page==='home'){
       const options=[['Velg oppdrag','jobs'],['Nytt oppdrag','new'],['Mer','more','Lager og avsluttede oppdrag'+(isAdminView()?' · Administrasjon':'')]];

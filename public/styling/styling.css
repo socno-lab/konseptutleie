@@ -182,3 +182,20 @@
 }
 
 #screen .stylist-preview {padding:8px 10px;border-radius:4px;background:#e7ebdf;font-size:13px}
+
+@media screen {
+ #screen .stylist-landing {
+  display:grid;
+  place-items:center;
+  min-height:55vh;
+  min-height:55svh;
+  margin-top:0;
+ }
+ .stylist-landing .styling-menu {width:min(100%,360px)}
+ #screen .stylist-landing .button {
+  display:grid;
+  place-items:center;
+  border-radius:22px;
+  text-align:center;
+ }
+}
