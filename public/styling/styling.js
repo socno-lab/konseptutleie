@@ -1,5 +1,5 @@
 import {esc as escape,states,stockRows,stockControls,stockResults,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=8';
-import {foldProductSearch} from '../product-brand.js';
+import {foldProductSearch,inferProductBrand} from '../product-brand.js';
 const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status'),stylistMenu=document.querySelector('#stylistMenu');
 const historyLabels={...states,returned:'Returnert til lager',transferred:'Flyttet til annet oppdrag','transferred-in':'Flyttet hit fra annet oppdrag',unassigned:'Fjernet fra oppdrag'};
 const itemPattern=/^K-[0-9A-F]{16}$/;
@@ -158,10 +158,20 @@ function unusedCorrection(p){
 const sheetCapacity=24;
 let queue=new Set();
 let queueSearch='';
-const queueKey=()=>'ku-label-selection:'+data.actor;
+let printedView=false;
+const queueEligible=i=>pendingLabel(i)&&Boolean(i.labelPrinted)===printedView;
+const labelBrand=p=>(p.brand||inferProductBrand(p)||'').trim();
+const labelOrder=new Intl.Collator('nb',{sensitivity:'base',numeric:true});
+function orderedLabelGroups(){
+  return [...rows].sort((a,b)=>{
+    const left=labelBrand(a),right=labelBrand(b);
+    return Number(!left)-Number(!right)||labelOrder.compare(left,right)||labelOrder.compare(a.name,b.name)||a.id.localeCompare(b.id);
+  });
+}
+const queueKey=()=>'ku-label-selection-v2:'+data.actor+':'+printedView;
 const pendingLabel=i=>i.state==='held'&&Boolean(i.labelPending);
 function pendingQueueItems(ids){
-  const eligible=new Set(data.items.filter(pendingLabel).map(i=>i.id));
+  const eligible=new Set(data.items.filter(queueEligible).map(i=>i.id));
   return [...ids].filter(id=>eligible.has(id));
 }
 function saveQueue(){
@@ -171,13 +181,14 @@ function restoreQueue(){
   try{queue=new Set(pendingQueueItems(JSON.parse(sessionStorage.getItem(queueKey())||'[]')));}catch{queue=new Set();}
 }
 function queueView(){
-  const groups=rows.map(p=>({...p,items:p.items.filter(pendingLabel)})).filter(p=>p.items.length);
+  const groups=orderedLabelGroups().map(p=>({...p,items:p.items.filter(queueEligible)})).filter(p=>p.items.length);
   return '<h1>Samle etiketter</h1><p>Velg eksemplarer som venter på første innsjekking. Hvert ark har 24 plasser.</p>'
+    +'<div class="actions">'+button('Ikke utskrevet','queue-mode','new',!printedView)+button('Utskrevet – venter på festing','queue-mode','printed',printedView)+'</div>'
     +'<label class="queue-search">Søk etter produkt eller etikett-ID<input type="search" data-queue-search value="'+escape(queueSearch)+'"></label>'
-    +'<div class="actions"><strong id="queue-count" role="status"></strong>'+button('Vis utskrift','queue-preview','',true)+'</div>'
-    +groups.map(p=>'<section data-queue-product="'+escape(foldProductSearch([p.name,p.brand].join(' ')))+'"><label class="queue-choice scan-identity"><input type="checkbox" data-group="'+escape(p.id)+'">'+photo(p)+'<strong>'+escape(p.name)+' · '+p.items.length+'</strong></label><details><summary>Velg enkelte eksemplarer</summary>'
+    +'<div class="actions"><strong id="queue-count" role="status"></strong>'+button('Velg alle viste','queue-select-all')+button('Nullstill valg','queue-clear')+button('Vis utskrift','queue-preview','',true)+'</div>'
+    +groups.map((p,index)=>(index===0||labelBrand(groups[index-1])!==labelBrand(p)?'<h2 data-label-brand>'+escape(labelBrand(p)||'Uten merke')+'</h2>':'')+'<section data-queue-product="'+escape(foldProductSearch([p.name,p.brand].join(' ')))+'"><label class="queue-choice scan-identity"><input type="checkbox" data-group="'+escape(p.id)+'">'+photo(p)+'<strong>'+escape(p.name)+' · '+p.items.length+'</strong></label><details><summary>Velg enkelte eksemplarer</summary>'
       +p.items.map(i=>'<label class="queue-choice"><input type="checkbox" data-unit="'+escape(i.id)+'">'+escape(i.id)+' · '+escape(sideNames[i.side]||states[i.state])+'</label>').join('')+'</details></section>').join('')
-    +(groups.length?'<p data-queue-empty hidden>Ingen produkter eller etiketter passer søket.</p>':'<p>Ingen etiketter venter på første innsjekking.</p>');
+    +(groups.length?'<p data-queue-empty hidden>Ingen produkter eller etiketter passer søket.</p>':(printedView?'<p>Ingen bekreftede utskrifter venter på festing.</p>':'<p>Ingen nye etiketter å skrive ut.</p>'));
 }
 function filterQueue(){
   const term=foldProductSearch(queueSearch);
@@ -187,13 +198,21 @@ function filterQueue(){
     group.hidden=!matches;
     hasMatches||=matches;
   }
+  for(const heading of screen.querySelectorAll('[data-label-brand]')){
+    let group=heading.nextElementSibling;
+    heading.hidden=true;
+    while(group?.hasAttribute('data-queue-product')){
+      if(!group.hidden){heading.hidden=false;break;}
+      group=group.nextElementSibling;
+    }
+  }
   const empty=screen.querySelector('[data-queue-empty]');
   if(empty)empty.hidden=hasMatches;
 }
 function updateQueue(){
   for(const box of screen.querySelectorAll('[data-unit]'))box.checked=queue.has(box.dataset.unit);
   for(const box of screen.querySelectorAll('[data-group]')){
-    const items=rows.find(p=>p.id===box.dataset.group).items.filter(pendingLabel);
+    const items=rows.find(p=>p.id===box.dataset.group).items.filter(queueEligible);
     const count=items.filter(i=>queue.has(i.id)).length;
     box.checked=count===items.length;box.indeterminate=count>0&&!box.checked;
   }
@@ -203,10 +222,13 @@ function updateQueue(){
 function sheets(ids){
   const result=[];
   const items=new Map(data.items.map(i=>[i.id,i]));
+  const brands=new Map(rows.map(p=>[p.id,labelBrand(p)]));
   for(let start=0;start<ids.length;start+=sheetCapacity){
     const cells=ids.slice(start,start+sheetCapacity).map(id=>{
       const qr=window.qrcode(0,'M');qr.addData(location.origin+'/styling/index.html?item='+id);qr.make();
-      return '<div class="label">'+qr.createSvgTag(4,16)+'<div><b>KONSEPTUELL</b><span>'+escape(productName(items.get(id)))+'</span><strong>'+escape(id)+'</strong></div></div>';
+      const item=items.get(id),name=productName(item),brand=brands.get(item.product);
+      const title=brand&&!foldProductSearch(name).includes(foldProductSearch(brand))?brand+' · '+name:name;
+      return '<div class="label">'+qr.createSvgTag(4,16)+'<div><b>KONSEPTUELL</b><span>'+escape(title)+'</span><strong>'+escape(id)+'</strong></div></div>';
     });
     result.push('<div class="label-sheet">'+cells.join('')+'</div>');
   }
@@ -296,7 +318,7 @@ function render(){
     }else if(page==='queue'){
       html=queueView();
     }else if(page==='labels'){
-      html='<h1>'+labels.length+(labels.length===1?' etikett':' etiketter')+'</h1><p>Hama 70 × 37 mm · A4 · 24 etiketter per ark. Skriv ut i 100 % størrelse uten topp- og bunntekst.</p><div class="actions">'+button('Skriv ut på A4','print','',true)+button('Samle flere etiketter','extend-queue')+(jobId?button('Skann ut på oppdrag','out'):'')+'</div>'+sheets(labels);
+      html='<h1>'+labels.length+(labels.length===1?' etikett':' etiketter')+'</h1><p>Hama 70 × 37 mm · A4 · 24 etiketter per ark. Skriv ut i 100 % størrelse uten topp- og bunntekst.</p><div class="actions">'+button('Skriv ut på A4','print','',true)+button('Bekreft utskrevet','confirm-printed')+button('Samle flere etiketter','extend-queue')+(jobId?button('Skann ut på oppdrag','out'):'')+'</div>'+sheets(labels);
     }else if(page==='item'){
       const i=item();html=i?'<h1>'+escape(productName(i))+'</h1><section><div class="scan-identity">'+itemPhoto(i)+'<div><h2>'+states[i.state]+'</h2><p>'+escape(i.id)+' '+escape(jobName(i.job))+'</p></div></div>'+button('Skriv ut etikett','label',i.id)+'</section>':'<h1>Ukjent etikett</h1>';
       if(itemOrigin==='product')html=button('← Til produktet','product',productId)+html;
@@ -345,7 +367,7 @@ screen.oninput=e=>{
     return;
   }
   if(e.target.matches('[data-group],[data-unit]')){
-    const ids=e.target.dataset.group?rows.find(p=>p.id===e.target.dataset.group).items.filter(pendingLabel).map(i=>i.id):[e.target.dataset.unit];
+    const ids=e.target.dataset.group?rows.find(p=>p.id===e.target.dataset.group).items.filter(queueEligible).map(i=>i.id):[e.target.dataset.unit];
     for(const id of ids){if(e.target.checked)queue.add(id);else queue.delete(id);}
     saveQueue();
     updateQueue();return;
@@ -496,7 +518,22 @@ document.addEventListener('click',e=>{
     }
     if(action==='start-job-scan')return openScanner(value);
     if(action==='camera'){if(!navigator.mediaDevices?.getUserMedia)throw Error('Bruk etikett-ID eller åpne siden med HTTPS for kamera.');return camera();}
+    if(action==='queue-select-all'||action==='queue-clear'){
+      if(action==='queue-clear')queue.clear();
+      else for(const box of screen.querySelectorAll('[data-queue-product]:not([hidden]) [data-unit]'))queue.add(box.dataset.unit);
+      saveQueue();updateQueue();return;
+    }
+    if(action==='queue-mode'){
+      printedView=value==='printed';restoreQueue();return go('queue');
+    }
+    if(action==='confirm-printed'){
+      if(!confirm('Er alle '+labels.length+' etikettene i denne utskriften skrevet ut?'))return;
+      await api('labels-printed',{ids:labels});await load();
+      printedView=false;restoreQueue();saveQueue();go('queue');
+      status.textContent=labels.length+' etiketter bekreftet utskrevet.';return;
+    }
     if(action==='queue'||action==='extend-queue'){
+      printedView=false;
       await load();
       restoreQueue();
       if(action==='extend-queue'){for(const id of pendingQueueItems(labels))queue.add(id);}
@@ -507,7 +544,7 @@ document.addEventListener('click',e=>{
       await load();
       queue=new Set(pendingQueueItems(queue));
       saveQueue();
-      labels=[...queue];
+      labels=orderedLabelGroups().flatMap(p=>p.items.filter(i=>queue.has(i.id)).map(i=>i.id));
       return go(labels.length?'labels':'queue');
     }
     if(action==='print')return window.print();
@@ -591,4 +628,4 @@ window.addEventListener('popstate',e=>{
   if(!data||!e.state?.styling)return;
   jobId=e.state.jobId||jobId;productId=e.state.productId||productId;source=e.state.source||source;go(e.state.page);
 });
-if(invitation)render();else await run(async()=>{await load();const product=new URLSearchParams(location.search).get('labelsFor');if(itemId)await showItem(itemId);else if(product){labels=data.items.filter(i=>i.product===product).map(i=>i.id);if(labels.length)go('labels');else go('stock');}else go(landingPage());});
+if(invitation)render();else await run(async()=>{await load();const product=new URLSearchParams(location.search).get('labelsFor');if(itemId)await showItem(itemId);else if(product){labels=data.items.filter(i=>i.product===product&&pendingLabel(i)&&!i.labelPrinted).map(i=>i.id);if(labels.length)go('labels');else go('stock');}else go(landingPage());});

@@ -15,7 +15,7 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
   const post=req.method==='POST';
   if(!post && req.method!=='GET')throw stylingError('Metoden støttes ikke.',405);
   if(post && req.headers.origin!==origin)throw stylingError('Last inn siden på nytt.',403);
-  const data=post?await json(req,route==='review-returns'?40000:4000):{};
+  const data=post?await json(req,route==='labels-printed'?2000000:route==='review-returns'?40000:4000):{};
   const email=typeof data.email==='string'?data.email.trim().toLowerCase():'';
   const token=sessionToken(req,cookie);
   if(post && ['login','claim'].includes(route)){
@@ -65,6 +65,11 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     const key=randomBytes(32).toString('base64url');await store.stylingInvite(email,digest(key),data.replace===true);
     const url=origin+'/styling/index.html#invite='+key;
     return out(201,{url,sent:await sendInvitation(email,url)});
+  }
+  if(post&&route==='labels-printed'){
+    if(!Array.isArray(data.ids)||!data.ids.length||data.ids.length>90000||data.ids.some(id=>typeof id!=='string'||!itemId.test(id)))throw stylingError('Velg gyldige etiketter.');
+    await store.stylingConfirmPrinted(data.ids);
+    return out(200,{ok:true});
   }
   if(post && route==='jobs'){
     if(typeof data.address!=='string'||!data.address.trim()||data.address.length>200)throw stylingError('Fyll inn oppdragsadressen.');

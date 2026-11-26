@@ -5,6 +5,7 @@ export const stylingSchema = [
   'CREATE TABLE IF NOT EXISTS ku_stylist_sessions (token CHAR(64) PRIMARY KEY, email VARCHAR(254) NOT NULL, expires BIGINT NOT NULL, INDEX(email), INDEX(expires))',
   'CREATE TABLE IF NOT EXISTS ku_styling_jobs (id CHAR(36) PRIMARY KEY, address VARCHAR(200) NOT NULL, stylist VARCHAR(254) NOT NULL, created BIGINT NOT NULL)',
   'CREATE TABLE IF NOT EXISTS ku_styling_items (id VARCHAR(18) PRIMARY KEY, product VARCHAR(120) NOT NULL, name VARCHAR(200) NOT NULL, state VARCHAR(20) NOT NULL, job CHAR(36), revision INT NOT NULL DEFAULT 1, INDEX(product), FOREIGN KEY(job) REFERENCES ku_styling_jobs(id))',
+  'CREATE TABLE IF NOT EXISTS ku_styling_printed_labels (item VARCHAR(18) PRIMARY KEY, printed BIGINT NOT NULL, FOREIGN KEY(item) REFERENCES ku_styling_items(id) ON DELETE CASCADE)',
   'CREATE TABLE IF NOT EXISTS ku_styling_item_sides (item VARCHAR(18) PRIMARY KEY, side VARCHAR(5) NOT NULL, FOREIGN KEY(item) REFERENCES ku_styling_items(id))',
   'CREATE TABLE IF NOT EXISTS ku_styling_catalog_stock (product VARCHAR(120) PRIMARY KEY)',
   'CREATE TABLE IF NOT EXISTS ku_styling_job_closures (job CHAR(36) PRIMARY KEY, closed BIGINT NOT NULL, actor VARCHAR(254) NOT NULL, FOREIGN KEY(job) REFERENCES ku_styling_jobs(id) ON DELETE CASCADE)',
@@ -53,12 +54,24 @@ export function stylingStore(init,pool,query){
     async stylingOverview(){
       const [jobs,items]=await Promise.all([
         query('SELECT j.*,c.closed FROM ku_styling_jobs j LEFT JOIN ku_styling_job_closures c ON c.job=j.id ORDER BY j.created DESC'),
-        query(`SELECT i.*,s.side,i.state='held' AND NOT EXISTS (
+        query(`SELECT i.*,s.side,p.printed AS labelPrinted,i.state='held' AND NOT EXISTS (
           SELECT 1 FROM ku_styling_history h WHERE h.item=i.id AND h.state IN ('ready','assigned','out','check')
         ) AS labelPending
-        FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,s.side,i.id`)
+        FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id LEFT JOIN ku_styling_printed_labels p ON p.item=i.id ORDER BY i.name,s.side,i.id`)
       ]);
       return {jobs:jobs[0],items:items[0]};
+    },
+    async stylingConfirmPrinted(ids){
+      return transaction(async db=>{
+        const printed=Date.now();
+        const sorted=[...new Set(ids)].sort();
+        for(let start=0;start<sorted.length;start+=500){
+          const batch=sorted.slice(start,start+500);
+          await db.execute(`INSERT INTO ku_styling_printed_labels(item,printed)
+            SELECT id,? FROM ku_styling_items WHERE id IN (${batch.map(()=>'?').join(',')})
+            ORDER BY id ON DUPLICATE KEY UPDATE printed=ku_styling_printed_labels.printed`,[printed,...batch]);
+        }
+      });
     },
     async stylingJob(address,actor){
       const id=randomUUID();await query('INSERT INTO ku_styling_jobs VALUES(?,?,?,?)',[id,address,actor,Date.now()]);return {id};

@@ -90,11 +90,20 @@ test('Warehouse preserves label identity across sofa splits and address transfer
       sql.exec(stmt.replace('BIGINT AUTO_INCREMENT PRIMARY KEY','INTEGER PRIMARY KEY').replace(/, INDEX\(\w+\)/g,''));
     }
     const db={beginTransaction:()=>sql.exec('BEGIN'),commit:()=>sql.exec('COMMIT'),rollback:()=>sql.exec('ROLLBACK'),release(){},
-      execute(statement,values=[]){const q=sql.prepare(statement.replace(' FOR UPDATE','').replace('ON DUPLICATE KEY UPDATE note=?','ON CONFLICT(job,item,kind) DO UPDATE SET note=?'));return [/^SELECT/.test(statement)?q.all(...values):q.run(...values)];}};
+      execute(statement,values=[]){const q=sql.prepare(statement.replace(' FOR UPDATE','').replace('ON DUPLICATE KEY UPDATE printed=ku_styling_printed_labels.printed','ON CONFLICT(item) DO NOTHING').replace('ON DUPLICATE KEY UPDATE note=?','ON CONFLICT(job,item,kind) DO UPDATE SET note=?'));return [/^SELECT/.test(statement)?q.all(...values):q.run(...values)];}};
     const store=stylingStore(async()=>{},{getConnection:()=>db},db.execute);
     const p={id:'stockholm',name:'STOCKHOLM 2025',moduleRole:'base'};
     const {ids}=await store.stylingRegister(p,2,'stylist');
     assert.equal(new Set(ids).size,4);
+    await store.stylingConfirmPrinted([ids[0],ids[1]]);
+    const printedItems=async()=>(await store.stylingOverview()).items;
+    const initialPrint=(await printedItems()).find(item=>item.id===ids[0]).labelPrinted;
+    assert.ok(initialPrint);
+    await store.stylingConfirmPrinted([ids[0]]);
+    const printed=await printedItems();
+    assert.equal(printed.find(item=>item.id===ids[0]).labelPrinted,initialPrint);
+    assert.equal(printed.find(item=>item.id===ids[0]).labelPending,1);
+    assert.equal(printed.find(item=>item.id===ids[2]).labelPrinted,null);
     const job=await store.stylingJob('Testgata','stylist');
     await store.stylingMove({id:ids[0],action:'ready',revision:1},'stylist');
     await store.stylingMove({id:ids[0],action:'out',revision:2,job:job.id},'stylist');
