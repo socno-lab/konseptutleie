@@ -173,7 +173,7 @@ function render(){
         +items.map(unit=>listItem(unit)+(unit.state==='assigned'?button('Fjern fra oppdraget','unassign',unit.id):'')).join('')
         +'</details>'
         +(!job.closed||isAdminView()&&items.length===0?'<details><summary>Flere valg</summary><div class="actions job-actions">'
-          +(!job.closed?button('Registrer møbler','register')+(assigned.length?button('Sjekk ut alle ('+assigned.length+')','checkout-all'):'')+(isAdminView()?button('Velg fra lager','pick'):''):'')
+          +(!job.closed?button('Registrer møbler','register')+(assigned.length?button('Sjekk ut alle ('+assigned.length+')','checkout-all'):'<button type="button" class="button button-outline" disabled>Sjekk ut alle</button>')+(isAdminView()?button('Velg fra lager','pick'):''):'')
           +(isAdminView()&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div></details>':'')
         +returnOverview(job,missing,assigned.length)+'</div>';
     }else if(['in','out','scan-job'].includes(page)){
