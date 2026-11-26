@@ -1,5 +1,6 @@
-import {esc as escape,states,stockRows,stockControls,stockResults,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=7';
+import {esc as escape,states,stockRows,stockControls,stockResults,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=8';
 const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status'),stylistMenu=document.querySelector('#stylistMenu');
+const historyLabels={...states,transferred:'Flyttet til annet oppdrag',unassigned:'Fjernet fra oppdrag'};
 const itemPattern=/^K-[0-9A-F]{16}$/;
 const button=(label,action,value='',primary=false)=>'<button type="button" class="button '+(primary?'dark':'button-outline')+'" data-action="'+action+'" data-value="'+escape(value)+'">'+escape(label)+'</button>';
 const submit=label=>'<button class="button dark">'+label+'</button>';
@@ -58,8 +59,10 @@ const pendingReturns=()=>jobReturns.units.filter(unit=>unit.movement==='check'&&
 function returnOverview(job,missing,assigned){
   const returned=jobReturns.units.filter(unit=>unit.movement==='check');
   const pending=pendingReturns();
+  const transferred=jobReturns.units.filter(unit=>unit.movement==='transferred').length;
   const unitLabel=unit=>escape(productName(unit))+' · '+escape(unit.id);
   const totals=[['Skannet ut',jobReturns.units.length],['Returnert',returned.length],['Mangler',missing.length],['Til kontroll',pending.length]];
+  if(transferred)totals.push(['Flyttet',transferred]);
   return '<section class="job-return-summary"><h2>Retur og avvik</h2><dl class="job-totals">'
     +totals.map(([label,count])=>'<div><dt>'+label+'</dt><dd>'+count+'</dd></div>').join('')+'</dl>'
     +(missing.length?'<h3>Mangler</h3><ul>'+missing.map(unit=>'<li>'+unitLabel(unit)+' '+button('Åpne møbel','item',unit.id)+'</li>').join('')+'</ul>':'')
@@ -129,7 +132,7 @@ function render(){
       if(page==='job')nav.innerHTML=button('← Til oppdragslisten',data.jobs.find(job=>job.id===jobId)?.closed?'archive':'jobs');
       const inJob=['job','scan-job','in','out'].includes(page)&&data.jobs.some(job=>job.id===jobId);
       stylistMenu.innerHTML='<details><summary aria-label="Meny"><span aria-hidden="true">☰</span> Meny</summary><div class="stylist-menu-options">'
-        +button('Startside','stylist-home')+(inJob?button('Skann retur','start-job-scan','in')+button('Returkontroll og oppdrag','job',jobId):'')
+        +button('Startside','stylist-home')+(inJob?button('Returkontroll og oppdrag','job',jobId):'')
         +button('Lager','stock')+button('Avsluttede oppdrag','archive')+(isPreview()?'<a class="button" href="/admin/">Til administrasjon</a>':button('Logg ut','logout'))+'</div></details>';
     }else if(mobileMenu.matches){
       if(page!=='home')nav.innerHTML=button('← Tilbake til hovedmeny','home');
@@ -165,18 +168,18 @@ function render(){
       const assigned=items.filter(i=>i.state==='assigned');
       const missing=items.filter(i=>i.state==='out');
       html='<div class="job-detail"><h1>'+escape(job.address)+'</h1>'
-        +'<div class="actions job-scan-primary">'+(!job.closed?button('Skann QR','start-job-scan','scan-job',true):button('Skann retur','start-job-scan','in',true))+'</div>'
+        +'<div class="actions job-scan-primary">'+button('Skann QR','start-job-scan','scan-job',true)+'</div>'
         +'<details><summary>Møbler på oppdraget · '+items.length+'</summary>'
         +items.map(unit=>listItem(unit)+(unit.state==='assigned'?button('Fjern fra oppdraget','unassign',unit.id):'')).join('')
         +(isAdminView()&&assigned.length&&!job.closed?button('Sjekk ut alle ('+assigned.length+')','checkout-all'): '')+'</details>'
-        +'<details><summary>Flere valg</summary><div class="actions job-actions">'
-        +(!job.closed?button('Skann retur','start-job-scan','in')+button('Velg fra lager','pick')+button('Registrer møbler','register'):'')
-        +(isAdminView()&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div></details>'
+        +(!job.closed||isAdminView()&&items.length===0?'<details><summary>Flere valg</summary><div class="actions job-actions">'
+          +(!job.closed?button('Registrer møbler','register')+(isAdminView()?button('Velg fra lager','pick'):''):'')
+          +(isAdminView()&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div></details>':'')
         +returnOverview(job,missing,assigned.length)+'</div>';
     }else if(['in','out','scan-job'].includes(page)){
       const title=page==='in'?'Skann retur':page==='out'?'Skann ut':'Skann QR';
       html='<h1>'+title+'</h1><p>'+escape(jobName(jobId))+'</p>'
-        +(page==='scan-job'?'<p>Skann for å legge til. Skann igjen ved henting for å sjekke ut.</p>':'')
+        +(page==='scan-job'?'<p>Skann ved pakking, henting eller retur.</p>':'')
         +'<div class="actions">'+button('Start kamera','camera','',true)+button('Til oppdraget','job',jobId)+'</div><video muted playsinline hidden></video><form data-form="scan"><label>Etikett-ID<input name="id" required autocomplete="off" autocapitalize="characters"></label>'+submit('Registrer ID')+'</form>'
         +(!isAdminView()?'<details class="scanner-items"><summary>Møbler på oppdraget</summary><div id="scannerItems"></div></details>':'');
     }else if(page==='stock'||page==='pick'){
@@ -206,7 +209,7 @@ function render(){
       if(i?.state==='out')html+=button('Registrer retur','return');
       if(i&&['check','held'].includes(i.state))html+=button('Godkjenn for lager','ready');
       if(i&&['check','ready'].includes(i.state))html+=button('Hold tilbake','hold');
-      if(i)html+='<details><summary>Historikk</summary>'+history.map(h=>'<p>'+escape(date(h.created))+' · '+states[h.state]+' · '+escape(h.actor)+' '+escape(jobName(h.job))+'</p>').join('')+'</details>';
+      if(i)html+='<details><summary>Historikk</summary>'+history.map(h=>'<p>'+escape(date(h.created))+' · '+escape(historyLabels[h.state])+' · '+escape(h.actor)+' '+escape(jobName(h.job))+'</p>').join('')+'</details>';
     }else if(page==='usage'&&isAdminView()){
       html=usageView();
     }else if(page==='staff' && isAdminView()){
@@ -264,11 +267,28 @@ async function scan(raw){
   if(!itemPattern.test(id)){try{const url=new URL(raw);if(url.origin===location.origin&&url.pathname==='/styling/index.html')id=url.searchParams.get('item');}catch{}}
   const i=data.items.find(i=>i.id===id);
   if(!i)throw Error('Ukjent etikett. Kontroller ID-en.');
-  const result=await api('move',{id:i.id,revision:i.revision,action:page==='scan-job'?'scan':page,job:jobId});
+  const request={id:i.id,revision:i.revision,job:jobId};
+  let route='move',action=page==='scan-job'?'scan':page;
+  if(page==='scan-job'&&i.job&&i.job!==jobId&&['assigned','out'].includes(i.state)){
+    if(data.jobs.find(job=>job.id===jobId)?.closed)throw Error('Oppdraget er avsluttet.');
+    if(!confirm(productName(i)+' står på «'+(jobName(i.job)||'et annet oppdrag')+'» med status «'+states[i.state]+'». Flytt hit til «'+jobName(jobId)+'»?')){
+      status.textContent='Møbelet ble ikke flyttet.';
+      return;
+    }
+    route='transfer';
+    request.fromJob=i.job;
+  }else if(page==='scan-job'&&i.job===jobId&&i.state==='out'){
+    if(!confirm('Bekreft retur av '+productName(i)+' til kontroll.')){
+      status.textContent='Retur ble ikke registrert.';
+      return;
+    }
+    action='in';
+  }
+  const result=await api(route,{...request,action});
   Object.assign(i,result,{revision:i.revision+1});
   rows=stockRows(data);
   refreshScannerItems();
-  status.textContent=productName(i)+' · '+({assigned:'lagt til på oppdraget',out:'skannet ut',check:'returnert til kontroll'}[result.state]);
+  status.textContent=productName(i)+' · '+(route==='transfer'?'flyttet hit':({assigned:'lagt til på oppdraget',out:'skannet ut',check:'returnert til kontroll'}[result.state]));
 }
 async function camera(){
   stopCamera();const session=scanSession,video=screen.querySelector('video');
@@ -284,7 +304,7 @@ async function camera(){
         canvas.width=Math.min(video.videoWidth,720);canvas.height=Math.round(video.videoHeight*canvas.width/video.videoWidth);
         ctx.drawImage(video,0,0,canvas.width,canvas.height);
         const img=ctx.getImageData(0,0,canvas.width,canvas.height),code=window.jsQR(img.data,img.width,img.height)?.data;
-        if(code){const repeat=previous===code&&Date.now()-lastSeen<1500;previous=code;lastSeen=Date.now();if(!repeat)await run(()=>scan(code));}
+        if(code){const repeat=previous===code&&Date.now()-lastSeen<1500;previous=code;lastSeen=Date.now();if(!repeat){await run(()=>scan(code));lastSeen=Date.now();}}
       }
     }finally{if(session===scanSession)setTimeout(frame,180);}
   }

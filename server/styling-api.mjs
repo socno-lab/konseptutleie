@@ -125,6 +125,14 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     invalidatePublic();
     return out(200,result);
   }
+  if(post&&route==='transfer'){
+    if(!itemId.test(data.id)||!Number.isInteger(data.revision)||!jobId.test(data.fromJob)||!jobId.test(data.job)||data.fromJob===data.job){
+      throw stylingError('Velg gyldige oppdrag og møbel.');
+    }
+    const result=await store.stylingTransfer(data,actor);
+    invalidatePublic();
+    return out(200,result);
+  }
   if(post && route==='move'){
     if(!itemId.test(data.id)||!Number.isInteger(data.revision)|| (['in','out','scan','assign','unassign'].includes(data.action)&& !jobId.test(data.job)))throw stylingError('Velg oppdrag og møbel.');
     const result=await store.stylingMove(data,actor);
