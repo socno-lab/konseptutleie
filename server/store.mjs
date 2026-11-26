@@ -75,6 +75,16 @@ export function createMysqlStore(env,seed){
      await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(branded),new Date()]);
     if(products.some(p=>p.id===retiredOakTableId)){const [workflows]=await connection.execute('SELECT body FROM ku_workflow FOR UPDATE');
     for(const row of workflows){const r=JSON.parse(row.body),next=mergeOakWorkflow(r);if(next!==r)await connection.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(next),r.id]);}}
+    const [repair]=await connection.execute('INSERT IGNORE INTO ku_catalog_migrations (name) VALUES (?)',['recheck-legacy-initial-ready']);
+    if(repair.affectedRows){
+     // Only legacy registration created units in ready state. QR-native products
+     // start held. Re-evaluate the affected legacy markers in this transaction.
+     await connection.execute(`DELETE FROM ku_styling_catalog_stock WHERE product IN (
+       SELECT i.product FROM ku_styling_items i WHERE 'ready'=(
+         SELECT h.state FROM ku_styling_history h WHERE h.item=i.id ORDER BY h.id LIMIT 1
+       )
+     )`);
+    }
     await promoteConfirmedStock(connection,branded);
     await connection.commit();
    }catch(error){await connection.rollback();throw error;}finally{connection.release();}

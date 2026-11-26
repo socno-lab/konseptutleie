@@ -17,13 +17,20 @@ export function inventoryCounts(rows){
  return result;
 }
 
+// A registration used to start in 'ready'. Only a later approval from 'held'
+// confirms that the physical unit has been checked into the warehouse.
+export const confirmedCheckInSQL=`EXISTS (SELECT 1 FROM ku_styling_history h
+ WHERE h.item=i.id AND h.state='ready' AND 'held'=(
+   SELECT prev.state FROM ku_styling_history prev WHERE prev.item=h.item AND prev.id<h.id ORDER BY prev.id DESC LIMIT 1
+ ))`;
+
 export async function promoteConfirmedStock(db,products,onlyProduct){
  const candidates=products.filter(p=>(!onlyProduct||p.id===onlyProduct)&&physicalRentalProduct(p));
  if(!candidates.length)return;
  const [rows]=await db.execute(`SELECT i.product,s.side,COUNT(*) AS confirmed
    FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id
    WHERE i.state<>'withdrawn' AND NOT EXISTS (SELECT 1 FROM ku_styling_catalog_stock m WHERE m.product=i.product)
-   AND EXISTS (SELECT 1 FROM ku_styling_history h WHERE h.item=i.id AND h.state IN ('ready','assigned','out','check'))
+   AND ${confirmedCheckInSQL}
    ${onlyProduct?'AND i.product=?':''} GROUP BY i.product,s.side`,onlyProduct?[onlyProduct]:[]);
  const counts=inventoryCounts(rows);
  for(const product of candidates){

@@ -95,12 +95,15 @@ test('QR takeover counts confirmed physical units once and stays active after ch
     }};
     const products=[{id:'chair',stock:2},{id:'other',stock:1}];
     sql.exec("INSERT INTO ku_styling_items(id,product,name,state) VALUES ('a','chair','Stol','out'),('b','chair','Stol','held'),('c','chair','Stol','held')");
-    const event=id=>sql.prepare("INSERT INTO ku_styling_history(item,state,actor,created) VALUES (?,'ready','stylist',1)").run(id);
+    const event=(id,state)=>sql.prepare("INSERT INTO ku_styling_history(item,state,actor,created) VALUES (?,?,'stylist',1)").run(id,state);
     const managed=()=>sql.prepare('SELECT product FROM ku_styling_catalog_stock').all().map(row=>row.product);
-    event('a');event('a');
+    event('a','ready');event('a','held');event('b','ready');event('b','held');
     await promoteConfirmedStock(db,products);
     assert.deepEqual(managed(),[]);
-    event('b');
+    event('a','ready');event('a','out');
+    await promoteConfirmedStock(db,products);
+    assert.deepEqual(managed(),[]);
+    event('b','ready');
     await promoteConfirmedStock(db,products,'chair');
     assert.deepEqual(managed(),['chair']);
     sql.exec("UPDATE ku_styling_items SET state='withdrawn'");

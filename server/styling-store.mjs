@@ -1,3 +1,4 @@
+import {confirmedCheckInSQL} from './qr-catalog-stock.mjs';
 import {randomUUID} from 'node:crypto';
 
 export const stylingSchema = [
@@ -54,8 +55,8 @@ export function stylingStore(init,pool,query,lockStockCatalog){
     async stylingOverview(){
       const [jobs,items]=await Promise.all([
         query('SELECT j.*,c.closed FROM ku_styling_jobs j LEFT JOIN ku_styling_job_closures c ON c.job=j.id ORDER BY j.created DESC'),
-        query(`SELECT i.*,s.side,p.printed AS labelPrinted,i.state='held' AND NOT EXISTS (
-          SELECT 1 FROM ku_styling_history h WHERE h.item=i.id AND h.state IN ('ready','assigned','out','check')
+        query(`SELECT i.*,s.side,p.printed AS labelPrinted,i.state='held' AND NOT ${confirmedCheckInSQL} AND NOT EXISTS (
+          SELECT 1 FROM ku_styling_history used WHERE used.item=i.id AND used.job IS NOT NULL AND used.state IN ('assigned','out','check')
         ) AS labelPending
         FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id LEFT JOIN ku_styling_printed_labels p ON p.item=i.id ORDER BY i.name,s.side,i.id`)
       ]);
