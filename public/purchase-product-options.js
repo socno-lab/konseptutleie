@@ -1,5 +1,5 @@
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
-import {saleColourSwatches} from './sale-catalog-view.js?v=choicesfirst20261119';
+import {saleColourSwatches} from './sale-catalog-view.js?v=cataloglinks20261126';
 import {salesEnabled,saleUnitPrice,saleEstimate,saleTermsForProduct,saleColours} from './sales-model.js?v=fest20261114';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
 import {sofaLayoutError,moduleQuantityLimit} from './sofa-layout.js?v=launch20261024';

@@ -1,6 +1,6 @@
 import {periodPriceMarkup} from './rental-period-display.js?v=choicesfirst20261119';
 import {normalizeRefinement,matchesColor,sortRentalCards,writeRefinement} from './catalog-refinement-model.js?v=compactsort20261119b';
-import {rentalCardLinks} from './rental-card-links.js?v=loadstable20261119';
+import {rentalCardLinks} from './rental-card-links.js?v=cataloglinks20261126';
 import {scopeForPurpose} from './rental-pricing-model.js?v=fest20261114';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
 import {dimensionSearchText} from './product-dimensions.js?v=optionimages20261108';
