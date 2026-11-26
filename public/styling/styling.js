@@ -1,7 +1,7 @@
 import {esc as escape,states,stockRows,stockControls,stockResults,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=8';
 import {foldProductSearch} from '../product-brand.js';
 const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status'),stylistMenu=document.querySelector('#stylistMenu');
-const historyLabels={...states,transferred:'Flyttet til annet oppdrag','transferred-in':'Flyttet hit fra annet oppdrag',unassigned:'Fjernet fra oppdrag'};
+const historyLabels={...states,returned:'Returnert til lager',transferred:'Flyttet til annet oppdrag','transferred-in':'Flyttet hit fra annet oppdrag',unassigned:'Fjernet fra oppdrag'};
 const itemPattern=/^K-[0-9A-F]{16}$/;
 const button=(label,action,value='',primary=false)=>'<button type="button" class="button '+(primary?'dark':'button-outline')+'" data-action="'+action+'" data-value="'+escape(value)+'">'+escape(label)+'</button>';
 const submit=label=>'<button class="button dark">'+label+'</button>';
@@ -82,8 +82,18 @@ function listItem(i){
 let jobReturns={units:[],deviations:[]};
 async function loadJobReturns(){jobReturns=await api('job-returns/'+jobId);}
 const pendingReturns=()=>jobReturns.units.filter(unit=>unit.movement==='check'&&unit.is_latest&&unit.state==='check');
+function jobHistory(){
+  const events=jobReturns.history||[];
+  const reportable=new Set(jobReturns.units.filter(unit=>unit.is_latest&&unit.state==='ready'&&unit.movement==='returned').map(unit=>unit.id));
+  return '<details><summary>Møbler benyttet på oppdraget</summary>'
+    +(events.length?events.map(entry=>{
+      const canReport=entry.state==='returned'&&reportable.delete(entry.id);
+      return '<div class="record scan-identity">'+itemPhoto(entry)+'<div><strong>'+escape(productName(entry))+'</strong><p>'+escape(entry.id)+' · '+escape(historyLabels[entry.state]||entry.state)+'</p><p>'+escape(date(entry.created))+' · '+escape(entry.actor)+'</p>'
+        +(canReport?button('Marker som skadet','report-damage',entry.id):'')+'</div></div>';
+    }).join(''):'<p>Ingen møbler registrert på oppdraget ennå.</p>')+'</details>';
+}
 function returnOverview(job,out,assigned){
-  const returned=jobReturns.units.filter(unit=>unit.movement==='check');
+  const returned=jobReturns.units.filter(unit=>['returned','check'].includes(unit.movement));
   const pending=pendingReturns();
   const transferred=jobReturns.units.filter(unit=>unit.movement==='transferred').length;
   const reportedMissing=new Set(jobReturns.deviations.filter(entry=>entry.kind==='missing').map(entry=>entry.item));
@@ -225,11 +235,11 @@ function render(){
         +'<details><summary>Møbler på oppdraget · '+items.length+'</summary>'
         +items.map(listItem).join('')
         +'</details>'
-        +(!job.closed||isAdminView()&&items.length===0?'<details><summary>Flere valg</summary><div class="actions job-actions">'
+        +'<details><summary>Flere valg</summary><div class="actions job-actions">'
           +(!job.closed?button('Registrer møbler','register')+(assigned.length?button('Sjekk ut alle ('+assigned.length+')','checkout-all'):'<button type="button" class="button button-outline" disabled>Sjekk ut alle</button>')
             +(assigned.length||out.length?button('Flytt til annen adresse','transfer-all'):'<button type="button" class="button button-outline" disabled>Flytt til annen adresse</button>')
             +(isAdminView()?button('Velg fra lager','pick'):''):'')
-          +(isAdminView()&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div></details>':'')
+          +(isAdminView()&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div>'+jobHistory()+'</details>'
         +returnOverview(job,out,assigned.length)+'</div>';
     }else if(page==='transfer-all'){
       const items=data.items.filter(i=>i.job===jobId&&['assigned','out'].includes(i.state));
@@ -243,7 +253,7 @@ function render(){
     }else if(['in','out','scan-job'].includes(page)){
       const title=page==='in'?'Skann retur':page==='out'?'Skann ut':'Skann QR';
       html='<h1>'+title+'</h1><p>'+escape(jobName(jobId))+'</p>'
-        +(page==='scan-job'?'<p>Skann ved pakking, henting eller retur.</p>':'')
+        +(page==='scan-job'?'<p>Skann for å legge møbelet på oppdraget. Skann samme etikett igjen for å returnere møbelet til lager.</p>':'')
         +'<div class="actions">'+button('Start kamera','camera','',true)+button('Til oppdraget','job',jobId)+'</div><video muted playsinline hidden></video><form data-form="scan"><label>Etikett-ID<input name="id" required autocomplete="off" autocapitalize="characters"></label>'+submit('Registrer ID')+'</form>'
         +(!isAdminView()?'<details class="scanner-items"><summary>Møbler på oppdraget</summary><div id="scannerItems"></div></details>':'');
     }else if(page==='stock'||page==='pick'){
@@ -356,19 +366,14 @@ async function scan(raw){
     }
     route='transfer';
     request.fromJob=i.job;
-  }else if(page==='scan-job'&&i.job===jobId&&i.state==='out'){
-    if(!confirm('Bekreft retur av '+productName(i)+' til kontroll.')){
-      status.textContent='Retur ble ikke registrert.';
-      return;
-    }
-    action='in';
   }
   const result=await api(route,{...request,action});
   Object.assign(i,result,{revision:i.revision+1});
   rows=stockRows(data);
   refreshScannerItems();
-  const resultLabel=route==='transfer'?'flyttet hit':({assigned:'lagt til på oppdraget',out:'skannet ut',check:'retur registrert, venter på lagergodkjenning'}[result.state]||states[result.state]);
+  const resultLabel=route==='transfer'?'flyttet hit':({assigned:'lagt til på oppdraget',out:'lagt til på oppdraget',ready:'tilbake på lager',check:'retur registrert, venter på lagergodkjenning'}[result.state]||states[result.state]);
   status.innerHTML='<span class="scan-identity">'+itemPhoto(i)+'<span>'+escape(productName(i)+' · '+resultLabel)+'</span>'
+    +(result.state==='ready'?button('Marker som skadet','report-damage',i.id):'')
     +(result.state==='check'?button('Åpne returkontroll','job',jobId):'')+'</span>';
 }
 async function camera(){
@@ -377,7 +382,7 @@ async function camera(){
   if(session!==scanSession){media.getTracks().forEach(t=>t.stop());return;}
   stream=media;video.srcObject=media;video.hidden=false;await video.play();
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
-  let previous='',lastSeen=0;
+  let previous='',absentSince=0;
   async function frame(){
     if(session!==scanSession)return;
     try{
@@ -385,7 +390,13 @@ async function camera(){
         canvas.width=Math.min(video.videoWidth,720);canvas.height=Math.round(video.videoHeight*canvas.width/video.videoWidth);
         ctx.drawImage(video,0,0,canvas.width,canvas.height);
         const img=ctx.getImageData(0,0,canvas.width,canvas.height),code=window.jsQR(img.data,img.width,img.height)?.data;
-        if(code){const repeat=previous===code&&Date.now()-lastSeen<1500;previous=code;lastSeen=Date.now();if(!repeat){await run(()=>scan(code));lastSeen=Date.now();}}
+        if(code){
+          absentSince=0;
+          if(code!==previous){previous=code;await run(()=>scan(code));}
+        }else{
+          absentSince||=Date.now();
+          if(Date.now()-absentSince>=1500)previous='';
+        }
       }
     }finally{if(session===scanSession)setTimeout(frame,180);}
   }
@@ -451,6 +462,16 @@ document.addEventListener('click',e=>{
     if(action==='unassign'&&page==='job'){
       await move(data.items.find(i=>i.id===value),'unassign',jobId);
       await loadJobReturns();return go('job');
+    }
+    if(action==='report-damage'){
+      const unit=data.items.find(unit=>unit.id===value);
+      const note=prompt('Beskriv skaden på '+productName(unit));
+      if(!note?.trim())return;
+      await api('review-returns',{id:jobId,units:[{id:value,revision:unit.revision,note:note.trim()}]});
+      await load();
+      if(page==='job'){await loadJobReturns();render();}
+      status.textContent=productName(unit)+' · skaden er registrert og møbelet er holdt tilbake.';
+      return;
     }
     if(action==='start-job-scan')return openScanner(value);
     if(action==='camera'){if(!navigator.mediaDevices?.getUserMedia)throw Error('Bruk etikett-ID eller åpne siden med HTTPS for kamera.');return camera();}

@@ -21,10 +21,10 @@ export async function createStylingItem(db,product,actor,side,state='held'){
  return id;
 }
 export function nextMovement(item,action,job){
-  if(['assign','scan'].includes(action)&&item.state==='ready'&&job)return {state:'assigned',job};
-  if(action==='scan'){
-    if(item.state==='assigned'&&item.job===job)return {state:'out',job};
-    if(item.state==='out'&&item.job===job)throw stylingError('Møbelet er allerede ute. Bekreft retur før det legges til kontroll.',409);
+  if(action==='assign'&&item.state==='ready'&&job)return {state:'assigned',job};
+  if(action==='scan'&&job){
+    if(item.state==='ready')return {state:'out',job};
+    if(item.job===job&&['assigned','out'].includes(item.state))return {state:'ready',job:null};
   }
   if(action==='out'&&job&&(item.state==='ready'||(item.state==='assigned'&&item.job===job)))return {state:'out',job};
   if(action==='unassign'&&item.state==='assigned'&&item.job===job)return {state:'ready',job:null};
@@ -76,12 +76,16 @@ export function stylingStore(init,pool,query){
     async stylingJobReturns(id){
       const [units]=await query(`SELECT i.id,i.product,i.name,i.state,i.revision,i.job,s.side,
         h.state AS movement,h.id=(SELECT MAX(latest.id) FROM ku_styling_history latest WHERE latest.item=i.id) AS is_latest
-        FROM (SELECT item,MAX(id) AS history_id FROM ku_styling_history WHERE job=? AND state IN ('out','check','transferred','transferred-in') GROUP BY item) movements
+        FROM (SELECT item,MAX(id) AS history_id FROM ku_styling_history WHERE job=? AND state IN ('out','check','returned','transferred','transferred-in') GROUP BY item) movements
         JOIN ku_styling_history h ON h.id=movements.history_id
         JOIN ku_styling_items i ON i.id=h.item
         LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,i.id`,[id]);
       const [deviations]=await query('SELECT item,kind,note FROM ku_styling_job_deviations WHERE job=? ORDER BY item,kind',[id]);
-      return {units,deviations};
+      const [history]=await query(`SELECT h.item AS id,i.name,i.product,s.side,h.state,h.created,h.actor
+        FROM ku_styling_history h JOIN ku_styling_items i ON i.id=h.item
+        LEFT JOIN ku_styling_item_sides s ON s.item=i.id
+        WHERE h.job=? ORDER BY h.created DESC,h.id DESC`,[id]);
+      return {units,deviations,history};
     },
     async stylingReviewReturns(id,units,actor){
       return transaction(async db=>{
@@ -89,7 +93,9 @@ export function stylingStore(init,pool,query){
         for(const unit of [...units].sort((a,b)=>a.id.localeCompare(b.id))){
           const [[item]]=await db.execute('SELECT * FROM ku_styling_items WHERE id=? FOR UPDATE',[unit.id]);
           const [[latest]]=await db.execute('SELECT job,state FROM ku_styling_history WHERE item=? ORDER BY id DESC LIMIT 1',[unit.id]);
-          if(!item||item.state!=='check'||item.revision!==unit.revision||latest?.job!==id||latest.state!=='check'){
+          const awaitingReview=item?.state==='check'&&latest?.state==='check';
+          const damagedAfterScan=unit.note&&item?.state==='ready'&&latest?.state==='returned';
+          if((!awaitingReview&&!damagedAfterScan)||item.revision!==unit.revision||latest?.job!==id){
             throw stylingError('Returlisten er endret. Oppdater valget og prøv igjen.',409);
           }
           await recordMove(db,item,nextMovement(item,unit.note?'hold':'ready'),actor,id);
@@ -191,21 +197,24 @@ export function stylingStore(init,pool,query){
         }
         const previousState=item.state==='out'?'transferred':'unassigned';
         await db.execute('INSERT INTO ku_styling_history(item,actor,state,job,created) VALUES(?,?,?,?,?)',[id,actor,previousState,fromJob,Date.now()]);
-        const move={state:'assigned',job};
-        await recordMove(db,item,move,actor,job);
+        const move={state:'out',job};
+        await recordMove(db,item,move,actor,job,item.state==='out'?'transferred-in':'out');
         return move;
       });
     },
     async stylingMove(input,actor){
       return transaction(async db=>{
+        let closure;
         if(['in','out','scan','assign','unassign'].includes(input.action)){
-          const closure=await lockJob(db,input.job);
-          if(closure&&input.action!=='in')throw stylingError('Oppdraget er avsluttet.',409);
+          closure=await lockJob(db,input.job);
+          if(closure&&!['scan','in'].includes(input.action))throw stylingError('Oppdraget er avsluttet.',409);
         }
         const [[item]]=await db.execute('SELECT * FROM ku_styling_items WHERE id=? FOR UPDATE',[input.id]);
         if(!item || item.revision!==input.revision)throw stylingError('Møbelet er endret. Kontroller status og prøv igjen.',409);
         const move=nextMovement(item,input.action,input.job);
-        await recordMove(db,item,move,actor,move.job||item.job);
+        const returned=input.action==='scan'&&move.state==='ready';
+        if(closure&&input.action==='scan'&&!returned)throw stylingError('Oppdraget er avsluttet.',409);
+        await recordMove(db,item,move,actor,move.job||item.job,returned?'returned':move.state);
         return move;
       });
     },

@@ -90,7 +90,7 @@ test('Warehouse preserves label identity across sofa splits and address transfer
       sql.exec(stmt.replace('BIGINT AUTO_INCREMENT PRIMARY KEY','INTEGER PRIMARY KEY').replace(/, INDEX\(\w+\)/g,''));
     }
     const db={beginTransaction:()=>sql.exec('BEGIN'),commit:()=>sql.exec('COMMIT'),rollback:()=>sql.exec('ROLLBACK'),release(){},
-      execute(statement,values=[]){const q=sql.prepare(statement.replace(' FOR UPDATE',''));return [/^SELECT/.test(statement)?q.all(...values):q.run(...values)];}};
+      execute(statement,values=[]){const q=sql.prepare(statement.replace(' FOR UPDATE','').replace('ON DUPLICATE KEY UPDATE note=?','ON CONFLICT(job,item,kind) DO UPDATE SET note=?'));return [/^SELECT/.test(statement)?q.all(...values):q.run(...values)];}};
     const store=stylingStore(async()=>{},{getConnection:()=>db},db.execute);
     const p={id:'stockholm',name:'STOCKHOLM 2025',moduleRole:'base'};
     const {ids}=await store.stylingRegister(p,2,'stylist');
@@ -127,5 +127,20 @@ test('Warehouse preserves label identity across sofa splits and address transfer
     const existing=await store.stylingTransferAll({fromJob:moved.job,job:job.id,count:2,outCount:1},'stylist');
     assert.equal(existing.job,job.id);
     assert.equal((await store.stylingOverview()).items.filter(i=>i.job===job.id).length,2);
+
+    const chair=ids[2];
+    const scan=revision=>store.stylingMove({id:chair,action:'scan',revision,job:job.id},'stylist');
+    await store.stylingMove({id:chair,action:'ready',revision:1},'stylist');
+    assert.deepEqual(await scan(2),{state:'out',job:job.id});
+    await assert.rejects(scan(2),{status:409});
+    assert.deepEqual(await scan(3),{state:'ready',job:null});
+    const report=await store.stylingJobReturns(job.id);
+    assert.equal(report.units.find(i=>i.id===chair).movement,'returned');
+    assert.deepEqual(report.history.filter(i=>i.id===chair).map(i=>i.state),['returned','out']);
+    const damage=[{id:chair,revision:4,note:'Skadet ben'}];
+    await assert.rejects(store.stylingReviewReturns(moved.job,damage,'stylist'),{status:409});
+    await store.stylingReviewReturns(job.id,damage,'stylist');
+    assert.equal((await store.stylingOverview()).items.find(i=>i.id===chair).state,'held');
+    assert.equal((await store.stylingJobReturns(job.id)).deviations[0].kind,'damage');
   }finally{sql.close();}
 });
