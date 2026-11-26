@@ -85,12 +85,33 @@ const pendingReturns=()=>jobReturns.units.filter(unit=>unit.movement==='check'&&
 function jobHistory(){
   const events=jobReturns.history||[];
   const reportable=new Set(jobReturns.units.filter(unit=>unit.is_latest&&unit.state==='ready'&&unit.movement==='returned').map(unit=>unit.id));
+  const products=new Map();
+  for(const event of events){
+    const key=JSON.stringify([event.product,event.side]);
+    if(!products.has(key))products.set(key,new Map());
+    const units=products.get(key);
+    if(!units.has(event.id))units.set(event.id,[]);
+    units.get(event.id).push(event);
+  }
+  const statusLabel=state=>state==='returned'?states.ready:historyLabels[state]||state;
+  const rows=[];
+  for(const units of products.values()){
+    const first=units.values().next().value[0];
+    const counts=new Map();
+    const details=[];
+    for(const history of units.values()){
+      const latest=history[0];
+      const label=statusLabel(latest.state);
+      counts.set(label,(counts.get(label)||0)+1);
+      details.push('<div><strong>'+escape(latest.id)+'</strong><ul>'+history.map(event=>
+        '<li>'+escape(date(event.created))+' · '+escape(historyLabels[event.state]||event.state)+' · '+escape(event.actor)+'</li>'
+      ).join('')+'</ul>'+(reportable.has(latest.id)?button('Marker som skadet','report-damage',latest.id):'')+'</div>');
+    }
+    const summary=[...counts].map(([label,n])=>n+' × '+escape(label)).join(' · ');
+    rows.push('<details class="history-product"><summary><span class="scan-identity">'+itemPhoto(first)+'<span>'+escape(productName(first))+'<small>'+summary+'</small></span></span></summary>'+details.join('')+'</details>');
+  }
   return '<details><summary>Møbler benyttet på oppdraget</summary>'
-    +(events.length?events.map(entry=>{
-      const canReport=entry.state==='returned'&&reportable.delete(entry.id);
-      return '<div class="record scan-identity">'+itemPhoto(entry)+'<div><strong>'+escape(productName(entry))+'</strong><p>'+escape(entry.id)+' · '+escape(historyLabels[entry.state]||entry.state)+'</p><p>'+escape(date(entry.created))+' · '+escape(entry.actor)+'</p>'
-        +(canReport?button('Marker som skadet','report-damage',entry.id):'')+'</div></div>';
-    }).join(''):'<p>Ingen møbler registrert på oppdraget ennå.</p>')+'</details>';
+    +(rows.join('')||'<p>Ingen møbler registrert på oppdraget ennå.</p>')+'</details>';
 }
 function returnOverview(job,out,assigned){
   const returned=jobReturns.units.filter(unit=>['returned','check'].includes(unit.movement));

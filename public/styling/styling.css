@@ -202,3 +202,11 @@
  #nav:has([data-action=staff]) {flex-wrap:wrap;justify-content:flex-start}
  #nav:has([data-action=staff]) a {margin-left:0}
 }
+
+@media screen {
+ #screen .history-product {padding:6px 10px;margin:6px 0}
+ .history-product summary .scan-identity {display:inline-flex;vertical-align:middle;max-width:calc(100% - 2em)}
+ .history-product .product-photo {width:40px;height:40px}
+ .history-product small {display:block;color:var(--muted);font-weight:400}
+ .history-product>div {margin:8px 0;overflow-wrap:anywhere}
+}
