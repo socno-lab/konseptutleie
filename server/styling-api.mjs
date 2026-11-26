@@ -119,7 +119,6 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     return out(201,await store.stylingSplit(data.id,data.revision,(await store.readCatalog()).products.filter(physical),actor));
   }
   if(post&&route==='checkout-all'){
-    if(!admin)throw stylingError('Dette krever administratortilgang.',403);
     if(typeof data.id!=='string'||!jobId.test(data.id))throw stylingError('Velg et gyldig oppdrag.');
     const result=await store.stylingCheckoutAll(data.id,actor);
     invalidatePublic();

@@ -171,9 +171,9 @@ function render(){
         +'<div class="actions job-scan-primary">'+button('Skann QR','start-job-scan','scan-job',true)+'</div>'
         +'<details><summary>Møbler på oppdraget · '+items.length+'</summary>'
         +items.map(unit=>listItem(unit)+(unit.state==='assigned'?button('Fjern fra oppdraget','unassign',unit.id):'')).join('')
-        +(isAdminView()&&assigned.length&&!job.closed?button('Sjekk ut alle ('+assigned.length+')','checkout-all'): '')+'</details>'
+        +'</details>'
         +(!job.closed||isAdminView()&&items.length===0?'<details><summary>Flere valg</summary><div class="actions job-actions">'
-          +(!job.closed?button('Registrer møbler','register')+(isAdminView()?button('Velg fra lager','pick'):''):'')
+          +(!job.closed?button('Registrer møbler','register')+(assigned.length?button('Sjekk ut alle ('+assigned.length+')','checkout-all'):'')+(isAdminView()?button('Velg fra lager','pick'):''):'')
           +(isAdminView()&&items.length===0?button('Slett oppdrag','delete-job',jobId):'')+'</div></details>':'')
         +returnOverview(job,missing,assigned.length)+'</div>';
     }else if(['in','out','scan-job'].includes(page)){
@@ -346,8 +346,8 @@ document.addEventListener('click',e=>{
       if(page==='stock'||page==='pick'){source=page;window.history.replaceState({styling:true,page,jobId},'');window.history.pushState({styling:true,page:'product',productId:value,source,jobId},'');}
       productId=value;return go('product');
     }
-    if(action==='checkout-all'&&isAdminView()&&page==='job'){
-      if(!confirm('Sjekk ut alle møblene som er lagt til på dette oppdraget?'))return;
+    if(action==='checkout-all'&&page==='job'){
+      if(!confirm('Sjekk ut alle møblene på dette oppdraget som fortsatt venter på henting?'))return;
       const {count}=await api('checkout-all',{id:jobId});
       await load();await loadJobReturns();go('job');
       status.textContent=count+' møbler sjekket ut.';
