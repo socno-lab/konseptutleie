@@ -44,3 +44,5 @@
   .admin-shell-actions a,.admin-shell-actions button,.admin-navigation a {font-size:12px}
   .admin-navigation a {padding-inline:8px}
 }
+
+html:has(body>.admin-shell:not([hidden])) {scrollbar-gutter:stable}
