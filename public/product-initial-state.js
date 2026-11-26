@@ -15,7 +15,7 @@ import {rentalProductOptions} from './rental-product-options.js?v=choicesfirst20
 import {rentalModuleInitialState,rentalModuleSurface,rentalWallSurface} from './rental-builder-options.js?v=choicesfirst20261119';
 import {purchaseInitialSelection,purchaseModuleState,purchaseProductOptionsMarkup} from './purchase-product-options.js?v=choicesfirst20261119';
 import {renderRecommendations} from './product-recommendations.js?v=choicesfirst20261119';
-import {productSummary} from './product-summary.js?v=vat20261115b';
+import {productSummary} from './product-summary.js?v=product-brand1';
 import {productPageUrl,safeCatalogReturn} from './product-page-model.js?v=launch20261024';
 
 const savedText=(storage,key)=>{try{return storage?.getItem(key);}catch{return null;}};

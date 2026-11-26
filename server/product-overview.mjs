@@ -12,7 +12,7 @@ import {sofaCardConfiguration} from '../public/sofa-card-model.js';
 import {frameSketch,presetFrames} from '../public/wall-model.js';
 import {productIllustrationText} from '../public/product-illustration.js';
 import {kiDisclosure,isKiPhoto} from '../public/image-provenance.js?v=fest20261114';
-import {productSummary,productUnitPrice} from '../public/product-summary.js?v=vat20261115b';
+import {productSummary,productUnitPrice} from '../public/product-summary.js?v=product-brand1';
 import {detailImageAttributes} from '../public/product-image-loading.js';
 import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
 import {rentalStatusBadge,isRentedOut} from '../public/rental-status.js';

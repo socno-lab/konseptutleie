@@ -35,11 +35,11 @@
     "public/price-display-model.js": "2aa77aa3a58c3ac1d88cc0c645fc9c29b353ccc20e5308d29b41dd6d3b975ffb",
     "public/product-dimensions.js": "b9b1b7d38cef163be063506d643fd39cfa6089c26763a426ebcbf25779216234",
     "public/product-illustration.js": "4b0e248efd605cea3f1646aa785f6f004d96815665fb7f40663e720d2193adfb",
-    "public/product-initial-state.js": "a832d4dbb58ece18e321c4cf653e5a7e7cb7b10400b718905e6018bd163e2ba5",
+    "public/product-initial-state.js": "08fa0edf0f03ae90acdaed58e39061f0509b4beccbccefd31840fd585efd9ed2",
     "public/product-page-model.js": "01d129d98c2235d3b5335aaf385931759bcc729864662f1b20db29ca9d4fcea0",
     "public/product-period-markup.js": "9cda691907f1a6124bc982c193776999a4a27b2f59b97e6316c92a5a452e7643",
     "public/product-recommendations.js": "19b8ffce1c88e5cf512fbbc10a8346032f1a860a8ed7dc37cc229e4730696d30",
-    "public/product-summary.js": "af5d1121e75f403b3c156b11dde24b178f4300236c5d7d94714da5970ecd4496",
+    "public/product-summary.js": "545b3272ddc3c57f00ade2462adee003c6f041e6de42b1a905f352e9607ba40d",
     "public/product-variants.js": "b21322dd11b96deb5a4b83714284af1f4e7d7db7935c43b7658cc5fc7af09506",
     "public/purchase-copy.js": "5a9d320b01114447f40b36b1f51308866362bf5431482be7aab4bca429d969c7",
     "public/purchase-product-options.js": "1192acc793f6368623b47ed0bfd54d6f99d6c47545d86e6f852456756c13dde5",
@@ -70,5 +70,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "server/product-initial-state-script.mjs": "814a4cc97c3bbb7e7428ed9560a8a390aadf119816448e6604d850ee92e93e74"
   },
-  "bundleSha256": "8763555fae447bde2af4132f27673dd6cbdc6e6b568cd999d5c1b0282a9dd05a"
+  "bundleSha256": "97a69db74d8c41c93a2d41a0728e7a977ebea3699c6af029426cc962697c5ae9"
 }

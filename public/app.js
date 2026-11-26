@@ -15,7 +15,7 @@ import {homeProductCards,homeSeasonContent,homeRateGrid} from './home-sections.j
 import {setInitialMarkup} from './initial-markup.js?v=sitefirst20261106';
 import {occasionLandingView} from './occasion-landing-view.js?v=seasoncopy20261120';
 import {productIllustrationText} from './product-illustration.js?v=productcontent20261106';
-import {productSummary} from './product-summary.js?v=vat20261115b';
+import {productSummary} from './product-summary.js?v=product-brand1';
 import {rentalScopeMarkup,purposeButtons,rentalPurposeLabel,purposeForOccasion} from './rental-scope-markup.js?v=purposemodal20261122';
 import {detailImageMarkup,setDetailPhotoSource} from './product-image-loading.js?v=detailfirst20261106';
 import {renderCatalogCard,readInitialCatalog} from './catalog-card-markup.js?v=choicesfirst20261119';

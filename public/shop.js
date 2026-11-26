@@ -1,7 +1,7 @@
 import {readRefinement,writeRefinement,normalizeRefinement} from './catalog-refinement-model.js?v=compactsort20261119b';
 import {mountCatalogRefinements} from './catalog-refinements.js?v=compactsort20261119b';
 import {priceMarkup} from './price-display-model.js?v=vatdefault20261116';
-import {productSummary} from './product-summary.js?v=vat20261115b';
+import {productSummary} from './product-summary.js?v=product-brand1';
 import {detailImageAttributes,setDetailPhotoSource} from './product-image-loading.js?v=detailfirst20261106';
 import {saleCatalogView} from './sale-catalog-view.js?v=choicesfirst20261119';
 import {saleQuantityControl as quantityControl,purchaseInitialSelection,purchaseModuleState,purchaseProductOptionsMarkup} from './purchase-product-options.js?v=choicesfirst20261119';
