@@ -135,7 +135,7 @@ function render(){
         +button('Lager','stock')+button('Avsluttede oppdrag','archive')+(isPreview()?'<a class="button" href="/admin/">Til administrasjon</a>':button('Logg ut','logout'))+'</div></details>';
     }else{
       nav.innerHTML=button('Oppdrag','jobs')+button('Lager','stock')+button('Avsluttede oppdrag','archive')
-        +button('Bruksstatistikk','usage')+button('Stylister','staff')+'<a href="/admin/">Administrasjon</a>';
+        +button('Bruksstatistikk','usage')+button('Stylister','staff')+'<a href="/styling/index.html?visning=stylist" target="_blank" rel="noopener">Forhåndsvis stylistvisning</a><a href="/admin/">Administrasjon</a>';
       const tab=['stock','register','labels','queue'].includes(page)||(page==='product'&&source==='stock')?'stock':
         ['usage','staff','archive'].includes(page)?page:'jobs';
       nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
