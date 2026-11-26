@@ -125,8 +125,8 @@ function render(){
     html=invitation?'<h1>Aktiver stylistkonto</h1><form data-form="claim"><label>Velg passord<input name="password" type="password" minlength="12" maxlength="128" required autocomplete="new-password"></label>'+submit('Aktiver konto')+'</form>':'<h1>Logg inn som stylist</h1><form data-form="login"><label>E-post<input name="email" type="email" required autocomplete="username"></label><label>Passord<input name="password" type="password" required autocomplete="current-password"></label>'+submit('Logg inn')+'</form><a href="/admin/login?to=styling'+(itemPattern.test(itemId)?'&amp;item='+itemId:'')+'">Administratorinnlogging</a>';
   }else{
     if(!isAdminView()){
-      if(page==='stylist-registration')nav.innerHTML=button('← Tilbake','stylist-home');
-      if(['jobs','new'].includes(page))nav.innerHTML=button('← Tilbake','stylist-registration');
+      if(['jobs','new','archive'].includes(page))nav.innerHTML=button('← Tilbake','stylist-home');
+      if(page==='job')nav.innerHTML=button('← Til oppdragslisten',data.jobs.find(job=>job.id===jobId)?.closed?'archive':'jobs');
       const inJob=['job','scan-job','in','out'].includes(page)&&data.jobs.some(job=>job.id===jobId);
       stylistMenu.innerHTML='<details><summary aria-label="Meny"><span aria-hidden="true">☰</span> Meny</summary><div class="stylist-menu-options">'
         +button('Startside','stylist-home')+(inJob?button('Skann retur','start-job-scan','in')+button('Returkontroll og oppdrag','job',jobId):'')
@@ -140,11 +140,9 @@ function render(){
         ['usage','staff','more'].includes(page)?page:'jobs';
       nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
     }
-    if(page==='stylist-home'||page==='stylist-registration'){
-      const landing=page==='stylist-home';
-      const options=landing?[['Start registrering','stylist-registration']]:[['Velg oppdrag','jobs'],['Nytt oppdrag','new']];
-      html='<div class="styling-home stylist-start'+(landing?' stylist-landing':'')+'">'
-        +(landing?'':'<h1>Start registrering</h1>')+'<div class="styling-menu">'
+    if(page==='stylist-home'){
+      const options=[['Velg oppdrag','jobs'],['Nytt oppdrag','new']];
+      html='<div class="styling-home stylist-start stylist-landing"><div class="styling-menu">'
         +options.map(([label,action],index)=>'<button type="button" class="button '+(index===0?'dark':'button-outline')
           +'" data-action="'+action+'"><span>'+label+'</span></button>').join('')+'</div></div>';
     }else if(page==='home'){
@@ -356,9 +354,7 @@ document.addEventListener('click',e=>{
     }
     if(action==='label'){labels=[value];return go('labels');}
     if(action==='job'){
-      const starting=!isAdminView()&&page==='jobs';
       jobId=value;await load();
-      if(starting&&data.jobs.some(job=>job.id===jobId&&!job.closed))return openScanner('scan-job');
       await loadJobReturns();
     }
     if(['ready','hold','return'].includes(action)){await move(item(),action==='return'?'in':action,item().job);return showItem(itemId);}
@@ -373,7 +369,7 @@ screen.onsubmit=e=>{
     switch(form.dataset.form){
       case 'claim':await api('claim',{invitation,password:fields.password});invitation=null;window.history.replaceState(null,'',location.pathname+location.search);render();status.textContent='Kontoen er aktiv. Logg inn med e-post og passord.';break;
       case 'login':await api('login',fields);await load();if(itemId)await showItem(itemId);else go(landingPage());break;
-      case 'job':jobId=(await api('jobs',fields)).id;await load();if(!isAdminView())return openScanner('scan-job');await loadJobReturns();go('job');break;
+      case 'job':jobId=(await api('jobs',fields)).id;await load();await loadJobReturns();go('job');break;
       case 'draft':selectedProduct=(await api('draft',fields)).id;await load();go('register');status.textContent='Produktutkastet er valgt. Angi antall eksemplarer.';break;
       case 'register':labels=(await api('items',{product:fields.product,count:Number(fields.count)})).ids;await load();go('labels');break;
       case 'scan':await scan(fields.id);form.reset();break;
