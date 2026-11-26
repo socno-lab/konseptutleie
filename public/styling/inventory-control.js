@@ -13,7 +13,7 @@ export function transitionTable(products,items,baselines){
   const old=p.qrStock?baselines[p.id]:p.stock;
   return '<tr><th>'+esc(p.name)+'</th><td>'+esc(old??'–')+'</td><td>'+units.filter(i=>i.labelPrinted).length+'</td><td>'+checked.length+'</td><td>'+(p.qrStock?'–':Math.max(0,(p.stock||0)-complete))+'</td><td>'+(p.qrStock?'QR-lager':'Manuell')+'</td></tr>';
  });
- return '<h1>Overgang til QR-lager</h1><p>Utskrevet og fysisk bekreftet telles per etikett. Gjenstår telles i katalogens enheter. To matchende endemoduler utgjør én grunnsofa.</p><p>Strek i tidligere beholdning betyr at en historisk verdi ikke er registrert.</p><label>Søk etter produkt<input type="search" id="transitionSearch"></label><div class="usage-table"><table><thead><tr><th>Produkt</th><th>Manuelt antall før overgang</th><th>Utskrevet</th><th>Fysisk bekreftet</th><th>Gjenstår</th><th>Styrer nettsiden</th></tr></thead><tbody id="transitionRows">'+rows.join('')+'</tbody></table></div>';
+ return '<h1>Status for QR-lager</h1><p>Utskrevet og fysisk bekreftet telles per etikett. Gjenstår telles i katalogens enheter. To matchende endemoduler utgjør én grunnsofa.</p><p>Strek i tidligere beholdning betyr at en historisk verdi ikke er registrert.</p><label>Søk etter produkt<input type="search" id="transitionSearch"></label><div class="usage-table"><table><thead><tr><th>Produkt</th><th>Manuelt antall før overgang</th><th>Utskrevet</th><th>Fysisk bekreftet</th><th>Gjenstår</th><th>Styrer nettsiden</th></tr></thead><tbody id="transitionRows">'+rows.join('')+'</tbody></table></div>';
 }
 export function countingReport(session,units,button){
  const seen=new Set(session.seen),expected=new Set(session.expected);

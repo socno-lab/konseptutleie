@@ -1,4 +1,4 @@
-import {reasons,transitionTable,countingReport} from './inventory-control.js';
+import {reasons,transitionTable,countingReport} from './inventory-control.js?v=stock-tools1';
 import {esc as escape,states,stockRows,stockControls,stockResults,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=8';
 import {foldProductSearch,inferProductBrand} from '../product-brand.js';
 const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status'),stylistMenu=document.querySelector('#stylistMenu');
@@ -305,21 +305,22 @@ function render(){
         +(!isAdminView()?'<details class="scanner-items"><summary>Møbler på oppdraget</summary><div id="scannerItems"></div></details>':'');
     }else if(page==='stock'||page==='pick'){
       const picking=page==='pick';
-      html=(picking?button('← Til oppdraget','job',jobId):'')+'<div class="page-heading"><h1>'+(picking?'Velg fra lager':'Lagerbeholdning')+'</h1>'+(!picking?'<div class="actions stock-actions">'+button('Samle etiketter','queue')+(isAdminView()?'<a class="button button-outline" href="/admin/?new=warehouse">Nytt produkt</a>':'')+button('Registrer møbler','register','',true)+'</div>':'')+'</div>'
-         +(!picking&&isAdminView()?'<div class="actions" aria-label="Lagerkontroll">'+button('Tell lager','counts')+button('Overgang til QR-lager','transition')+button('Ta ut av drift','retire-scan')+'</div>':'')
+      const toolsMenu=isAdminView()?'<details class="stock-tools"><summary class="button button-outline">Lagerverktøy</summary><div class="stock-tools-options">'
+        +button('Varetelling','counts')+button('Status for QR-lager','transition')+button('Ta eksemplar ut av drift','retire-scan')+'</div></details>':'';
+      html=(picking?button('← Til oppdraget','job',jobId):'')+'<div class="page-heading"><h1>'+(picking?'Velg fra lager':'Lagerbeholdning')+'</h1>'+(!picking?'<div class="actions stock-actions">'+toolsMenu+button('Samle etiketter','queue')+(isAdminView()?'<a class="button button-outline" href="/admin/?new=warehouse">Nytt produkt</a>':'')+button('Registrer møbler','register','',true)+'</div>':'')+'</div>'
          +(picking?'<p>'+escape(jobName(jobId))+'</p>':'')+stockControls(rows,activeFilter(),button)+'<div id="results"></div>';
     }else if(isAdminView()&&page==='transition'){
       html=button('← Til lageret','stock')+transitionTable(data.products,data.items,data.baselines);
     }else if(isAdminView()&&page==='counts'){
       const categories=new Map(data.products.filter(p=>p.rentalStock).map(p=>[p.categoryId,p.category]));
       const categoryName=id=>categories.get(id)||id||'Hele lageret';
-      html=button('← Til lageret','stock')+'<h1>Tell lager</h1><form data-form="count-start"><label>Kategori<select name="category"><option value="">Hele lageret</option>'+[...categories].sort((a,b)=>a[1].localeCompare(b[1],'nb')).map(([id,name])=>'<option value="'+escape(id)+'">'+escape(name)+'</option>').join('')+'</select></label>'+submit('Start ny telling')+'</form><h2>Tellinger</h2>'+sessions.map(c=>'<p>'+button(categoryName(c.category)+' · '+date(c.started)+' · '+(c.closed?'Avsluttet':'Pågår'),'open-count',c.id)+'</p>').join('');
+      html=button('← Til lageret','stock')+'<h1>Varetelling</h1><form data-form="count-start"><label>Kategori<select name="category"><option value="">Hele lageret</option>'+[...categories].sort((a,b)=>a[1].localeCompare(b[1],'nb')).map(([id,name])=>'<option value="'+escape(id)+'">'+escape(name)+'</option>').join('')+'</select></label>'+submit('Start ny telling')+'</form><h2>Tellinger</h2>'+sessions.map(c=>'<p>'+button(categoryName(c.category)+' · '+date(c.started)+' · '+(c.closed?'Avsluttet':'Pågår'),'open-count',c.id)+'</p>').join('');
     }else if(isAdminView()&&page==='count'&&countSession){
       html=button('← Til tellinger','counts')+'<h1>Varetelling</h1><p>Forventet beholdning ved tellestart '+escape(date(countSession.started))+'. En observasjon endrer ingen lagerstatus.</p>'
         +(countSession.closed?'':scannerForm())+'<section id="countReport">'+countingReport(countSession,[...data.items,...data.retired],button)+'</section>'
         +(countSession.closed?'':button('Avslutt telling','count-close'));
     }else if(isAdminView()&&page==='retire-scan'){
-      html=button('← Til lageret','stock')+'<h1>Ta ut av drift</h1><p>Skann etiketten for å velge møbelet og bekrefte årsaken.</p>'+scannerForm();
+      html=button('← Til lageret','stock')+'<h1>Ta eksemplar ut av drift</h1><p>Skann etiketten for å velge møbelet og bekrefte årsaken.</p>'+scannerForm();
     }else if(page==='product'){
       const p=rows.find(r=>r.id===productId);
       html=button(source==='pick'?'← Til produktvalget':'← Til lageret',source);
