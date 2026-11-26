@@ -6,10 +6,30 @@ const sections=[
   ['settings','Innstillinger','/admin/settings.html']
 ];
 
+// Keep desktop navigation first in both visual and keyboard order.
+function alignDesktopSubmenus(main) {
+  const navs = main.querySelectorAll('nav[aria-label="Katalogområder"], #contentNavigation, #settingsNavigation');
+  if (!navs.length) return;
+  const positions = Array.from(navs, nav => {
+    const marker = document.createComment('submenu');
+    nav.before(marker);
+    return {nav, marker};
+  });
+  const desktop = matchMedia('(min-width: 661px)');
+  function place() {
+    if (desktop.matches) main.prepend(...navs);
+    else for (const {nav, marker} of positions) marker.after(nav);
+  }
+  place();
+  desktop.addEventListener('change', place);
+}
+
 export function mountAdminNavigation(shell){
   const section=shell.dataset.adminNavigation;
   const active=section==='settings'&&new URLSearchParams(location.search).get('panel')==='home'?'content':section;
   const catalog=section==='catalog';
+  const main=document.querySelector('main');
+  if(main && (catalog || section==='settings')) alignDesktopSubmenus(main);
   shell.innerHTML='<div class="admin-shell-header"><div class="admin-shell-row">'
     +'<a class="brand admin-shell-brand" href="/" aria-label="Konseptuell – Møbler til anledningen"><img src="/assets/konseptuell-leie-og-kjop-logo.png" alt="" width="2172" height="724"><span class="brand-tagline" aria-hidden="true">MØBLER TIL ANLEDNINGEN</span></a>'
     +'<div class="admin-shell-actions"><a href="/">Se nettsiden ↗</a>'

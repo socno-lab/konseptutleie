@@ -1,4 +1,4 @@
-import './navigation.js?v=3';
+import './navigation.js?v=4';
 import {foldProductSearch} from '../product-brand.js';
 import {dimensionFields} from '../product-dimensions.js?v=optionimages20261108';
 import {mountWorkflow,refreshWorkflow,packageCapacity} from './workflow.js?v=dimensions20261108';

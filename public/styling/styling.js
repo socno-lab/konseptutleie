@@ -52,7 +52,7 @@ async function load(){
   data=await api('overview');
   rows=stockRows(data);
   if(isAdminView()&&!document.querySelector('.admin-shell nav')){
-    const {mountAdminNavigation}=await import('/admin/navigation.js?v=3');
+    const {mountAdminNavigation}=await import('/admin/navigation.js?v=4');
     const shell=document.querySelector('.admin-shell');
     const css=document.createElement('link');
     css.rel='stylesheet';
