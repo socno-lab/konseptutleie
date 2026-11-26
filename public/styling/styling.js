@@ -1,4 +1,5 @@
 import {esc as escape,states,stockRows,stockControls,stockResults,jobResults,defaults,jobDefaults,photo} from './workspace.js?v=8';
+import {foldProductSearch} from '../product-brand.js';
 const screen=document.querySelector('#screen'),nav=document.querySelector('#nav'),status=document.querySelector('#status'),stylistMenu=document.querySelector('#stylistMenu');
 const historyLabels={...states,transferred:'Flyttet til annet oppdrag','transferred-in':'Flyttet hit fra annet oppdrag',unassigned:'Fjernet fra oppdrag'};
 const itemPattern=/^K-[0-9A-F]{16}$/;
@@ -122,6 +123,7 @@ function unusedCorrection(p){
 }
 const sheetCapacity=24;
 let queue=new Set();
+let queueSearch='';
 const queueKey=()=>'ku-label-selection:'+data.actor;
 const pendingLabel=i=>i.state==='held'&&Boolean(i.labelPending);
 function pendingQueueItems(ids){
@@ -137,10 +139,22 @@ function restoreQueue(){
 function queueView(){
   const groups=rows.map(p=>({...p,items:p.items.filter(pendingLabel)})).filter(p=>p.items.length);
   return '<h1>Samle etiketter</h1><p>Velg eksemplarer som venter på første innsjekking. Hvert ark har 24 plasser.</p>'
+    +'<label class="queue-search">Søk etter produkt eller etikett-ID<input type="search" data-queue-search value="'+escape(queueSearch)+'"></label>'
     +'<div class="actions"><strong id="queue-count" role="status"></strong>'+button('Vis utskrift','queue-preview','',true)+'</div>'
-    +groups.map(p=>'<section><label class="queue-choice scan-identity"><input type="checkbox" data-group="'+escape(p.id)+'">'+photo(p)+'<strong>'+escape(p.name)+' · '+p.items.length+'</strong></label><details><summary>Velg enkelte eksemplarer</summary>'
+    +groups.map(p=>'<section data-queue-product="'+escape(foldProductSearch([p.name,p.brand].join(' ')))+'"><label class="queue-choice scan-identity"><input type="checkbox" data-group="'+escape(p.id)+'">'+photo(p)+'<strong>'+escape(p.name)+' · '+p.items.length+'</strong></label><details><summary>Velg enkelte eksemplarer</summary>'
       +p.items.map(i=>'<label class="queue-choice"><input type="checkbox" data-unit="'+escape(i.id)+'">'+escape(i.id)+' · '+escape(sideNames[i.side]||states[i.state])+'</label>').join('')+'</details></section>').join('')
-    +(!groups.length?'<p>Ingen etiketter venter på første innsjekking.</p>':'');
+    +(groups.length?'<p data-queue-empty hidden>Ingen produkter eller etiketter passer søket.</p>':'<p>Ingen etiketter venter på første innsjekking.</p>');
+}
+function filterQueue(){
+  const term=foldProductSearch(queueSearch);
+  let hasMatches=false;
+  for(const group of screen.querySelectorAll('[data-queue-product]')){
+    const matches=group.dataset.queueProduct.includes(term)||[...group.querySelectorAll('[data-unit]')].some(unit=>unit.dataset.unit.toLowerCase().includes(term));
+    group.hidden=!matches;
+    hasMatches||=matches;
+  }
+  const empty=screen.querySelector('[data-queue-empty]');
+  if(empty)empty.hidden=hasMatches;
 }
 function updateQueue(){
   for(const box of screen.querySelectorAll('[data-unit]'))box.checked=queue.has(box.dataset.unit);
@@ -267,13 +281,18 @@ function render(){
         +(s.active?button('Deaktiver','disable',s.email):'')+'</div></section>').join('');
     }
   }
-  screen.innerHTML=(isPreview()?'<p class="stylist-preview">Forhåndsvisning som stylist. Registreringer lagres i det aktive lageret.</p>':'')+html;refreshResults();refreshScannerItems();if(data&&page==='queue')updateQueue();
+  screen.innerHTML=(isPreview()?'<p class="stylist-preview">Forhåndsvisning som stylist. Registreringer lagres i det aktive lageret.</p>':'')+html;refreshResults();refreshScannerItems();if(data&&page==='queue'){updateQueue();filterQueue();}
 }
 function refreshResults(){
   const results=screen.querySelector('#results');if(!results||!data)return;
   results.innerHTML=['jobs','archive'].includes(page)?jobResults(page==='jobs'?openJobs():archivedJobs(),jobFilter,button):stockResults(rows,activeFilter(),button);
 }
 screen.oninput=e=>{
+  if(e.target.matches('[data-queue-search]')){
+    queueSearch=e.target.value;
+    filterQueue();
+    return;
+  }
   if(e.target.name==='destination'&&e.target.form?.dataset.form==='transfer-all'){
     const address=e.target.form.elements.address;
     const create=e.target.value==='new';
