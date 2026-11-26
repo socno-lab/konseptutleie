@@ -4,7 +4,7 @@ const itemPattern=/^K-[0-9A-F]{16}$/;
 const button=(label,action,value='',primary=false)=>'<button type="button" class="button '+(primary?'dark':'button-outline')+'" data-action="'+action+'" data-value="'+escape(value)+'">'+escape(label)+'</button>';
 const submit=label=>'<button class="button dark">'+label+'</button>';
 const params=new URLSearchParams(location.hash.slice(1));
-let invitation=params.get('invite'),itemId=new URLSearchParams(location.search).get('item'),page=itemId?'item':'jobs';
+let invitation=params.get('invite'),itemId=new URLSearchParams(location.search).get('item'),page=itemId?'item':'home';
 let data,jobId='',labels=[],selectedProduct='',history=[],inviteUrl='',stream,scanSession=0,working=false;
 const item=()=>data.items.find(i=>i.id===itemId);
 const jobName=id=>data.jobs.find(j=>j.id===id)?.address||'';
@@ -117,10 +117,13 @@ function render(){
   if(!data){
     html=invitation?'<h1>Aktiver stylistkonto</h1><form data-form="claim"><label>Velg passord<input name="password" type="password" minlength="12" maxlength="128" required autocomplete="new-password"></label>'+submit('Aktiver konto')+'</form>':'<h1>Logg inn som stylist</h1><form data-form="login"><label>E-post<input name="email" type="email" required autocomplete="username"></label><label>Passord<input name="password" type="password" required autocomplete="current-password"></label>'+submit('Logg inn')+'</form><a href="/admin/login?to=styling'+(itemPattern.test(itemId)?'&amp;item='+itemId:'')+'">Administratorinnlogging</a>';
   }else{
-    nav.innerHTML=button('Velg oppdrag','jobs')+button('Nytt oppdrag','new')+button('Mer','more');
-    const tab=page==='new'?'new':['jobs','job','scan-job','in'].includes(page)?'jobs':'more';
-    nav.querySelector('[data-action="'+tab+'"]').setAttribute('aria-current','page');
-    if(page==='jobs'||page==='archive'){
+    if(page!=='home')nav.innerHTML=button('← Tilbake til hovedmeny','home');
+    if(page==='home'){
+      const options=[['Velg oppdrag','jobs'],['Nytt oppdrag','new'],['Mer','more','Lager og avsluttede oppdrag'+(data.admin?' · Administrasjon':'')]];
+      html='<div class="styling-home"><h1>Styling og lager</h1><div class="styling-menu">'
+        +options.map(([label,action,description])=>'<button type="button" class="styling-menu-card" data-action="'+action+'"><span><strong>'+label+'</strong>'
+          +(description?'<small>'+description+'</small>':'')+'</span><span class="styling-menu-arrow" aria-hidden="true"></span></button>').join('')+'</div></div>';
+    }else if(page==='jobs'||page==='archive'){
       html='<div class="page-heading job-list-heading"><h1>'+(page==='jobs'?'Velg oppdrag':'Avsluttede oppdrag')+'</h1></div>'
         +'<div class="filters jobs"><label>Søk etter navn eller adresse<input type="search" data-field="term" value="'+escape(jobFilter.term)+'"></label></div><div id="results"></div>';
     }else if(page==='more'){
@@ -317,7 +320,7 @@ document.addEventListener('click',e=>{
     if(action==='job'){jobId=value;await load();await loadJobReturns();}
     if(['ready','hold','return'].includes(action)){await move(item(),action==='return'?'in':action,item().job);return showItem(itemId);}
     if(action==='disable'){if(!confirm('Deaktiver tilgangen for '+value+'?'))return;await api('disable',{email:value});await load();inviteUrl='';return go('staff');}
-    if(action==='logout'){await api('logout',{});data=null;return go('jobs');}
+    if(action==='logout'){await api('logout',{});data=null;return go('home');}
     go(action);
   });
 });
@@ -326,7 +329,7 @@ screen.onsubmit=e=>{
   run(async()=>{
     switch(form.dataset.form){
       case 'claim':await api('claim',{invitation,password:fields.password});invitation=null;window.history.replaceState(null,'',location.pathname+location.search);render();status.textContent='Kontoen er aktiv. Logg inn med e-post og passord.';break;
-      case 'login':await api('login',fields);await load();if(itemId)await showItem(itemId);else go('jobs');break;
+      case 'login':await api('login',fields);await load();if(itemId)await showItem(itemId);else go('home');break;
       case 'job':jobId=(await api('jobs',fields)).id;await load();await loadJobReturns();go('job');break;
       case 'draft':selectedProduct=(await api('draft',fields)).id;await load();go('register');status.textContent='Produktutkastet er valgt. Angi antall eksemplarer.';break;
       case 'register':labels=(await api('items',{product:fields.product,count:Number(fields.count)})).ids;await load();go('labels');break;

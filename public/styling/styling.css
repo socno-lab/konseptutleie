@@ -147,3 +147,19 @@
  #screen .job-detail details>summary {font-weight:600}
  #screen .job-detail details>.actions {margin-top:12px}
 }
+
+@media screen {
+ .admin-body .styling-header {height:auto;min-height:0;padding:12px 14px;justify-content:center}
+ .admin-body .styling-header .brand {display:flex;margin:0}
+ .admin-body .styling-header .brand img {width:152px;height:auto;max-height:48px;object-fit:contain}
+ #nav [data-action=home] {padding-inline:0;font-size:14px}
+ .styling-home {width:min(100%,640px);margin:16px auto 0}
+ .styling-menu {display:grid;gap:12px}
+ .styling-menu-card {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:70px;padding:14px 18px;text-align:left;border:1px solid var(--line);border-radius:8px;background:#fcfbf8;color:var(--ink);font:inherit;cursor:pointer}
+ .styling-menu-card[data-action=jobs] {background:var(--olive);color:#fff;border-color:var(--olive)}
+ .styling-menu-card[data-action=new] {background:#e7ebdf;border-color:#e7ebdf}
+ .styling-menu-card:focus-visible {outline:2px solid var(--olive);outline-offset:3px}
+ .styling-menu-card strong,.styling-menu-card small {display:block}
+ .styling-menu-card small {margin-top:4px;color:var(--muted);font-size:13px}
+ .styling-menu-arrow {width:7px;height:7px;border-top:1px solid;border-right:1px solid;transform:rotate(45deg);margin-inline-end:3px}
+}
