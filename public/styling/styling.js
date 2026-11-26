@@ -97,6 +97,17 @@ function countField(p){
 function batchForm(p){
   return '<form data-form="register"><input type="hidden" name="product" value="'+escape(p.id)+'">'+countField(p)+submit('Registrer og lag QR-etiketter')+'</form>';
 }
+function unusedCorrection(p){
+  const unused=p.items.filter(i=>i.state==='held'&&i.revision===1).length;
+  const withdrawn=(data.withdrawn||[]).filter(id=>id===p.id).length;
+  if(!unused&&!withdrawn)return '';
+  const form=(label,action,count)=>'<form data-form="correct-unused" data-expected="'+count+' " data-restore="'+(action==='Gjenopprett etiketter')+'">'
+    +'<label>'+label+'<input type="number" name="count" min="1" max="'+Math.min(count,50)+'" value="1" required></label>'
+    +submit(action)+'</form>';
+  return '<details><summary>Korriger ubrukte QR-etiketter</summary>'
+    +(unused?form('Antall ubrukte etiketter som skal trekkes tilbake','Trekk tilbake etiketter',unused):'')
+    +(withdrawn?form('Antall etiketter som skal gjenopprettes','Gjenopprett etiketter',withdrawn):'')+'</details>';
+}
 const sheetCapacity=24;
 let queue=new Set();
 const queueKey=()=>'ku-label-selection:'+data.actor;
@@ -197,7 +208,7 @@ function render(){
       if(p){
         html+='<div class="product-head">'+photo(p)+'<div><p>'+escape([p.category,p.subcategory].filter(Boolean).join(' · '))+'</p><h1>'+escape(p.name)+'</h1>'+(p.articleNumber?'<p>Artikkelnummer · '+escape(p.articleNumber)+'</p>':'')+'</div></div>'
           +'<div class="job-meta"><span>Ledige på lager<strong>'+p.available+' av '+p.items.length+' registrerte</strong></span><span>'+(p.qrStock?'Beholdning på Konseptuell.no (QR-lager)':'Manuelt antall på Konseptuell.no')+'<strong>'+escape(p.stock??'–')+'</strong></span></div>'
-          +(source==='stock'&&data.products.some(entry=>entry.id===p.id)?batchForm(p):'')
+          +(source==='stock'&&data.products.some(entry=>entry.id===p.id)?batchForm(p)+(isAdminView()?unusedCorrection(p):''):'')
           +'<div class="list-heading"><h2>Eksemplarer</h2></div>'+p.items.map(i=>'<section class="record"><div><h2>'+escape(sideNames[i.side]||i.id)+'</h2><p>'+(i.side?escape(i.id)+' · ':'')+states[i.state]+' '+escape(jobName(i.job))+'</p></div><div class="actions">'+button(source==='pick'&&i.state==='ready'?'Velg eksemplar':'Åpne møbel','item',i.id)+(source==='stock'?button('Skriv ut etikett på nytt','label',i.id):'')+(p.pairedEnds&&!i.side&&i.state==='ready'?button('Del i to endemoduler','split',i.id):'')+'</div></section>').join('')
           +(!p.items.length?'<p>Ingen QR-registrerte eksemplarer.</p>':'');
       }
@@ -410,6 +421,13 @@ screen.onsubmit=e=>{
       case 'job':jobId=(await api('jobs',fields)).id;await load();await loadJobReturns();go('job');break;
       case 'draft':selectedProduct=(await api('draft',fields)).id;await load();go('register');status.textContent='Produktutkastet er valgt. Angi antall eksemplarer.';break;
       case 'register':labels=(await api('items',{product:fields.product,count:Number(fields.count)})).ids;await load();go('labels');break;
+      case 'correct-unused':{
+        const restore=form.dataset.restore==='true';
+        const {count}=await api('correct-unused',{product:productId,count:Number(fields.count),expected:Number(form.dataset.expected),restore});
+        await load();go('product');
+        status.textContent=count+(restore?' etiketter gjenopprettet.':' etiketter trukket tilbake.');
+        break;
+      }
       case 'scan':await scan(fields.id);form.reset();break;
       case 'review-returns':{
         const approved=new Set(new FormData(form).getAll('approved'));

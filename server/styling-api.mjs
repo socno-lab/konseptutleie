@@ -54,8 +54,9 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
       return {...(p.brand?{brand:p.brand}:{}),...(p.articleNumber?{articleNumber:p.articleNumber}:{}),...(p.moduleRole==='base'&&!p.qrStock?{pairedEnds:true}:{}),...(p.qrStock?{qrStock:true}:{}),...(p.imageBounds?{imageBounds:p.imageBounds}:{}),id:p.id,name:p.name,stock:p.stock,image:p.image,category:category?.label||p.category,subcategory:label};
     });
     const deletedProducts=new Set(catalog.products.filter(p=>p.deletedAt).map(p=>p.id));
-    const items=inventory.items.filter(item=>item.state!=='held'||!deletedProducts.has(item.product));
-    return out(200,{...inventory,items,actor,admin,products,staff:admin?await store.stylists():[]});
+    const items=inventory.items.filter(item=>item.state!=='withdrawn'&&(item.state!=='held'||!deletedProducts.has(item.product)));
+    const withdrawn=admin?inventory.items.filter(item=>item.state==='withdrawn').map(item=>item.product):[];
+    return out(200,{...inventory,items,withdrawn,actor,admin,products,staff:admin?await store.stylists():[]});
   }
   if(post && ['invite','disable'].includes(route)){
     if(!admin)throw stylingError('Dette krever administratortilgang.',403);
@@ -106,6 +107,16 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     const saved=await store.saveCatalog(catalog.revision,[...catalog.products,draft]);
     if(!saved)throw stylingError('Katalogen er endret. Prøv igjen.',409);
     return out(201,{id:draft.id});
+  }
+  if(post&&route==='correct-unused'){
+    if(!admin)throw stylingError('Dette krever administratortilgang.',403);
+    const product=(await store.readCatalog()).products.find(p=>p.id===data.product&&physical(p));
+    if(!product||!Number.isInteger(data.count)||data.count<1||data.count>50||!Number.isInteger(data.expected)||data.expected<data.count||typeof data.restore!=='boolean'){
+      throw stylingError('Velg et produkt og mellom 1 og 50 etiketter.');
+    }
+    const result=await store.stylingCorrectUnused(product.id,data.count,data.expected,data.restore,actor);
+    invalidatePublic();
+    return out(200,result);
   }
   if(post && route==='items'){
     const product=(await store.readCatalog()).products.find(p=>p.id===data.product&&physical(p));

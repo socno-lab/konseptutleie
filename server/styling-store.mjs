@@ -103,6 +103,23 @@ export function stylingStore(init,pool,query){
         await db.execute('INSERT INTO ku_styling_job_closures(job,closed,actor) VALUES(?,?,?)',[id,Date.now(),actor]);
       });
     },
+    async stylingCorrectUnused(product,count,expected,restore,actor){
+      return transaction(async db=>{
+        const from=restore?'withdrawn':'held';
+        const to=restore?'held':'withdrawn';
+        const [items]=await db.execute(
+          'SELECT id,revision FROM ku_styling_items WHERE product=? AND state=? AND job IS NULL ORDER BY id FOR UPDATE',
+          [product,from]
+        );
+        const eligible=restore?items:items.filter(item=>item.revision===1);
+        if(eligible.length!==expected)throw stylingError('Listen over etiketter er endret. Prøv igjen.',409);
+        if(eligible.length<count)throw stylingError('Det er for få ubrukte etiketter til denne korrigeringen.');
+        for(const item of eligible.slice(0,count)){
+          await recordMove(db,item,{state:to,job:null},actor,null);
+        }
+        return {count};
+      });
+    },
     async stylingRegister(product,count,actor){
       return transaction(async db=>{
         const ids=[];

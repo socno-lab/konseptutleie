@@ -226,7 +226,7 @@ export function createMysqlStore(env,seed){
    const [[[r]],[profiles],[inventory]]=await Promise.all([
     query('SELECT revision,body,updated_at FROM ku_catalog WHERE id=1'),
     query('SELECT id,bounds FROM ku_media_bounds'),
-    query("SELECT s.product,COUNT(i.id) AS total,SUM(CASE WHEN i.state='ready' THEN 1 ELSE 0 END) AS ready FROM ku_styling_catalog_stock s LEFT JOIN ku_styling_items i ON i.product=s.product GROUP BY s.product")
+    query("SELECT s.product,COUNT(i.id) AS total,SUM(CASE WHEN i.state='ready' THEN 1 ELSE 0 END) AS ready FROM ku_styling_catalog_stock s LEFT JOIN ku_styling_items i ON i.product=s.product AND i.state<>'withdrawn' GROUP BY s.product")
    ]);
    const bounds=new Map(profiles.map(row=>['/media/'+row.id,JSON.parse(row.bounds)]));
    const stock=new Map(inventory.map(row=>[row.product,row]));
