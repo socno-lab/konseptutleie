@@ -68,7 +68,7 @@ export function buildHeaderCatalog(products){
   const first=ordered[0],rent=ordered.find(p=>p.rentalEnabled!==false),buy=ordered.find(salesEnabled);
   const image=kind==='module'?moduleCardImage(members):kind==='wall'?ordered.find(p=>p.wallCover)?.wallCover||first.image:first.image;
   const categories=[...new Set(members.map(p=>p.category).filter(Boolean))].map(category=>({category,rentable:members.some(p=>p.category===category&&p.rentalEnabled!==false),purchasable:members.some(p=>p.category===category&&salesEnabled(p))}));
-  const searchText=normalized([title,...members.flatMap(p=>[p.name,p.material,dimensionSearchText(p),p.category,categoryTitle(p.category),p.subcategory,p.moduleSeries,p.wallGroup,p.serviceGroup,p.serviceVariant,variantFields(p).variantLabel,...(Array.isArray(p.includes)?p.includes:[]),...(Array.isArray(p.components)?p.components.map(c=>byId.get(c.id)?.name):[])])].join(' '));
+  const searchText=normalized([title,...members.flatMap(p=>[p.name,p.brand,p.material,dimensionSearchText(p),p.category,categoryTitle(p.category),p.subcategory,p.moduleSeries,p.wallGroup,p.serviceGroup,p.serviceVariant,variantFields(p).variantLabel,...(Array.isArray(p.includes)?p.includes:[]),...(Array.isArray(p.components)?p.components.map(c=>byId.get(c.id)?.name):[])])].join(' '));
   return {id:key,title,image:image||'',category:first.category||'',categories,kind,productIds:ordered.map(p=>p.id),rentHref:rent?productPageUrl(rent.id,'rent',{bruk:'alle'}):'',buyHref:buy?productPageUrl(buy.id,'buy'):'',rentable:!!rent,purchasable:!!buy,searchText};
  });
 }

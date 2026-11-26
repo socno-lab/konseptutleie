@@ -54,7 +54,7 @@ export async function readHtmlTemplate(name,base=root){
  // Read the existing saved basket during parsing, before the header paints.
  // Catalogue validation remains the responsibility of the application modules.
  if(/<span id="(?:count|saleCount)">/.test(html))html=html.replace('</head>','<script src="/cart-badge-bootstrap.js?v=cartfirstpaint20261026"></script></head>');
- html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=labelalign20261119"><script type="module" src="/header-tools.js?v=choicesfirst20261119"></script><script type="module" src="/mobile-navigation.js?v=fest20261114"></script><link rel="stylesheet" href="/cart-addons.css?v=quantitymatch20261115"><link rel="stylesheet" href="/service-detail.css?v=choicesfirst20261119"></head>');
+ html=html.replace('</head>','<link rel="stylesheet" href="/header-tools.css?v=labelalign20261119"><script type="module" src="/header-tools.js?v=product-brand1"></script><script type="module" src="/mobile-navigation.js?v=fest20261114"></script><link rel="stylesheet" href="/cart-addons.css?v=quantitymatch20261115"><link rel="stylesheet" href="/service-detail.css?v=choicesfirst20261119"></head>');
  if(['index.html','utvalg.html','kjop.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/catalog-refinements.css?v=compactsort20261119c"></head>');
  if(name==='leieprodukt.html')html=html.replace('</head>','<link rel="stylesheet" href="/product-pricing-scope.css?v=purposemodal20261122"></head>');
  if(['index.html','utvalg.html','anledning.html','leieprodukt.html'].includes(name))html=html.replace('</head>','<link rel="stylesheet" href="/rental-status.css?v=rented20261029b"></head>');

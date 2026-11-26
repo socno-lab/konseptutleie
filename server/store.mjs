@@ -10,6 +10,7 @@ import {stylingStore,stylingSchema,createStylingItem} from './styling-store.mjs'
 import mysql from 'mysql2/promise';
 import {randomBytes,createHash} from 'node:crypto';
 import {migrateProducts} from './walls.mjs';
+import {backfillProductBrands} from '../public/product-brand.js';
 import {removeRetiredCosts} from './catalog.mjs';
 
 export function createMysqlStore(env,seed){
@@ -67,8 +68,9 @@ export function createMysqlStore(env,seed){
       if(chairIds.has(item.id)&&!item.subcategory)item.subcategory='Spisestoler';
      }
     }
-    if(JSON.stringify(products)!==JSON.stringify(cleaned))
-     await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(cleaned),new Date()]);
+    const branded=backfillProductBrands(cleaned);
+    if(JSON.stringify(products)!==JSON.stringify(branded))
+     await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(branded),new Date()]);
     if(products.some(p=>p.id===retiredOakTableId)){const [workflows]=await connection.execute('SELECT body FROM ku_workflow FOR UPDATE');
     for(const row of workflows){const r=JSON.parse(row.body),next=mergeOakWorkflow(r);if(next!==r)await connection.execute('UPDATE ku_workflow SET body=? WHERE id=?',[JSON.stringify(next),r.id]);}}
     await connection.commit();

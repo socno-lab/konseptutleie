@@ -1,3 +1,4 @@
+import {foldProductSearch} from '../product-brand.js';
 import {catalogImageFrameAttributes} from '../catalog-image-framing.js?v=frames20261125';
 export const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const states={ready:'På lager',assigned:'Lagt til på oppdrag',out:'Ute på styling',check:'Venter på kontroll',held:'Holdt tilbake'};
@@ -25,7 +26,7 @@ export function filtered(rows,f){
   return rows.filter(p=>(!f.category||p.category===f.category)&&(!f.sub||p.subcategory===f.sub)
     &&(!f.avail||(f.avail==='yes'?p.available>0:p.available===0))
     &&(!f.state||p.items.some(i=>i.state===f.state))
-    &&(text(p.name).includes(text(f.term))||p.items.some(i=>text(i.id).includes(text(f.term)))))
+    &&(foldProductSearch([p.name,p.brand].join(' ')).includes(foldProductSearch(f.term))||p.items.some(i=>text(i.id).includes(text(f.term)))))
     .sort((a,b)=>(f.sort==='available'?b.available-a.available:f.sort==='category'?compare(a.category||'',b.category||''):0)||compare(a.name,b.name));
 }
 export function stockControls(rows,f,b){
