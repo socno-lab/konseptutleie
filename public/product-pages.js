@@ -1,3 +1,4 @@
+import {catalogProductContext} from './catalog-product-context.js';
 import {catalogLinkTarget} from './catalog-link-target.js';
 import {catalogPositionKey} from './catalog-position.js?v=launch20261024';
 import {purchaseProductText} from './purchase-copy.js?v=copy20261028';
@@ -35,18 +36,27 @@ function pageHost(){
  const scope=document.getElementById('catalogPricingScope');if(scope)host.append(scope);
  const status=document.createElement('p');status.id='productPageStatus';status.setAttribute('role','status');status.textContent='Laster produkt …';host.append(status);document.querySelector('main').prepend(host);return host;
 }
-export function catalogReturn(){const mode=location.pathname===productPagePaths.buy?'buy':'rent';return safeCatalogReturn(new URL(location.href).searchParams.get('retur'),mode,location.origin);}
+function rememberCatalogVisit(){
+ try{
+  sessionStorage.setItem(catalogPositionKey(location.href),String(scrollY));
+  sessionStorage.setItem('konsept-last-catalog',location.href);
+ }catch{}
+}
+export function catalogReturn(){
+ const mode=location.pathname===productPagePaths.buy?'buy':'rent';
+ return safeCatalogReturn(catalogProductContext(window,document.referrer).searchParams.get('retur'),mode,location.origin);
+}
 export function productLink(id,mode='rent',context={}){
  return productPageUrl(id,mode,{...context,origin:location.origin,returnTo:isProductPage?(location.pathname===productPagePaths[mode]?catalogReturn():context.returnTo||(mode==='buy'?'/kjop.html':'/utvalg.html')):context.returnTo||location.pathname+location.search+location.hash});
 }
 export function navigateProduct(id,mode,context={}){
- if(!isProductPage){try{sessionStorage.setItem(catalogPositionKey(location.href),String(scrollY));}catch{}}
+ if(!isProductPage){rememberCatalogVisit();}
  location.assign(productLink(id,mode,context));
 }
 export function selectPageProduct(p,mode,context={}){
  if(!isProductPage)return;
  selectedRecommendation=p;
- const url=new URL(location.href);url.searchParams.set('produkt',p.id);for(const key of ['bruk','prisbruk','oppsett'])if(Object.hasOwn(context,key)){if(context[key])url.searchParams.set(key,context[key]);else url.searchParams.delete(key);}history.replaceState(null,'',url.pathname+url.search);
+ const url=new URL(location.href);url.searchParams.set('produkt',p.id);for(const key of ['bruk','prisbruk','oppsett'])if(Object.hasOwn(context,key)&&(key==='oppsett'||url.searchParams.has(key)||url.searchParams.has('retur'))){if(context[key])url.searchParams.set(key,context[key]);else url.searchParams.delete(key);}history.replaceState({...history.state,catalogSource:catalogReturn()},'',url.pathname+url.search);
  document.title=(mode==='buy'?'Kjøp ':'Lei ')+p.name+' | Konseptuell';
  const description=document.querySelector('meta[name="description"]')||document.head.appendChild(document.createElement('meta'));description.name='description';description.content=[p.moduleSeries||p.name,mode==='buy'?purchaseProductText(p.material):p.material,mode==='buy'?'Send en uforpliktende kjøpsforespørsel. Ingen betaling eller bindende kjøp ved innsending.':'Velg antall og send en uforpliktende leieforespørsel.'].filter(Boolean).join(' · ');
  const canonical=new URL((mode==='buy'?'/kjopsprodukt.html':'/leieprodukt.html')+'?produkt='+encodeURIComponent(p.id),document.querySelector('link[rel=canonical]')?.href||location.origin).href;
@@ -115,13 +125,13 @@ export function installProductLinks(mode,getProducts,getContext=()=>({})){
   for(const button of document.querySelectorAll('button[data-product],button[data-detail],button[data-build],button[data-rental-colour],#products button[data-wall]')){
    if(button.closest('dialog,.product-page-surface'))continue;
    const id=catalogLinkTarget(button.dataset,products);if(!products.some(p=>p.id===id))continue;
-   const link=document.createElement('a');for(const attr of button.attributes)if(!['type','aria-pressed'].includes(attr.name))link.setAttribute(attr.name,attr.value);link.href=productLink(id,mode,getContext());link.dataset.productLink='';link.append(...button.childNodes);button.replaceWith(link);
+   const link=document.createElement('a');for(const attr of button.attributes)if(!['type','aria-pressed'].includes(attr.name))link.setAttribute(attr.name,attr.value);link.href=productPageUrl(id,mode);link.dataset.productLink='';link.append(...button.childNodes);button.replaceWith(link);
   }
-  // Keep first-paint rental links tied to the exact current filter/return URL.
+  // Resolve variant and builder links to their canonical product.
   // Their final card geometry is already present, so no elements move here.
   if(mode==='rent')for(const link of document.querySelectorAll('a[data-rental-catalog-link]')){
    const id=catalogLinkTarget(link.dataset,products);
-   if(id){const href=productLink(id,mode,getContext());if(link.getAttribute('href')!==href)link.setAttribute('href',href);}
+   if(id){const href=productPageUrl(id,mode);if(link.getAttribute('href')!==href)link.setAttribute('href',href);}
   }
   for(const card of document.querySelectorAll('#products>article,#saleProducts>article')){
    const photo=card.querySelector('a.product-art[data-product-link],a.sale-photo[data-product-link]');
@@ -136,5 +146,5 @@ export function installProductLinks(mode,getProducts,getContext=()=>({})){
   }
  };
  new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(scan);}}).observe(document.body,{subtree:true,childList:true});
- document.addEventListener('click',e=>{if(e.target.closest('a[data-product-link]')){try{sessionStorage.setItem(catalogPositionKey(location.href),String(scrollY));}catch{}e.stopPropagation();}},true);scan();
+ document.addEventListener('click',e=>{if(e.target.closest('a[data-product-link]')){rememberCatalogVisit();e.stopPropagation();}},true);scan();
 }

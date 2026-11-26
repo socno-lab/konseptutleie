@@ -69,7 +69,7 @@ test('colour selects the matching grouped variant and combines with category, se
  assert.deepEqual(rentalSubcategoryCounts(products,settings,'messe','Stoler','',['Spisestoler','Loungestoler'],refinement),{'':2,Spisestoler:1,Loungestoler:1});
  const sale=saleCatalogView({products,refinement});
  assert.equal(sale.shown.some(p=>p.id==='lamp-white'),false);assert.equal(sale.shown.some(p=>p.id==='lamp-green'),true);
- assert.match(sale.renderItem(sale.shown[0],0),/farge%3Dgronn/);assert.doesNotMatch(sale.renderItem(sale.shown[0],0),/sortering%3Dprice-asc/);
+ assert.match(sale.renderItem(sale.shown[0],0),/href="\/kjopsprodukt.html\?produkt=green"/);assert.doesNotMatch(sale.renderItem(sale.shown[0],0),/sortering%3Dprice-asc/);
 });
 test('SSR shows one dropdown with price choices before colours and preserves the selected colour',async()=>{
  for(const path of ['/utvalg.html','/kjop.html']){

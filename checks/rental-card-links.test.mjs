@@ -9,8 +9,8 @@ test('rental first paint already has final card geometry and linked colour, modu
   assert.match(html,/class="catalog-product-card module-card"/);assert.doesNotMatch(html,/<button/);
   assert.match(html,/<h3><a class="catalog-card-link"[^>]*>Stol &amp; sofa<\/a><\/h3>/);
   assert.equal((html.match(/class="catalog-card-link"/g)||[]).length,1);
-  assert.match(html,/data-rental-colour="green"[^>]*href="\/leieprodukt\.html\?produkt=green&amp;/);
-  assert.match(html,/retur=%2Futvalg.html%3Fbruk%3Dboligsalg%26kategori%3DStoler%26farge%3Dgronn&amp;bruk=boligsalg&amp;prisbruk=standard/);
+  assert.match(html,/data-rental-colour="green"[^>]*href="\/leieprodukt\.html\?produkt=green"/);
+  assert.doesNotMatch(html,/retur=|prisbruk=|bruk=/);
   assert.doesNotMatch(html,/aria-pressed|Velg til tilbud|module-build-button/);
  }
 });

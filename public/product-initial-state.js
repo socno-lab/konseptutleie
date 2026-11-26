@@ -1,3 +1,4 @@
+import {catalogProductContext} from './catalog-product-context.js';
 import {rememberedPurposeState} from './rental-purpose-memory.js?v=focusstable20261122';
 import {configureSiteSettings} from './site-settings.js?v=fest20261114';
 import {normalizeBasket} from './catalog-model.js?v=longrent20261026';
@@ -96,7 +97,7 @@ export function mountInitialProductState(doc,win){
  let done=false,observer;const storage={};for(const key of ['localStorage','sessionStorage'])try{storage[key]=win[key];}catch{}
  const project=()=>{
   if(done||win.konseptProductClientReady){observer?.disconnect();return;}
-  try{done=projectInitialProduct(doc,win.location.href,storage);}catch{done=true;}
+  try{done=projectInitialProduct(doc,catalogProductContext(win,doc.referrer).href,storage);}catch{done=true;}
   if(done)observer?.disconnect();
  };
  observer=new win.MutationObserver(project);observer.observe(doc.documentElement,{childList:true,subtree:true});

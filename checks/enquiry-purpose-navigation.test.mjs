@@ -34,7 +34,7 @@ test('history restoration reads the latest saved purpose instead of the page sta
  const source=fs.readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
  const restore=source.match(/^function restorePurpose\(\).*$/m)[0],remember=source.match(/^function rememberPurpose\(\).*$/m)[0];
  let stored='messe';const search={value:''};
- const context=vm.createContext({URL,location:{href:'https://konseptuell.no/utvalg.html'},sessionStorage:{getItem:()=>stored,setItem:(key,value)=>{stored=value;}},rememberedPurposeState,rememberRentalPurpose:value=>rememberRentalPurpose(value,{sessionStorage:{setItem:(key,value)=>{stored=value;}}}),readPurposeState,cart:{chair:1},sofaSetups:[],readRefinement:()=>({}),isEnquiryPage:false,el:id=>id==='occasion'?{value:''}:search,catalogProducts:[],getSiteSettings:()=>({categories:[]}),syncPurpose(){},renderProducts(){}});
+ const context=vm.createContext({URL,isProductPage:false,location:{href:'https://konseptuell.no/utvalg.html'},sessionStorage:{getItem:()=>stored,setItem:(key,value)=>{stored=value;}},rememberedPurposeState,rememberRentalPurpose:value=>rememberRentalPurpose(value,{sessionStorage:{setItem:(key,value)=>{stored=value;}}}),readPurposeState,cart:{chair:1},sofaSetups:[],readRefinement:()=>({}),isEnquiryPage:false,el:id=>id==='occasion'?{value:''}:search,catalogProducts:[],getSiteSettings:()=>({categories:[]}),syncPurpose(){},renderProducts(){}});
  vm.runInContext("let savedPurpose='boligsalg',purpose='boligsalg',refinement,filter,tableFilter;\n"+remember+'\n'+restore+'\nrestorePurpose();',context);
  assert.equal(vm.runInContext('purpose',context),'messe');
  stored='fest';vm.runInContext('restorePurpose()',context);assert.equal(vm.runInContext('purpose',context),'fest');

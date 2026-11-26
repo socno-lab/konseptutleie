@@ -4,7 +4,7 @@ const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 // Render the same linked layout that installProductLinks keeps in the browser.
 // Product photos and titles are the actions; the old inline CTA has no final row.
 export function rentalCardLinks(markup,product,context){
- const href=id=>escape(productPageUrl(id,'rent',context));
+ const href=id=>escape(productPageUrl(id,'rent'));
  markup=markup.replace(/<button\b([^>]*)>[\s\S]*?<\/button>/g,(button,attrs)=>/\bclass="[^"]*\b(?:add|module-build-button)\b/.test(attrs)?'':button);
  markup=markup.replace(/<button\b([^>]*)>([\s\S]*?)<\/button>/g,(button,attrs,content)=>{
   const target=attrs.match(/\bdata-(?:detail|rental-colour)="([^"]*)"/);

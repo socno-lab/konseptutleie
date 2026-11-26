@@ -35,7 +35,7 @@ export function saleColourSwatches(p,products,detail=false){const colours=saleCo
 // Deliver the final linked card immediately, including its five-row grid layout.
 // The browser link enhancer then only binds behavior; it need not remove a CTA row.
 function saleCardLinks(markup,p,returnTo){
- const href=id=>html(productPageUrl(id,'buy',{returnTo}));
+ const href=id=>html(productPageUrl(id,'buy'));
  markup=markup.replace(/<button type="button" class="button dark"[^>]*>[\s\S]*?<\/button>/,'');
  markup=markup.replace(/<button([^>]*data-product="([^"]+)"[^>]*)>([\s\S]*?)<\/button>/g,(_,attrs,id,content)=>'<a'+attrs.replace(/ type="[^"]*"| aria-pressed="[^"]*"/g,'')+' href="'+href(id)+'" data-product-link>'+content+'</a>');
  markup=markup.replace('class="sale-card"','class="sale-card catalog-product-card"');

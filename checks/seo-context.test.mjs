@@ -33,7 +33,7 @@ test('no-JavaScript messe cards and product details carry the selected gross tar
  assert.doesNotMatch(fallback,/Boligfoto og visning|700 kr \/ døgn/);assert.match(fallback,/#productPageHost\{display:none/);
  const catalogue=pageModel('/utvalg.html',new URLSearchParams('kategori=Pakker&bruk=messe&prisbruk=messe'),products,site());
  assert.deepEqual(catalogue.items.map(p=>p.id),['lounge','vip']);
- const cards=productCards(catalogue.items,false,catalogue.catalogUsage);assert.match(cards,/bruk=messe&amp;prisbruk=messe/);assert.doesNotMatch(cards,/Kun bolig|Boligfoto og visning/);
+ const cards=productCards(catalogue.items,false,catalogue.catalogUsage);assert.doesNotMatch(cards,/href="[^"]*(?:bruk|retur)=/);assert.doesNotMatch(cards,/Kun bolig|Boligfoto og visning/);
  const canonical=pageModel('/leieprodukt.html',new URLSearchParams('produkt=vip'),products,site());
  assert.match(renderSeo(source,canonical,products,true,site()).match(/<noscript>([\s\S]*?)<\/noscript>/)[1],/1\s*500 kr/);
 });

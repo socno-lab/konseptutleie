@@ -14,6 +14,7 @@
     "public/catalog-image-framing.js": "3cae2b9bad8c5ad1c3cd82183c2716e1227826c204ca1d268642f243e61c02f1",
     "public/catalog-manual-order.js": "e45ea33c57ed6dc59cb9fcb2603fe55c017ba4107be5e9a86de24b54393b1e54",
     "public/catalog-model.js": "f3b09edd83e1f0957e72e382cb6f95c4593224fc1967f6ddfab0148f3364e020",
+    "public/catalog-product-context.js": "4ad97933aae2a96c7e817fcf54d24d10baeb1e2d5f4fe4904d1badd5e8cdbd66",
     "public/catalog-refinement-model.js": "033e9b26a5e2ea7258daba587914e136fab733ed6bb6d30f9ac986d05539bdbc",
     "public/catalog-subcategories.js": "e11b7c0e1c34a09ad818b11d5e40b402d50e09b978cab90ede64599f99c48c0a",
     "public/copacabana-photo-parts.js": "58c1af448a04953fdfc51bd9c2da5ecc0c2cbbcaf7d6c76be426640a0f145b20",
@@ -35,7 +36,7 @@
     "public/price-display-model.js": "2aa77aa3a58c3ac1d88cc0c645fc9c29b353ccc20e5308d29b41dd6d3b975ffb",
     "public/product-dimensions.js": "b9b1b7d38cef163be063506d643fd39cfa6089c26763a426ebcbf25779216234",
     "public/product-illustration.js": "4b0e248efd605cea3f1646aa785f6f004d96815665fb7f40663e720d2193adfb",
-    "public/product-initial-state.js": "08fa0edf0f03ae90acdaed58e39061f0509b4beccbccefd31840fd585efd9ed2",
+    "public/product-initial-state.js": "6a0826ff9499c9c173b7069fbd4ab1f9c7d03409cf03c83e4c1bf4c34e29976b",
     "public/product-page-model.js": "01d129d98c2235d3b5335aaf385931759bcc729864662f1b20db29ca9d4fcea0",
     "public/product-period-markup.js": "9cda691907f1a6124bc982c193776999a4a27b2f59b97e6316c92a5a452e7643",
     "public/product-recommendations.js": "19b8ffce1c88e5cf512fbbc10a8346032f1a860a8ed7dc37cc229e4730696d30",
@@ -59,7 +60,7 @@
     "public/rental-status.js": "6d300d04f6be46751b9a9daea261875040cc470b736d604bca915eb5218b042b",
     "public/rental-stock.js": "ff25aaa00b2e4dd9cb4b8990cd28bb1ea8bed0186d60c8ad8ec06e019358825c",
     "public/rental-usage-model.js": "eccb252a734250276e13d41f6dd87691ab454007a80034a2c2f9f1eb1630360b",
-    "public/sale-catalog-view.js": "69d5174be6fdbd75f9891f96e582ca27dfb1d3e778f600daabaab137f8f4c6ce",
+    "public/sale-catalog-view.js": "80c87dd7ea11faf45d55fed02ab19f2b5d4a57924b52cf5a61ca47892caccf4a",
     "public/sale-sofa-model.js": "46233bc3a844d6ebeb40d6ea03f152bf8ab6066703eb7029a436a5dc31ecbd89",
     "public/sales-model.js": "1a8fb3d2b2caa535e54a0bab6e75dcf926c1a9a295982cdb028f7b8924174541",
     "public/service-model.js": "84051d14506f8ce3065e03e7e00b6571b67238da1eec07df870de3af4ff1aa25",
@@ -70,5 +71,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "server/product-initial-state-script.mjs": "814a4cc97c3bbb7e7428ed9560a8a390aadf119816448e6604d850ee92e93e74"
   },
-  "bundleSha256": "97a69db74d8c41c93a2d41a0728e7a977ebea3699c6af029426cc962697c5ae9"
+  "bundleSha256": "9edc3cc7fb7147da7f8955ce9ed74f6d28ad7e916c31d4bc521f12e67b867ec0"
 }
