@@ -43,4 +43,4 @@ Registrer leverandørens artikkelnummer for den konkrete varianten fra produktle
 
 ## Styling og lager på desktop
 
-Behold den horisontale administrasjonsmenyen på skjermer over 660 px. La Oppdrag være startvisningen, med direkte tilgang til Lager og, for administratorer, Bruksstatistikk, Stylister og Administrasjon. Den kortbaserte hovedmenyen med store trykkflater brukes på mobil. Endringer i mobilmenyen skal bevare desktopnavigasjonen.
+Behold den horisontale administrasjonsmenyen på skjermer over 660 px. La Oppdrag være startvisningen, med direkte tilgang til Lager og, for administratorer, Bruksstatistikk, Stylister og Administrasjon. Administratorer har samme direkte menyvalg på mobil, der toppmenyen kan gå over flere linjer. Stylistvisningen har en egen startmeny med store trykkflater.

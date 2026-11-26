@@ -7,8 +7,7 @@ const submit=label=>'<button class="button dark">'+label+'</button>';
 const previewRequested=new URLSearchParams(location.search).get('visning')==='stylist';
 const isPreview=()=>previewRequested&&data?.admin;
 const isAdminView=()=>data?.admin&&!isPreview();
-const mobileMenu=matchMedia('(max-width:660px)');
-const landingPage=()=>!isAdminView()?'stylist-home':mobileMenu.matches?'home':'jobs';
+const landingPage=()=>isAdminView()?'jobs':'stylist-home';
 const params=new URLSearchParams(location.hash.slice(1));
 let invitation=params.get('invite'),itemId=new URLSearchParams(location.search).get('item'),page=itemId?'item':'stylist-home';
 let data,jobId='',labels=[],selectedProduct='',history=[],inviteUrl='',stream,scanSession=0,working=false;
@@ -134,13 +133,11 @@ function render(){
       stylistMenu.innerHTML='<details><summary aria-label="Meny"><span aria-hidden="true">☰</span> Meny</summary><div class="stylist-menu-options">'
         +button('Startside','stylist-home')+(inJob?button('Returkontroll og oppdrag','job',jobId):'')
         +button('Lager','stock')+button('Avsluttede oppdrag','archive')+(isPreview()?'<a class="button" href="/admin/">Til administrasjon</a>':button('Logg ut','logout'))+'</div></details>';
-    }else if(mobileMenu.matches){
-      if(page!=='home')nav.innerHTML=button('← Tilbake til hovedmeny','home');
     }else{
-      nav.innerHTML=button('Oppdrag','jobs')+button('Lager','stock')+button('Mer','more')
-        +(isAdminView()?button('Bruksstatistikk','usage')+button('Stylister','staff')+'<a href="/admin/">Administrasjon</a>':'');
+      nav.innerHTML=button('Oppdrag','jobs')+button('Lager','stock')+button('Avsluttede oppdrag','archive')
+        +button('Bruksstatistikk','usage')+button('Stylister','staff')+'<a href="/admin/">Administrasjon</a>';
       const tab=['stock','register','labels','queue'].includes(page)||(page==='product'&&source==='stock')?'stock':
-        ['usage','staff','more'].includes(page)?page:'jobs';
+        ['usage','staff','archive'].includes(page)?page:'jobs';
       nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
     }
     if(page==='stylist-home'){
@@ -148,17 +145,9 @@ function render(){
       html='<div class="styling-home stylist-start stylist-landing"><div class="styling-menu">'
         +options.map(([label,action],index)=>'<button type="button" class="button '+(index===0?'dark':'button-outline')
           +'" data-action="'+action+'"><span>'+label+'</span></button>').join('')+'</div></div>';
-    }else if(page==='home'){
-      const options=[['Velg oppdrag','jobs'],['Nytt oppdrag','new'],['Mer','more','Lager og avsluttede oppdrag'+(isAdminView()?' · Administrasjon':'')]];
-      html='<div class="styling-home"><h1>Styling og lager</h1><div class="styling-menu">'
-        +options.map(([label,action,description])=>'<button type="button" class="styling-menu-card" data-action="'+action+'"><span><strong>'+label+'</strong>'
-          +(description?'<small>'+description+'</small>':'')+'</span><span class="styling-menu-arrow" aria-hidden="true"></span></button>').join('')+'</div></div>';
     }else if(page==='jobs'||page==='archive'){
-      html='<div class="page-heading job-list-heading"><h1>'+(page==='jobs'?'Velg oppdrag':'Avsluttede oppdrag')+'</h1>'+(isAdminView()&&!mobileMenu.matches&&page==='jobs'?button('Nytt oppdrag','new','',true):'')+'</div>'
+      html='<div class="page-heading job-list-heading"><h1>'+(page==='jobs'?'Velg oppdrag':'Avsluttede oppdrag')+'</h1>'+(isAdminView()&&page==='jobs'?button('Nytt oppdrag','new','',true):'')+'</div>'
         +'<div class="filters jobs"><label>Søk etter navn eller adresse<input type="search" data-field="term" value="'+escape(jobFilter.term)+'"></label></div><div id="results"></div>';
-    }else if(page==='more'){
-      html='<h1>Mer</h1><div class="actions job-actions">'+button('Lager','stock')+button('Avsluttede oppdrag','archive')
-        +(isAdminView()?button('Bruksstatistikk','usage')+button('Stylister','staff')+'<a class="button button-outline" href="/admin/">Administrasjon</a>':button('Logg ut','logout'))+'</div>';
     }else if(page==='new'){
       html='<h1>Nytt stylingoppdrag</h1><form data-form="job"><label>Navn eller adresse<input name="address" maxlength="200" required></label><p>Ansvarlig stylist · '+escape(data.actor)+'</p>'+submit('Opprett oppdrag')+'</form>';
     }else if(page==='job'){
@@ -419,9 +408,5 @@ screen.onsubmit=e=>{
 window.addEventListener('popstate',e=>{
   if(!data||!e.state?.styling)return;
   jobId=e.state.jobId||jobId;productId=e.state.productId||productId;source=e.state.source||source;go(e.state.page);
-});
-mobileMenu.addEventListener('change',()=>{
-  if(isAdminView()&&page==='home'&&!mobileMenu.matches)go('jobs');
-  else if(!stream&&!working)render();
 });
 if(invitation)render();else await run(async()=>{await load();const product=new URLSearchParams(location.search).get('labelsFor');if(itemId)await showItem(itemId);else if(product){labels=data.items.filter(i=>i.product===product).map(i=>i.id);if(labels.length)go('labels');else go('stock');}else go(landingPage());});
