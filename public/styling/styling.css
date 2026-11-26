@@ -191,8 +191,10 @@
   min-height:55svh;
   margin-top:0;
  }
- .stylist-landing .styling-menu {width:min(100%,360px)}
- #screen .stylist-landing .button {
+ .stylist-start .styling-menu {width:min(100%,360px);margin-inline:auto}
+ #screen .stylist-start h1 {text-align:center}
+ #nav :is([data-action=stylist-home],[data-action=stylist-registration]) {padding-inline:0}
+ #screen .stylist-start .button {
   appearance:none;
   display:flex;
   align-items:center;

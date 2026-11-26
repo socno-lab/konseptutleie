@@ -125,6 +125,8 @@ function render(){
     html=invitation?'<h1>Aktiver stylistkonto</h1><form data-form="claim"><label>Velg passord<input name="password" type="password" minlength="12" maxlength="128" required autocomplete="new-password"></label>'+submit('Aktiver konto')+'</form>':'<h1>Logg inn som stylist</h1><form data-form="login"><label>E-post<input name="email" type="email" required autocomplete="username"></label><label>Passord<input name="password" type="password" required autocomplete="current-password"></label>'+submit('Logg inn')+'</form><a href="/admin/login?to=styling'+(itemPattern.test(itemId)?'&amp;item='+itemId:'')+'">Administratorinnlogging</a>';
   }else{
     if(!isAdminView()){
+      if(page==='stylist-registration')nav.innerHTML=button('← Tilbake','stylist-home');
+      if(['jobs','new'].includes(page))nav.innerHTML=button('← Tilbake','stylist-registration');
       const inJob=['job','scan-job','in','out'].includes(page)&&data.jobs.some(job=>job.id===jobId);
       stylistMenu.innerHTML='<details><summary aria-label="Meny"><span aria-hidden="true">☰</span> Meny</summary><div class="stylist-menu-options">'
         +button('Startside','stylist-home')+(inJob?button('Skann retur','start-job-scan','in')+button('Returkontroll og oppdrag','job',jobId):'')
@@ -139,11 +141,12 @@ function render(){
       nav.querySelector('[data-action="'+tab+'"]')?.setAttribute('aria-current','page');
     }
     if(page==='stylist-home'||page==='stylist-registration'){
-      const options=[['Velg oppdrag','jobs'],['Nytt oppdrag','new']];
-      html='<div class="styling-home stylist-start'+(page==='stylist-home'?' stylist-landing':'')+'">'
-        +(page==='stylist-home'?'':'<h1>Start registrering</h1>')+'<div class="styling-menu">'
-        +(page==='stylist-home'?'<button type="button" class="button dark" data-action="stylist-registration"><span>Start registrering</span></button>':
-          options.map(([label,action])=>button(label,action,'',action!=='new')).join(''))+'</div></div>';
+      const landing=page==='stylist-home';
+      const options=landing?[['Start registrering','stylist-registration']]:[['Velg oppdrag','jobs'],['Nytt oppdrag','new']];
+      html='<div class="styling-home stylist-start'+(landing?' stylist-landing':'')+'">'
+        +(landing?'':'<h1>Start registrering</h1>')+'<div class="styling-menu">'
+        +options.map(([label,action],index)=>'<button type="button" class="button '+(index===0?'dark':'button-outline')
+          +'" data-action="'+action+'"><span>'+label+'</span></button>').join('')+'</div></div>';
     }else if(page==='home'){
       const options=[['Velg oppdrag','jobs'],['Nytt oppdrag','new'],['Mer','more','Lager og avsluttede oppdrag'+(isAdminView()?' · Administrasjon':'')]];
       html='<div class="styling-home"><h1>Styling og lager</h1><div class="styling-menu">'
