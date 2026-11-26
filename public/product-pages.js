@@ -18,13 +18,13 @@ let reloadPosition=null,reloadInterrupted=false;
 try{if(refreshing)reloadPosition=sessionStorage.getItem(reloadKey());}catch{}
 addEventListener('pagehide',()=>{try{if(!document.querySelector('dialog[open]'))sessionStorage.setItem(reloadKey(),String(scrollY));}catch{}});
 for(const type of ['wheel','touchstart','pointerdown','keydown'])addEventListener(type,()=>{reloadInterrupted=true;},{passive:true});
-function restoreReloadPosition(){
- if(reloadPosition===null||reloadInterrupted)return;
- const y=Number(reloadPosition)||0;let observer,frame,timer;
+function restoreSavedPosition(position){
+ if(position===null||reloadInterrupted)return;
+ const y=Number(position)||0;let observer,frame,timer;
  const stop=()=>{observer?.disconnect();cancelAnimationFrame(frame);clearTimeout(timer);};
  const apply=()=>{if(reloadInterrupted){stop();return;}scrollTo({top:y,behavior:'instant'});};
  const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{frame=requestAnimationFrame(apply);});};
- schedule();if(typeof ResizeObserver!=='undefined'){observer=new ResizeObserver(schedule);observer.observe(document.querySelector('main')||document.body);}timer=setTimeout(stop,1500);
+ schedule();if(document.readyState!=='complete')addEventListener('load',schedule,{once:true});if(typeof ResizeObserver!=='undefined'){observer=new ResizeObserver(schedule);observer.observe(document.querySelector('main')||document.body);}timer=setTimeout(stop,1500);
 }
 
 
@@ -108,14 +108,14 @@ export function productPageError(message){if(!isProductPage)return;const target=
 export function restoreCatalogPosition(){
  if(isProductPage)return;
  if(pageAnchor.restore())return;
- if(refreshing){restoreReloadPosition();return;}
+ if(refreshing){restoreSavedPosition(reloadPosition);return;}
  try{
   const referrer=document.referrer?new URL(document.referrer):null;
   const fromProduct=referrer?.origin===location.origin&&Object.values(productPagePaths).includes(referrer.pathname);
   if(navigationType!=='back_forward'&&!fromProduct)return;
   const key=catalogPositionKey(location.href);
   const saved=sessionStorage.getItem(key);
-  if(saved!==null)requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo({top:Number(saved)||0,behavior:'instant'})));
+  restoreSavedPosition(saved);
  }catch{}
 }
 export function installProductLinks(mode,getProducts,getContext=()=>({})){

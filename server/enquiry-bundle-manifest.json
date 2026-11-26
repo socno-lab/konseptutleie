@@ -92,7 +92,7 @@
     "public/product-illustration.js": "4b0e248efd605cea3f1646aa785f6f004d96815665fb7f40663e720d2193adfb",
     "public/product-image-loading.js": "3049be5fa0d1f17a34ba6e6a6d2b41844197341304da53c5913570145c7bd793",
     "public/product-page-model.js": "01d129d98c2235d3b5335aaf385931759bcc729864662f1b20db29ca9d4fcea0",
-    "public/product-pages.js": "425a0bb98e65615ef60d5d43a3fb47a46b5bbc2f0a992f9371edf15a55a3beb5",
+    "public/product-pages.js": "731812f09de8d8e3dcac0e85f144b2c86e3aa58d70835c861ab761e4faa49858",
     "public/product-period-markup.js": "9cda691907f1a6124bc982c193776999a4a27b2f59b97e6316c92a5a452e7643",
     "public/product-recommendations.js": "19b8ffce1c88e5cf512fbbc10a8346032f1a860a8ed7dc37cc229e4730696d30",
     "public/product-rental-period.js": "d0605b00d8120ad12a1bcd13de76e5a9060b61c23cbe0be5c129680c9ba23972",
@@ -137,5 +137,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "public/weekend-rental.js": "5d650c1f38af7850221ed60719b403f31650eef9f9aebdd73cbd5da11bdbc955"
   },
-  "digest": "fa50f0a8d756f0f6ef44ad15dc178ecbfa49bd40f6ed7d05ffcc575ab7d273b0"
+  "digest": "4d85c400486e0f4c4b8c470f89b1c06c0b95c070c451d69500af5af2c97d8c37"
 }
