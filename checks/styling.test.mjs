@@ -70,6 +70,10 @@ test('Base sofas register distinct left/right labels and a legacy label can be s
     const {items}=await store.stylingOverview();
     assert.deepEqual(ids.map(id=>items.find(i=>i.id===id).side),['left','right','left','right']);
     assert.equal(items.find(i=>i.id===ids[1]).state,'held');
+    assert.deepEqual(ids.map(id=>items.find(i=>i.id===id).labelPending),[0,1,1,1]);
+    await store.stylingMove({id:ids[1],action:'ready',revision:1},'stylist');
+    await store.stylingMove({id:ids[1],action:'hold',revision:2},'stylist');
+    assert.equal((await store.stylingOverview()).items.find(i=>i.id===ids[1]).labelPending,0);
     const legacy=(await store.stylingRegister({...p,moduleRole:''},1,'stylist')).ids[0];
     await store.stylingMove({id:legacy,action:'ready',revision:1},'stylist');
     const split=await store.stylingSplit(legacy,2,[p],'stylist');

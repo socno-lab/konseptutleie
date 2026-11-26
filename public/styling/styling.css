@@ -16,6 +16,8 @@
 #screen video{display:block;width:100%;max-height:280px;background:#20251d}
 #screen video[hidden]{display:none}
 #status:not(:empty){background:#e7ebdf;padding:12px;border-radius:6px}
+.scan-identity{display:flex;align-items:center;gap:12px}
+.scan-identity .product-photo{width:64px;height:64px;flex:none;border-radius:4px}
 #screen .queue-choice{display:flex;align-items:center;gap:10px;min-height:44px;margin:0}
 #screen .queue-choice input{width:20px;height:20px;min-height:0;accent-color:var(--olive)}
 #screen .labels{display:grid;gap:20px}

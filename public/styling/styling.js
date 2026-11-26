@@ -12,6 +12,7 @@ const params=new URLSearchParams(location.hash.slice(1));
 let invitation=params.get('invite'),itemId=new URLSearchParams(location.search).get('item'),page=itemId?'item':'stylist-home';
 let data,jobId='',labels=[],selectedProduct='',history=[],inviteUrl='',stream,scanSession=0,working=false;
 const item=()=>data.items.find(i=>i.id===itemId);
+const itemPhoto=i=>photo(data.products.find(p=>p.id===i.product));
 const jobName=id=>data.jobs.find(j=>j.id===id)?.address||'';
 const sideNames={left:'Venstre endemodul',right:'Høyre endemodul'};
 function productName(i){
@@ -111,21 +112,29 @@ function unusedCorrection(p){
 const sheetCapacity=24;
 let queue=new Set();
 const queueKey=()=>'ku-label-selection:'+data.actor;
+const pendingLabel=i=>i.state==='held'&&Boolean(i.labelPending);
+function pendingQueueItems(ids){
+  const eligible=new Set(data.items.filter(pendingLabel).map(i=>i.id));
+  return [...ids].filter(id=>eligible.has(id));
+}
+function saveQueue(){
+  try{sessionStorage.setItem(queueKey(),JSON.stringify([...queue]));}catch{}
+}
 function restoreQueue(){
-  try{queue=new Set(JSON.parse(sessionStorage.getItem(queueKey())||'[]').filter(id=>data.items.some(i=>i.id===id)));}catch{queue=new Set();}
+  try{queue=new Set(pendingQueueItems(JSON.parse(sessionStorage.getItem(queueKey())||'[]')));}catch{queue=new Set();}
 }
 function queueView(){
-  const groups=rows.filter(p=>p.items.length);
-  return '<h1>Samle etiketter</h1><p>Velg registrerte møbler til samme utskrift. Hvert ark har 24 plasser.</p>'
+  const groups=rows.map(p=>({...p,items:p.items.filter(pendingLabel)})).filter(p=>p.items.length);
+  return '<h1>Samle etiketter</h1><p>Velg eksemplarer som venter på første innsjekking. Hvert ark har 24 plasser.</p>'
     +'<div class="actions"><strong id="queue-count" role="status"></strong>'+button('Vis utskrift','queue-preview','',true)+'</div>'
     +groups.map(p=>'<section><label class="queue-choice"><input type="checkbox" data-group="'+escape(p.id)+'"><strong>'+escape(p.name)+' · '+p.items.length+'</strong></label><details><summary>Velg enkelte eksemplarer</summary>'
       +p.items.map(i=>'<label class="queue-choice"><input type="checkbox" data-unit="'+escape(i.id)+'">'+escape(i.id)+' · '+escape(sideNames[i.side]||states[i.state])+'</label>').join('')+'</details></section>').join('')
-    +(!groups.length?'<p>Ingen registrerte eksemplarer ennå.</p>':'');
+    +(!groups.length?'<p>Ingen etiketter venter på første innsjekking.</p>':'');
 }
 function updateQueue(){
   for(const box of screen.querySelectorAll('[data-unit]'))box.checked=queue.has(box.dataset.unit);
   for(const box of screen.querySelectorAll('[data-group]')){
-    const items=rows.find(p=>p.id===box.dataset.group).items;
+    const items=rows.find(p=>p.id===box.dataset.group).items.filter(pendingLabel);
     const count=items.filter(i=>queue.has(i.id)).length;
     box.checked=count===items.length;box.indeterminate=count>0&&!box.checked;
   }
@@ -219,7 +228,7 @@ function render(){
     }else if(page==='labels'){
       html='<h1>'+labels.length+(labels.length===1?' etikett':' etiketter')+'</h1><p>Hama 70 × 37 mm · A4 · 24 etiketter per ark. Skriv ut i 100 % størrelse uten topp- og bunntekst.</p><div class="actions">'+button('Skriv ut på A4','print','',true)+button('Samle flere etiketter','extend-queue')+(jobId?button('Skann ut på oppdrag','out'):'')+'</div>'+sheets(labels);
     }else if(page==='item'){
-      const i=item();html=i?'<h1>'+escape(productName(i))+'</h1><section><h2>'+states[i.state]+'</h2><p>'+escape(i.id)+' '+escape(jobName(i.job))+'</p>'+button('Skriv ut etikett','label',i.id)+'</section>':'<h1>Ukjent etikett</h1>';
+      const i=item();html=i?'<h1>'+escape(productName(i))+'</h1><section><div class="scan-identity">'+itemPhoto(i)+'<div><h2>'+states[i.state]+'</h2><p>'+escape(i.id)+' '+escape(jobName(i.job))+'</p></div></div>'+button('Skriv ut etikett','label',i.id)+'</section>':'<h1>Ukjent etikett</h1>';
       if(itemOrigin==='product')html=button('← Til produktet','product',productId)+html;
       if(i?.state==='ready')html+=openJobs().length?'<form data-form="checkout"><label>Stylingoppdrag<select name="job">'+jobOptions()+'</select></label>'+submit(source==='pick'&&itemOrigin==='product'?'Legg til på oppdrag':'Sjekk ut på oppdrag')+'</form>':button('Nytt stylingoppdrag','new');
       if(i?.state==='out')html+=button('Registrer retur','return');
@@ -251,9 +260,9 @@ screen.oninput=e=>{
     return;
   }
   if(e.target.matches('[data-group],[data-unit]')){
-    const ids=e.target.dataset.group?rows.find(p=>p.id===e.target.dataset.group).items.map(i=>i.id):[e.target.dataset.unit];
+    const ids=e.target.dataset.group?rows.find(p=>p.id===e.target.dataset.group).items.filter(pendingLabel).map(i=>i.id):[e.target.dataset.unit];
     for(const id of ids){if(e.target.checked)queue.add(id);else queue.delete(id);}
-    try{sessionStorage.setItem(queueKey(),JSON.stringify([...queue]));}catch{}
+    saveQueue();
     updateQueue();return;
   }
   if(e.target.name==='product'&&e.target.form?.dataset.form==='register'){
@@ -304,7 +313,8 @@ async function scan(raw){
   Object.assign(i,result,{revision:i.revision+1});
   rows=stockRows(data);
   refreshScannerItems();
-  status.textContent=productName(i)+' · '+(route==='transfer'?'flyttet hit':({assigned:'lagt til på oppdraget',out:'skannet ut',check:'returnert til kontroll'}[result.state]));
+  const resultLabel=route==='transfer'?'flyttet hit':({assigned:'lagt til på oppdraget',out:'skannet ut',check:'returnert til kontroll'}[result.state]||states[result.state]);
+  status.innerHTML='<span class="scan-identity">'+itemPhoto(i)+'<span>'+escape(productName(i)+' · '+resultLabel)+'</span></span>';
 }
 async function camera(){
   stopCamera();const session=scanSession,video=screen.querySelector('video');
@@ -389,11 +399,19 @@ document.addEventListener('click',e=>{
     if(action==='start-job-scan')return openScanner(value);
     if(action==='camera'){if(!navigator.mediaDevices?.getUserMedia)throw Error('Bruk etikett-ID eller åpne siden med HTTPS for kamera.');return camera();}
     if(action==='queue'||action==='extend-queue'){
+      await load();
       restoreQueue();
-      if(action==='extend-queue'){for(const id of labels)queue.add(id);try{sessionStorage.setItem(queueKey(),JSON.stringify([...queue]));}catch{}}
+      if(action==='extend-queue'){for(const id of pendingQueueItems(labels))queue.add(id);}
+      saveQueue();
       return go('queue');
     }
-    if(action==='queue-preview'){labels=[...queue];return go('labels');}
+    if(action==='queue-preview'){
+      await load();
+      queue=new Set(pendingQueueItems(queue));
+      saveQueue();
+      labels=[...queue];
+      return go(labels.length?'labels':'queue');
+    }
     if(action==='print')return window.print();
     if(action==='item'){itemOrigin=page;return showItem(value);}
     if(action==='split'){

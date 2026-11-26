@@ -51,7 +51,13 @@ export function stylingStore(init,pool,query){
   }
   return {
     async stylingOverview(){
-      const [jobs,items]=await Promise.all([query('SELECT j.*,c.closed FROM ku_styling_jobs j LEFT JOIN ku_styling_job_closures c ON c.job=j.id ORDER BY j.created DESC'),query('SELECT i.*,s.side FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,s.side,i.id')]);
+      const [jobs,items]=await Promise.all([
+        query('SELECT j.*,c.closed FROM ku_styling_jobs j LEFT JOIN ku_styling_job_closures c ON c.job=j.id ORDER BY j.created DESC'),
+        query(`SELECT i.*,s.side,i.state='held' AND NOT EXISTS (
+          SELECT 1 FROM ku_styling_history h WHERE h.item=i.id AND h.state IN ('ready','assigned','out','check')
+        ) AS labelPending
+        FROM ku_styling_items i LEFT JOIN ku_styling_item_sides s ON s.item=i.id ORDER BY i.name,s.side,i.id`)
+      ]);
       return {jobs:jobs[0],items:items[0]};
     },
     async stylingJob(address,actor){
