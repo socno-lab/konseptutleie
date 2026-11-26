@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {foldProductSearch} from '../public/product-brand.js';
 import {productSubcategory,subcategoryOptions} from '../public/catalog-subcategories.js?v=fest20261114';
 import {categoryLabel,subcategoryLabel,configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=fest20261114';
 
@@ -19,7 +20,7 @@ const products=[
 ];
 function setup(){
  const fields={stockOnly:{checked:false},adminSearch:{value:''},searchAll:{checked:true},adminSubcategoryPanel:{},adminSubcategoriesTitle:{},adminSubcategories:{}};
- const state={products,tab:'products',categoryFilter:'Stoler',subcategoryFilter:'Barkrakker',el:id=>fields[id],productSubcategory,subcategoryOptions,categoryLabel,subcategoryLabel,escape:String,isServiceOffering:p=>p.offeringType==='service',isWall:p=>!!p.wallGroup,adminCategory:p=>p.category,matchesArea:(p,area)=>!p.deletedAt,matchesWorkflowFilter:()=>true};
+ const state={foldProductSearch,products,tab:'products',categoryFilter:'Stoler',subcategoryFilter:'Barkrakker',el:id=>fields[id],productSubcategory,subcategoryOptions,categoryLabel,subcategoryLabel,escape:String,isServiceOffering:p=>p.offeringType==='service',isWall:p=>!!p.wallGroup,adminCategory:p=>p.category,matchesArea:(p,area)=>!p.deletedAt,matchesWorkflowFilter:()=>true};
  vm.createContext(state);
  for(const [start,end] of [['function matchesStockFilter(p)', 'function adminThumbnail(p)'],['function visibleItems()', 'function renderCategories()'],['function renderSubcategories()','function selectVisible()']])vm.runInContext(source.slice(source.indexOf(start),source.indexOf(end)),state);
  return {state,fields,ids:()=>Array.from(state.visibleItems(),p=>p.id)};

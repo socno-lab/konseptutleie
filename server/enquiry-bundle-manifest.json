@@ -20,7 +20,7 @@
     "public/catalog-filter-count.js": "5298e5b646ad1fb89114280715688ae15e31c84357763cb573980993b57b2be4",
     "public/catalog-filters.js": "d98adda961859f9d88787d30f60c14acd381adee96b0b51b08995b2eaf5c2dad",
     "public/catalog-image-bounds.js": "cbf308b20a7669a2e36d5e09ad4ed7e08311502fd8178d984bf52b3a4e9894d9",
-    "public/catalog-image-framing.js": "1315b05ce2c37e52f1d558b52b92f88fb974bc1cd0da11e1c40dfad2eaa128a4",
+    "public/catalog-image-framing.js": "0e669751cff1a99439929939e7c07cb6f1bdea62ca255be7192bde7bcea69648",
     "public/catalog-intro.js": "a6476fe06caaa9bc272b6881778234d4eea32c9dfcd19a93f03b098bcacf2061",
     "public/catalog-link-target.js": "bb5af6a6a1e7f17d753d449fc5f8080a37fe7212d05bea56f7f32a49dc01a949",
     "public/catalog-manual-order.js": "e45ea33c57ed6dc59cb9fcb2603fe55c017ba4107be5e9a86de24b54393b1e54",
@@ -53,7 +53,7 @@
     "public/enquiry-submit-summary.js": "8cee77a0ec284ef3abea8b0ee1b1d542cbcf45fa21c22d558f58a30175cc3cf2",
     "public/enquiry-terms.js": "95bfb35159182b70041288fc9b9748bdc9a1a96a09a2a6b053ae202fdad0f2cb",
     "public/enquiry-thumbnails.js": "c70e453eb122a376fde5d76881c4fbba91b85b643d1d01b13555db49f81c80e1",
-    "public/favorite-sharing.js": "5c7f205462a343e0b3e2834cfe67d7bc5ddc0afc6288f0d310f77aa880eda47e",
+    "public/favorite-sharing.js": "499f16cc7d90b52f0c99475a062fabb4dcc1f67980c92feb6208e70ba9942aa9",
     "public/footer-links-markup.js": "5371575258b660777af621b24777dd7dd2da865a8aeda611b5bee784527572e2",
     "public/header-catalog-model.js": "858e887b9d8194797c82f9209312629efebcf83131dc8957b933b0b335686321",
     "public/header-tools.js": "cb5476b8457633ab6058cf503bb6867b03d166f010a9bddf0a5752348485ef29",
@@ -136,5 +136,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "public/weekend-rental.js": "5d650c1f38af7850221ed60719b403f31650eef9f9aebdd73cbd5da11bdbc955"
   },
-  "digest": "06fb3be2fc008b78f6234b3aa906803a48de46c71a1e7644d5f1a4dac680af0c"
+  "digest": "3aec65395f5c1c50ee383b8fc35802ae693e600c8f3bbc0d9911e2629ab30737"
 }

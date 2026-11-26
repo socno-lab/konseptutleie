@@ -315,16 +315,30 @@ async function camera(){
   }
   frame();
 }
+let pendingAdminPage='';
+function openAdminPage(next){
+  if(working){pendingAdminPage=next;return;}
+  return run(async()=>{
+    if(next==='usage')await loadUsage();
+    go(next);
+  });
+}
 async function run(fn){
   if(working)return;working=true;
   try{await fn();}catch(e){
     if(e.status===401){stopCamera();data=null;render();}
     if(e.status===409){await load();refreshScannerItems();if(page==='job'&&data.jobs.some(job=>job.id===jobId))await loadJobReturns();if(!['in','out','scan-job'].includes(page))render();}
     status.textContent=e.name==='NotAllowedError'?'Kameratilgang mangler. Tillat kamera eller skriv inn etikett-ID.':e.message;
-  }finally{working=false;}
+  }finally{
+    working=false;
+    const next=pendingAdminPage;
+    pendingAdminPage='';
+    if(next&&isAdminView())await openAdminPage(next);
+  }
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-action]');if(!b)return;
+  if(isAdminView()&&nav.contains(b)){openAdminPage(b.dataset.action);return;}
   run(async()=>{
     const action=b.dataset.action,value=b.dataset.value;
     if(action==='delete-job'&&isAdminView()&&page==='job'&&jobId===value){
@@ -344,7 +358,6 @@ document.addEventListener('click',e=>{
       }
       return;
     }
-    if(action==='usage'&&isAdminView()){await loadUsage();return go('usage');}
     if(action==='reset-filters'){Object.assign(activeFilter(),page==='jobs'?jobDefaults:defaults);render();return;}
     if(action==='view'){activeFilter().view=value;refreshResults();return;}
     if(action==='product'){

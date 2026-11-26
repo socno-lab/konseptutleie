@@ -22,8 +22,10 @@ export function productImageType(p){
  return '';
 }
 export function catalogImageFrame(p,src=p?.image){
- const type=productImageType(p),bounds=catalogImageBounds[src]??(src===p?.image?p.imageBounds:null);
- if(!type||!bounds)return null;
+ const type=productImageType(p);
+ if(!type)return null;
+ const bounds=catalogImageBounds[src]??(src===p.image?p.imageBounds:null);
+ if(!bounds)return null;
  const [w,h,l,t,r,b]=bounds,rule=imageFrameRules[type];
  return {type,bounds,width:rule.width*w/(r-l),height:rule.height*w/(b-t),x:-50*(l+r)/w,y:100*(h-b)/h,bottom:rule.bottom};
 }

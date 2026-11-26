@@ -1,4 +1,4 @@
-import {cleanFavoriteIds} from './header-catalog-model.js?v=fest20261114';
+import {cleanFavoriteIds} from './header-catalog-model.js?v=product-brand1';
 
 const prefix='#favoritter=',version='v1.',maxItems=100,productIdPattern=/^[a-z0-9_-]{1,80}$/;
 const validProductId=value=>typeof value==='string'&&productIdPattern.test(value);
