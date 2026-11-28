@@ -30,7 +30,13 @@ function syncWarehouseStock(product=selected){
  let note=el('warehouseStockNote');
  if(!note){note=document.createElement('p');note.id='warehouseStockNote';note.className='hint';el('stockFields').after(note);}
  note.hidden=!creating&&!managed;
- note.textContent=creating?'Antall dere eier blir antall QR-etiketter. Nye enheter settes til Holdt tilbake.':'Beholdning og tilgjengelighet oppdateres fra Styling og lager.';
+ note.textContent=creating?'Antall dere eier blir antall QR-etiketter. Nye enheter settes til Holdt tilbake.':'Styres av QR-lager.';
+ if(managed){
+   const link=document.createElement('a');
+   link.href='/styling/index.html?produkt='+encodeURIComponent(product.id);
+   link.textContent='Endre beholdning i Styling og lager';
+   note.append(' ',link);
+ }
 }
 let categoryFilter='Alle',subcategoryFilter='';try{categoryFilter=sessionStorage.getItem('konsept-admin-category-v1')||'Alle';subcategoryFilter=sessionStorage.getItem('konsept-admin-subcategory-v1')||'';}catch{}
 if(categoryFilter!=='Alle')el('searchAll').checked=false;

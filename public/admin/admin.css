@@ -77,3 +77,13 @@
   #mediaPanel :is(#librarySearch,#mediaUsageFilter) {width:100%;font-size:16px;border:1px solid var(--line);background-color:var(--paper);color:var(--ink)}
   .admin-body main :is(label,fieldset) {min-inline-size:0}
 }
+
+#stockFields input[readonly] {
+  appearance:textfield;
+  background-color:#eeeee8;
+  color:var(--ink);
+  cursor:default;
+}
+#stockFields input[readonly]::-webkit-inner-spin-button,
+#stockFields input[readonly]::-webkit-outer-spin-button {appearance:none;margin:0}
+#warehouseStockNote a {text-decoration:underline}

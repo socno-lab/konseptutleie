@@ -684,4 +684,8 @@ window.addEventListener('popstate',e=>{
   if(!data||!e.state?.styling)return;
   jobId=e.state.jobId||jobId;productId=e.state.productId||productId;source=e.state.source||source;go(e.state.page);
 });
-if(invitation)render();else await run(async()=>{await load();const product=new URLSearchParams(location.search).get('labelsFor');if(itemId)await showItem(itemId);else if(product){labels=data.items.filter(i=>i.product===product&&pendingLabel(i)&&!i.labelPrinted).map(i=>i.id);if(labels.length)go('labels');else go('stock');}else go(landingPage());});
+if(invitation)render();else await run(async()=>{await load();const product=new URLSearchParams(location.search).get('labelsFor');if(itemId)await showItem(itemId);else if(product){labels=data.items.filter(i=>i.product===product&&pendingLabel(i)&&!i.labelPrinted).map(i=>i.id);if(labels.length)go('labels');else go('stock');}else if(isAdminView()&&new URLSearchParams(location.search).has('produkt')){
+  productId=new URLSearchParams(location.search).get('produkt');
+  if(rows.some(row=>row.id===productId))go('product');
+  else {go('stock');status.textContent='Produktet finnes ikke i lageroversikten.';}
+}else go(landingPage());});
