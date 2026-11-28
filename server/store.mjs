@@ -1,3 +1,4 @@
+import {approveMissingPhotos} from '../public/product-image-descriptions.js';
 import {migrateOfferAccess,offerLink} from './offer-access.mjs';
 import {inventoryCounts,physicalRentalProduct,promoteConfirmedStock} from './qr-catalog-stock.mjs';
 import {mergeOakTables,mergeOakWorkflow,retiredOakTableId} from './oak-table-migration.mjs';
@@ -262,6 +263,21 @@ export function createMysqlStore(env,seed){
     return {...product,...(frame?{imageBounds:frame}:{}),...(managed?{qrStock:true,stock:Number(managed.total),unavailable:Number(managed.total)-Number(managed.ready)}:{})};
    });
    return {revision:r.revision,products,updatedAt:r.updated_at};
+  },
+  async approveImageDescriptions(revision,entries){
+   await init();
+   const connection=await pool.getConnection();
+   try{
+    await connection.beginTransaction();
+    const [[row]]=await connection.execute('SELECT revision,body FROM ku_catalog WHERE id=1 FOR UPDATE');
+    if(row.revision!==revision){await connection.rollback();return false;}
+    const previous=JSON.parse(row.body),next=approveMissingPhotos(previous,entries);
+    if(next.some((product,index)=>product!==previous[index])){
+     await connection.execute('UPDATE ku_catalog SET revision=revision+1,body=?,updated_at=? WHERE id=1',[JSON.stringify(next),new Date()]);
+    }
+    await connection.commit();
+    return true;
+   }catch(error){await connection.rollback();throw error;}finally{connection.release();}
   },
   async saveCatalog(revision,products){return mutateCatalog(revision,products,[]);},
   async saveCatalogWithStyling(revision,products,registration){return mutateCatalog(revision,products,[],registration);},

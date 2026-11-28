@@ -87,3 +87,13 @@
 #stockFields input[readonly]::-webkit-inner-spin-button,
 #stockFields input[readonly]::-webkit-outer-spin-button {appearance:none;margin:0}
 #warehouseStockNote a {text-decoration:underline}
+
+#descriptionDialog{width:min(760px,calc(100% - 24px));max-height:90dvh;box-sizing:border-box;overflow:auto;padding:clamp(12px,3vw,24px);background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+#descriptionDialog::backdrop{background:#252a2288}
+#descriptionDialog input[type=search],#descriptionDialog textarea{display:block;width:100%;box-sizing:border-box;font:inherit;padding:8px}
+.description-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.description-actions button{min-height:40px;padding:6px 12px}
+.description-row{display:grid;grid-template-columns:clamp(70px,16vw,125px) minmax(0,1fr);align-items:center;gap:12px;border-top:1px solid var(--line);padding:12px 0}
+.description-row img{width:100%;height:96px;object-fit:contain;background:white}
+.description-row label,#productImages label{display:block;overflow-wrap:anywhere}
+.description-row textarea,#productImages textarea{resize:vertical}

@@ -1,6 +1,7 @@
 {
   "approved": "2026-10-23",
   "reason": "Bruker godkjente opprinnelig overskrift og korrigert responsiv kortvisning. 23.11.2026: Eier godkjente bunnjustering av katalogens overskrift og innledning på desktop. Kun katalogsidens desktopregel endres. Kontrollert ved 320, 390 og 1440 px. Mobil har identiske koordinater før/etter og ingen horisontal scrolling. Synlig tekst er etterkontrollert pikselvis og innledningen løftet ytterligere 6 px for optisk bunnjustering.",
+  "productAltReview": "28.11.2026: Kun alt-tekst er endret i bildemarkupen. Forsiden er sammenlignet med referansebildene ved 320, 390 og 1280 px. To, to og tre kolonner, ingen sideveis rulling, kortbilder på 169,5 × 147,4 px ved 390.",
   "mobile": {
     "viewport": 390,
     "columns": 2,
@@ -17,8 +18,8 @@
     "home-hero": "7ea9347370666a220397d875eac915913ce1244cdea28c53b48483b79dc54dcd",
     "rendered-home-hero": "7ea9347370666a220397d875eac915913ce1244cdea28c53b48483b79dc54dcd",
     "home-card-renderer": "e1b34d6c5745c78a26603183d38a11d764efcf6b73fc3ed7ff9b332590f759da",
-    "rental-image-markup": "bdb1c3b69a48780498987c727bd2d5496ffc5ae37bc971babc9e96584efd3b04",
-    "purchase-image-markup": "0c3547eb40c85f2a70ec71344fba5ae3f9fc587cc3cca90ed38406e6076e9dc9"
+    "rental-image-markup": "740700da6a36dd4a9e6f4295c8b0291ebdbbb1d5af93cb24d2153ffd402e6ffe",
+    "purchase-image-markup": "6cee56bfde1a25edc9c4cef8f543ace09155ac104b755ffa234e9e553904b1d3"
   },
   "catalogFramingReview": "2026-10-23: Brukerbestilt retting av Jakobsdals-fargevarianter. Syv eksisterende katalogregler er kopiert til de samme bildenes lokale /media-adresser. Ingen generelle stilregler, hero, bruksområdekort eller bildemarkup endres. Senzo/Senza kontrollert i desktop- og mobilforhåndsvisning uten horisontal scrolling.",
   "addonLayoutReview": "2026-10-23: Brukerbestilt retting av tilvalg. Produktlinjens tre kolonner gjelder nå bare linjer uten cart-addon. Kontrollert tilvalg desktop og 390 px; forside 320/390/1280 med uendret 2/2/3 kolonner og uten horisontal scrolling.",

@@ -255,6 +255,17 @@ export function createServer(options={}){
      if(req.method==='PUT'){const input=await json(req,1000000);if(!Number.isInteger(input.revision))throw error('Ugyldig versjon.');const catalog=await readCatalog();let settings;try{const current=(await store.readSiteSettings()).settings;const home=input.settings.home&&{...input.settings.home};if(home)for(const key of ['productsHeading','productsIntro'])if(home[key]===undefined&&current.home?.[key]!==undefined)home[key]=current.home[key];settings=validateSiteSettings({...input.settings,home,catalogOrder:input.settings.catalogOrder??current.catalogOrder});validateSettingsUsage(settings,catalog.products);}catch(e){throw error(e.message);}const saved=await store.saveSiteSettings(input.revision,settings);if(saved){configureSiteSettings(settings);invalidatePublic();}return saved?out(200,saved):out(409,{error:'Innstillingene er endret i en annen fane. Last inn på nytt før lagring.'});}
      return out(405,{error:'Metoden støttes ikke.'});
     }
+    if(pathname==='/api/admin/catalog/image-descriptions'&&req.method==='POST'){
+     const input=await json(req);
+     if(!Array.isArray(input.entries)||!input.entries.length||input.entries.length>6500||
+        input.entries.some(row=>!row||typeof row.id!=='string'||typeof row.url!=='string'||typeof row.text!=='string'||!row.text.trim()||row.text.trim().length>300))
+       throw error('Ugyldige bildebeskrivelser.');
+     if(!Number.isInteger(input.revision))throw error('Ugyldig katalogversjon.');
+     const saved=await store.approveImageDescriptions(input.revision,input.entries);
+     if(!saved)return out(409,{error:'Katalogen er endret. Last inn på nytt før du godkjenner.'});
+     invalidatePublic();
+     return out(200,await readCatalog());
+    }
     if(pathname==='/api/admin/catalog'){
      if(req.method==='GET')return out(200,await readCatalog());
      if(req.method==='PUT'){
