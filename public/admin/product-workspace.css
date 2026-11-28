@@ -4,7 +4,7 @@
 .product-workspace .admin-main>.section-head {order:-2;margin:0 0 8px}
 .product-workspace .section-head>div:first-child {display:flex;gap:14px;align-items:center}
 .product-workspace #workspaceTitle {font-size:clamp(24px,2.2vw,34px);margin:0;letter-spacing:-.035em}
-#menuToggle,#backToList,.filter-grid>button,.row-actions button,#productActions button {font:inherit;font-size:13px;color:var(--ink);background:var(--paper);border:1px solid var(--line);padding:8px 12px;cursor:pointer}
+#menuToggle,#backToList,.filter-grid>button,.row-actions button {font:inherit;font-size:13px;color:var(--ink);background:var(--paper);border:1px solid var(--line);padding:8px 12px;cursor:pointer}
 .product-workspace .admin-shell~main.admin-main>nav.admin-tabs {order:-1;margin:0 0 5px;padding:0 0 6px}
 .product-workspace .admin-shell~main.admin-main>nav.admin-tabs>button {flex:0 1 auto;min-height:32px}
 .product-workspace .admin-catalog-tools,.product-workspace #status {margin:2px 0;font-size:12px}
@@ -18,7 +18,7 @@
 .product-workspace .admin-sidebar .check-label {display:flex;align-items:center}
 .product-workspace .admin-sidebar .admin-new {margin:0 0 10px}
 .list-filters {margin:8px 0;padding:7px 0;border-block:1px solid var(--line)}
-.list-filters summary,.row-actions summary,#productActions summary {cursor:pointer;font-size:13px}
+.list-filters summary,.row-actions summary {cursor:pointer;font-size:13px}
 .filter-grid,.basic-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start}
 .product-workspace :is(.admin-sidebar,.admin-editor) :is(input:not([type=checkbox],[type=color],[type=radio],[type=file]),select) {min-width:0;width:100%;min-height:38px;height:auto;padding:7px 9px;box-sizing:border-box}
 .product-workspace #adminListCount {margin:8px 0}
@@ -30,7 +30,7 @@
 .product-workspace .admin-item-copy small {line-height:1.35;font-size:11px}
 .row-actions {position:absolute;right:2px;top:5px}
 .row-actions summary {list-style:none;text-align:right;padding:4px 7px}
-.row-actions[open],#productActions[open] {z-index:2;background:white;box-shadow:0 2px 6px #0002}
+.row-actions[open] {z-index:2;background:white;box-shadow:0 2px 6px #0002}
 .row-actions a,.row-actions button {display:block;font:inherit;font-size:12px;padding:8px;color:inherit}
 .product-workspace .editor-heading {display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0}
 .product-workspace #editorTitle {font-size:clamp(20px,2vw,28px);margin:0;line-height:1.15;flex:1 1 200px}
@@ -84,3 +84,6 @@
  .catalog-toolbar .editor-actions .button {font-size:12px;padding:6px;min-height:44px}
  .catalog-toolbar .editor-actions {max-width:65%}
 }
+
+#workspaceDelete {display:inline-grid;place-items:center;width:44px;height:44px;flex:none;padding:0;border:1px solid var(--line);border-radius:4px;background:transparent;color:var(--ink);cursor:pointer}
+#workspaceDelete:is(:hover,:focus-visible) {background:var(--paper);border-color:currentColor}

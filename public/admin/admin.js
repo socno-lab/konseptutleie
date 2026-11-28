@@ -172,7 +172,7 @@ function updateEditorHeader(p){
  el('publishedState').textContent=exists?(p.active?'Publisert':'Skjult'):'Utkast';
  el('previewProduct').hidden=!p.active||!exists;
  el('previewProduct').href=productPageUrl(p.id,p.rentalEnabled===false?'buy':'rent');
- el('productActions').hidden=!exists;el('productActions').open=false;
+ el('workspaceDelete').hidden=!exists;
  el('savedAt').textContent=modifiedTime(p)?'Sist lagret '+new Date(modifiedTime(p)).toLocaleString('nb',{dateStyle:'short',timeStyle:'short'}):'';
 }
 let mobileListScroll=0;
@@ -202,7 +202,7 @@ async function leave(next){
  },{once:true});
 }
 el('objectList').onclick=e=>{const b=e.target.closest('[data-edit]');if(b)selectProduct(b.dataset.edit);};
-el('workspaceDelete').onclick=()=>{el('productActions').open=false;el('deleteObject').click();};
+el('workspaceDelete').onclick=()=>el('deleteObject').click();
 el('backToList').onclick=()=>leave(()=>{document.body.classList.remove('editing-product');el('adminSearch').focus({preventScroll:true});window.scrollTo(0,mobileListScroll);});
 el('filterStock').onchange=()=>{el('stockOnly').checked=false;el('stockOnly').dispatchEvent(new Event('change'));};
 for(const id of ['filterKind','listSort'])el(id).onchange=list;
