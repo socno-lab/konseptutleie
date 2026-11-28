@@ -1,7 +1,7 @@
 import {approvedAlt,missingPhotos,photoAlt,suggestedAlt} from '../product-image-descriptions.js';
 import {mountDescriptionReview} from './description-review.js?v=bildetype1';
 import {productPageUrl} from '../product-page-model.js?v=launch20261024';
-import './navigation.js?v=rail2';
+import './navigation.js?v=mobilmeny1';
 import {foldProductSearch} from '../product-brand.js';
 import {dimensionFields} from '../product-dimensions.js?v=optionimages20261108';
 import {mountWorkflow,refreshWorkflow,packageCapacity,selectPanel,syncPanels} from './workflow.js?v=products-c0a30db';

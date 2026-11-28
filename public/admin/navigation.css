@@ -123,13 +123,47 @@ html:has(body>.admin-shell:not([hidden])) {scrollbar-gutter:stable}
  #menuToggle {width:max-content;min-height:38px;padding:7px 12px;color:var(--ink);border:1px solid var(--line);background:var(--paper);cursor:pointer}
  .admin-shell[hidden] ~ main > #menuToggle {display:none}
 }
-@media screen and (max-width:760px) {
- body:has(>#workspaceMenu:not([hidden])) {display:block}
- #workspaceMenu:not([hidden]),.menu-collapsed #workspaceMenu:not([hidden]) {display:flex;position:static;height:auto;padding:8px 10px}
- .menu-collapsed #workspaceMenu :is(.brand,.admin-shell-actions,.admin-navigation>a:not([aria-current])) {display:none}
- #workspaceMenu .rail-submenus nav:not([hidden]) {grid-template-columns:repeat(2,minmax(0,1fr))}
- #workspaceMenu :is(.admin-navigation,.admin-shell-actions) :is(a,button) {min-height:44px}
- #workspaceMenu:not([hidden]) ~ main {padding:10px}
-}
+#workspaceMenu .admin-mobile-toggle {display:none}
+#adminMobileMenu:not([open]) {display:none}
 
-@media print { #menuToggle {display:none} }
+@media screen and (max-width:760px) {
+ html:has(#adminMobileMenu[open]) {overflow:hidden}
+ body:has(>#workspaceMenu:not([hidden])) {display:block}
+ #workspaceMenu:not([hidden]),.menu-collapsed #workspaceMenu:not([hidden]) {
+   position:static;display:block;height:auto;padding:0;background:var(--paper);color:var(--ink);overflow:visible;
+   border-bottom:1px solid var(--line);
+ }
+ #workspaceMenu .admin-shell-row {display:flex;justify-content:flex-start;width:100%;gap:8px;min-height:64px;padding:6px 4%;box-sizing:border-box}
+ #workspaceMenu .admin-mobile-toggle,#workspaceMenu .admin-menu-close {
+   display:grid;place-items:center;width:44px;height:44px;flex:none;padding:10px;border:0;background:transparent;color:var(--ink);cursor:pointer;
+ }
+ #workspaceMenu .admin-mobile-toggle svg {width:24px;height:24px}
+ #workspaceMenu .brand {width:min(45vw,175px);padding:0}
+ #workspaceMenu > .admin-navigation,body:has(>#workspaceMenu) #menuToggle {display:none}
+ #workspaceMenu:not([hidden]) ~ main {padding:10px}
+ #adminMobileMenu[open] {
+   position:fixed;inset:0 auto 0 0;margin:0;padding:10px 16px max(16px,env(safe-area-inset-bottom));
+   width:clamp(244px,68vw,340px);max-width:92vw;height:100dvh;max-height:none;box-sizing:border-box;
+   overflow:auto;overscroll-behavior:contain;background:var(--paper);color:var(--ink);border:0;
+ }
+ #adminMobileMenu::backdrop {background:#252d23a8}
+ #workspaceMenu .admin-menu-close {margin-bottom:8px;font:28px/1 sans-serif}
+ #adminMobileMenu .mobile-admin-sections {display:grid;gap:4px}
+ #adminMobileMenu .mobile-admin-sections :is(a,button),#workspaceMenu #adminMobileMenu .admin-shell-actions :is(a,button) {
+   display:flex;align-items:center;justify-content:flex-start;box-sizing:border-box;width:100%;min-width:0;min-height:44px;
+   margin:0;padding:8px 10px;border:0;border-radius:4px;background:transparent;color:var(--ink);
+   text-align:left;font:inherit;font-size:14px;text-decoration:none;cursor:pointer;
+ }
+ #adminMobileMenu .mobile-admin-sections > button {justify-content:space-between;border-bottom:1px solid var(--line)}
+ #adminMobileMenu .mobile-admin-sections > button::after {
+   content:"";width:8px;height:8px;margin:0 4px 4px 8px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);
+ }
+ #adminMobileMenu .mobile-admin-sections > button[aria-expanded=true]::after {transform:rotate(225deg);margin-block:4px 0}
+ #adminMobileMenu .mobile-admin-sections > button[aria-current] {background:var(--olive,#414b38);color:white}
+ #adminMobileMenu .mobile-admin-sections > div:not([hidden]) {display:grid;gap:2px;margin-left:10px;border-left:1px solid var(--line);padding-left:6px}
+ #workspaceMenu #adminMobileMenu .rail-submenus nav:not([hidden]) {display:grid;grid-template-columns:minmax(0,1fr);margin:0;padding:0;border:0}
+ #workspaceMenu #adminMobileMenu .rail-submenus :is(.active,[aria-current=page],[aria-pressed=true]) {background:#e8ecdf;color:#293126}
+ #workspaceMenu #adminMobileMenu .admin-shell-actions {display:grid;margin-top:12px;padding-top:8px;border-top:1px solid var(--line)}
+ #workspaceMenu #adminMobileMenu :focus-visible {outline:2px solid var(--olive,#414b38);outline-offset:-2px}
+}
+@media print { #menuToggle,#adminMobileMenu,.admin-mobile-toggle {display:none} }
