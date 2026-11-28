@@ -1,10 +1,11 @@
+import {matchesPurpose} from './rental-purpose-model.js?v=produktvalg2';
 // Presentation-only additions to the existing messe page. Admin content and catalogue data stay intact.
 export const messeDescription='Lei møbler, sofaer, barbord og dekor til messe og event. Stort møbelutvalg med fastpris på enkeltmøbler og pakker. Levering på hele Østlandet og til nesten hele Norge ved større oppdrag.';
 export const messeHeading='Leie av møbler til messe, stand og event';
 export function messeSeoContent(page,products=[]){
  if(page.id!=='messe'||page.area!=='messe')return page;
  const heading=/^Møbler som samler\s+folk(?:\s+på messen)?$/.test(page.heading)?messeHeading:page.heading;
- const links=products.filter(p=>p.active&&!p.deletedAt&&p.rentalEnabled!==false&&p.isPackage&&(p.purposes||[]).includes('messe')&&['Loungepakken','VIP-område','Minglepakken'].includes(p.name)).map(p=>({label:p.name,href:'/leieprodukt.html?'+new URLSearchParams({produkt:p.id,bruk:'messe',prisbruk:'messe',retur:'/anledning.html?bruk=messe&anledning=messe'})}));
+ const links=products.filter(p=>p.active&&!p.deletedAt&&p.rentalEnabled!==false&&p.isPackage&&matchesPurpose(p,'messe')&&['Loungepakken','VIP-område','Minglepakken'].includes(p.name)).map(p=>({label:p.name,href:'/leieprodukt.html?'+new URLSearchParams({produkt:p.id,bruk:'messe',prisbruk:'messe',retur:'/anledning.html?bruk=messe&anledning=messe'})}));
  const intro='Hos Konseptuell finner du blant landets største utvalg av utleiemøbler – fra sofaer, bord og stoler til belysning, planter og dekor. Møbler og pakker med oppgitt pris har fastpriser for valgt bruk og leieperiode. Velg produkter og datoer, så beregnes leiesummen på nett. Større oppdrag prises individuelt.';
  const extra='Lei loungemøbler til konferanse, samtalesoner og VIP-områder, ståbord og barkrakker til mingling, eller planter, hyller og belysning til standen. Vi leverer ferdig monterte møbler i Oslo, Lillestrøm og på hele Østlandet – og til nesten hele Norge ved større oppdrag, etter avtale. Du kan også hente og returnere selv på lageret på Strømmen etter avtale. Transport prises og avtales separat.';
  const venueSections=[

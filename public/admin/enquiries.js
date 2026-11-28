@@ -5,7 +5,7 @@ import {enquiryListRow} from './enquiry-list.js?v=lagerark20261124';
 import {activityMarkup,progressMarkup,activityDate} from './enquiry-activity.js?v=lagerark20261124';
 import {adminDateKeys,adminDateFieldMarkup,bindAdminDateFields,collectAdminDates,readAdminDateField,setAdminDateField} from './date-fields.js?v=datevalues20261121';
 import {enquiryLineTotal} from './enquiry-line-pricing.js?v=purposemodal20261122';
-import {configureSiteSettings} from '../site-settings.js?v=fest20261114';
+import {configureSiteSettings} from '../site-settings.js?v=produktvalg2';
 import {transportModes,customerVisits} from './transport-model.js';
 import {workflowCopy,isLegacyGeneratedOfferIntro} from './offer-copy.js?v=replacement20261122';
 import {defaultTransportDates,transportDatesAfterPeriodChange} from './transport-dates.js?v=adminprices20261121';

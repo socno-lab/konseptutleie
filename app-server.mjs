@@ -5,7 +5,7 @@ import {oakTableId,retiredOakTableId} from './server/oak-table-migration.mjs';
 import {enquiryLineTotal} from './public/admin/enquiry-line-pricing.js';
 import {rentalDayCount} from './public/rental-dates.js?v=launch20261024';
 import {rentalTermsPdf,rentalTermsFilename} from './server/rental-terms-pdf.mjs';
-import {configureSiteSettings as configureWorkflowPricing} from './public/site-settings.js?v=fest20261114';
+import {configureSiteSettings as configureWorkflowPricing} from './public/site-settings.js?v=produktvalg2';
 import {workflowEmail,reservedQuantity} from './server/enquiry-workflow.mjs';
 import {randomBytes} from 'node:crypto';
 import {createAdminCodeSender,adminCookie} from './server/admin-email-code.mjs';
@@ -252,7 +252,9 @@ export function createServer(options={}){
     }
     if(pathname==='/api/admin/site-settings'){
      if(req.method==='GET')return out(200,await store.readSiteSettings());
-     if(req.method==='PUT'){const input=await json(req,1000000);if(!Number.isInteger(input.revision))throw error('Ugyldig versjon.');const catalog=await readCatalog();let settings;try{const current=(await store.readSiteSettings()).settings;const home=input.settings.home&&{...input.settings.home};if(home)for(const key of ['productsHeading','productsIntro'])if(home[key]===undefined&&current.home?.[key]!==undefined)home[key]=current.home[key];settings=validateSiteSettings({...input.settings,home,catalogOrder:input.settings.catalogOrder??current.catalogOrder});validateSettingsUsage(settings,catalog.products);}catch(e){throw error(e.message);}const saved=await store.saveSiteSettings(input.revision,settings);if(saved){configureSiteSettings(settings);invalidatePublic();}return saved?out(200,saved):out(409,{error:'Innstillingene er endret i en annen fane. Last inn på nytt før lagring.'});}
+     if(req.method==='PUT'){const input=await json(req,1000000);if(!Number.isInteger(input.revision))throw error('Ugyldig versjon.');const catalog=await readCatalog();let settings;try{const current=(await store.readSiteSettings()).settings;const home=input.settings.home&&{...input.settings.home};if(home)for(const key of ['productsHeading','productsIntro'])if(home[key]===undefined&&current.home?.[key]!==undefined)home[key]=current.home[key];const collections=input.settings.collections===undefined?current.collections:input.settings.collections;
+     if(collections && typeof collections==='object' && !Array.isArray(collections) && collections.purposeCategories===undefined && current.collections?.purposeCategories)collections.purposeCategories=current.collections.purposeCategories;
+     settings=validateSiteSettings({...input.settings,collections,home,catalogOrder:input.settings.catalogOrder??current.catalogOrder});validateSettingsUsage(settings,catalog.products);}catch(e){throw error(e.message);}const saved=await store.saveSiteSettings(input.revision,settings);if(saved){configureSiteSettings(settings);invalidatePublic();}return saved?out(200,saved):out(409,{error:'Innstillingene er endret i en annen fane. Last inn på nytt før lagring.'});}
      return out(405,{error:'Metoden støttes ikke.'});
     }
     if(pathname==='/api/admin/catalog/image-descriptions'&&req.method==='POST'){

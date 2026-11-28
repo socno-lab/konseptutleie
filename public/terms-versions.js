@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=fest20261114';
+import {getSiteSettings} from './site-settings.js?v=produktvalg2';
 import {splitAcquisitionBasket} from './business-purchase-model.js';
 
 // These are the revisions displayed by customer-info.js, shared with the server.

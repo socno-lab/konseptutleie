@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import {defaultSettings} from '../public/site-settings.js?v=produktvalg2';
 import {customerInformationPages} from '../public/customer-information-content.js';
 import {rentalTermsSnapshot,rentalTermsBlocks,rentalTermsPdf,rentalTermsFilename} from '../server/rental-terms-pdf.mjs';
 test('PDF terms snapshot contains the canonical full rental terms, current tariff and withdrawal form',async()=>{const terms=rentalTermsSnapshot(defaultSettings);assert.equal(terms.html,customerInformationPages(defaultSettings).leiebetingelser[1]);const blocks=rentalTermsBlocks(terms.html);assert.equal(blocks.filter(b=>b.tag==='h2'&&/^\d+\./.test(b.text)).length,11);assert.ok(blocks.some(b=>b.text==='Angrerettskjema for forbrukerleie'));assert.ok(blocks.some(b=>b.text.includes('Underskrift (bare ved melding på papir)')));const pdf=await rentalTermsPdf(terms);assert.equal(pdf.subarray(0,5).toString(),'%PDF-');assert.match(pdf.subarray(-80).toString(),/%%EOF/);const pageCount=(pdf.toString('latin1').match(/\/Type \/Page\b/g)||[]).length;assert.ok(pageCount>=3&&pageCount<=6);assert.match(rentalTermsFilename(terms),/^Leiebetingelser-Konseptuell-.*\.pdf$/);});

@@ -1,5 +1,5 @@
 import {getTermsVersions} from './terms-versions.js?v=purposemodal20261122';
-import {getSiteSettings as currentSettings} from './site-settings.js?v=fest20261114';
+import {getSiteSettings as currentSettings} from './site-settings.js?v=produktvalg2';
 export function customerInformationPages(settings=currentSettings()){
  const getSiteSettings=()=>settings;const {rental:rentalTermsVersion,purchase:termsVersion}=getTermsVersions(settings.delivery);
 const contact='<p><strong>Konsept Boligstyling AS</strong> · Konseptuell<br>Org.nr. 931 261 894 MVA<br>Gimleveien 22, 1464 Fjellhamar<br><a href="mailto:post@konseptuell.no">post@konseptuell.no</a></p>';

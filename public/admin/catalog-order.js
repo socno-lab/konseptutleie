@@ -1,6 +1,6 @@
 import {rentalCatalogView} from '/rental-catalog-view.js?v=bildetekst20261128';
-import {configureSiteSettings,sortProducts} from '/site-settings.js?v=fest20261114';
-import {purposes} from '/rental-purpose-model.js?v=fest20261114';
+import {configureSiteSettings,sortProducts} from '/site-settings.js?v=produktvalg2';
+import {purposes} from '/rental-purpose-model.js?v=produktvalg2';
 import {rememberCardOrder,validateCatalogOrder} from '/catalog-manual-order.js';
 import {positionBounds,moveCardToPosition} from './catalog-order-position.js?v=position20261114';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

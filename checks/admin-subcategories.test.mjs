@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {foldProductSearch} from '../public/product-brand.js';
 import {productSubcategory,subcategoryOptions} from '../public/catalog-subcategories.js?v=fest20261114';
-import {categoryLabel,subcategoryLabel,configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import {categoryLabel,subcategoryLabel,configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=produktvalg2';
 
 const settings=structuredClone(defaultSettings);
 settings.categories.find(c=>c.id==='Stoler').subcategories.find(s=>s.id==='Barkrakker').label='Barstoler';

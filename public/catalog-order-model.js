@@ -1,5 +1,5 @@
 import {applyCatalogOrder} from './catalog-manual-order.js';
-import {prioritizePackages} from './rental-purpose-model.js?v=fest20261114';
+import {prioritizePackages} from './rental-purpose-model.js?v=produktvalg2';
 import {sortByPurposeOrder} from './purpose-order-model.js?v=production20261107';
 
 // isPackage describes a ready-made catalogue card, not every underlying product

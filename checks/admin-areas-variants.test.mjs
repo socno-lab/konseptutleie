@@ -19,3 +19,14 @@ test('Variant links update peers together without changing stock, images or pric
  assert.throws(()=>linkVariantProducts(a,[a,{...b,category:'Bord'}],[{id:'b',label:'Nikkel'}]),/samme kategori/);
  assert.throws(()=>linkVariantProducts(a,[a,b],[{id:'b',label:''}]),/samme kategori/);
 });
+
+test('product exceptions survive older editors and can be reset explicitly',()=>{
+ const {products}=JSON.parse(readFileSync(new URL('../data/catalog-export-2026-10-17.json',import.meta.url)));
+ const first=products[0], choices={messe:false,produksjon:true,jul:false};
+ const previous=validateCatalog([{...first,purposeOverrides:choices},...products.slice(1)]);
+ assert.deepEqual(validateCatalog(products,previous)[0].purposeOverrides,choices);
+ assert.equal(validateCatalog([{...first,purposeOverrides:{}},...products.slice(1)],previous)[0].purposeOverrides,undefined);
+ for(const invalid of [{messe:1},{ukjent:true},null,[]]){
+   assert.throws(()=>validateCatalog([{...first,purposeOverrides:invalid}]),/bruksområde/);
+ }
+});

@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {enquiryLineTotal} from '../public/admin/enquiry-line-pricing.js';
-import {configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import {configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=produktvalg2';
 import {retailRentalRates} from '../public/rental-pricing-model.js?v=fest20261114';
 const period={start:'2026-12-05',end:'2026-12-06',scope:'standard',quantity:1};
 test('a single retail-priced sofa module uses the configured scope rates and quantity without requiring a full sofa',()=>{

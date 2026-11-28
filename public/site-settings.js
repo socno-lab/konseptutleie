@@ -24,6 +24,16 @@ export function validateSiteSettings(raw){
 
  if(raw.landingContent!==undefined){if(!raw.landingContent||typeof raw.landingContent!=='object'||Array.isArray(raw.landingContent))throw Error('Ugyldig sideinnhold.');for(const [page,fields] of Object.entries(defaultLandingContent)){const supplied=raw.landingContent[page];if(supplied===undefined)continue;if(!supplied||typeof supplied!=='object'||Array.isArray(supplied))throw Error('Ugyldig sideinnhold.');for(const key of Object.keys(fields)){if(supplied[key]===undefined)continue;if(/^image\d*$/.test(key)){if(!supplied[key]||!imageUrl(supplied[key]))throw Error('Velg et gyldig bilde.');out.landingContent[page][key]=supplied[key];}else {const value=supplied[key],max=key.startsWith('text')||key==='intro'?2000:300;if(typeof value!=='string'||!value.trim()||value.length>max||/[<>\x00-\x08\x0b-\x1f]/.test(value))throw Error('Oppgi gyldig sidetekst.');out.landingContent[page][key]=value.trim();}}}}
  if(raw.collections!==undefined){const c=raw.collections;if(!c||typeof c!=='object'||Array.isArray(c))throw Error('Ugyldige produktutvalg.');for(const key of ['christmasProducts','productionCategories','productionProducts']){const values=c[key]??defaultCollections[key];if(!Array.isArray(values)||values.length>1000||values.some(v=>typeof v!=='string'||!v||v.length>100)||new Set(values).size!==values.length)throw Error('Ugyldig produktutvalg.');out.collections[key]=[...values];}if(!out.collections.christmasProducts.length)throw Error('Velg minst ett juleprodukt.');if(!['categories','products'].includes(c.productionMode??'categories'))throw Error('Ugyldig valg for produksjonsutvalget.');out.collections.productionMode=c.productionMode??'categories';}
+ if(raw.collections?.purposeCategories!==undefined){
+  const groups=raw.collections.purposeCategories;
+  if(!groups || typeof groups!=='object' || Array.isArray(groups))throw Error('Ugyldige kategorivalg.');
+  out.collections.purposeCategories={};
+  for(const [area,ids] of Object.entries(groups)){
+   if(!['boligsalg','messe','bedrift','fest'].includes(area) || !Array.isArray(ids) || ids.length>60 ||
+     new Set(ids).size!==ids.length || ids.some(id=>!out.categories.some(c=>c.id===id)))throw Error('Ugyldig kategori for bruksområdet.');
+   out.collections.purposeCategories[area]=[...ids];
+  }
+ }
  out.catalogOrder=validateCatalogOrder(raw.catalogOrder);
  out.contentPages=validatePages(raw.contentPages,out.landingContent,imageUrl);
  for(const c of out.home.occasions){if(c.destination?.type==='page'&&!out.contentPages.some(p=>p.id===c.destination.pageId)&&!['boligfoto','bryllup','jul','bedrift','alle'].includes(c.destination.pageId))throw Error('Velg en eksisterende side for '+c.title+'.');}

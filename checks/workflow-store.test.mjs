@@ -1,4 +1,4 @@
-import {defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import {defaultSettings} from '../public/site-settings.js?v=produktvalg2';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {workflowStore} from '../server/workflow-store.mjs';

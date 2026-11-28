@@ -1,6 +1,6 @@
 import {recommendationSection} from '../public/product-recommendations.js?v=choicesfirst20261119';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
-import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {productPageUrl,safeCatalogReturn} from '../public/product-page-model.js?v=launch20261024';
 import {salesEnabled} from '../public/sales-model.js?v=fest20261114';
 

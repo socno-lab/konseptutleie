@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from '../app-server.mjs';
-import {defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import {defaultSettings} from '../public/site-settings.js?v=produktvalg2';
 
 test('public category links and page titles use saved labels while retaining category IDs in URLs',async()=>{
  const settings=structuredClone(defaultSettings);

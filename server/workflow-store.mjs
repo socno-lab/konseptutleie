@@ -8,7 +8,7 @@ import {rentalTermsSnapshot} from './rental-terms-pdf.mjs';
 import {availableSlots,scheduleAppointments} from './pickup-schedule.mjs';
 import {customerVisits} from '../public/admin/transport-model.js';
 import {rentalReminderEvents} from './rental-reminders.mjs';
-import {configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {configureSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {randomUUID} from 'node:crypto';
 import {documentDigest,workflowRecord,rentalWorkflowSource,editWorkflow,checkReservation,validateSend,workflowEmail,reservedQuantity,workflowExpired} from './enquiry-workflow.mjs';
 import {issueOfferAccess,offerLink,tokenHash,day} from './offer-access.mjs';

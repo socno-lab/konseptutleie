@@ -1,4 +1,4 @@
-import {validPurpose,readPurposeState} from './rental-purpose-model.js?v=fest20261114';
+import {validPurpose,readPurposeState} from './rental-purpose-model.js?v=produktvalg2';
 import {purposeForOccasion} from './rental-scope-markup.js?v=purposemodal20261122';
 const get=(host,storage,key)=>{try{return host?.[storage]?.getItem(key);}catch{return null;}};
 export function rememberedRentalPurpose(host=globalThis){

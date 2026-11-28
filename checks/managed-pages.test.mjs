@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {newContentPage,cardHref} from '../public/page-model.js?v=stockmobile20261107';
 import {homeOccasionCards} from '../public/home-occasions.js?v=stockmobile20261107';
 import {occasionLandingView} from '../public/occasion-landing-view.js?v=stockmobile20261107';

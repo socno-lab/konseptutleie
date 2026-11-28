@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {defaultSettings,validateSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {occasionLandingView} from '../public/occasion-landing-view.js?v=stockmobile20261107';
 import {matchesPurpose} from '../public/rental-purpose-model.js?v=stockmobile20261107';
 import {mediaUsage} from '../server/images.mjs';
@@ -48,4 +48,28 @@ test('all configured gallery images are protected by media usage',()=>{
  const s=structuredClone(defaultSettings);s.landingContent.messe.image4='/media/gallery';s.landingContent.produksjon.image='/media/production';
  assert.equal(mediaUsage({url:'/media/gallery'},[],s).length,1);
  assert.equal(mediaUsage({url:'/media/production'},[],s).length,1);
+});
+
+test('category defaults include new products and individual choices survive season changes',()=>{
+ const settings=structuredClone(defaultSettings);
+ settings.collections.purposeCategories={fest:['Stoler']};
+ const chair={id:'chair',category:'Stoler',purposesExplicit:true,purposes:[]};
+ try{
+   configureSiteSettings(settings);
+   assert.ok(matchesPurpose(chair,'fest'));
+   assert.ok(matchesPurpose({...chair,id:'new-chair'},'fest'));
+   const exceptions={fest:false,produksjon:false,messe:true};
+   const chosen={...chair,purposeOverrides:exceptions};
+   assert.equal(matchesPurpose(chosen,'fest'),false);
+   assert.equal(matchesPurpose(chosen,'produksjon'),false);
+   assert.ok(matchesPurpose(chosen,'messe'));
+   const seasonal={...chosen,purposeOverrides:{...exceptions,jul:true}};
+   assert.ok(matchesPurpose(seasonal,'jul'));
+   assert.ok(matchesPurpose(seasonal,'alle'));
+   assert.equal(matchesPurpose(seasonal,'messe'),false);
+   assert.ok(matchesPurpose({...seasonal,purposeOverrides:exceptions},'messe'));
+   assert.ok(matchesPurpose({...chosen,purposeOverrides:{}},'fest'));
+   settings.collections.purposeCategories={messe:['Ukjent']};
+   assert.throws(()=>validateSiteSettings(settings),/kategori/i);
+ }finally{configureSiteSettings();}
 });

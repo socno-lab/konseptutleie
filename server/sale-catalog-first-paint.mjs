@@ -1,6 +1,6 @@
 import {catalogRefinementsMarkup} from '../public/catalog-refinements.js?v=compactsort20261119b';
 import {saleCatalogView} from '../public/sale-catalog-view.js?v=choicesfirst20261119';
-import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {renderArrowIcons} from './arrow-icons.mjs';
 import {pricePickerContent} from '../public/price-display-markup.js';
 import {catalogPaginationMarkup} from '../public/catalog-pagination.js?v=choicesfirst20261119';

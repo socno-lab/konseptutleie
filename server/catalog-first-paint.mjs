@@ -3,7 +3,7 @@ import {rentalCatalogView} from '../public/rental-catalog-view.js?v=choicesfirst
 import {renderCatalogCard} from '../public/catalog-card-markup.js?v=motif20261126';
 import {catalogPaginationMarkup} from '../public/catalog-pagination.js?v=choicesfirst20261119';
 import {applyRentalScope} from '../public/rental-pricing-model.js?v=fest20261114';
-import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {countedSubcategoryButtons as subcategoryButtons} from '../public/catalog-filter-count.js?v=counts20261118';
 import {rentalSubcategoryCounts} from '../public/catalog-filters.js?v=choicesfirst20261119';
 import {renderArrowIcons} from './arrow-icons.mjs';

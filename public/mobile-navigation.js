@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=fest20261114';
+import {getSiteSettings} from './site-settings.js?v=produktvalg2';
 
 const header=document.querySelector('body>header');
 if(header?.querySelector('.brand')&&!header.hasAttribute('data-mobile-menu-bound'))mountMobileMenu(header);

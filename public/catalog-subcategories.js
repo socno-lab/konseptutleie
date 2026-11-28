@@ -1,4 +1,4 @@
-import {getSiteSettings,subcategoryLabel} from './site-settings.js?v=fest20261114';
+import {getSiteSettings,subcategoryLabel} from './site-settings.js?v=produktvalg2';
 // Shared table types for the rental and new-product catalogues.
 export const tableTypes=['Spisebord','Sofabord','Sidebord','Nattbord','Ståbord','Skrivebord','Konsollbord','Andre bord'];
 export function tableType(product){

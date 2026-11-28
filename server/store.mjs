@@ -7,7 +7,7 @@ import {workflowStore} from './workflow-store.mjs';
 import {adminCodeStore} from './admin-code-store.mjs';
 import {migrateCatalogDimensions} from './dimensions-migration.mjs';
 import {migrateStylingPricing} from './pricing-migration.mjs';
-import {defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import {defaultSettings} from '../public/site-settings.js?v=produktvalg2';
 import {deliveryCallLimits} from './delivery.mjs';
 import {stylingStore,stylingSchema,createStylingItem} from './styling-store.mjs';
 import mysql from 'mysql2/promise';

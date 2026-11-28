@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=fest20261114';
+import {getSiteSettings} from './site-settings.js?v=produktvalg2';
 import {defaultLandingContent} from './landing-content.js?v=fest20261114';
 const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Shared server/client landing content. No pricing, catalogue or basket mutations.

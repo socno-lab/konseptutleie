@@ -15,7 +15,7 @@ import {productIllustrationText} from '../public/product-illustration.js';
 import {kiDisclosure,isKiPhoto} from '../public/image-provenance.js?v=fest20261114';
 import {productSummary,productUnitPrice} from '../public/product-summary.js?v=product-brand1';
 import {detailImageAttributes} from '../public/product-image-loading.js';
-import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {rentalStatusBadge,isRentedOut} from '../public/rental-status.js';
 import {salesEnabled} from '../public/sales-model.js?v=fest20261114';
 import {initialProductCarousel} from '../public/product-carousel-markup.js';

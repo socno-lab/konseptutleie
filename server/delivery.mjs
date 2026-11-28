@@ -1,5 +1,5 @@
 import {transportWeekdayPolicy} from '../public/transport-weekdays.js';
-import {getSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {getSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {createHmac,randomBytes,timingSafeEqual} from 'node:crypto';
 import {deliveryRates,deliveryPrice,requiresTwoPeople,rentalDeliveryCapacity} from '../public/delivery-model.js?v=fest20261114';
 export const warehouse='Segelckes vei 15, 2010 Strømmen, Norge';

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 import {pageModel,renderSeo} from '../server/seo.mjs';
-import {defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import {defaultSettings} from '../public/site-settings.js?v=produktvalg2';
 
 const source=await readHtmlTemplate('utvalg.html');
 const products=JSON.parse(await readFile(new URL('./fixtures/catalog.json',import.meta.url),'utf8'));

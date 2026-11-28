@@ -1,4 +1,4 @@
-import {getSiteSettings} from './site-settings.js?v=fest20261114';
+import {getSiteSettings} from './site-settings.js?v=produktvalg2';
 // Explicit admin assignments override legacy category-based navigation.
 import {matchesPurpose as matchesCatalogPurpose,prioritizePackages} from './purpose-model.js?v=launch20261024';
 export {prioritizePackages};
@@ -15,16 +15,24 @@ export const validPurpose=value=>value==='event'?'messe':purposes.some(p=>p.id==
 const businessCategories=new Set(['Sofaer','Modulsofaer','Stoler','Bord','Hyller','Belysning','Tepper','Kunstige planter','Kunstige blomster','Dekor']);
 const businessPackages=new Set(['obj_8f62b216c40348b29d42b4c7b9c0c6a0','obj_b71d8247647e4575965649ddfa802485']);
 const occasionPackages=new Set(['obj_b3af6675a38744e0bc567acc3c547849','obj_3aaf7f39d05041b5a68f0f51bb66f705','obj_f3e152bb768e4178a82fd39136efc0ae','obj_8278a918ddb64adf9f521db17a55fe88','obj_82cd3d7f152a41c3b6d6b5f04a4352f7']);
+export function includedByCategory(product, purpose, collections = getSiteSettings().collections) {
+ if (purpose === 'produksjon') {
+   return collections.productionMode === 'categories' && !product.isPackage && product.offeringType !== 'service'
+     && collections.productionCategories.includes(product.category);
+ }
+ return collections.purposeCategories?.[purpose]?.includes(product.category) ?? false;
+}
 export function matchesPurpose(product,value){
  const purpose=validPurpose(value);
  if(purpose==='alle')return true;
  const collections=getSiteSettings().collections;
- const christmas=collections.christmasProducts.includes(product.id);
- // Christmas is a curated service collection; older broad assignments are retained in storage.
- if(purpose==='jul')return christmas;
- if(christmas)return false;
- // Production is a cross-catalog collection of furniture and props, without duplicated stock.
- if(purpose==='produksjon')return collections.productionMode==='products'?collections.productionProducts.includes(product.id):!product.isPackage&&product.offeringType!=='service'&&collections.productionCategories.includes(product.category);
+ const choices=product.purposeOverrides || {};
+ const seasonal=choices.jul ?? collections.christmasProducts.includes(product.id);
+ if(purpose==='jul')return seasonal;
+ if(seasonal)return false;
+ if(Object.hasOwn(choices,purpose))return choices[purpose];
+ if(includedByCategory(product,purpose,collections))return true;
+ if(purpose==='produksjon')return collections.productionMode==='products' && collections.productionProducts.includes(product.id);
  if(product.purposesExplicit===true)return (product.purposes||[]).includes(purpose);
  if(product.id==='obj_a6ca0b4ab5d94e0b811e2fddf13b13b9')return purpose==='bedrift';
  if(purpose==='bedrift'&&product.isPackage&&product.businessPurchase===true)return true;

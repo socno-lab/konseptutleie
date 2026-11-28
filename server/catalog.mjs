@@ -5,7 +5,7 @@ import {sofaLayoutError} from '../public/sofa-layout.js';
 import {validateDimensions} from '../public/product-dimensions.js?v=optionimages20261108';
 import {validatePurposeOrder} from '../public/purpose-order-model.js?v=production20261107';
 import {validateServiceFields} from '../public/service-model.js';
-import {imageUrl} from '../public/site-settings.js?v=fest20261114';
+import {imageUrl} from '../public/site-settings.js?v=produktvalg2';
 import {validSubcategory} from '../public/catalog-subcategories.js?v=fest20261114';
 import {validRecommendationIds,recommendationCandidate} from '../public/recommendation-model.js?v=fest20261114';
 import {salesEnabled,saleTypeAllowed} from '../public/sales-model.js?v=fest20261114';
@@ -70,6 +70,11 @@ function normalizeProduct(raw, previous) { if (!raw || typeof raw !== 'object')
  if(typeof businessPurchase!=='boolean'||businessPurchase&&(!raw.isPackage||isProposal))throw Error('Kjøpsmulighet kan bare velges på faste bedriftspakker.');
  if(purchasePrice!==null&&(typeof purchasePrice!=='number'||!Number.isFinite(purchasePrice)||purchasePrice<=0||purchasePrice>100000000||Math.abs(Math.round(purchasePrice*100)-purchasePrice*100)>1e-7))throw Error('Kjøpspris må være et positivt beløp med maks to desimaler, eller stå tom.');
  if(!businessPurchase&&purchasePrice!==null)throw Error('Aktiver kjøpsmulighet før du legger inn kjøpspris.');
+ const purposeOverrides=raw.purposeOverrides===undefined ? previous?.purposeOverrides ?? {} : raw.purposeOverrides;
+ if(!purposeOverrides || typeof purposeOverrides!=='object' || Array.isArray(purposeOverrides)
+   || Object.entries(purposeOverrides).some(([key,value])=>!['boligsalg','messe','bedrift','fest','jul','produksjon'].includes(key) || typeof value!=='boolean')){
+   throw Error('Ugyldig produktvalg for bruksområde.');
+ }
  const purposesExplicit=raw.purposesExplicit??false;if(typeof purposesExplicit!=='boolean')throw Error('Ugyldig bruksområdeinnstilling.');
  const rentalEnabled=raw.rentalEnabled??true,salePrice=raw.salePrice??null;
  const rentalRentedOut=raw.rentalRentedOut===undefined?(previous?.rentalRentedOut??false):raw.rentalRentedOut;
@@ -93,7 +98,7 @@ function normalizeProduct(raw, previous) { if (!raw || typeof raw !== 'object')
  }
  const articleNumber=raw.articleNumber===undefined?(previous?.articleNumber||''):str('articleNumber',80);
  const brand=raw.brand===undefined?(previous?.brand??(inferProductBrand(raw)||undefined)):str('brand',80);
- return {...(Object.keys(imageDescriptions).length?{imageDescriptions}:{}),...(brand!==undefined?{brand}:{}),...(articleNumber?{articleNumber}:{}),dimensions:validateDimensions(raw.dimensions??previous?.dimensions??{}),dimensionsMigration:1,...(previous?.dimensionsLegacy?{dimensionsLegacy:previous.dimensionsLegacy}:{}), ...service,purposeOrder:validatePurposeOrder(raw.purposeOrder),swatchColor,variantDisplay,variantOrder,sortOrder,packageEditable,packageCustomPricing,builderImage,builderCrop,builderMirror,subcategory,rentalAlternatives,recommendedProducts,deliveryNote,deliveryIncluded,rentalEnabled,rentalRentedOut,salePrice,saleEnabled:saleTypeAllowed(raw)&&salesEnabled(raw),rentalPricingMode:pricingMode,purposesExplicit,buyoutUnitPrice,purchaseUnitPrice,purchasePriceMode, variantGroup:variantGroup.trim(),variantLabel:variantLabel.trim(), businessPurchase,purchasePrice, isProposal,minimumQuantity,maximumQuantity,suggestedAddOns,...addon,deletedAt:validateDeletedAt(raw), purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, moduleRequired, rentalModuleMinimum, rentalStartQuantity, rentalRequiredQuantity, components };
+ return {...(Object.keys(purposeOverrides).length?{purposeOverrides:{...purposeOverrides}}:{}),...(Object.keys(imageDescriptions).length?{imageDescriptions}:{}),...(brand!==undefined?{brand}:{}),...(articleNumber?{articleNumber}:{}),dimensions:validateDimensions(raw.dimensions??previous?.dimensions??{}),dimensionsMigration:1,...(previous?.dimensionsLegacy?{dimensionsLegacy:previous.dimensionsLegacy}:{}), ...service,purposeOrder:validatePurposeOrder(raw.purposeOrder),swatchColor,variantDisplay,variantOrder,sortOrder,packageEditable,packageCustomPricing,builderImage,builderCrop,builderMirror,subcategory,rentalAlternatives,recommendedProducts,deliveryNote,deliveryIncluded,rentalEnabled,rentalRentedOut,salePrice,saleEnabled:saleTypeAllowed(raw)&&salesEnabled(raw),rentalPricingMode:pricingMode,purposesExplicit,buyoutUnitPrice,purchaseUnitPrice,purchasePriceMode, variantGroup:variantGroup.trim(),variantLabel:variantLabel.trim(), businessPurchase,purchasePrice, isProposal,minimumQuantity,maximumQuantity,suggestedAddOns,...addon,deletedAt:validateDeletedAt(raw), purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, moduleRequired, rentalModuleMinimum, rentalStartQuantity, rentalRequiredQuantity, components };
 }
 
 export function validateCatalog(input,previousProducts=[]) {

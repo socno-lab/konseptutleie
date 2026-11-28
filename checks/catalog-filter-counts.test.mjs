@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {catalogFilters,rentalSubcategoryCounts} from '../public/catalog-filters.js';
 import {saleCatalogView} from '../public/sale-catalog-view.js';
-import {configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import {configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=produktvalg2';
 const settings=configureSiteSettings(defaultSettings);
 const item=(id,name,extra={})=>({id,name,category:'Stoler',subcategory:'Spisestoler',active:true,stock:40,maxQuantity:40,material:'Plast',price:100,saleEnabled:true,salePrice:700,purposesExplicit:true,purposes:['messe'],...extra});
 const products=[item('green','Hagestol grønn'),item('beige','Hagestol beige'),item('home','Lenestol beige',{subcategory:'Loungestoler',purposes:['boligsalg']}),item('addon','Tekstil',{addonOnly:true}),item('sofa-a','Sofa hjørne',{category:'Sofaer',subcategory:'Modulsofaer',moduleSeries:'Modulsofa grå'}),item('sofa-b','Sofa midt',{category:'Sofaer',subcategory:'Modulsofaer',moduleSeries:'Modulsofa grå'})];

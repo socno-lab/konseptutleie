@@ -49,7 +49,7 @@ import {isServiceOffering,serviceVariants,groupedServiceCards} from './service-m
 import {rentalModuleRequirementError} from './sofa-layout.js?v=launch20261024';
 import {submitEnquiry,showEnquiryConfirmation} from './submission-ui.js?v=transportreceipt20261122';
 import {decorExamples} from './decor-examples.js?v=fest20261114';
-import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js?v=fest20261114';
+import {getSiteSettings,configureSiteSettings,categoryLabel} from './site-settings.js?v=produktvalg2';
 import {packageCartView,changePackageItem,removePackageGroup,packageGroupRates,packageGroupPeriodTotal,validPackageBasket} from './package-cart-model.js?v=longrent20261026';
 import {rentalDeliveryExport,rentalDeliveryReceipt,rentalDeliverySummary} from './customer-info.js?v=transportkompakt20261122';
 import {isProductPage,productLink,navigateProduct,selectPageProduct,showSurface,closeSurface,installProductLinks,restoreCatalogPosition,productPageError,refreshPageRecommendations} from './product-pages.js?v=bildetekst20261128';
@@ -86,7 +86,7 @@ const legacyCatalogUrl=new URL(location.href);
 if(isOccasionPage&&(legacyCatalogUrl.searchParams.get('anledning')==='boligfoto'||legacyCatalogUrl.searchParams.get('bruk')==='boligsalg'))location.replace('/utvalg.html?bruk=boligsalg&kategori=Enkeltprodukter#utvalg');
 if(!isEnquiryPage&&!isProductPage&&!isCatalogPage&&!isOccasionPage&&(['bruk','kategori','sok'].some(key=>legacyCatalogUrl.searchParams.has(key))||location.hash==='#utvalg')){legacyCatalogUrl.pathname='/utvalg.html';location.replace(legacyCatalogUrl.pathname+legacyCatalogUrl.search+legacyCatalogUrl.hash);}
 import {addonRequirementError,cartChange} from './addon-model.js?v=launch20261024';
-import {purposes,validPurpose,matchesPurpose,readPurposeState,purposeUrl} from './rental-purpose-model.js?v=fest20261114';
+import {purposes,validPurpose,matchesPurpose,readPurposeState,purposeUrl} from './rental-purpose-model.js?v=produktvalg2';
 import {isWall,wallLabel,frameSketch,presetFrames} from './wall-model.js?v=launch20261024';
 import {sofaBasket,withoutSofas,sofaConfiguration,saveSofa,restoreSofas,migrateSofas} from './sofa-model.js?v=longrent20261026';
 import {remaining,normalizeBasket,rentalEstimate,rentalDays,ratePlan,planText,moduleConfiguration,modulePreset,selectionDraft as baseSelectionDraft,packageSelectionDraft as basePackageSelectionDraft,changeProposalCart,isStylingService,isTablewareRental,groupedCart} from './catalog-model.js?v=longrent20261026';

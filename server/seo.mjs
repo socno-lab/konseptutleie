@@ -17,7 +17,7 @@ import {rentalUsageState} from '../public/rental-usage-model.js?v=fest20261114';
 import {renderMesseLanding} from '../public/messe-landing.js?v=fest20261114';
 import {catalogIntroHtml,decorHeading} from '../public/catalog-intro.js';
 import {purchaseProductText} from '../public/purchase-copy.js';
-import {categoryLabel,getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {categoryLabel,getSiteSettings,configureSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {homeOccasionCards} from '../public/home-occasions.js?v=fest20261114';
 import {matchesPurpose} from '../public/rental-purpose-model.js?v=fest20261114';
 import {salesEnabled,saleUnitPrice} from '../public/sales-model.js?v=fest20261114';

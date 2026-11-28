@@ -2,7 +2,7 @@ import PDFDocument from 'pdfkit';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {customerInformationPages} from '../public/customer-information-content.js';
-import {getSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {getSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {getTermsVersions} from '../public/terms-versions.js?v=purposemodal20261122';
 export function rentalTermsSnapshot(settings=getSiteSettings()){
  const html=customerInformationPages(settings).leiebetingelser[1],version=getTermsVersions(settings.delivery).rental;

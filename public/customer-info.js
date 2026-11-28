@@ -10,7 +10,7 @@ import {readInitialCatalog} from './catalog-card-markup.js?v=motif20261126';
 import {mountMobileRentalDates} from './mobile-rental-dates.js?v=enquiryoverview20261122';
 import {mountStorageNotice} from './storage-notice.js?v=launch20261024';
 mountStorageNotice();
-import {configureSiteSettings,getSiteSettings} from './site-settings.js?v=fest20261114';
+import {configureSiteSettings,getSiteSettings} from './site-settings.js?v=produktvalg2';
 import {getTermsVersions} from './terms-versions.js?v=purposemodal20261122';
 const initialSettings=readInitialCatalog(document)?.settings;
 if(initialSettings)configureSiteSettings(initialSettings);else try{const response=await fetch('/api/site-settings',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(response.ok)configureSiteSettings((await response.json()).settings);}catch{}

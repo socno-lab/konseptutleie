@@ -5,7 +5,7 @@ import {catalogRefinementsMarkup} from '../public/catalog-refinements.js';
 import {rentalCatalogView} from '../public/rental-catalog-view.js';
 import {saleCatalogView} from '../public/sale-catalog-view.js';
 import {catalogFilters,rentalSubcategoryCounts} from '../public/catalog-filters.js';
-import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=fest20261114';
+import {defaultSettings,configureSiteSettings} from '../public/site-settings.js?v=produktvalg2';
 import {pageModel,renderSeo} from '../server/seo.mjs';
 import {readHtmlTemplate} from '../server/html-templates.mjs';
 const settings=configureSiteSettings(defaultSettings);

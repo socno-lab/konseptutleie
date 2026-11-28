@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {adminDateKeys,parseAdminDate,displayAdminDate,collectAdminDates,bindAdminDateFields,readAdminDateField,setAdminDateField} from '../public/admin/date-fields.js';
 import {workflowRecord,editWorkflow} from '../server/enquiry-workflow.mjs';
-import {configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=fest20261114';
+import {configureSiteSettings,defaultSettings} from '../public/site-settings.js?v=produktvalg2';
 function fields(values){const items=Object.fromEntries(adminDateKeys.map(key=>[key,{value:values[key]||'',dataset:{dateLabel:key},error:'',setCustomValidity(value){this.error=value;},reportValidity(){return !this.error;}}]));return {items,querySelector(selector){return items[selector.slice(1)];}};}
 test('visible Norwegian dates and ISO dates normalize to one strict calendar value',()=>{
  for(const text of ['21.11.2026','21. 11 . 2026','21/11/2026','2026-11-21'])assert.equal(parseAdminDate(text),'2026-11-21');
