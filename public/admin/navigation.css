@@ -99,3 +99,7 @@ html:has(body>.admin-shell:not([hidden])) {scrollbar-gutter:stable}
   .admin-shell:not([hidden]) ~ main #nav a {margin-left:0}
   .admin-shell:not([hidden]) ~ main :is(nav.admin-subnav,nav.admin-tabs,#nav) > :is(a,button) {min-height:44px}
 }
+
+@media screen and (max-width:660px) {
+  .admin-shell[data-admin-navigation="enquiries"] ~ .admin-main {padding-inline:14px}
+}
