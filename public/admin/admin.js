@@ -28,9 +28,8 @@ function syncWarehouseStock(product=selected){
  stock.readOnly=managed;
  unavailable.readOnly=creating||managed;
  let note=el('warehouseStockNote');
- if(!note){note=document.createElement('p');note.id='warehouseStockNote';note.className='hint';el('stockFields').after(note);}
- note.hidden=!creating&&!managed;
- note.textContent=creating?'Antall dere eier blir antall QR-etiketter. Nye enheter settes til Holdt tilbake.':'Styres av QR-lager.';
+ if(!note){note=document.createElement('p');note.id='warehouseStockNote';note.className='hint';el('stockFields').append(note);}
+ note.textContent=creating?'Antall dere eier blir antall QR-etiketter. Nye enheter settes til Holdt tilbake.':managed?'Styres av QR-lager.':'Manuell beholdning';
  if(managed){
    const link=document.createElement('a');
    link.href='/styling/index.html?produkt='+encodeURIComponent(product.id);
