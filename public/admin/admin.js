@@ -149,9 +149,28 @@ function formProduct(){const k=el('productKind').value,pack=k==='package',wall=k
 function draftForSuggestion(){
  return {...selected,name:el('objectName').value,material:el('objectMaterial').value,brand:el('objectBrand').value,category:el('objectCategory').value,variantLabel:el('objectVariantLabel').value,subcategory:el('objectSubcategory').value};
 }
-function altEditor(url,label){
- const suggestion=suggestedAlt(draftForSuggestion(),url);
- return '<label>Alt-tekst for '+label+'<textarea rows="2" maxlength="300" data-image-alt="'+escape(url)+'" placeholder="'+escape(suggestion)+'">'+escape(approvedAlt(selected,url))+'</textarea></label><button type="button" data-alt-suggestion="'+escape(url)+'">Bruk forslag</button>';
+const photoActionPaths = {
+ remove: 'M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v5 M14 11v5',
+ move: 'M12 20V4 M5 11l7-7 7 7',
+ main: 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z'
+};
+function photoAction(icon, label, attribute, disabled = false) {
+ return `<button type="button" class="photo-action" ${attribute} title="${label}" aria-label="${label}" ${disabled ? 'disabled' : ''}>
+   <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${photoActionPaths[icon]}"/></svg>
+ </button>`;
+}
+function altEditor(url, label, actions) {
+ const suggestion = suggestedAlt(draftForSuggestion(), url);
+ const value = approvedAlt(selected, url);
+ const statusId = 'photo-status-' + label.replaceAll(' ', '-');
+ return `<div class="photo-description">
+   <label><span class="photo-field-title">Alt-tekst <small class="photo-missing" id="${statusId}" ${value.trim() ? 'hidden' : ''}>Mangler</small></span>
+     <textarea rows="3" maxlength="300" aria-label="Alt-tekst for ${label}" ${value ? '' : `aria-describedby="${statusId}"`} data-image-alt="${escape(url)}" placeholder="${escape(suggestion)}">${escape(value)}</textarea>
+   </label>
+   <div class="photo-toolbar"><button type="button" class="photo-suggestion" data-alt-suggestion="${escape(url)}">Bruk forslag</button>
+     <div class="photo-actions">${actions}</div>
+   </div>
+ </div>`;
 }
 for(const id of ['objectName','objectCategory','objectBrand','objectMaterial','objectVariantLabel']){
  el(id).addEventListener('input',()=>{
@@ -160,12 +179,19 @@ for(const id of ['objectName','objectCategory','objectBrand','objectMaterial','o
 }
 el('productImages').addEventListener('input',event=>{
  const field=event.target.closest('[data-image-alt]');
- if(field){selected.imageDescriptions??={};selected.imageDescriptions[field.dataset.imageAlt]=field.value;setDirty();}
+ if (!field) return;
+ const missing = field.closest('.photo-description').querySelector('.photo-missing');
+ missing.hidden = Boolean(field.value.trim());
+ if (missing.hidden) field.removeAttribute('aria-describedby');
+ else field.setAttribute('aria-describedby', missing.id);
+ selected.imageDescriptions ??= {};
+ selected.imageDescriptions[field.dataset.imageAlt] = field.value;
+ setDirty();
 });
 el('productImages').addEventListener('click',event=>{
  const button=event.target.closest('[data-alt-suggestion]');
  if(!button)return;
- const field=button.previousElementSibling.querySelector('textarea');
+ const field=button.closest('.photo-description').querySelector('textarea');
  field.value=suggestedAlt(draftForSuggestion(),button.dataset.altSuggestion);
  field.dispatchEvent(new Event('input',{bubbles:true}));
 });
@@ -175,7 +201,31 @@ mountDescriptionReview({products:()=>products,open:()=>!saving&&!dirty,onBlocked
    products=data.products;revision=data.revision;
    if(selected&&visibleItems().some(p=>p.id===selected.id))edit(products.find(p=>p.id===selected.id));else selectVisible();
  }});
-function renderImages(){el('objectBuilderImage').value=selected.builderImage||'';renderBuilderPhoto();const gallery=selected.gallery||[];el('productImages').innerHTML=`<div class="main-image">${selected.image?`<button type="button" class="image-zoom" data-zoom="${escape(selected.image)}" aria-label="Se hovedbildet større"><img src="${escape(selected.image)}" alt="${escape(photoAlt(selected,selected.image))}"></button>${altEditor(selected.image,'hovedbilde')}<button type="button" class="text-button" data-remove-main>Fjern hovedbilde</button>`:'<p class="hint">Ikke valgt hovedbilde.</p>'}</div><div class="product-gallery-admin">${gallery.map((src,i)=>`<div><button type="button" class="image-zoom" data-zoom="${escape(src)}" aria-label="Se galleribilde ${i+1} større"><img src="${escape(src)}" alt="${escape(photoAlt(selected,src))}"></button>${altEditor(src,'galleribilde '+(i+1))}<button type="button" data-gallery-main="${i}">Gjør til hovedbilde</button><button type="button" data-gallery-remove="${i}">Fjern fra produkt</button><button type="button" data-gallery-move="${i}" ${i===0?'disabled':''}>Flytt frem</button></div>`).join('')}</div>`;renderImagePreview();el('wallCoverPreview').innerHTML=selected.wallCover?`<button type="button" class="image-zoom" data-zoom="${escape(selected.wallCover)}" aria-label="Se forsidebildet større"><img src="${escape(selected.wallCover)}" alt="Bildeveggens forside"></button>`:'<p class="hint">Velg forsidebilde.</p>';}
+function photoPreview(url, label) {
+ return `<button type="button" class="image-zoom" data-zoom="${escape(url)}" aria-label="${label}">
+   <img src="${escape(url)}" alt="${escape(photoAlt(selected, url))}">
+ </button>`;
+}
+function renderImages() {
+ el('objectBuilderImage').value = selected.builderImage || '';
+ renderBuilderPhoto();
+ const gallery = selected.gallery || [];
+ const main = selected.image
+   ? `<h3>Hovedbilde</h3>${photoPreview(selected.image, 'Se hovedbildet større')}
+      ${altEditor(selected.image, 'hovedbilde', photoAction('remove', 'Fjern hovedbilde', 'data-remove-main'))}`
+   : '<p class="hint">Ikke valgt hovedbilde.</p>';
+ const rows = gallery.map((url, index) => {
+   const label = 'galleribilde ' + (index + 1);
+   const actions = [
+     photoAction('main', 'Gjør ' + label + ' til hovedbilde', `data-gallery-main="${index}"`),
+     photoAction('move', 'Flytt ' + label + ' frem', `data-gallery-move="${index}"`, index === 0),
+     photoAction('remove', 'Fjern ' + label + ' fra produktet', `data-gallery-remove="${index}"`)
+   ].join('');
+   return `<li>${photoPreview(url, 'Se ' + label + ' større')}${altEditor(url, label, actions)}</li>`;
+ });
+ el('productImages').innerHTML = `<div class="main-image">${main}</div>
+   ${rows.length ? '<h3>Galleribilder</h3><ol class="photo-gallery">' + rows.join('') + '</ol>' : ''}`;
+ renderImagePreview();el('wallCoverPreview').innerHTML=selected.wallCover?`<button type="button" class="image-zoom" data-zoom="${escape(selected.wallCover)}" aria-label="Se forsidebildet større"><img src="${escape(selected.wallCover)}" alt="Bildeveggens forside"></button>`:'<p class="hint">Velg forsidebilde.</p>';}
 function renderFrames(){const frames=selected.wallFrames||[];el('wallPreview').innerHTML=frameSketch(frames);el('frameRows').innerHTML=frames.map((f,i)=>`<fieldset class="frame-row"><legend>Ramme ${i+1}</legend>${[['x','Fra venstre'],['y','Fra toppen'],['width','Bredde'],['height','Høyde']].map(([key,label])=>`<label>${label} (%)<input type="number" min="0" max="100" step="0.01" value="${f[key]}" data-frame="${i}" data-key="${key}"></label>`).join('')}<button type="button" data-remove-frame="${i}">Fjern ramme</button></fieldset>`).join('');}
 async function loadMedia(){const data=await api('/api/admin/media');media=data.images;renderMedia();}
 function showMediaError(e){el('libraryStatus').textContent=e.message;el('pickerStatus').textContent=e.message;}
