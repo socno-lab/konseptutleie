@@ -2,7 +2,7 @@ import {productPageUrl} from '../product-page-model.js?v=launch20261024';
 import './navigation.js?v=4';
 import {foldProductSearch} from '../product-brand.js';
 import {dimensionFields} from '../product-dimensions.js?v=optionimages20261108';
-import {mountWorkflow,refreshWorkflow,packageCapacity,selectPanel,syncPanels} from './workflow.js?v=workspace1';
+import {mountWorkflow,refreshWorkflow,packageCapacity,selectPanel,syncPanels} from './workflow.js?v=products-c0a30db';
 import {addonBuyoutPrice} from '/buyout-model.js?v=longrent20261026';
 import {purposeOrderScopes,validatePurposeOrder} from '/purpose-order-model.js?v=production20261107';
 import {inheritsPackageAddons,packageAddonChoices} from '/package-addon-model.js?v=launch20261024';
