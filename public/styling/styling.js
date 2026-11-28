@@ -52,11 +52,11 @@ async function load(){
   data=await api('overview');
   rows=stockRows(data);
   if(isAdminView()&&!document.querySelector('.admin-shell nav')){
-    const {mountAdminNavigation}=await import('/admin/navigation.js?v=4');
+    const {mountAdminNavigation}=await import('/admin/navigation.js?v=rail2');
     const shell=document.querySelector('.admin-shell');
     const css=document.createElement('link');
     css.rel='stylesheet';
-    css.href='/admin/navigation.css?v=10';
+    css.href='/admin/navigation.css?v=rail2';
     const loaded=new Promise(resolve=>{css.onload=css.onerror=resolve;});
     document.head.append(css);
     await loaded;

@@ -1,5 +1,5 @@
 import {productPageUrl} from '../product-page-model.js?v=launch20261024';
-import './navigation.js?v=4';
+import './navigation.js?v=rail2';
 import {foldProductSearch} from '../product-brand.js';
 import {dimensionFields} from '../product-dimensions.js?v=optionimages20261108';
 import {mountWorkflow,refreshWorkflow,packageCapacity,selectPanel,syncPanels} from './workflow.js?v=products-c0a30db';
@@ -41,14 +41,6 @@ function syncWarehouseStock(product=selected){
 let categoryFilter='Alle',subcategoryFilter='';try{categoryFilter=sessionStorage.getItem('konsept-admin-category-v1')||'Alle';subcategoryFilter=sessionStorage.getItem('konsept-admin-subcategory-v1')||'';}catch{}
 if(categoryFilter!=='Alle')el('searchAll').checked=false;
 try{el('stockOnly').checked=sessionStorage.getItem('konsept-admin-stock-only-v1')==='true';}catch{}
-const narrowMenu=matchMedia('(max-width: 1180px)');
-function setMenu(open){
- document.body.classList.toggle('menu-collapsed',!open);
- el('menuToggle').setAttribute('aria-expanded',String(open));
-}
-setMenu(!narrowMenu.matches);
-narrowMenu.addEventListener('change',()=>setMenu(!narrowMenu.matches));
-el('menuToggle').onclick=()=>setMenu(document.body.classList.contains('menu-collapsed'));
 mountWorkflow();
 const kind=p=>isWall(p)?'wall':p.isPackage?'package':p.moduleSeries?'module':p.addonOnly?'addon':isServiceOffering(p)?'service':'product';
 function setDirty(value=true){dirty=value;el('dirty').hidden=!value;}

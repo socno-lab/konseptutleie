@@ -1,14 +1,5 @@
 /* Catalog workspace. This stylesheet is loaded only by the catalog editor. */
 .product-workspace {--rail:186px;--gap:12px;display:grid;grid-template-columns:var(--rail) minmax(0,1fr);background:var(--paper);align-items:start}
-.product-workspace.menu-collapsed {--rail:0px}
-.product-workspace.menu-collapsed #workspaceMenu {display:none}
-.product-workspace #workspaceMenu {position:sticky;top:0;height:100dvh;overflow:auto;background:#323d30;color:#fff;padding:18px 12px;box-sizing:border-box}
-.product-workspace #workspaceMenu .admin-shell-row,.product-workspace #workspaceMenu .admin-navigation {width:100%;display:grid;gap:5px;min-height:0;align-content:start}
-.product-workspace #workspaceMenu .admin-shell-header {border:0}
-.product-workspace #workspaceMenu .brand {width:100%;border-radius:3px;background:var(--paper);padding:5px}
-.product-workspace #workspaceMenu .admin-shell-actions {display:grid;justify-content:stretch;gap:0;margin:12px 0}
-.product-workspace #workspaceMenu :is(.admin-shell-actions,.admin-navigation) :is(a,button) {color:inherit;min-height:36px;justify-content:flex-start;text-align:left;border:0;font-size:13px;background:transparent;padding:7px 10px}
-.product-workspace #workspaceMenu .admin-navigation a[aria-current],.product-workspace #workspaceMenu a:hover {background:#52634c}
 .product-workspace .admin-shell~main.admin-main {grid-column:2;width:100%;height:100dvh;margin:0;padding:12px 16px;box-sizing:border-box;display:flex;flex-direction:column;overflow:auto;min-width:0}
 .product-workspace .admin-main>.section-head {order:-2;margin:0 0 8px}
 .product-workspace .section-head>div:first-child {display:flex;gap:14px;align-items:center}
@@ -57,7 +48,6 @@
 }
 .product-workspace .product-images {margin:0;min-width:0}
 .product-workspace .main-image img {width:100%;height:clamp(140px,20vh,240px);object-fit:contain}
-.product-workspace #objectForm>.editor-actions {position:sticky;bottom:-14px;order:2;display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:var(--paper);padding:10px;border-top:1px solid var(--line);z-index:3;margin:10px -4px 0}
 .product-workspace #saveStatus,.product-workspace #savedAt,.product-workspace #dirty {margin:0;font-size:12px}
 #backToList {display:none}
 #leaveProduct {max-width:min(460px,92vw);padding:20px;background:var(--paper);border:1px solid var(--line)}
@@ -66,7 +56,6 @@
 .product-workspace [hidden] {display:none!important}
 @media(max-width:760px){
  .product-workspace {display:block}
- .product-workspace #workspaceMenu {position:static;height:auto}
  .product-workspace .admin-shell~main.admin-main {height:auto;min-height:100dvh;padding:10px;overflow:visible}
  .product-workspace #adminLayout {display:block}
  .product-workspace :is(.admin-sidebar,.admin-editor) {padding:10px;scrollbar-gutter:auto}
@@ -74,7 +63,6 @@
  .product-workspace.editing-product .admin-editor,#backToList {display:block}
  #backToList {margin-bottom:12px}
  .product-workspace .admin-editor {overflow:visible}
- .product-workspace #objectForm>.editor-actions {bottom:0}
  .product-workspace .workflow-nav button {min-height:44px}
 }
 
@@ -83,14 +71,16 @@
 .product-workspace .product-images .main-image .image-zoom {width:100%}
 .product-workspace .basic-fields>label:has(#objectName),.product-workspace .basic-fields>label:has(#objectMaterial) {grid-column:1/-1}
 
-.product-workspace #workspaceMenu .admin-shell-row {display:contents}
-.product-workspace #workspaceMenu {display:flex;flex-direction:column;gap:10px}
-.product-workspace #workspaceMenu .admin-shell-header {display:contents}
-.product-workspace #workspaceMenu .admin-shell-actions {order:2;margin-top:auto;border-top:1px solid #65735f;padding-top:8px}
-.product-workspace #workspaceMenu .admin-navigation {margin-top:8px}
 .product-workspace .product-row .admin-item-copy {color:var(--ink)}
 .product-workspace .product-row .admin-item-copy small {color:var(--muted)}
 .product-workspace .editor-heading #publishedState {background:#e9eee2}
+.catalog-toolbar {position:sticky;top:0;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;background:var(--paper);padding-block:6px;border-bottom:1px solid var(--line)}
+.catalog-toolbar .admin-catalog-tools {min-width:0;max-height:45dvh;overflow:auto}
+.catalog-toolbar .editor-actions {position:static;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px;margin:0;padding:0;border:0;background:transparent}
+.catalog-toolbar .button {min-height:40px;padding:6px 12px}
+.product-workspace:has(:is(#catalogPanel,#adminLayout,#objectForm)[hidden]) .catalog-toolbar .editor-actions {display:none}
 @media(max-width:760px){
- .product-workspace #workspaceMenu .admin-shell-actions {order:0}
+ .product-workspace:not(.editing-product) .catalog-toolbar .editor-actions {display:none}
+ .catalog-toolbar .editor-actions .button {font-size:12px;padding:6px;min-height:44px}
+ .catalog-toolbar .editor-actions {max-width:65%}
 }
