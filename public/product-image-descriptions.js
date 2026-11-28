@@ -19,9 +19,9 @@ export function suggestedAlt(product, url) {
   if (variant && subject.length+variant.length<270 && !contains(variant)) subject += ', ' + variant;
   // Material is a free-text field also used for dimensions and marketing copy.
   // Only use familiar material terms that appear explicitly in that field.
-  const material = product.material || '';
-  const materials = /\b(uten|etterligning|imitasjon|alternativ|eller|farget|look)\b/i.test(material) ? [] : material.match(/\b(eik|ask|teak|bjørk|furu|rotting|marmor|stål|aluminium|ull|bomull|lin|fløyel|porselen|keramikk)\b/gi) || [];
-  const extra = [...new Set(materials.map(s => s.toLocaleLowerCase('nb')))].filter(s => !contains(s));
+  const terms = (product.material || '').toLocaleLowerCase('nb').split(/\s*(?:,|\/| og )\s*/).map(s => s.trim());
+  const knownMaterial = /^(eik|ask|teak|bjørk|furu|rotting|marmor|stål|aluminium|ull|bomull|lin|fløyel|porselen|keramikk)$/;
+  const extra = terms.every(s => knownMaterial.test(s)) ? [...new Set(terms)].filter(s => !contains(s)) : [];
   if (extra.length && extra.length <= 2 && subject.length+extra.join(' og ').length<280) subject += ' i ' + extra.join(' og ');
   const file = url?.startsWith('/assets/') ? url.split('/').pop().toLowerCase().split(/[?#]/)[0].split(/[-_.]/) : [];
   if (file.some(word => ['miljo', 'miljø', 'miljobild', 'miljobilde'].includes(word))) return subject + ' i miljø';

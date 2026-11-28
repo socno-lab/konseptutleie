@@ -22,6 +22,13 @@ test('image descriptions follow exact product and URL through reorder, replaceme
  assert.match(photoAlt({...p,imageDescriptions:{}},gallery),/sett forfra$/);
 });
 
+test('new photos get Norwegian suggestions with only unambiguous product details',()=>{
+ const product={name:'Lina',category:'Stoler',brand:'Solli',variantLabel:'grønn',material:'eik og stål',image:'/media/ab',gallery:['/assets/lina-front.jpg']};
+ assert.equal(photoAlt(product,product.image),'Stol – Lina fra Solli, grønn i eik og stål');
+ assert.equal(photoAlt({...product,material:'folie i eik'},product.gallery[0]),'Stol – Lina fra Solli, grønn sett forfra');
+ assert.equal(photoAlt({...product,imageDescriptions:{[product.image]:'Min beskrivelse'}},product.image),'Min beskrivelse');
+});
+
 test('admin bulk approval persists only missing descriptions and both storefronts deliver them before scripts',async t=>{
  const store=await memoryStore(),original=await store.readCatalog();
  const p=original.products.find(row=>row.image&&!row.isService&&!row.isPackage&&!row.moduleSeries&&!row.wallGroup);

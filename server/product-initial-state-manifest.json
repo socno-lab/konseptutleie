@@ -36,7 +36,7 @@
     "public/price-display-model.js": "2aa77aa3a58c3ac1d88cc0c645fc9c29b353ccc20e5308d29b41dd6d3b975ffb",
     "public/product-dimensions.js": "b9b1b7d38cef163be063506d643fd39cfa6089c26763a426ebcbf25779216234",
     "public/product-illustration.js": "4b0e248efd605cea3f1646aa785f6f004d96815665fb7f40663e720d2193adfb",
-    "public/product-image-descriptions.js": "4623d200c97d1bcd204c13580f05b74f6f9a6bf10e61ac5715569d75db3dc4f9",
+    "public/product-image-descriptions.js": "c3db80e959ee698f06f66a5fa8f5802eb40cf9dcc05552b185efd83f301be8a8",
     "public/product-initial-state.js": "424784a52151003d0abf6d46c447923b8508619b87ca9012616208bcc6e3d8de",
     "public/product-page-model.js": "01d129d98c2235d3b5335aaf385931759bcc729864662f1b20db29ca9d4fcea0",
     "public/product-period-markup.js": "9cda691907f1a6124bc982c193776999a4a27b2f59b97e6316c92a5a452e7643",
@@ -72,5 +72,5 @@
     "public/wall-model.js": "bdbf573375359d0f08127719d49ce12e80534ee2139a3bab3f8729efc8d247df",
     "server/product-initial-state-script.mjs": "814a4cc97c3bbb7e7428ed9560a8a390aadf119816448e6604d850ee92e93e74"
   },
-  "bundleSha256": "f9358984c39f61842999611cbb32233d1be44dac34d87f5f635b66396866d0d0"
+  "bundleSha256": "af1edc3c7925c0496a86b6de412d0d08353a58c1e14ccab7b36baa6e442b9d53"
 }

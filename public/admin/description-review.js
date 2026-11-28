@@ -7,12 +7,13 @@ export function mountDescriptionReview({products,open,onBlocked,save}) {
   let rows = [], page = 0, saving = false;
   const filtered = () => {
     const query = el('descriptionSearch').value.trim().toLocaleLowerCase('nb');
-    return rows.filter(row => row.name.toLocaleLowerCase('nb').includes(query));
+    const type = el('descriptionType').value;
+    return rows.filter(row => (!type || row.type === type) && row.name.toLocaleLowerCase('nb').includes(query));
   };
   function loadRows(keepDrafts = false) {
     const drafts = new Map(keepDrafts ? rows.map(row => [JSON.stringify([row.id,row.url]), row.text]) : []);
     rows = products().filter(p => !p.deletedAt).flatMap(p => missingPhotos(p).map(url => ({
-      id:p.id, url, name:p.name, role:url === p.image ? 'Hovedbilde' : 'Galleribilde '+(p.gallery.indexOf(url)+1),
+      id:p.id, url, name:p.name, type:url === p.image ? 'main' : 'gallery', role:url === p.image ? 'Hovedbilde' : 'Galleribilde '+(p.gallery.indexOf(url)+1),
       text:drafts.get(JSON.stringify([p.id,url])) ?? suggestedAlt(p,url), checked:false
     })));
     page=0;
@@ -48,10 +49,11 @@ export function mountDescriptionReview({products,open,onBlocked,save}) {
   }
   el('reviewDescriptions').onclick=()=>{
     if(!open()){onBlocked();return;}
-    el('descriptionSearch').value='';el('descriptionStatus').textContent='';
+    el('descriptionSearch').value='';el('descriptionType').value='';el('descriptionStatus').textContent='';
     loadRows();render();dialog.showModal();
   };
   el('descriptionSearch').oninput=()=>{page=0;render();};
+  el('descriptionType').onchange=()=>{page=0;render();};
   el('descriptionSelect').onclick=()=>{filtered().forEach(row=>{row.checked=true;});render();};
   el('descriptionClear').onclick=()=>{rows.forEach(row=>{row.checked=false;});render();};
   el('descriptionPrev').onclick=()=>{page--;render();el('descriptionSearch').scrollIntoView({block:'start'});};
@@ -64,7 +66,7 @@ export function mountDescriptionReview({products,open,onBlocked,save}) {
     if(entries.some(row=>!row.text||row.text.length>300)){
       el('descriptionStatus').textContent='Alle valgte bilder trenger en tekst på opptil 300 tegn.';return;
     }
-    saving=true;dialog.querySelectorAll('button,input,textarea').forEach(control=>{control.disabled=true;});
+    saving=true;dialog.querySelectorAll('button,input,select,textarea').forEach(control=>{control.disabled=true;});
     try {
       await save(entries);
       loadRows(true);
@@ -72,7 +74,7 @@ export function mountDescriptionReview({products,open,onBlocked,save}) {
     } catch(error) {
       el('descriptionStatus').textContent=error.message;
     } finally {
-      saving=false;dialog.querySelectorAll('button,input,textarea').forEach(control=>{control.disabled=false;});render();
+      saving=false;dialog.querySelectorAll('button,input,select,textarea').forEach(control=>{control.disabled=false;});render();
     }
   };
 }

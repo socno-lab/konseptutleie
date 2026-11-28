@@ -1,5 +1,5 @@
 import {approvedAlt,missingPhotos,photoAlt,suggestedAlt} from '../product-image-descriptions.js';
-import {mountDescriptionReview} from './description-review.js';
+import {mountDescriptionReview} from './description-review.js?v=bildetype1';
 import {productPageUrl} from '../product-page-model.js?v=launch20261024';
 import './navigation.js?v=rail2';
 import {foldProductSearch} from '../product-brand.js';

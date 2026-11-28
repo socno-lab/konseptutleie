@@ -128,14 +128,14 @@ function productPhotos(p){return [...new Set([p.image,...(p.gallery||[])].filter
 function illustrationText(p,decor=false){return productIllustrationText(p,products,decor);}
 function illustrationBadge(p){return isKiPhoto(p.image)?'<span class="illustration-badge ki-disclosure">'+kiDisclosure+'</span>':(isReadyPackage(p)&&p.isExample||isBedChoice(p)&&p.isPackage||isOakTable(p)||(p.category==='Kunstige blomster'||/^Vase med kunstige blomster/i.test(p.name||''))&&p.isService)?'<span class="illustration-badge">Bildet viser et eksempel</span>':'';}
 
-function setProductPhoto(src,p){
+function setProductPhoto(src,p,owner){
  const main=el('detailContent').querySelector('.product-intro .product-art'),img=main?.querySelector('img');if(!src||!img)return;
  const example=decorAddons(p).find(x=>[x.image,...(x.gallery||[])].includes(src));
- setDetailPhotoSource(img,src);img.alt=photoAlt(productPhotos(p).includes(src)?p:example||p,src);main.dataset.zoom=src;main.setAttribute('aria-label','Se '+img.alt+' i stor størrelse');
+ setDetailPhotoSource(img,src);img.alt=photoAlt(owner||(productPhotos(p).includes(src)?p:example||p),src);main.dataset.zoom=src;main.setAttribute('aria-label','Se '+img.alt+' i stor størrelse');
  for(const button of el('detailContent').querySelectorAll('[data-product-photo]'))button.setAttribute('aria-pressed',String(button.dataset.productPhoto===src));
  const caption=el('productPhotoCaption'),ki=isKiPhoto(src),text=illustrationText(p,!!example);if(caption){caption.hidden=!text&&!ki;caption.innerHTML=text||ki?'<strong>'+html(ki?kiDisclosure:'Bildet viser et eksempel')+'</strong>'+(text?'<span>'+html(text)+'</span>':''):'';}
 }
-function syncAddonPhoto(extra,base){if(['Bord','Hyller'].includes(base.category))return;if(!(base.relatedAddOns||[]).length)return;const main=el('detailContent').querySelector('.product-intro .product-art');if(!main)return;const chosen=extra?.id||'';if(main.dataset.addonSelection===chosen)return;main.dataset.addonSelection=chosen;setProductPhoto(extra?.image||base.image,base);}
+function syncAddonPhoto(extra,base){if(['Bord','Hyller'].includes(base.category))return;if(!(base.relatedAddOns||[]).length)return;const main=el('detailContent').querySelector('.product-intro .product-art');if(!main)return;const chosen=extra?.id||'';if(main.dataset.addonSelection===chosen)return;main.dataset.addonSelection=chosen;setProductPhoto(extra?.image||base.image,base,extra?.image?extra:base);}
 
 function selectedAddon(){return products.find(p=>p.id===document.querySelector('[name="productAddon"]:checked')?.value);}
 function selectedPackageAddons(){const chosen=[...document.querySelectorAll('[name="packageAddon"]:checked,[name="packageAddonWine"]:checked')].map(input=>{const p=products.find(p=>p.id===input.value),count=el('detailContent').querySelector('[data-package-addon-count="'+input.value+'"]');return p?{...p,...(count?{requestedQuantity:Number(count.value)}:{})}:null;}).filter(Boolean);const stylist=products.find(p=>p.id===el('tableStylistOccasion')?.value);if(el('requestTableStylist')?.checked&&isStylingService(stylist))chosen.push(stylist);return chosen;}
