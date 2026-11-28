@@ -1,6 +1,6 @@
 import {physicalRentalProduct} from './qr-catalog-stock.mjs';
 import {productSubcategory} from '../public/catalog-subcategories.js';
-import {validateCatalog} from './catalog.mjs';
+import {catalogUpdate} from './catalog.mjs';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {digest,sessionToken,expiredCookie,hashPassword,verifyPassword} from './auth.mjs';
 import {adminCookie} from './admin-email-code.mjs';
@@ -122,7 +122,7 @@ export async function stylingApi({req,route,store,origin,secure,authenticated,js
     const name=data.name.trim(),catalog=await store.readCatalog();
     if(catalog.products.some(p=>!p.deletedAt && p.name.toLowerCase()===name.toLowerCase()))throw stylingError('Navnet finnes allerede. Velg produktet i katalogen.',409);
     if(catalog.products.length>=500)throw stylingError('Katalogen er full.',409);
-    const [draft]=validateCatalog([{id:'obj_'+randomUUID().replaceAll('-',''),name,articleNumber:data.articleNumber,category:'Annet',material:'',description:'',price:0,weekPrice:0,monthPrice:0,priceOnRequest:true,isExample:false,isService:false,isPackage:false,active:false,type:'generic',color:'#b5ad99',stock:0,unavailable:0,image:'',gallery:[]}]);
+    const [draft]=catalogUpdate([{id:'obj_'+randomUUID().replaceAll('-',''),name,articleNumber:data.articleNumber,category:'Annet',material:'',description:'',price:0,weekPrice:0,monthPrice:0,priceOnRequest:true,isExample:false,isService:false,isPackage:false,active:false,type:'generic',color:'#b5ad99',stock:0,unavailable:0,image:'',gallery:[]}],[]);
     const saved=await store.saveCatalog(catalog.revision,[...catalog.products,draft]);
     if(!saved)throw stylingError('Katalogen er endret. Prøv igjen.',409);
     return out(201,{id:draft.id});

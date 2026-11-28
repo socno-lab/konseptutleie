@@ -13,7 +13,7 @@ const fixture=()=>[
  {id:'priority_chair',name:'Teststol',category:'Stoler',material:'Testmateriale',description:'Fiktiv stol for API-kontroll.',type:'chair',color:'#445566',image:'/assets/test-chair.png',gallery:['/assets/test-chair-side.png'],price:123,weekPrice:456,monthPrice:789,purchaseUnitPrice:4455,rentalPricingMode:'manual',saleEnabled:true,salePrice:2345,rentalEnabled:true,stock:7,unavailable:2,active:true,isPackage:false,isService:false,isExample:false,purposesExplicit:true,purposes:['bedrift'],sortOrder:4},
  {id:'priority_table',name:'Testbord',category:'Bord',material:'Testmateriale',description:'Fiktivt bord for API-kontroll.',type:'coffee',color:'#667788',image:'/assets/test-table.png',gallery:[],price:89,weekPrice:321,monthPrice:654,rentalPricingMode:'manual',stock:5,unavailable:1,active:true,isPackage:false,isService:false,isExample:false,purposesExplicit:true,purposes:['jul','messe'],sortOrder:2}
 ];
-const withoutPriority=product=>{const {purposeOrder,...rest}=product;return rest;};
+const withoutPriority=product=>{const {purposeOrder,updatedAt,...rest}=product;return rest;};
 const projection=products=>publicCatalog({revision:1,products,settings:structuredClone(defaultSettings)}).products;
 
 test('purposeOrder survives catalog validation and public projection without changing commerce or imagery',()=>{
@@ -88,6 +88,17 @@ test('authenticated admin save round-trips purpose priorities and invalidates ca
   assert.equal(savedResponse.status,200);
   const saved=await savedResponse.json();
   assert.equal(saved.revision,current.revision+1);
+  const changed=saved.products.find(p=>p.id==='priority_chair');
+  assert.ok(Number.isFinite(Date.parse(changed.updatedAt)));
+  assert.deepEqual(saved.products.filter(p=>p.updatedAt).map(p=>p.id),[changed.id]);
+  const secondToken=randomBytes(32).toString('base64url');
+  await store.addSession(digest(secondToken),Date.now()+60000);
+  const reloaded=await (await fetch(base+'/api/admin/catalog',{headers:{cookie:'konsept_session_mfa='+secondToken}})).json();
+  assert.equal(reloaded.products.find(p=>p.id===changed.id).updatedAt,changed.updatedAt);
+  changed.updatedAt='2099-01-01T00:00:00Z';
+  const unchanged=await (await put(saved)).json();
+  assert.equal(unchanged.products.find(p=>p.id===changed.id).updatedAt,reloaded.products.find(p=>p.id===changed.id).updatedAt);
+  saved.revision=unchanged.revision;
   assert.deepEqual(saved.products.find(p=>p.id==='priority_chair').purposeOrder,{jul:-6,bedrift:0});
   assert.deepEqual(saved.products.map(withoutPriority),current.products.map(withoutPriority));
   const stored=await store.readCatalog(),after=await readPublic();

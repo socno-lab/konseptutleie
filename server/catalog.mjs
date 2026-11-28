@@ -1,3 +1,4 @@
+import {isDeepStrictEqual} from 'node:util';
 import {inferProductBrand} from '../public/product-brand.js';
 import {sofaLayoutError} from '../public/sofa-layout.js';
 import {validateDimensions} from '../public/product-dimensions.js?v=optionimages20261108';
@@ -16,11 +17,10 @@ import {addonFields} from '../public/addon-model.js';
 import {validateDeletedAt} from './product-lifecycle.mjs';
 import {validatePurposes,productPurposes} from '../public/purpose-model.js';
 import {validateWall} from './walls.mjs';
-export function validateCatalog(input,previousProducts=[]) { if (!Array.isArray(input) || input.length > 500)
-    throw new Error('Katalogen må ha 0–500 objekter.'); const ids = new Set(),previousById=new Map(previousProducts.map(p=>[p.id,p])); const output = input.map((raw) => { if (!raw || typeof raw !== 'object')
+function normalizeProduct(raw, previous) { if (!raw || typeof raw !== 'object')
     throw new Error('Ugyldig objekt.'); const str = (key, max, required = false) => { const value = raw[key]; if (typeof value !== 'string' || value.length > max || (required && !value.trim()))
-    throw new Error(`Ugyldig felt: ${key}`); return value.trim(); }; const service=validateServiceFields(raw);const id = str('id', 80, true);const addon=addonFields(raw);if(typeof addon.addonOnly!=='boolean'||typeof addon.requiredProductId!=='string'||addon.requiredProductId.length>80||!Number.isInteger(addon.requiredProductQuantity)||addon.requiredProductQuantity<0||addon.requiredProductQuantity>99||!!addon.requiredProductId!==!!addon.requiredProductQuantity||addon.requiredProductId&&!addon.addonOnly||addon.addonOnly&&(raw.isPackage||raw.moduleSeries))throw Error('Ugyldige regler for tilvalg.'); if (!/^[a-z0-9_-]+$/.test(id) || ids.has(id))
-    throw new Error('Objekt-ID må være unik.'); ids.add(id); if (typeof raw.active !== 'boolean' || typeof raw.isPackage !== 'boolean')
+    throw new Error(`Ugyldig felt: ${key}`); return value.trim(); }; const service=validateServiceFields(raw);const id = str('id', 80, true);const addon=addonFields(raw);if(typeof addon.addonOnly!=='boolean'||typeof addon.requiredProductId!=='string'||addon.requiredProductId.length>80||!Number.isInteger(addon.requiredProductQuantity)||addon.requiredProductQuantity<0||addon.requiredProductQuantity>99||!!addon.requiredProductId!==!!addon.requiredProductQuantity||addon.requiredProductId&&!addon.addonOnly||addon.addonOnly&&(raw.isPackage||raw.moduleSeries))throw Error('Ugyldige regler for tilvalg.'); if (!/^[a-z0-9_-]+$/.test(id))
+    throw new Error('Objekt-ID må være unik.'); if (typeof raw.active !== 'boolean' || typeof raw.isPackage !== 'boolean')
     throw new Error('Ugyldig status.'); const isService = raw.isService ?? false; if (typeof isService !== 'boolean' || (isService && raw.isPackage))
     throw new Error('Ugyldig tilvalgstype.'); const priceOnRequest = raw.priceOnRequest ?? false, isExample = raw.isExample ?? true; if (typeof priceOnRequest !== 'boolean' || typeof isExample !== 'boolean')
     throw new Error('Ugyldig pris- eller eksempelstatus.'); const num = (key, max, integer = false) => { const n = raw[key]; if (typeof n !== 'number' || !Number.isFinite(n) || n < 0 || n > max || (integer && !Number.isInteger(n)))
@@ -71,7 +71,7 @@ export function validateCatalog(input,previousProducts=[]) { if (!Array.isArray(
  if(!businessPurchase&&purchasePrice!==null)throw Error('Aktiver kjøpsmulighet før du legger inn kjøpspris.');
  const purposesExplicit=raw.purposesExplicit??false;if(typeof purposesExplicit!=='boolean')throw Error('Ugyldig bruksområdeinnstilling.');
  const rentalEnabled=raw.rentalEnabled??true,salePrice=raw.salePrice??null;
- const rentalRentedOut=raw.rentalRentedOut===undefined?(previousById.get(id)?.rentalRentedOut??false):raw.rentalRentedOut;
+ const rentalRentedOut=raw.rentalRentedOut===undefined?(previous?.rentalRentedOut??false):raw.rentalRentedOut;
  if(typeof rentalRentedOut!=='boolean')throw Error('Ugyldig utleid-merking.');
  if(typeof rentalEnabled!=='boolean'||salePrice!==null&&(typeof salePrice!=='number'||!Number.isFinite(salePrice)||salePrice<=0||salePrice>100000000||Math.abs(Math.round(salePrice*100)-salePrice*100)>1e-7))throw Error('Ugyldig salgspris eller leievalg.');
  if(raw.saleEnabled!==undefined&&typeof raw.saleEnabled!=='boolean')throw Error('Ugyldig salgsvalg.');
@@ -81,9 +81,17 @@ export function validateCatalog(input,previousProducts=[]) { if (!Array.isArray(
  if(typeof swatchColor!=='string'||swatchColor&&!/^#[a-f0-9]{6}$/i.test(swatchColor)||!['auto','grouped','separate'].includes(variantDisplay)||![variantOrder,sortOrder].every(n=>Number.isInteger(n)&&n>=-9999&&n<=9999)||typeof packageEditable!=='boolean'||!['items','quote'].includes(packageCustomPricing)||!imageUrl(builderImage)||typeof builderMirror!=='boolean'||!Array.isArray(builderCrop)||builderCrop.length!==4||builderCrop.some(n=>typeof n!=='number'||!Number.isFinite(n)||n<0||n>100)||builderCrop[0]>=builderCrop[2]||builderCrop[1]>=builderCrop[3])throw Error('Ugyldige visningsinnstillinger.');
  const subcategory=raw.subcategory??'';if(typeof subcategory!=='string'||!validSubcategory(raw.isPackage?'Pakker':raw.category,subcategory))throw Error('Underkategorien må tilhøre valgt kategori.');
  const recommendedProducts=validRecommendationIds(raw.recommendedProducts),rentalAlternatives=validRecommendationIds(raw.rentalAlternatives);
- const articleNumber=raw.articleNumber===undefined?(previousById.get(id)?.articleNumber||''):str('articleNumber',80);
- const brand=raw.brand===undefined?(previousById.get(id)?.brand??(inferProductBrand(raw)||undefined)):str('brand',80);
- return {...(brand!==undefined?{brand}:{}),...(articleNumber?{articleNumber}:{}),dimensions:validateDimensions(raw.dimensions??previousById.get(id)?.dimensions??{}),dimensionsMigration:1,...(previousById.get(id)?.dimensionsLegacy?{dimensionsLegacy:previousById.get(id).dimensionsLegacy}:{}), ...service,purposeOrder:validatePurposeOrder(raw.purposeOrder),swatchColor,variantDisplay,variantOrder,sortOrder,packageEditable,packageCustomPricing,builderImage,builderCrop,builderMirror,subcategory,rentalAlternatives,recommendedProducts,deliveryNote,deliveryIncluded,rentalEnabled,rentalRentedOut,salePrice,saleEnabled:saleTypeAllowed(raw)&&salesEnabled(raw),rentalPricingMode:pricingMode,purposesExplicit,buyoutUnitPrice,purchaseUnitPrice,purchasePriceMode, variantGroup:variantGroup.trim(),variantLabel:variantLabel.trim(), businessPurchase,purchasePrice, isProposal,minimumQuantity,maximumQuantity,suggestedAddOns,...addon,deletedAt:validateDeletedAt(raw), purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, moduleRequired, rentalModuleMinimum, rentalStartQuantity, rentalRequiredQuantity, components }; }); for (const p of output)
+ const articleNumber=raw.articleNumber===undefined?(previous?.articleNumber||''):str('articleNumber',80);
+ const brand=raw.brand===undefined?(previous?.brand??(inferProductBrand(raw)||undefined)):str('brand',80);
+ return {...(brand!==undefined?{brand}:{}),...(articleNumber?{articleNumber}:{}),dimensions:validateDimensions(raw.dimensions??previous?.dimensions??{}),dimensionsMigration:1,...(previous?.dimensionsLegacy?{dimensionsLegacy:previous.dimensionsLegacy}:{}), ...service,purposeOrder:validatePurposeOrder(raw.purposeOrder),swatchColor,variantDisplay,variantOrder,sortOrder,packageEditable,packageCustomPricing,builderImage,builderCrop,builderMirror,subcategory,rentalAlternatives,recommendedProducts,deliveryNote,deliveryIncluded,rentalEnabled,rentalRentedOut,salePrice,saleEnabled:saleTypeAllowed(raw)&&salesEnabled(raw),rentalPricingMode:pricingMode,purposesExplicit,buyoutUnitPrice,purchaseUnitPrice,purchasePriceMode, variantGroup:variantGroup.trim(),variantLabel:variantLabel.trim(), businessPurchase,purchasePrice, isProposal,minimumQuantity,maximumQuantity,suggestedAddOns,...addon,deletedAt:validateDeletedAt(raw), purposes:validatePurposes(raw.purposes)??productPurposes(raw), ...validateWall(raw), id, name: str('name', 120, true), category: raw.isPackage ? 'Pakker' : str('category', 60, true), material: str('material', 500), description: str('description', 3000), price, priceOnRequest, isService, isExample, weekPrice, monthPrice, stock, unavailable, active: raw.active, type, color, image, gallery, relatedPackages, relatedAddOns, isPackage: raw.isPackage, moduleSeries, moduleRole, moduleWidth, moduleRequired, rentalModuleMinimum, rentalStartQuantity, rentalRequiredQuantity, components };
+}
+
+export function validateCatalog(input,previousProducts=[]) {
+ if (!Array.isArray(input) || input.length > 500) throw Error('Katalogen må ha 0–500 objekter.');
+ const previousById=new Map(previousProducts.map(p=>[p.id,p]));
+ const output=input.map(raw=>normalizeProduct(raw,previousById.get(raw?.id)));
+ if(new Set(output.map(p=>p.id)).size!==output.length) throw Error('Objekt-ID må være unik.');
+ for (const p of output)
     for (const c of p.components || []) {
         const item = output.find(x => x.id === c.id);
         if (!item || item.isPackage || item.id === p.id || (!p.deletedAt && item.deletedAt))
@@ -95,3 +103,25 @@ export function validateCatalog(input,previousProducts=[]) { if (!Array.isArray(
     for (const id of p.relatedAddOns || [])
         if (id === p.id || !output.some(x => x.id === id && !x.isPackage && (p.deletedAt || !x.deletedAt)))
             throw new Error('Tilvalg må vise til eksisterende enkeltobjekter.'); for(const p of output)if(p.requiredProductId){const base=output.find(x=>x.id===p.requiredProductId);if(!base||base.id===p.id||base.addonOnly||!p.deletedAt&&base.deletedAt)throw Error('Tilvalg må kreve et eksisterende hovedprodukt.');}for(const p of output)if(p.variantGroup&&output.some(x=>x.variantGroup===p.variantGroup&&!compatibleVariants(p,x)))throw Error('En fargegruppe må ha samme kategori og modultype.');for(const p of output)for(const id of [...p.recommendedProducts,...p.rentalAlternatives])if(id===p.id||!output.some(x=>x.id===id&&recommendationCandidate(x)&&(p.deletedAt||!x.deletedAt)))throw Error('Anbefalte produkter må vise til eksisterende enkeltprodukter.');for(const p of output)if(p.offeringType==='service'&&p.serviceGroup&&output.some(x=>x.id!==p.id&&x.offeringType==='service'&&x.serviceGroup===p.serviceGroup&&(x.serviceVariant===p.serviceVariant||x.serviceOptionLabel!==p.serviceOptionLabel)))throw Error('Tjenestevarianter må ha unike variantnavn og samme navn på velgeren.');for(const series of new Set(output.filter(p=>p.moduleSeries&&p.active&&!p.deletedAt).map(p=>p.moduleSeries))){const modules=output.filter(p=>p.moduleSeries===series&&p.active&&!p.deletedAt&&p.rentalEnabled!==false),required=Object.fromEntries(modules.map(p=>[p.id,p.rentalRequiredQuantity]));const error=sofaLayoutError(modules,required);if(error)throw Error(series+': '+error);}return output.map(p=>({...p,...resolvedRentalRates(p,output)})); }
+
+export function catalogUpdate(input, current) {
+ const products = validateCatalog(input, current);
+ const previousById = new Map(current.map(product => [product.id, product]));
+ const now = new Date().toISOString();
+ return products.map(product => {
+  const previous = previousById.get(product.id);
+  if (previous) {
+   let baseline;
+   try {
+    baseline = normalizeProduct(previous, previous);
+    Object.assign(baseline, resolvedRentalRates(baseline, current));
+   } catch {
+    // A valid edit can repair a legacy row that fails current validation.
+   }
+   if (isDeepStrictEqual(product, baseline)) {
+    return previous.updatedAt ? {...product, updatedAt: previous.updatedAt} : product;
+   }
+  }
+  return {...product, updatedAt: now};
+ });
+}

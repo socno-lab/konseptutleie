@@ -36,7 +36,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {remaining} from './public/catalog-model.js';
 import {createMysqlStore} from './server/store.mjs';
-import {validateCatalog,removeRetiredCosts} from './server/catalog.mjs';
+import {catalogUpdate,removeRetiredCosts} from './server/catalog.mjs';
 import {migrateProducts} from './server/walls.mjs';
 import {digest,secretEqual,hashPassword,verifyPassword,sessionToken,issueSession,expiredCookie} from './server/auth.mjs';
 import {staticImages,imageMime,mediaUsage} from './server/images.mjs';
@@ -46,7 +46,7 @@ const root=path.dirname(fileURLToPath(import.meta.url)),publicRoot=path.join(roo
 const seed=JSON.parse(await readFile(path.join(root,'data/catalog-export-2026-10-17.json'),'utf8'));
 seed.products=migrateProducts(removeRetiredCosts(seed.products));
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.avif':'image/avif','.ico':'image/x-icon','.woff2':'font/woff2'};
-export function publicCatalog(data){configureSiteSettings(data.settings);data={...data,products:withPackageAddons(data.products)};return {...data,products:sortProducts(data.products.filter(p=>p.active&&!p.deletedAt)).map(p=>{const {purchaseUnitPrice,acquisitionCost,dimensionsLegacy,articleNumber,...visible}=p;const rentalRates=rentalRateSets(p,data.products);return {...visible,...(physicalRentalProduct(p)&&(p.qrStock||p.stock-p.unavailable<=0)?{rentalRentedOut:p.stock-p.unavailable<=0}:{}),buyoutUnitPrice:addonBuyoutPrice(p),rentalEnabled:p.rentalEnabled!==false,saleEnabled:salesEnabled(p),salePrice:saleUnitPrice(p),...rentalRates.standard,rentalRates,purchasePrice:resolvedPackagePurchasePrice(p,data.products),maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined};})};}
+export function publicCatalog(data){configureSiteSettings(data.settings);data={...data,products:withPackageAddons(data.products)};return {...data,products:sortProducts(data.products.filter(p=>p.active&&!p.deletedAt)).map(p=>{const {purchaseUnitPrice,acquisitionCost,dimensionsLegacy,articleNumber,updatedAt,...visible}=p;const rentalRates=rentalRateSets(p,data.products);return {...visible,...(physicalRentalProduct(p)&&(p.qrStock||p.stock-p.unavailable<=0)?{rentalRentedOut:p.stock-p.unavailable<=0}:{}),buyoutUnitPrice:addonBuyoutPrice(p),rentalEnabled:p.rentalEnabled!==false,saleEnabled:salesEnabled(p),salePrice:saleUnitPrice(p),...rentalRates.standard,rentalRates,purchasePrice:resolvedPackagePurchasePrice(p,data.products),maxQuantity:remaining(p.id,{},data.products),includes:p.isPackage?(p.components||[]).map(c=>`${c.quantity} × ${data.products.find(x=>x.id===c.id)?.name||'Ukjent objekt'}`):undefined};})};}
 const error=(message,status=400)=>Object.assign(Error(message),{status});
 async function bytes(req,max){if(Number(req.headers['content-length'])>max)throw error('Filen eller forespørselen er for stor.',413);let length=0,large=false;const chunks=[];for await(const chunk of req){length+=chunk.length;if(length>max){large=true;chunks.length=0;}else if(!large)chunks.push(chunk);}if(large)throw error('Filen eller forespørselen er for stor.',413);return Buffer.concat(chunks);}
 async function json(req,max=1500000){if(!req.headers['content-type']?.startsWith('application/json'))throw error('Forventet JSON.',415);try{const value=JSON.parse((await bytes(req,max)).toString('utf8'));if(!value||typeof value!=='object'||Array.isArray(value))throw error('Forventet et JSON-objekt.');return value;}catch(e){if(e.status)throw e;throw error('Ugyldige data.');}}
@@ -242,10 +242,10 @@ export function createServer(options={}){
      const token=sessionToken(req,cookieName);const changed=await store.changePassword(digest(token),await hashPassword(data.password));if(!changed)return out(401,{error:'Innloggingen er utløpt. Logg inn på nytt.'});return out(200,{ok:true,notificationSent:await adminCodes.notifyPasswordChanged(user.email)},{'Set-Cookie':await issueSession(store,cookieName,secure)});
     }
     if(pathname==='/api/admin/trash/purge'&&req.method==='POST'){
-     const input=await json(req,400000),current=await readCatalog();if(input.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});images??=staticImages(publicRoot);const trash=await store.mediaTrashState(),purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)).map(m=>({...m,deletedAt:trash[m.url]||''}));const plan=planTrashPurge(current,all,input),products=validateCatalog(plan.products),saved=await store.purgeTrash(current.revision,products,plan.mediaUrls);if(saved){invalidatePublic();thumbnails.clear();}return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});
+     const input=await json(req,400000),current=await readCatalog();if(input.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});images??=staticImages(publicRoot);const trash=await store.mediaTrashState(),purged=await store.purgedMedia(),all=[...(await store.mediaList()),...(await images)].filter(m=>!purged.includes(m.url)).map(m=>({...m,deletedAt:trash[m.url]||''}));const plan=planTrashPurge(current,all,input),products=catalogUpdate(plan.products,current.products),saved=await store.purgeTrash(current.revision,products,plan.mediaUrls);if(saved){invalidatePublic();thumbnails.clear();}return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});
     }
     const lifecycle=pathname.match(/^\/api\/admin\/products\/([a-z0-9_-]+)\/(trash|restore)$/);
-    if(lifecycle&&req.method==='POST'){const data=await json(req,5000),current=await readCatalog();if(data.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});const products=validateCatalog(changeProductLifecycle(current.products,lifecycle[1],lifecycle[2]));const saved=await store.saveCatalog(current.revision,products);if(saved)invalidatePublic();return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});}
+    if(lifecycle&&req.method==='POST'){const data=await json(req,5000),current=await readCatalog();if(data.revision!==current.revision)return out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});const products=catalogUpdate(changeProductLifecycle(current.products,lifecycle[1],lifecycle[2]),current.products);const saved=await store.saveCatalog(current.revision,products);if(saved)invalidatePublic();return saved?out(200,saved):out(409,{error:'Katalogen er endret. Last inn på nytt før du fortsetter.'});}
     if(pathname==='/api/admin/discounts'){
      if(req.method==='GET')return out(200,await store.readDiscountCodes());
      if(req.method==='PUT'){const data=await json(req,100000);if(!Number.isInteger(data.revision))throw error('Ugyldig versjon.');const codes=validateDiscountCodes(data.codes),saved=await store.saveDiscountCodes(data.revision,codes);return saved?out(200,saved):out(409,{error:'Rabattkodene er endret. Last inn siden på nytt.'});}
@@ -261,7 +261,7 @@ export function createServer(options={}){
       const data=await json(req);
       if(!Number.isInteger(data.revision)||data.revision<0)throw error('Ugyldig katalogversjon.');
       const current=await readCatalog();
-      const products=validateCatalog(data.products,current.products);
+      const products=catalogUpdate(data.products,current.products);
       let result;
       if(data.registerStock!==undefined){
        const {id,count}=data.registerStock??{};
