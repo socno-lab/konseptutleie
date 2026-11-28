@@ -56,7 +56,7 @@ async function load(){
     const shell=document.querySelector('.admin-shell');
     const css=document.createElement('link');
     css.rel='stylesheet';
-    css.href='/admin/navigation.css?v=8';
+    css.href='/admin/navigation.css?v=9';
     const loaded=new Promise(resolve=>{css.onload=css.onerror=resolve;});
     document.head.append(css);
     await loaded;

@@ -49,9 +49,12 @@
 html:has(body>.admin-shell:not([hidden])) {scrollbar-gutter:stable}
 
 @media screen and (min-width:661px) {
+  .admin-shell > .admin-navigation,
+  .admin-shell:not([hidden]) ~ main {
+    width:min(94%,1440px);
+  }
   .admin-shell:not([hidden]) ~ main {
     box-sizing:border-box;
-    width:min(94%,1440px);
     max-width:none;
     margin:0 auto;
     padding:18px 0 56px;
