@@ -23,7 +23,7 @@ Når kontrollen feiler:
 3. Ved en endring som brukeren har bedt om, eller som bare gjelder en annen side: kontroller den berørte funksjonen og sammenlign forsiden med referansebildene på mobil (390 px), smal mobil (320 px) og desktop (1280 px). Ingen horisontal scrolling, strekte bilder eller endrede utsnitt.
 4. En bevisst referanseoppdatering skal dokumentere hvorfor endringen er tillatt og hva som er kontrollert. Generelle ønsker om SEO, hastighet eller opprydding er ikke en bestilling av nytt design.
 
-Referansebilder ligger i `reference/home-mobile-approved-2026-10-23.png` og `reference/home-desktop-approved-2026-10-23.png`.
+Bruk skjermbildene fra den publiserte forsiden 28. november 2026 når du viser eksempler eller sammenligner utformingen på [mobil, 390 × 844](reference/home-mobile-approved-2026-11-28.png) og [desktop, 1280 × 720](reference/home-desktop-approved-2026-11-28.png). Begge viser forsiden uten den separate «Leie / Kjøpe»-bryteren.
 
 Låsen er en regresjonskontroll, ikke tilgangskontroll eller en garanti mot alle mulige visuelle feil. Nye komponenter og uvanlige CSS-overstyringer må også vurderes visuelt.
 
