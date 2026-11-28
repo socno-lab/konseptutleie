@@ -492,11 +492,22 @@ async function camera(){
   }
   frame();
 }
-let pendingAdminPage='';
-function openAdminPage(next){
-  if(working){pendingAdminPage=next;return;}
+const adminPages=['jobs','stock','archive','usage','staff'];
+function adminPageFromUrl(){
+ const next=new URL(location.href).searchParams.get('tab');
+ return adminPages.includes(next)?next:'jobs';
+}
+let pendingAdminPage=null;
+function openAdminPage(next, record=true){
+  if(working){pendingAdminPage={next,record};return;}
   return run(async()=>{
     if(next==='usage')await loadUsage();
+    if(record&&page!==next){
+      const url=new URL(location.href);
+      for(const key of ['item','produkt','labelsFor'])url.searchParams.delete(key);
+      if(next==='jobs')url.searchParams.delete('tab');else url.searchParams.set('tab',next);
+      window.history.pushState({styling:true,page:next},'',url);
+    }
     go(next);
   });
 }
@@ -530,9 +541,9 @@ async function run(fn){
     status.textContent=e.name==='NotAllowedError'?'Kameratilgang mangler. Tillat kamera eller skriv inn etikett-ID.':e.message;
   }finally{
     working=false;
-    const next=pendingAdminPage;
-    pendingAdminPage='';
-    if(next&&isAdminView())await openAdminPage(next);
+    const pending=pendingAdminPage;
+    pendingAdminPage=null;
+    if(pending&&isAdminView())await openAdminPage(pending.next,pending.record);
   }
 }
 document.addEventListener('click',e=>{
@@ -711,11 +722,21 @@ screen.onsubmit=e=>{
   });
 };
 window.addEventListener('popstate',e=>{
-  if(!data||!e.state?.styling)return;
+  if(!data)return;
+  if(isAdminView()&&(!e.state?.styling||adminPages.includes(e.state.page))){
+    const url=new URL(location.href);
+    if(!e.state?.styling&&['item','produkt','labelsFor'].some(key=>url.searchParams.has(key))){location.reload();return;}
+    openAdminPage(e.state?.page||adminPageFromUrl(),false);return;
+  }
+  if(!e.state?.styling)return;
   jobId=e.state.jobId||jobId;productId=e.state.productId||productId;source=e.state.source||source;go(e.state.page);
 });
 if(invitation)render();else await run(async()=>{await load();const product=new URLSearchParams(location.search).get('labelsFor');if(itemId)await showItem(itemId);else if(product){labels=data.items.filter(i=>i.product===product&&pendingLabel(i)&&!i.labelPrinted).map(i=>i.id);if(labels.length)go('labels');else go('stock');}else if(isAdminView()&&new URLSearchParams(location.search).has('produkt')){
   productId=new URLSearchParams(location.search).get('produkt');
   if(rows.some(row=>row.id===productId))go('product');
   else {go('stock');status.textContent='Produktet finnes ikke i lageroversikten.';}
+}else if(isAdminView()){
+  const next=adminPageFromUrl();
+  if(next==='usage')await loadUsage();
+  go(next);
 }else go(landingPage());});
