@@ -630,7 +630,8 @@ screen.onsubmit=e=>{
       }
       case 'retire':{
         const unit=item(),reason=fields.reason;
-        if(!unit||!confirm('Ta '+productName(unit)+' ('+unit.id+') ut av drift som '+reasons[reason].toLowerCase()+'? '+(unit.job?'Enheten fjernes fra '+jobName(unit.job)+'. ':'')+'Beholdningen oppdateres og etiketten sperres.'))return;
+        if(!unit||!Object.hasOwn(reasons,reason))return;
+        if(prompt('Skriv UT for å ta '+productName(unit)+' ('+unit.id+') ut av drift som '+reasons[reason].toLowerCase()+'. '+(unit.job?'Enheten fjernes fra '+jobName(unit.job)+'. ':'')+'Beholdningen oppdateres og etiketten sperres.')!=='UT')return;
         await api('retire',{id:unit.id,revision:unit.revision,reason});await load();await showItem(unit.id);break;
       }
       case 'claim':await api('claim',{invitation,password:fields.password});invitation=null;window.history.replaceState(null,'',location.pathname+location.search);render();status.textContent='Kontoen er aktiv. Logg inn med e-post og passord.';break;
