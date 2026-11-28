@@ -2,11 +2,18 @@ const $=id=>document.getElementById(id);
 export function mountWorkflow(){
  const form=$('objectForm'),original=[...form.children],sections={};
  const nav=document.createElement('nav');nav.className='workflow-nav';nav.setAttribute('aria-label','Deler av produkteditoren');
- for(const [key,title] of [['basic','1. Grunninfo og bilder'],['prices','2. Priser og leieperioder'],['stock','3. Beholdning og synlighet'],['variants','4. Varianter og pakkeinnhold'],['advanced','5. Flere innstillinger']]){const box=document.createElement('details');box.className='workflow-section';box.id='editor-'+key;box.open=key==='basic';const summary=document.createElement('summary');summary.textContent=title;box.append(summary);sections[key]=box;const b=document.createElement('button');b.type='button';b.textContent=title;b.onclick=()=>{box.open=true;box.scrollIntoView({block:'start',behavior:'smooth'});};nav.append(b);}
+ for(const [key,title,icon] of [['basic','Grunninfo og bilder','▧'],['prices','Priser og leieperioder','◇'],['stock','Beholdning og synlighet','▤'],['variants','Varianter','◫'],['package','Pakkeinnhold','▦'],['advanced','Avansert','⚙']]){
+   const box=document.createElement('section'),button=document.createElement('button');
+   box.className='workflow-section';box.id='editor-'+key;box.setAttribute('aria-label',title);
+   button.type='button';button.dataset.panel=key;button.setAttribute('aria-controls',box.id);
+   const symbol=document.createElement('span');symbol.textContent=icon;symbol.setAttribute('aria-hidden','true');
+   button.append(symbol,' '+title);button.onclick=()=>selectPanel(key);
+   nav.append(button);sections[key]=box;
+ }
  $('editorNote').after(nav,...Object.values(sections));
  const move=(node,key)=>{if(!node)return;const hint=node.nextElementSibling?.matches('p.hint')?node.nextElementSibling:null;sections[key].append(node);if(hint)sections[key].append(hint);};
  const label=(id,key)=>move($(id)?.closest('label'),key);
- for(const id of ['productKind','objectName','objectCategory','objectSubcategory','objectMaterial'])label(id,'basic');
+ for(const id of ['productKind','objectName','objectCategory','objectSubcategory','objectBrand','objectArticleNumber','objectMaterial'])label(id,'basic');
  move($('dimensionFields'),'basic');label('objectDescription','basic');
  move(document.querySelector('.product-images'),'basic');move(document.querySelector('.purpose-admin'),'basic');
  move($('rentalPricingFields'),'prices');
@@ -15,8 +22,11 @@ export function mountWorkflow(){
  for(const id of ['objectPrice','objectWeekPrice','objectMonthPrice','objectPriceOnRequest'])priceFields.insertBefore($(id).closest('label'),preview);
  for(const id of ['saleFields','businessPurchaseFields','buyoutUnitFields'])move($(id),'prices');label('objectDeliveryIncluded','prices');
  for(const id of ['serviceChoice','stockFields','rentalStatusFields'])move($(id),'stock');label('objectActive','stock');label('objectIsExample','stock');
- for(const id of ['serviceFields','moduleFields','variantFields','packageFields','packageCartFields','proposalSettings','wallFields'])move($(id),'variants');
- const group=document.createElement('div');group.id='workflowGroup';sections.variants.querySelector('summary').after(group);
+ for(const id of ['serviceFields','moduleFields','variantFields','wallFields'])move($(id),'variants');
+ const group=document.createElement('div');group.id='workflowGroup';sections.variants.prepend(group);
+ for(const id of ['packageCartFields','packageFields'])move($(id),'package');
+ const basics=document.createElement('div');basics.className='basic-fields';
+ const images=sections.basic.querySelector('.product-images');basics.append(...sections.basic.children);sections.basic.append(basics,images);
  for(const node of original){if(node.parentElement!==form||node.matches('.editor-heading,.editor-actions,#editorNote,#saveStatus'))continue;if(node.matches('.two')&&!node.children.length){node.remove();continue;}move(node,'advanced');}
  const components=$('componentList'),tools=document.createElement('div');tools.innerHTML='<p id="packageCapacity" role="status"></p><h3>Valgt innhold</h3><div id="componentSelected"></div><details><summary>Legg til produkter i pakken</summary><label>Finn produkt til pakken<input type="search" id="componentSearch" placeholder="Navn eller kategori"></label><div id="componentChoices"></div></details>';
  components.before(tools);components.hidden=true;
@@ -40,4 +50,21 @@ export function packageCapacity(products){
  const lines=[...document.querySelectorAll('[data-component]:checked')].map(input=>{const p=products.find(x=>x.id===input.dataset.component),quantity=Number(document.querySelector('[data-count="'+input.dataset.component+'"]').value);return {p,quantity};});
  const fixed=lines.filter(x=>x.p&&!x.p.isService&&x.quantity>0),capacity=fixed.length?Math.min(...fixed.map(x=>Math.floor(Math.max(0,x.p.stock-x.p.unavailable)/x.quantity))):null;
  $('packageCapacity').textContent=lines.length+' produkter valgt'+(capacity===null?' · beholdning avklares':` · inntil ${capacity} komplette pakker ut fra registrert beholdning. Begrenset av: `+fixed.filter(x=>Math.floor(Math.max(0,x.p.stock-x.p.unavailable)/x.quantity)===capacity).map(x=>x.p.name).join(', '))+(lines.some(x=>x.p&&(!x.p.active||x.p.rentalEnabled===false))?' OBS: Pakken inneholder skjulte produkter eller produkter uten leie':'')+'. Dette er ikke en reservasjonssjekk for valgte datoer.';
+}
+
+export function selectPanel(key){
+ for(const button of document.querySelectorAll('.workflow-nav [data-panel]')){
+   const active=button.dataset.panel===key;
+   button.setAttribute('aria-pressed',String(active));
+   $(button.getAttribute('aria-controls')).hidden=!active;
+ }
+}
+export function syncPanels(kind){
+ const buttons=[...document.querySelectorAll('.workflow-nav [data-panel]')];
+ for(const button of buttons){
+   button.hidden=(button.dataset.panel==='package'&&kind!=='package')||
+     (button.dataset.panel==='variants'&&!['module','product','service','wall'].includes(kind));
+ }
+ const current=buttons.find(button=>button.getAttribute('aria-pressed')==='true'&&!button.hidden);
+ selectPanel(current?.dataset.panel||'basic');
 }

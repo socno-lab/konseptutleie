@@ -19,10 +19,10 @@ const products=[
  {id:'deleted',name:'Barstol',category:'Stoler',deletedAt:'today',active:true}
 ];
 function setup(){
- const fields={stockOnly:{checked:false},adminSearch:{value:''},searchAll:{checked:true},adminSubcategoryPanel:{},adminSubcategoriesTitle:{},adminSubcategories:{}};
+ const fields={filterKind:{value:''},filterStock:{value:''},stockOnly:{checked:false},adminSearch:{value:''},searchAll:{checked:true},adminSubcategoryPanel:{},adminSubcategoriesTitle:{},adminSubcategories:{}};
  const state={foldProductSearch,products,tab:'products',categoryFilter:'Stoler',subcategoryFilter:'Barkrakker',el:id=>fields[id],productSubcategory,subcategoryOptions,categoryLabel,subcategoryLabel,escape:String,isServiceOffering:p=>p.offeringType==='service',isWall:p=>!!p.wallGroup,adminCategory:p=>p.category,matchesArea:(p,area)=>!p.deletedAt,matchesWorkflowFilter:()=>true};
  vm.createContext(state);
- for(const [start,end] of [['function matchesStockFilter(p)', 'function adminThumbnail(p)'],['function visibleItems()', 'function renderCategories()'],['function renderSubcategories()','function selectVisible()']])vm.runInContext(source.slice(source.indexOf(start),source.indexOf(end)),state);
+ for(const [start,end] of [['function matchesStockFilter(p)', 'function adminThumbnail(p)'],['function availableStock(p)', 'function renderCategories()'],['function renderSubcategories()','function selectVisible()']])vm.runInContext(source.slice(source.indexOf(start),source.indexOf(end)),state);
  return {state,fields,ids:()=>Array.from(state.visibleItems(),p=>p.id)};
 }
 test('admin chair filter includes hidden and manually assigned products without mixing other categories',()=>{

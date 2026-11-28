@@ -1,0 +1,96 @@
+/* Catalog workspace. This stylesheet is loaded only by the catalog editor. */
+.product-workspace {--rail:186px;--gap:12px;display:grid;grid-template-columns:var(--rail) minmax(0,1fr);background:var(--paper);align-items:start}
+.product-workspace.menu-collapsed {--rail:0px}
+.product-workspace.menu-collapsed #workspaceMenu {display:none}
+.product-workspace #workspaceMenu {position:sticky;top:0;height:100dvh;overflow:auto;background:#323d30;color:#fff;padding:18px 12px;box-sizing:border-box}
+.product-workspace #workspaceMenu .admin-shell-row,.product-workspace #workspaceMenu .admin-navigation {width:100%;display:grid;gap:5px;min-height:0;align-content:start}
+.product-workspace #workspaceMenu .admin-shell-header {border:0}
+.product-workspace #workspaceMenu .brand {width:100%;border-radius:3px;background:var(--paper);padding:5px}
+.product-workspace #workspaceMenu .admin-shell-actions {display:grid;justify-content:stretch;gap:0;margin:12px 0}
+.product-workspace #workspaceMenu :is(.admin-shell-actions,.admin-navigation) :is(a,button) {color:inherit;min-height:36px;justify-content:flex-start;text-align:left;border:0;font-size:13px;background:transparent;padding:7px 10px}
+.product-workspace #workspaceMenu .admin-navigation a[aria-current],.product-workspace #workspaceMenu a:hover {background:#52634c}
+.product-workspace .admin-shell~main.admin-main {grid-column:2;width:100%;height:100dvh;margin:0;padding:12px 16px;box-sizing:border-box;display:flex;flex-direction:column;overflow:auto;min-width:0}
+.product-workspace .admin-main>.section-head {order:-2;margin:0 0 8px}
+.product-workspace .section-head>div:first-child {display:flex;gap:14px;align-items:center}
+.product-workspace #workspaceTitle {font-size:clamp(24px,2.2vw,34px);margin:0;letter-spacing:-.035em}
+#menuToggle,#backToList,.filter-grid>button,.row-actions button,#productActions button {font:inherit;font-size:13px;color:var(--ink);background:var(--paper);border:1px solid var(--line);padding:8px 12px;cursor:pointer}
+.product-workspace .admin-shell~main.admin-main>nav.admin-tabs {order:-1;margin:0 0 5px;padding:0 0 6px}
+.product-workspace .admin-shell~main.admin-main>nav.admin-tabs>button {flex:0 1 auto;min-height:32px}
+.product-workspace .admin-catalog-tools,.product-workspace #status {margin:2px 0;font-size:12px}
+.product-workspace #catalogPanel {min-height:0;display:flex;flex-direction:column;flex:1}
+.product-workspace #adminCategoryPanel,.product-workspace #stockOnlyLabel {display:none}
+.product-workspace #adminLayout {display:grid;grid-template-columns:minmax(250px,min(30%,390px)) minmax(0,1fr);gap:var(--gap);min-height:0;flex:1;margin:8px 0 0;align-items:stretch}
+.product-workspace :is(.admin-sidebar,.admin-editor) {position:static;overflow:auto;min-height:0;min-width:0;max-height:none;border:1px solid var(--line);background:#fff;padding:14px;box-sizing:border-box;scrollbar-gutter:stable}
+.product-workspace .admin-sidebar {display:block}
+.product-workspace .admin-sidebar #objectList {display:grid;gap:4px;max-height:none;overflow:visible}
+.product-workspace .admin-sidebar label {display:grid;gap:4px;font-size:12px}
+.product-workspace .admin-sidebar .check-label {display:flex;align-items:center}
+.product-workspace .admin-sidebar .admin-new {margin:0 0 10px}
+.list-filters {margin:8px 0;padding:7px 0;border-block:1px solid var(--line)}
+.list-filters summary,.row-actions summary,#productActions summary {cursor:pointer;font-size:13px}
+.filter-grid,.basic-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start}
+.product-workspace :is(.admin-sidebar,.admin-editor) :is(input:not([type=checkbox],[type=color],[type=radio],[type=file]),select) {min-width:0;width:100%;min-height:38px;height:auto;padding:7px 9px;box-sizing:border-box}
+.product-workspace #adminListCount {margin:8px 0}
+.product-row {position:relative;border:1px solid var(--line);border-left:3px solid transparent}
+.product-row.selected {background:#e9eee2;border-left-color:var(--olive)}
+.product-workspace .product-row .admin-item {width:100%;margin:0;background:transparent;border:0;display:grid;grid-template-columns:50px minmax(0,1fr);padding:8px 30px 8px 7px;align-items:center;gap:8px;text-align:left}
+.product-workspace .admin-item-thumbnail {width:50px;height:54px}
+.product-workspace .admin-item-copy {display:grid;gap:2px}
+.product-workspace .admin-item-copy small {line-height:1.35;font-size:11px}
+.row-actions {position:absolute;right:2px;top:5px}
+.row-actions summary {list-style:none;text-align:right;padding:4px 7px}
+.row-actions[open],#productActions[open] {z-index:2;background:white;box-shadow:0 2px 6px #0002}
+.row-actions a,.row-actions button {display:block;font:inherit;font-size:12px;padding:8px;color:inherit}
+.product-workspace .editor-heading {display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0}
+.product-workspace #editorTitle {font-size:clamp(20px,2vw,28px);margin:0;line-height:1.15;flex:1 1 200px}
+#publishedState,#previewProduct {font-size:12px}
+.product-workspace .workflow-nav {display:flex;flex-wrap:wrap;gap:3px;border-bottom:1px solid var(--line);margin:10px 0}
+.product-workspace .workflow-nav button {flex:1 1 auto;border:0;border-bottom:2px solid transparent;min-height:38px;background:transparent;padding:5px}
+.product-workspace .workflow-nav button[aria-pressed=true] {background:#edf0e7;border-color:var(--olive);color:var(--ink)}
+.product-workspace #objectForm {margin:0;display:flex;flex-direction:column;gap:6px;padding:0;min-height:100%}
+.product-workspace #objectForm>.workflow-section {flex:1;margin:0;padding:4px 0;border:0}
+.product-workspace .basic-fields>* {min-width:0;margin:0}
+.basic-fields>fieldset,.basic-fields>p,.basic-fields>label:has(textarea) {grid-column:1/-1}
+.product-workspace .admin-editor {container-type:inline-size}
+@container(min-width:620px){
+ #editor-basic {display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start;gap:14px}
+}
+.product-workspace .product-images {margin:0;min-width:0}
+.product-workspace .main-image img {width:100%;height:clamp(140px,20vh,240px);object-fit:contain}
+.product-workspace #objectForm>.editor-actions {position:sticky;bottom:-14px;order:2;display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:var(--paper);padding:10px;border-top:1px solid var(--line);z-index:3;margin:10px -4px 0}
+.product-workspace #saveStatus,.product-workspace #savedAt,.product-workspace #dirty {margin:0;font-size:12px}
+#backToList {display:none}
+#leaveProduct {max-width:min(460px,92vw);padding:20px;background:var(--paper);border:1px solid var(--line)}
+#leaveProduct::backdrop {background:#20281e75}
+#leaveProduct form {display:flex;gap:8px;flex-wrap:wrap}
+.product-workspace [hidden] {display:none!important}
+@media(max-width:760px){
+ .product-workspace {display:block}
+ .product-workspace #workspaceMenu {position:static;height:auto}
+ .product-workspace .admin-shell~main.admin-main {height:auto;min-height:100dvh;padding:10px;overflow:visible}
+ .product-workspace #adminLayout {display:block}
+ .product-workspace :is(.admin-sidebar,.admin-editor) {padding:10px;scrollbar-gutter:auto}
+ .product-workspace .admin-editor,.product-workspace.editing-product .admin-sidebar {display:none}
+ .product-workspace.editing-product .admin-editor,#backToList {display:block}
+ #backToList {margin-bottom:12px}
+ .product-workspace .admin-editor {overflow:visible}
+ .product-workspace #objectForm>.editor-actions {bottom:0}
+ .product-workspace .workflow-nav button {min-height:44px}
+}
+
+.product-workspace .admin-sidebar .admin-new {grid-template-columns:minmax(0,1fr)}
+.product-workspace .product-row .admin-item-thumbnail img {width:100%;height:100%}
+.product-workspace .product-images .main-image .image-zoom {width:100%}
+.product-workspace .basic-fields>label:has(#objectName),.product-workspace .basic-fields>label:has(#objectMaterial) {grid-column:1/-1}
+
+.product-workspace #workspaceMenu .admin-shell-row {display:contents}
+.product-workspace #workspaceMenu {display:flex;flex-direction:column;gap:10px}
+.product-workspace #workspaceMenu .admin-shell-header {display:contents}
+.product-workspace #workspaceMenu .admin-shell-actions {order:2;margin-top:auto;border-top:1px solid #65735f;padding-top:8px}
+.product-workspace #workspaceMenu .admin-navigation {margin-top:8px}
+.product-workspace .product-row .admin-item-copy {color:var(--ink)}
+.product-workspace .product-row .admin-item-copy small {color:var(--muted)}
+.product-workspace .editor-heading #publishedState {background:#e9eee2}
+@media(max-width:760px){
+ .product-workspace #workspaceMenu .admin-shell-actions {order:0}
+}
