@@ -220,7 +220,7 @@
 #screen .stock-tools-options .button {justify-content:flex-start;border:0}
 @media(max-width:520px){.stock-tools-options{position:static;width:auto;min-width:0}}
 
-@media screen and (min-width:661px) {
+@media screen {
   .admin-shell:not([hidden]) ~ main #screen :is(.filters,form[data-form="register"]) :is(input:not([type=checkbox]):not([type=radio]),select) {
     min-height:48px;
   }

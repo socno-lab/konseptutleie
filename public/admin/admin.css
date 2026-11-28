@@ -40,8 +40,8 @@
 /* Underlines follow text rather than the bottom edge of tall click targets. */
 .admin-body .text-button{border-bottom:0;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-skip-ink:auto}.admin-body .text-button:disabled{cursor:default;opacity:.5}.admin-body .text-button:hover{text-underline-offset:3px}
 
-/* Desktop editing controls share a height; their column determines the width. */
-@media screen and (min-width:661px) {
+/* Editing controls share a height; their column determines the width. */
+@media screen {
   body.admin-body:not(:has(> .admin-shell[hidden])) :is(
     input:not([type]), input:is([type=text],[type=search],[type=email],[type=url],[type=tel],[type=password],[type=number],[type=date],[type=time],[type=datetime-local]),
     select:not([multiple]):not([size])
@@ -65,9 +65,15 @@
     max-width:100%;
   }
 }
-@media screen and (min-width:661px) and (forced-colors:active) {
+@media screen and (forced-colors:active) {
   body.admin-body:not(:has(> .admin-shell[hidden])) select:not([multiple]):not([size]) {
     appearance:auto;
     background-image:none;
   }
+}
+
+@media screen and (max-width:660px) {
+  #mediaPanel > label {display:grid;gap:6px;margin-block:12px}
+  #mediaPanel :is(#librarySearch,#mediaUsageFilter) {width:100%;font-size:16px;border:1px solid var(--line);background-color:var(--paper);color:var(--ink)}
+  .admin-body main :is(label,fieldset) {min-inline-size:0}
 }
