@@ -342,10 +342,16 @@ function render(){
     }else if(page==='item'){
       const i=item();html=i?'<h1>'+escape(productName(i))+'</h1><section><div class="scan-identity">'+itemPhoto(i)+'<div><h2>'+states[i.state]+'</h2><p>'+escape(i.id)+' '+escape(jobName(i.job))+'</p></div></div>'+button('Skriv ut etikett','label',i.id)+'</section>':'<h1>Ukjent etikett</h1>';
       if(itemOrigin==='product')html=button('← Til produktet','product',productId)+html;
-      if(i?.state==='ready')html+=openJobs().length?'<form data-form="checkout"><label>Stylingoppdrag<select name="job">'+jobOptions()+'</select></label>'+submit(source==='pick'&&itemOrigin==='product'?'Legg til på oppdrag':'Sjekk ut på oppdrag')+'</form>':button('Nytt stylingoppdrag','new');
+      const holdButton=button('Hold tilbake','hold');
+      if(i?.state==='ready'){
+        const checkout=submit(source==='pick'&&itemOrigin==='product'?'Legg til på oppdrag':'Sjekk ut på oppdrag');
+        html+=openJobs().length
+          ? '<form data-form="checkout"><label>Stylingoppdrag<select name="job">'+jobOptions()+'</select></label><div class="actions">'+checkout+holdButton+'</div></form>'
+          : '<div class="actions">'+button('Nytt stylingoppdrag','new')+holdButton+'</div>';
+      }
       if(i?.state==='out')html+=button('Registrer retur','return');
       if(i&&['check','held'].includes(i.state))html+=button('Godkjenn for lager','ready');
-      if(i&&['check','ready'].includes(i.state))html+=button('Hold tilbake','hold');
+      if(i?.state==='check')html+=holdButton;
       const retired=data.retired?.find(unit=>unit.id===itemId);
       if(retired)html='<h1>'+escape(productName(retired))+'</h1><p>'+escape(itemId)+' · Tatt ut av drift · '+escape(reasons[retired.retiredReason])+'</p>';
       if(i&&isAdminView())html+='<form data-form="retire"><label>Ta ut av drift<select name="reason" required><option value="">Velg årsak</option>'+Object.entries(reasons).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('')+'</select></label>'+submit('Ta dette eksemplaret ut av drift')+'</form>';
@@ -607,6 +613,7 @@ document.addEventListener('click',e=>{
       jobId=value;await load();
       await loadJobReturns();
     }
+    if(action==='hold'&&prompt('Skriv HOLD for å holde tilbake '+productName(item())+' ('+itemId+'). Eksemplaret blir utilgjengelig for utleie.')!=='HOLD')return;
     if(['ready','hold','return'].includes(action)){await move(item(),action==='return'?'in':action,item().job);return showItem(itemId);}
     if(action==='disable'){if(!confirm('Deaktiver tilgangen for '+value+'?'))return;await api('disable',{email:value});await load();inviteUrl='';return go('staff');}
     if(action==='resend-invite')return sendStylistInvite(value);
