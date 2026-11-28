@@ -225,3 +225,5 @@
     min-height:48px;
   }
 }
+
+.stock-confirmation{width:min(28rem,calc(100% - 2rem));box-sizing:border-box;margin:auto;padding:1.25rem;border:1px solid #adb5a5;border-radius:.5rem;color:inherit;background:#fff}.stock-confirmation::backdrop{background:rgb(0 0 0 / .4)}.stock-confirmation form{margin:0;padding:0;border:0}.stock-confirmation input{width:100%;box-sizing:border-box}

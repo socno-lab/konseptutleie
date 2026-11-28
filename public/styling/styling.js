@@ -500,6 +500,28 @@ function openAdminPage(next){
     go(next);
   });
 }
+function confirmStockAction(word,title,description){
+  const dialog=document.createElement('dialog');
+  dialog.className='stock-confirmation';
+  dialog.setAttribute('aria-labelledby','stock-confirm-title');
+  dialog.innerHTML='<form method="dialog"><h2 id="stock-confirm-title">'+escape(title)+'</h2><p>'+escape(description)+'</p>'
+    +'<label>Skriv '+word+' for å bekrefte<input autofocus autocomplete="off" autocapitalize="characters"></label>'
+    +'<div class="actions"><button type="button" class="button button-outline">Avbryt</button>'
+    +'<button type="submit" class="button dark" disabled>Bekreft</button></div></form>';
+  const input=dialog.querySelector('input'),confirmButton=dialog.querySelector('[type=submit]');
+  input.oninput=()=>{confirmButton.disabled=input.value!==word;};
+  dialog.querySelector('[type=button]').onclick=()=>dialog.close();
+  dialog.querySelector('form').onsubmit=e=>{
+    e.preventDefault();
+    if(input.value===word)dialog.close('confirmed');
+  };
+  document.body.append(dialog);
+  dialog.showModal();
+  return new Promise(resolve=>dialog.addEventListener('close',()=>{
+    dialog.remove();
+    resolve(dialog.returnValue==='confirmed');
+  },{once:true}));
+}
 async function run(fn){
   if(working)return;working=true;
   try{await fn();}catch(e){
@@ -613,7 +635,7 @@ document.addEventListener('click',e=>{
       jobId=value;await load();
       await loadJobReturns();
     }
-    if(action==='hold'&&prompt('Skriv HOLD for å holde tilbake '+productName(item())+' ('+itemId+'). Eksemplaret blir utilgjengelig for utleie.')!=='HOLD')return;
+    if(action==='hold'&&!await confirmStockAction('HOLD','Hold tilbake',productName(item())+' ('+itemId+'). Eksemplaret blir utilgjengelig for utleie.'))return;
     if(['ready','hold','return'].includes(action)){await move(item(),action==='return'?'in':action,item().job);return showItem(itemId);}
     if(action==='disable'){if(!confirm('Deaktiver tilgangen for '+value+'?'))return;await api('disable',{email:value});await load();inviteUrl='';return go('staff');}
     if(action==='resend-invite')return sendStylistInvite(value);
@@ -631,7 +653,7 @@ screen.onsubmit=e=>{
       case 'retire':{
         const unit=item(),reason=fields.reason;
         if(!unit||!Object.hasOwn(reasons,reason))return;
-        if(prompt('Skriv UT for å ta '+productName(unit)+' ('+unit.id+') ut av drift som '+reasons[reason].toLowerCase()+'. '+(unit.job?'Enheten fjernes fra '+jobName(unit.job)+'. ':'')+'Beholdningen oppdateres og etiketten sperres.')!=='UT')return;
+        if(!await confirmStockAction('UT','Ta ut av drift',productName(unit)+' ('+unit.id+') tas ut av drift som '+reasons[reason].toLowerCase()+'. '+(unit.job?'Enheten fjernes fra '+jobName(unit.job)+'. ':'')+'Beholdningen oppdateres og etiketten sperres.'))return;
         await api('retire',{id:unit.id,revision:unit.revision,reason});await load();await showItem(unit.id);break;
       }
       case 'claim':await api('claim',{invitation,password:fields.password});invitation=null;window.history.replaceState(null,'',location.pathname+location.search);render();status.textContent='Kontoen er aktiv. Logg inn med e-post og passord.';break;
